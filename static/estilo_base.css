@@ -1,0 +1,54 @@
+/* styles.css */
+
+/* Variables de color */
+:root {
+    --color-primario: #5c0010;
+    --color-secundario: #9e3b42;
+    --color-enfasis: #e4717a;
+    --color-suave: #f5abb0;
+    --color-fondo-base: #ffe4ea;
+  }
+  
+  /* Estilo global */
+  body {
+    font-family: Arial, sans-serif;
+    background-color: var(--color-fondo-base);
+    color: var(--color-primario);
+    margin: 0;
+    padding: 0;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--color-primario);
+  }
+  
+  a {
+    color: var(--color-enfasis);
+    text-decoration: none;
+  }
+  
+  a:hover {
+    color: var(--color-secundario);
+  }
+  
+  button {
+    background-color: var(--color-primario);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: var(--color-secundario);
+  }
+  
+  .card {
+    background-color: var(--color-suave);
+    border: 1px solid var(--color-secundario);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
