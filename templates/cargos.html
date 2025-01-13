@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Cargos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../static/estilo_base.css">
+</head>
+<body>
+  <div class="container my-5">
+    <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Cargos</h1>
+
+    <!-- Botón para Crear -->
+    <button type="button" class="btn mb-3" style="background-color: var(--color-primario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCargo">
+      + Crear Nuevo Cargo
+    </button>
+
+    <!-- Tabla de Cargos -->
+    <div class="table-responsive">
+      <table class="table table-bordered text-center">
+        <thead style="background-color: var(--color-suave);">
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Vacantes</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Tecnico de Infraestructura</td>
+            <td>Encargado de resolver problemas y realizar el mantenimiento de la Infraestructura</td>
+            <td>1</td>
+            <td>
+              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCargo">Editar</button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerCargo">Ver</button>
+              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarCargo">Eliminar</button>
+            </td>
+          </tr>
+          <!-- Ejemplo adicional -->
+          <tr>
+            <td>2</td>
+            <td>Personal de Limpieza</td>
+            <td>Encargado de mantener la limpieza e higiene del lugar de trabajo</td>
+            <td>1</td>
+            <td>
+              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCargo">Editar</button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerCargo">Ver</button>
+              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarCargo">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal para Crear/Actualizar -->
+  <div class="modal fade" id="modalCargo" tabindex="-1" aria-labelledby="modalCargoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalCargoLabel">Crear/Editar Cargo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3">
+              <label for="nombreCargo" class="form-label">Nombre</label>
+              <input type="text" class="form-control" id="nombreCargo" placeholder="Ej. Operario" required>
+            </div>
+            <div class="mb-3">
+              <label for="descripcionCargo" class="form-label">Descripción</label>
+              <textarea class="form-control" id="descripcionCargo" rows="3" placeholder="Ingresa una breve descripción" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="vacantesCargo" class="form-label">Vacantes</label>
+              <input type="text" class="form-control" id="vacantesCargo" placeholder="Ingresa la cantidad de Vacantes. Ej. 2" required>
+            </div>
+            <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Ver Detalles -->
+  <div class="modal fade" id="modalVerCargo" tabindex="-1" aria-labelledby="modalVerCargoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalVerCargoLabel">Detalles del Cargo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Nombre:</strong> Tecnico de Infraestructura</p>
+          <p><strong>Descripción:</strong> Encargado de resolver problemas y realizar el mantenimiento de la Infraestructura</p>
+          <p><strong>Vacantes:</strong> 1</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Confirmar Eliminación -->
+  <div class="modal fade" id="modalEliminarCargo" tabindex="-1" aria-labelledby="modalEliminarCargoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-enfasis); color: white;">
+          <h5 class="modal-title" id="modalEliminarCargoLabel">Confirmar Eliminación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas eliminar este Cargo?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
