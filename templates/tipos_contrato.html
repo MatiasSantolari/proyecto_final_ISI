@@ -22,27 +22,26 @@
         <thead style="background-color: var(--color-suave);">
           <tr>
             <th>ID</th>
-            <th>Nombre</th>
             <th>Descripción</th>
+            <th>Costo</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>1</td>
-            <td>Contrato Indefinido</td>
             <td>Contrato sin límite de duración</td>
+            <td>$5000</td>
             <td>
               <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalContrato">Editar</button>
               <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerContrato">Ver</button>
               <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarContrato">Eliminar</button>
             </td>
           </tr>
-          <!-- Ejemplo adicional -->
           <tr>
             <td>2</td>
-            <td>Contrato Temporal</td>
             <td>Contrato con duración determinada</td>
+            <td>$3000</td>
             <td>
               <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalContrato">Editar</button>
               <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerContrato">Ver</button>
@@ -65,12 +64,12 @@
         <div class="modal-body">
           <form>
             <div class="mb-3">
-              <label for="nombreContrato" class="form-label">Nombre</label>
-              <input type="text" class="form-control" id="nombreContrato" placeholder="Ej. Contrato Indefinido" required>
-            </div>
-            <div class="mb-3">
               <label for="descripcionContrato" class="form-label">Descripción</label>
               <textarea class="form-control" id="descripcionContrato" rows="3" placeholder="Ingresa una breve descripción" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="costoContrato" class="form-label">Costo</label>
+              <input type="number" class="form-control" id="costoContrato" placeholder="Ej. 5000" required>
             </div>
             <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
           </form>
@@ -88,8 +87,8 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p><strong>Nombre:</strong> Contrato Indefinido</p>
           <p><strong>Descripción:</strong> Contrato sin límite de duración</p>
+          <p><strong>Costo:</strong> $5000</p>
         </div>
       </div>
     </div>

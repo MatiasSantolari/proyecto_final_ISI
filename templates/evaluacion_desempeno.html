@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Evaluaciones de Desempeño</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../static/estilo_base.css">
+</head>
+<body>
+  <div class="container my-5">
+    <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Evaluaciones de Desempeño</h1>
+
+    <!-- Botón para Crear -->
+    <button type="button" class="btn mb-3" style="background-color: var(--color-primario); color: white;" data-bs-toggle="modal" data-bs-target="#modalEvaluacion">
+      + Crear Nueva Evaluación
+    </button>
+
+    <!-- Tabla de Evaluaciones -->
+    <div class="table-responsive">
+      <table class="table table-bordered text-center">
+        <thead style="background-color: var(--color-suave);">
+          <tr>
+            <th>ID</th>
+            <th>Fecha de Evaluación</th>
+            <th>Descripción</th>
+            <th>Comentarios</th>
+            <th>Calificación Final</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>2025-01-10</td>
+            <td>Evaluación Anual del Desempeño</td>
+            <td>Buen rendimiento en proyectos clave</td>
+            <td>85</td>
+            <td>
+              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalEvaluacion">Editar</button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerEvaluacion">Ver</button>
+              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarEvaluacion">Eliminar</button>
+            </td>
+          </tr>
+          <!-- Ejemplo adicional -->
+          <tr>
+            <td>2</td>
+            <td>2025-01-08</td>
+            <td>Revisión Semestral</td>
+            <td>Necesita mejorar habilidades de comunicación</td>
+            <td>70</td>
+            <td>
+              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalEvaluacion">Editar</button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerEvaluacion">Ver</button>
+              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarEvaluacion">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal para Crear/Actualizar Evaluación -->
+  <div class="modal fade" id="modalEvaluacion" tabindex="-1" aria-labelledby="modalEvaluacionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalEvaluacionLabel">Crear/Editar Evaluación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3">
+              <label for="fechaEvaluacion" class="form-label">Fecha de Evaluación</label>
+              <input type="date" class="form-control" id="fechaEvaluacion" required>
+            </div>
+            <div class="mb-3">
+              <label for="descripcionEvaluacion" class="form-label">Descripción</label>
+              <textarea class="form-control" id="descripcionEvaluacion" rows="2" placeholder="Ingresa una descripción breve" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="comentariosEvaluacion" class="form-label">Comentarios</label>
+              <textarea class="form-control" id="comentariosEvaluacion" rows="3" placeholder="Ingresa comentarios adicionales"></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="calificacionFinal" class="form-label">Calificación Final</label>
+              <input type="number" class="form-control" id="calificacionFinal" placeholder="Ej. 85" required>
+            </div>
+            <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Ver Detalles -->
+  <div class="modal fade" id="modalVerEvaluacion" tabindex="-1" aria-labelledby="modalVerEvaluacionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalVerEvaluacionLabel">Detalles de la Evaluación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Fecha de Evaluación:</strong> 2025-01-10</p>
+          <p><strong>Descripción:</strong> Evaluación Anual del Desempeño</p>
+          <p><strong>Comentarios:</strong> Buen rendimiento en proyectos clave</p>
+          <p><strong>Calificación Final:</strong> 85</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Confirmar Eliminación -->
+  <div class="modal fade" id="modalEliminarEvaluacion" tabindex="-1" aria-labelledby="modalEliminarEvaluacionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-enfasis); color: white;">
+          <h5 class="modal-title" id="modalEliminarEvaluacionLabel">Confirmar Eliminación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas eliminar esta evaluación de desempeño?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
