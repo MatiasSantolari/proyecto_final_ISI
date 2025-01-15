@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Tipos de Criterios de Evaluacion</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../static/estilo_base.css">
+</head>
+<body>
+  <div class="container my-5">
+    <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Tipos de Criterios de Evaluacion</h1>
+
+    <!-- Botón para Crear -->
+    <button type="button" class="btn mb-3" style="background-color: var(--color-primario); color: white;" data-bs-toggle="modal" data-bs-target="#modalTipoCriterioEvaluacion">
+      + Crear Nuevo Tipo Tipo de Criterio de Evaluacion
+    </button>
+
+    <!-- Tabla de Tipos de Criterios de Evaluacion -->
+    <div class="table-responsive">
+      <table class="table table-bordered text-center">
+        <thead style="background-color: var(--color-suave);">
+          <tr>
+            <th style="width: 2%;">ID</th>
+            <th style="width: 18%;">nombre</th>
+            <th style="width: 65%;">Descripcion</th>
+            <th style="width: 15%;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Habilidades Blandas</td>
+            <td>Criterios enfocados en la interacción interpersonal y trabajo en equipo.</td>
+            <td>
+              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalTipoCriterioEvaluacion">Editar</button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerTipoCriterioEvaluacion">Ver</button>
+              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarTipoCriterioEvaluacion">Eliminar</button>
+            </td>
+          </tr>
+          <!-- Ejemplo adicional -->
+          <tr>
+            <td>2</td>
+            <td>Competencias Técnicas</td>
+            <td>Criterios relacionados con el conocimiento técnico y habilidades específicas del puesto.</td>
+            <td>
+              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalTipoCriterioEvaluacion">Editar</button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerTipoCriterioEvaluacion">Ver</button>
+              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarTipoCriterioEvaluacion">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal para Crear/Editar TipoCriterioEvaluacion -->
+  <div class="modal fade" id="modalTipoCriterioEvaluacion" tabindex="-1" aria-labelledby="modalTipoCriterioEvaluacionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalTipoCriterioEvaluacionLabel">Crear/Editar TipoCriterioEvaluacion</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3">
+              <label for="nombreTipoCriterioEvaluacion" class="form-label">Nombre del Tipo de Criterio de Evaluacion</label>
+              <input type="text" class="form-control" id="nombreTipoCriterioEvaluacion" placeholder="Ingresa el Nombre del Tipo de Criterio de Evaluacion" required></input>
+            </div>
+            <div class="mb-3">
+              <label for="descripcionTipoCriterioEvaluacion" class="form-label">Descripción del Tipo de Criterio de Evaluacion</label>
+              <textarea class="form-control" id="descripcionTipoCriterioEvaluacion" rows="3" placeholder="Ingresa la descripcion del Tipo de Criterio de Evaluacion" required></textarea>
+            </div>
+            <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Ver Detalles -->
+  <div class="modal fade" id="modalVerTipoCriterioEvaluacion" tabindex="-1" aria-labelledby="modalVerTipoCriterioEvaluacionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalVerTipoCriterioEvaluacionLabel">Detalles del Tipo de Criterio de Evaluacion</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Nombre:</strong> Habilidades Blandas</p>
+          <p><strong>Descripcion:</strong> Criterios enfocados en la interacción interpersonal y trabajo en equipo</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Confirmar Eliminación -->
+  <div class="modal fade" id="modalEliminarTipoCriterioEvaluacion" tabindex="-1" aria-labelledby="modalEliminarTipoCriterioEvaluacionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-enfasis); color: white;">
+          <h5 class="modal-title" id="modalEliminarTipoCriterioEvaluacionLabel">Confirmar Eliminación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas eliminar este Tipo de Criterio de Evaluacion?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
