@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Personas</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../static/estilo_base.css">
+</head>
+<body>
+  <div class="container my-5">
+    <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Personas</h1>
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <!-- Botón para Crear -->
+    <button type="button" class="btn mb-3" style="background-color: var(--color-primario); color: white;" data-bs-toggle="modal" data-bs-target="#modalPersona">
+      + Crear Nueva Persona
+    </button>
+
+    <!-- Buscador por DNI -->
+    <div class="ms-3">
+      <input type="text" class="form-control" id="buscadorDNI" placeholder="Buscar por DNI" style="width: 200px;">
+    </div>
+
+    <!-- Filtro de Tipo de Persona -->
+    <div class="mb-3">
+      <label for="filtroTipoPersona" class="form-label">Filtrar por Tipo de Persona:</label>
+      <select class="form-select" id="filtroTipoPersona">
+        <option value="todos" selected>Todos</option>
+        <option value="empleado">Empleados</option>
+        <option value="postulante">Postulantes</option>
+      </select>
+    </div>
+  </div>
+
+    <!-- Tabla de Personas -->
+    <div class="table-responsive">
+      <table class="table table-bordered text-center">
+        <thead style="background-color: var(--color-suave);">
+          <tr>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>DNI</th>
+            <th>Email</th>
+            <th>Telefono</th>
+            <th>Fecha Nacimiento</th>
+            <th>Direccion</th>
+            <th>Tipo Persona</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="fila-persona" data-tipo="postulante">
+            <td>Juan</td>
+            <td>Pérez</td>
+            <td>12345678</td>
+            <td>juan.perez@email.com</td>
+            <td>+54 11 4567 8910</td>
+            <td>1985-03-15</td>
+            <td>Av. Siempreviva 123, CABA</td>
+            <td>Postulante</td>
+            <td>
+              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalPersona">Editar</button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerPersona">Ver</button>
+              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarPersona">Eliminar</button>
+            </td>
+          </tr>
+          <!-- Ejemplo adicional -->
+          <tr class="fila-persona" data-tipo="empleado">
+            <td>Ana</td>
+            <td>López</td>
+            <td>87654321</td>
+            <td>ana.lopez@email.com</td>
+            <td>+54 11 9876 5432</td>
+            <td>1990-07-22</td>
+            <td>Calle Falsa 456, Córdoba</td>
+            <td>Empleado</td>
+            <td>
+              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalPersona">Editar</button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerPersona">Ver</button>
+              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarPersona">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal para Crear/Editar Persona -->
+  <div class="modal fade" id="modalPersona" tabindex="-1" aria-labelledby="modalPersonaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalPersonaLabel">Crear/Editar Persona</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3">
+              <label for="nombrePersona" class="form-label">Nombre</label>
+              <input type="text" class="form-control" id="nombrePersona" placeholder="Ingrese el Nombre" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="apellidoPersona" class="form-label">Apellido</label>
+              <input type="text" class="form-control" id="apellidoPersona" placeholder="Ingrese el Apellido" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="dniPersona" class="form-label">DNI</label>
+              <input type="text" class="form-control" id="dniPersona" placeholder="Ingrese el DNI" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="emailPersona" class="form-label">Email</label>
+              <input type="text" class="form-control" id="emailPersona" placeholder="Ingrese el Email" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="telefonoPersona" class="form-label">Telefono</label>
+              <input type="text" class="form-control" id="telefonoPersona" placeholder="Ingrese el Telefono" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="fechaNacimientoPersona" class="form-label">Fecha de Nacimiento</label>
+              <input type="date" class="form-control" id="fechaNacimientoPersona" required>
+            </div>
+            <div class="mb-3">
+              <label for="direccionPersona" class="form-label">Direccion</label>
+              <input type="text" class="form-control" id="direccionPersona" placeholder="ej: Av. Siempreviva 123, CABA" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="tipoPersona" class="form-label">Tipo de Persona</label>
+              <select class="form-select" id="tipoPersona" required>
+                <option value="" disabled selected>Selecciona el Tipo de Persona</option>
+                <option value="postulante">Postulante</option>
+                <option value="empleado">Empleado</option>
+              </select>
+            </div>
+
+            <!-- Campos dinámicos -->
+            <div id="campoEmpleado" class="mb-3" style="display: none;">
+              <label for="estadoEmpleado" class="form-label">Estado del Empleado</label>
+              <select class="form-select" id="estadoEmpleado">
+                <option value="" disabled selected>Selecciona el Estado del Empleado</option>
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+                <option value="licencia">En licencia</option>
+                <option value="suspendido">Suspendido</option>
+                <option value="prueba">En Periodo de Prueba</option>
+                <option value="jubilado">Jubilado</option>
+              </select>
+            </div>
+
+            <div id="campoPostulante" class="mb-3" style="display: none;">
+              <label for="fechaPostulacion" class="form-label">Fecha de Postulación</label>
+              <input type="date" class="form-control" id="fechaPostulacion" required>
+              <label for="estadoPostulante" class="form-label">Estado de Postulación</label>
+              <select class="form-select" id="estadoPostulante">
+                <option value="" disabled selected>Selecciona el Estado del Postulante</option>
+                <option value="proceso">En Proceso</option>
+                <option value="aceptado">Aceptado</option>
+                <option value="rechazado">Rechazado</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Ver Detalles -->
+  <div class="modal fade" id="modalVerPersona" tabindex="-1" aria-labelledby="modalVerPersonaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalVerPersonaLabel">Detalles de la Persona</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Nombre:</strong> Juan</p>
+          <p><strong>Apellido:</strong> Pérez</p>
+          <p><strong>DNI:</strong> 12345678</p>
+          <p><strong>Email:</strong> juan.perez@email.com</p>
+          <p><strong>Telefono:</strong> +54 11 4567 8910</p>
+          <p><strong>Fecha de Nacimiento:</strong> 1985-03-15</p>
+          <p><strong>Direccion:</strong> Av. Siempreviva 123, CABA</p>
+          <p><strong>Tipo de Persona:</strong> Postulante</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Confirmar Eliminación -->
+  <div class="modal fade" id="modalEliminarPersona" tabindex="-1" aria-labelledby="modalEliminarPersonaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-enfasis); color: white;">
+          <h5 class="modal-title" id="modalEliminarPersonaLabel">Confirmar Eliminación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas eliminar esta Persona?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    document.getElementById("buscadorDNI").addEventListener("input", function () {
+      const filtro = this.value.trim(); // Valor del buscador
+      const filas = document.querySelectorAll(".fila-persona"); // Todas las filas de la tabla
+    
+      filas.forEach(fila => {
+        const dni = fila.querySelector("td:nth-child(3)").textContent; // Columna de DNI
+        if (dni.includes(filtro)) {
+          fila.style.display = ""; // Mostrar fila
+        } else {
+          fila.style.display = "none"; // Ocultar fila
+        }
+      });
+    });
+    
+    document.getElementById('filtroTipoPersona').addEventListener('change', function () {
+    const filtro = this.value; // Obtiene el valor seleccionado
+    const filas = document.querySelectorAll('.fila-persona'); // Obtiene todas las filas de personas
+  
+    filas.forEach(fila => {
+      const tipo = fila.getAttribute('data-tipo'); // Obtiene el tipo de persona de la fila
+  
+      if (filtro === 'todos' || filtro === tipo) {
+        fila.style.display = ''; // Muestra la fila
+      } else {
+        fila.style.display = 'none'; // Oculta la fila
+      }
+    });
+  });
+
+  // Mostrar campos dinámicos según el tipo de persona seleccionado
+  document.getElementById('tipoPersona').addEventListener('change', function () {
+    const tipoPersona = this.value;
+    const campoEmpleado = document.getElementById('campoEmpleado');
+    const campoPostulante = document.getElementById('campoPostulante');
+
+    if (tipoPersona === 'empleado') {
+      campoEmpleado.style.display = 'block';
+      campoPostulante.style.display = 'none';
+    } else if (tipoPersona === 'postulante') {
+      campoEmpleado.style.display = 'none';
+      campoPostulante.style.display = 'block';
+    } else {
+      campoEmpleado.style.display = 'none';
+      campoPostulante.style.display = 'none';
+    }
+  });
+</script>
+</body>
+</html>

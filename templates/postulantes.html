@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Postulantes</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../static/estilo_base.css">
+</head>
+<body>
+  <div class="container my-5">
+    <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Postulantes</h1>
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <!-- Botón para Crear -->
+    <button type="button" class="btn mb-3" style="background-color: var(--color-primario); color: white;" data-bs-toggle="modal" data-bs-target="#modalPostulante">
+      + Crear Nuevo Postulante   <!-- En realidad se crean en "Persona", pero puede crearse directamente aqui, igual se hace una validacion por DNI para no crear uno que ya se encuentre en "Persona" con el "estado" de "Postulante", puede darse un mensaje como "Persona ya cargada como Postulante, desea cambiar su estado a Postulante?" -->
+    </button>
+
+    <!-- Buscador por DNI -->
+    <div class="ms-3">
+      <input type="text" class="form-control" id="buscadorDNI" placeholder="Buscar por DNI" style="width: 200px;">
+    </div>
+
+    <!-- Filtro Estado de Postulante -->
+    <div class="mb-3">
+      <label for="filtroEstadoPostulante" class="form-label">Filtrar por Estado:</label>
+      <select class="form-select" id="filtroEstadoPostulante">
+        <option value="todos" selected>Todos</option>
+        <option value="proceso">En Proceso</option>
+        <option value="aceptado">Aceptado</option>
+        <option value="rechazado">Rechazado</option>
+      </select>
+    </div>
+  </div>
+
+    <!-- Tabla de Postulantes -->
+    <div class="table-responsive">
+      <table class="table table-bordered text-center">
+        <thead style="background-color: var(--color-suave);">
+          <tr>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>DNI</th>
+            <th>Email</th>
+            <th>Telefono</th>
+            <th>Fecha Nacimiento</th>
+            <th>Direccion</th>
+            <th>Fecha Postulacion</th>
+            <th>Estado</th>
+            <th style="width: 15%;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="fila-postulante" data-estado="proceso">
+            <td>Juan</td>
+            <td>Pérez</td>
+            <td>12345678</td>
+            <td>juan.perez@email.com</td>
+            <td>+54 11 4567 8910</td>
+            <td>1985-03-15</td>
+            <td>Av. Siempreviva 123, CABA</td>
+            <td>2024-12-15</td>
+            <td>En Proceso</td>
+            <td>
+              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalPostulante">Editar</button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerPostulante">Ver</button>
+              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarPostulante">Eliminar</button>
+            </td>
+          </tr>
+          <!-- Ejemplo adicional -->
+          <tr class="fila-postulante" data-estado="rechazado">
+            <td>Claudia</td>
+            <td>López</td>
+            <td>88776655</td>
+            <td>claudia.lopez@email.com</td>
+            <td>+54 11 5479 5252</td>
+            <td>1993-07-12</td>
+            <td>Calle Real 126, Córdoba</td>
+            <td>2024-08-15</td>
+            <td>Rechazado</td>
+            <td>
+              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalPostulante">Editar</button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerPostulante">Ver</button>
+              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarPostulante">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal para Crear/Editar Postulante -->
+  <div class="modal fade" id="modalPostulante" tabindex="-1" aria-labelledby="modalPostulanteLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalPostulanteLabel">Crear/Editar Postulante</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3">
+              <label for="nombrePostulante" class="form-label">Nombre</label>
+              <input type="text" class="form-control" id="nombrePostulante" placeholder="Ingrese el Nombre" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="apellidoPostulante" class="form-label">Apellido</label>
+              <input type="text" class="form-control" id="apellidoPostulante" placeholder="Ingrese el Apellido" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="dniPostulante" class="form-label">DNI</label>
+              <input type="text" class="form-control" id="dniPostulante" placeholder="Ingrese el DNI" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="emailPostulante" class="form-label">Email</label>
+              <input type="text" class="form-control" id="emailPostulante" placeholder="Ingrese el Email" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="telefonoPostulante" class="form-label">Telefono</label>
+              <input type="text" class="form-control" id="telefonoPostulante" placeholder="Ingrese el Telefono" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="fechaNacimientoPostulante" class="form-label">Fecha de Nacimiento</label>
+              <input type="date" class="form-control" id="fechaNacimientoPostulante" required>
+            </div>
+            <div class="mb-3">
+              <label for="direccionPostulante" class="form-label">Direccion</label>
+              <input type="text" class="form-control" id="direccionPostulante" placeholder="ej: Av. Siempreviva 123, CABA" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="fechaPostulacionPostulante" class="form-label">Fecha de Postulacion</label>
+              <input type="date" class="form-control" id="fechaPostulacionPostulante" required>
+            </div>
+            <div class="mb-3">
+              <label for="estadoPostulante" class="form-label">Estado del Postulante</label>
+              <select class="form-select" id="estadoPostulante" required>
+                <option value="" disabled selected>Selecciona el Estado del Postulante</option>
+                <option value="todos" selected>Todos</option>
+                <option value="proceso">En Proceso</option>
+                <option value="aceptado">Aceptado</option>
+                <option value="rechazado">Rechazado</option>
+              </select>
+            </div>
+            <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Ver Detalles -->
+  <div class="modal fade" id="modalVerPostulante" tabindex="-1" aria-labelledby="modalVerPostulanteLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalVerPostulanteLabel">Detalles del Postulante</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Nombre:</strong> Juan</p>
+          <p><strong>Apellido:</strong> Pérez</p>
+          <p><strong>DNI:</strong> 12345678</p>
+          <p><strong>Email:</strong> juan.perez@email.com</p>
+          <p><strong>Telefono:</strong> +54 11 4567 8910</p>
+          <p><strong>Fecha de Nacimiento:</strong> 1985-03-15</p>
+          <p><strong>Direccion:</strong> Av. Siempreviva 123, CABA</p>
+          <p><strong>Fecha de Postulacion:</strong> 2024-12-15</p>
+          <p><strong>Estado:</strong> En Proceso</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Confirmar Eliminación -->
+  <div class="modal fade" id="modalEliminarPostulante" tabindex="-1" aria-labelledby="modalEliminarPostulanteLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-enfasis); color: white;">
+          <h5 class="modal-title" id="modalEliminarPostulanteLabel">Confirmar Eliminación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas eliminar este Postulante?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    document.getElementById("buscadorDNI").addEventListener("input", function () {
+      const filtro = this.value.trim(); // Valor del buscador
+      const filas = document.querySelectorAll(".fila-postulante"); // Todas las filas de la tabla
+    
+      filas.forEach(fila => {
+        const dni = fila.querySelector("td:nth-child(3)").textContent; // Columna de DNI
+        if (dni.includes(filtro)) {
+          fila.style.display = ""; // Mostrar fila
+        } else {
+          fila.style.display = "none"; // Ocultar fila
+        }
+      });
+    });
+    
+    document.getElementById('filtroEstadoPostulante').addEventListener('change', function () {
+    const filtro = this.value; // Obtiene el valor seleccionado
+    const filas = document.querySelectorAll('.fila-postulante'); // Obtiene todas las filas de Postulantes
+  
+    filas.forEach(fila => {
+      const estado = fila.getAttribute('data-estado'); // Obtiene el estado de Postulante de la fila
+  
+      if (filtro === 'todos' || filtro === estado) {
+        fila.style.display = ''; // Muestra la fila
+      } else {
+        fila.style.display = 'none'; // Oculta la fila
+      }
+    });
+  });
+</script>
+</body>
+</html>
