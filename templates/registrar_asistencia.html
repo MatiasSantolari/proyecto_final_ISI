@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página Principal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../static/estilo_base.css">
+</head>
+<body>
+  <!-- Barra de Navegación -->
+  <nav class="navbar navbar-expand-lg" style="background-color: var(--color-primario);">
+    <div class="container">
+      <a class="navbar-brand text-white" href="#">Mi Empresa</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">Página Principal</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#" data-bs-toggle="modal" data-bs-target="#modalRegistro">Registro de Asistencia</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">Cerrar Sesión</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Contenido Principal -->
+  <div class="container my-5">
+    <h1 class="text-center mb-4" style="color: var(--color-primario);">Bienvenido a la Página Principal</h1>
+    <p class="text-center text-muted">
+      Selecciona una opción del menú de navegación para continuar.
+    </p>
+  </div>
+
+  <!-- Modal para Registrar Asistencia -->
+  <div class="modal fade" id="modalRegistro" tabindex="-1" aria-labelledby="modalRegistroLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalRegistroLabel">Registrar Asistencia</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-center">¡Asistencia registrada con éxito!</p>
+          <p class="text-center text-muted"><small>Fecha: <strong>2025-01-16</strong> | Hora: <strong>08:30 AM</strong></small></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
