@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Sueldos Base</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../static/estilo_base.css">
+</head>
+<body>
+  <!-- Barra de Navegación -->
+  <nav class="navbar navbar-expand-lg" style="background-color: var(--color-primario);">
+    <div class="container">
+      <a class="navbar-brand text-white" href="#">Mi Empresa</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">Página Principal</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">Gestión de Sueldos</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">Cerrar Sesión</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Contenido Principal -->
+  <div class="container my-5">
+    <h1 class="text-center mb-4" style="color: var(--color-primario);">Gestión de Sueldos Base</h1>
+    <p class="text-center text-muted">Selecciona un cargo y asigna un nuevo sueldo base.</p>
+
+    <!-- Formulario -->
+    <div class="card mx-auto" style="max-width: 600px;">
+      <div class="card-body">
+        <form>
+          <!-- Selección de Cargo -->
+          <div class="mb-3">
+            <label for="selectCargo" class="form-label">Seleccionar Cargo</label>
+            <select class="form-select" id="selectCargo" required>
+              <option value="" selected disabled>Seleccione un cargo</option>
+              <option value="marketing-manager">Marketing Manager</option>
+              <option value="seo-analyst">SEO Analyst</option>
+              <option value="software-engineer">Software Engineer</option>
+              <option value="sales-representative">Sales Representative</option>
+              <option value="account-executive">Account Executive</option>
+            </select>
+          </div>
+
+          <!-- Campo de Monto -->
+          <div class="mb-3">
+            <label for="inputMonto" class="form-label">Monto del Sueldo Base</label>
+            <input type="number" class="form-control" id="inputMonto" placeholder="Ingresa el monto del sueldo" min="0" step="0.01" required>
+          </div>
+
+          <!-- Campo de Fecha -->
+          <div class="mb-3">
+            <label for="inputFecha" class="form-label">Fecha de Actualización</label>
+            <input type="date" class="form-control" id="inputFecha" required>
+          </div>
+
+          <!-- Botón para Actualizar -->
+          <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Actualizar Sueldo</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje Modal de Confirmación -->
+  <div class="modal fade" id="modalConfirmacion" tabindex="-1" aria-labelledby="modalConfirmacionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalConfirmacionLabel">Confirmación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-center">El sueldo base ha sido actualizado con éxito.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
