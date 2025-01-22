@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calcular Bonificaciones</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../static/estilo_base.css">
+  <style>
+    .card-header {
+      background-color: var(--color-primario);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container my-5">
+    <h1 class="text-center mb-4" style="color: var(--color-primario);">Calcular Bonificaciones</h1>
+    <p class="text-center text-muted">Seleccione los beneficios adicionales que se aplicarán al empleado.</p>
+
+    <!-- Barra de Búsqueda y Filtro -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <input type="text" id="busquedaEmpleado" class="form-control" placeholder="Buscar empleado por nombre..." oninput="filtrarEmpleados()">
+      </div>
+      <div class="col-md-6">
+        <select class="form-select" id="filtroDepartamento" onchange="filtrarEmpleados()">
+          <option value="" selected>Filtrar por departamento...</option>
+          <option value="Tecnología">Tecnología</option>
+          <option value="Recursos Humanos">Recursos Humanos</option>
+          <option value="Marketing">Marketing</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Selección de Empleado -->
+    <div class="mb-4">
+      <label for="empleadoSeleccionado" class="form-label">Seleccione un empleado:</label>
+      <select class="form-select" id="empleadoSeleccionado" onchange="mostrarInformacionEmpleado()">
+        <option value="" selected>Seleccione...</option>
+        <!-- Empleados generados dinámicamente -->
+      </select>
+    </div>
+
+    <!-- Información del Empleado -->
+    <div id="infoEmpleado" class="card mb-4" style="display: none;">
+      <div class="card-header">Información del Empleado</div>
+      <div class="card-body">
+        <p><strong>Nombre:</strong> <span id="nombreEmpleado"></span></p>
+        <p><strong>Departamento:</strong> <span id="departamentoEmpleado"></span></p>
+        <p><strong>Antigüedad:</strong> <span id="antiguedadEmpleado"></span></p>
+      </div>
+    </div>
+
+    <!-- Beneficios Automáticos -->
+    <div class="card mb-4">
+      <div class="card-header">Beneficios Automáticos</div>
+      <div class="card-body">
+        <p><strong>Bonificación por Antigüedad:</strong> $<span id="bonificacionAntiguedad">0.00</span></p>
+        <p><strong>Bonificación por Objetivos:</strong> $<span id="bonificacionObjetivos">0.00</span></p>
+      </div>
+    </div>
+
+    <!-- Beneficios Opcionales -->
+    <div class="card mb-4">
+      <div class="card-header">Beneficios Adicionales</div>
+      <div class="card-body">
+        <form id="formBeneficios">
+          <div id="beneficiosOpcionalesContainer">
+            <!-- Beneficios cargados dinámicamente -->
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Resumen de Bonificaciones -->
+    <div class="card">
+      <div class="card-header">Resumen de Bonificaciones</div>
+      <div class="card-body">
+        <p><strong>Total Bonificaciones:</strong> $<span id="totalBonificaciones">0.00</span></p>
+        <button type="button" class="btn btn-primary w-100" onclick="calcularTotal()">Calcular Total</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Información ficticia de empleados
+    const empleados = [
+      { id: 'juan', nombre: 'Juan Pérez', departamento: 'Tecnología', antiguedad: 5, objetivos: 3 },
+      { id: 'ana', nombre: 'Ana López', departamento: 'Recursos Humanos', antiguedad: 3, objetivos: 2 },
+      { id: 'maria', nombre: 'María Gómez', departamento: 'Marketing', antiguedad: 7, objetivos: 4 },
+      { id: 'carlos', nombre: 'Carlos Ruiz', departamento: 'Tecnología', antiguedad: 2, objetivos: 1 }
+    ];
+
+    // Beneficios cargados desde el CRUD
+    const beneficiosOpcionales = [
+      { id: 'produccion', descripcion: 'Bono de Productividad', monto: 150 },
+      { id: 'capacitacion', descripcion: 'Apoyo para Capacitación', monto: 250 }
+    ];
+
+    // Inicializar lista de empleados
+    function inicializarEmpleados() {
+      const select = document.getElementById('empleadoSeleccionado');
+      select.innerHTML = '<option value="" selected>Seleccione...</option>';
+      empleados.forEach(empleado => {
+        const option = document.createElement('option');
+        option.value = empleado.id;
+        option.textContent = `${empleado.nombre} (${empleado.departamento})`;
+        select.appendChild(option);
+      });
+    }
+
+      // Función para eliminar acentos
+    function eliminarAcentos(texto) {
+      return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    // Filtrar empleados por búsqueda o departamento
+    function filtrarEmpleados() {
+      const busqueda = eliminarAcentos(document.getElementById('busquedaEmpleado').value.toLowerCase());
+      const filtro = document.getElementById('filtroDepartamento').value;
+      const select = document.getElementById('empleadoSeleccionado');
+
+      select.innerHTML = '<option value="" selected>Seleccione...</option>';
+
+      empleados
+        .filter(empleado => 
+          (eliminarAcentos(empleado.nombre.toLowerCase()).includes(busqueda)) &&
+          (filtro === '' || empleado.departamento === filtro)
+        )
+        .forEach(empleado => {
+          const option = document.createElement('option');
+          option.value = empleado.id;
+          option.textContent = `${empleado.nombre} (${empleado.departamento})`;
+          select.appendChild(option);
+        });
+    }
+
+    // Mostrar información del empleado seleccionado
+    function mostrarInformacionEmpleado() {
+      const empleadoId = document.getElementById('empleadoSeleccionado').value;
+      if (!empleadoId) {
+        document.getElementById('infoEmpleado').style.display = 'none';
+        return;
+      }
+
+      const empleado = empleados.find(e => e.id === empleadoId);
+      document.getElementById('nombreEmpleado').textContent = empleado.nombre;
+      document.getElementById('departamentoEmpleado').textContent = empleado.departamento;
+      document.getElementById('antiguedadEmpleado').textContent = `${empleado.antiguedad} años`;
+
+      calcularBonificacionesAutomaticas(empleado);
+      cargarBeneficiosOpcionales();
+      document.getElementById('infoEmpleado').style.display = 'block';
+    }
+
+    // Cálculos y resumen
+    function calcularBonificacionesAutomaticas(empleado) {
+      const bonificacionAntiguedad = empleado.antiguedad * 50;
+      document.getElementById('bonificacionAntiguedad').textContent = bonificacionAntiguedad.toFixed(2);
+
+      const bonificacionObjetivos = empleado.objetivos * 100;
+      document.getElementById('bonificacionObjetivos').textContent = bonificacionObjetivos.toFixed(2);
+    }
+
+    function cargarBeneficiosOpcionales() {
+      const container = document.getElementById('beneficiosOpcionalesContainer');
+      container.innerHTML = '';
+
+      beneficiosOpcionales.forEach(beneficio => {
+        const div = document.createElement('div');
+        div.className = 'form-check mb-2';
+
+        div.innerHTML = `
+          <input class="form-check-input" type="checkbox" id="${beneficio.id}" value="${beneficio.monto}" onchange="actualizarResumen()">
+          <label class="form-check-label" for="${beneficio.id}">
+            ${beneficio.descripcion} ($${beneficio.monto})
+          </label>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function actualizarResumen() {
+      let total = 0;
+
+      total += parseFloat(document.getElementById('bonificacionAntiguedad').textContent);
+      total += parseFloat(document.getElementById('bonificacionObjetivos').textContent);
+
+      document.querySelectorAll('#formBeneficios .form-check-input').forEach(checkbox => {
+        if (checkbox.checked) {
+          total += parseFloat(checkbox.value);
+        }
+      });
+
+      document.getElementById('totalBonificaciones').textContent = total.toFixed(2);
+    }
+
+    function calcularTotal() {
+      actualizarResumen();
+      alert('El cálculo de bonificaciones ha sido actualizado.');
+    }
+
+    // Inicialización al cargar la página
+    window.onload = () => {
+      inicializarEmpleados();
+    };
+  </script>
+</body>
+</html>
+
