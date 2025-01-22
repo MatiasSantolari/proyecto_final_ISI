@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cálculo de Nóminas</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../static/estilo_base.css">
+  <style>
+    /* Asegurar que todas las columnas tengan el mismo tamaño */
+    .tabla-nominas th, .tabla-nominas td {
+      width: 20%;
+      text-align: center;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <div class="container my-5">
+    <h1 class="mb-4" style="color: var(--color-primario);">Cálculo de Nóminas</h1>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <label for="filtroDepartamento" class="form-label">Filtrar por Departamento</label>
+        <select id="filtroDepartamento" class="form-select" onchange="generarNominas()">
+          <option value="" selected>Todos</option>
+          <option value="Recursos Humanos">Recursos Humanos</option>
+          <option value="Desarrollo">Desarrollo</option>
+          <option value="Ventas">Ventas</option>
+        </select>
+      </div>
+      <div class="col-md-6 d-flex align-items-end">
+        <button class="btn w-100" style="background-color: var(--color-primario); color: white;" onclick="generarNominas()">
+          Generar Nóminas
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabla de Nóminas -->
+    <div id="resultadoNominas">
+      <!-- Aquí se generará dinámicamente el contenido de las nóminas -->
+    </div>
+  </div>
+
+  <script>
+    // Ejemplo de datos de empleados
+    const empleados = [
+      { id: 1, nombre: "Juan Pérez", departamento: "Recursos Humanos", cargo: "Analista", sueldoBase: 120000, bonificaciones: 20000, diasTrabajados: 28, diasLaborales: 30 },
+      { id: 2, nombre: "Ana López", departamento: "Desarrollo", cargo: "Desarrollador", sueldoBase: 150000, bonificaciones: 25000, diasTrabajados: 30, diasLaborales: 30 },
+      { id: 3, nombre: "Pedro Gómez", departamento: "Ventas", cargo: "Vendedor", sueldoBase: 100000, bonificaciones: 15000, diasTrabajados: 25, diasLaborales: 30 },
+    ];
+
+    // Impuestos y descuentos
+    const descuentosGenerales = {
+      jubilacion: 0.11,
+      obraSocial: 0.03,
+      sindicato: 0.02,
+    };
+
+    // Generar nóminas
+    function generarNominas() {
+      const filtro = document.getElementById('filtroDepartamento').value;
+      const nominasPorDepto = {};
+
+      empleados
+        .filter(empleado => filtro === "" || empleado.departamento === filtro)
+        .forEach(empleado => {
+          const diasFaltantes = empleado.diasLaborales - empleado.diasTrabajados;
+          const descuentoPorFaltas = (empleado.sueldoBase / empleado.diasLaborales) * diasFaltantes;
+
+          const montoBruto = empleado.sueldoBase + empleado.bonificaciones;
+          const montoDescuentos = 
+            montoBruto * (descuentosGenerales.jubilacion + descuentosGenerales.obraSocial + descuentosGenerales.sindicato) + 
+            descuentoPorFaltas;
+          const montoNeto = montoBruto - montoDescuentos;
+
+          if (!nominasPorDepto[empleado.departamento]) {
+            nominasPorDepto[empleado.departamento] = [];
+          }
+
+          nominasPorDepto[empleado.departamento].push({
+            nombre: empleado.nombre,
+            cargo: empleado.cargo,
+            montoBruto,
+            montoNeto,
+            descuentos: {
+              jubilacion: montoBruto * descuentosGenerales.jubilacion,
+              obraSocial: montoBruto * descuentosGenerales.obraSocial,
+              sindicato: montoBruto * descuentosGenerales.sindicato,
+              faltas: descuentoPorFaltas,
+            },
+          });
+        });
+
+      mostrarNominas(nominasPorDepto);
+    }
+
+    // Mostrar nóminas
+    function mostrarNominas(nominasPorDepto) {
+      const resultado = document.getElementById('resultadoNominas');
+      resultado.innerHTML = "";
+
+      for (const [departamento, nominas] of Object.entries(nominasPorDepto)) {
+        const tabla = document.createElement('div');
+        tabla.classList.add('mb-4');
+        tabla.innerHTML = `
+          <h3>${departamento}</h3>
+          <table class="table table-bordered tabla-nominas">
+            <thead style="background-color: var(--color-suave);">
+              <tr>
+                <th>Empleado</th>
+                <th>Cargo</th>
+                <th>Monto Bruto</th>
+                <th>Descuentos</th>
+                <th>Monto Neto</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${nominas.map(nomina => `
+                <tr>
+                  <td>${nomina.nombre}</td>
+                  <td>${nomina.cargo}</td>
+                  <td>$${nomina.montoBruto.toFixed(2)}</td>
+                  <td>
+                    Jubilación: $${nomina.descuentos.jubilacion.toFixed(2)}<br>
+                    Obra Social: $${nomina.descuentos.obraSocial.toFixed(2)}<br>
+                    Sindicato: $${nomina.descuentos.sindicato.toFixed(2)}<br>
+                    Faltas: $${nomina.descuentos.faltas.toFixed(2)}
+                  </td>
+                  <td>$${nomina.montoNeto.toFixed(2)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+        resultado.appendChild(tabla);
+      }
+    }
+
+    // Ejecutar filtro "Todos" al cargar la página
+    document.addEventListener("DOMContentLoaded", generarNominas);
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
