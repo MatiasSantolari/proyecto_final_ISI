@@ -24,7 +24,6 @@
             <th style="width: 3%;">ID</th>
             <th style="width: 12%;">Fecha de Inicio</th>
             <th style="width: 10%;">Fecha de Fin</th>
-            <th style="width: 10%;">Tipo</th>
             <th style="width: 50%;">Describa las Condiciones</th>
             <th style="width: 15%;">Acciones</th>
           </tr>
@@ -34,11 +33,10 @@
             <td>1</td>
             <td>2025-01-01</td>
             <td>2025-12-01</td>
-            <td>Contrato con duracion determinada</td>
             <td style="text-align: justify;">Contrato de trabajo para el puesto de Analista de Datos en el área de Tecnología de la Información, con jornada laboral de lunes a viernes de 9:00 a 18:00 horas. El salario mensual bruto es de $2,500, incluye beneficios como seguro médico privado, vales de despensa y fondo de ahorro. El contrato es por tiempo indefinido, sujeto a un período de prueba de 3 meses. Se otorgan 20 días hábiles de vacaciones anuales tras el primer año y se exige confidencialidad sobre la información manejada. Ambas partes pueden finalizar el contrato con un preaviso de 30 días, conforme a la legislación vigente.</td>
             <td>
               <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalContrato">Editar</button>
-              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerContrato">Ver</button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerContrato1">Ver</button>
               <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarContrato">Eliminar</button>
             </td>
           </tr>
@@ -47,11 +45,10 @@
             <td>2</td>
             <td>2025-02-01</td>
             <td>2025-10-28</td>
-            <td>Contrato con duracion determinada</td>
             <td style="text-align: justify;">Contrato de trabajo para el puesto de Asistente Administrativo en el área de Recursos Humanos. La jornada laboral es de lunes a viernes, de 8:00 a 16:00 horas, con un salario mensual bruto de $1,800. Se incluye acceso a prestaciones como seguro social, aguinaldo equivalente a 15 días de salario y vacaciones conforme a la ley. El contrato es por tiempo determinado, con una duración inicial de 6 meses, renovable según desempeño. Durante el empleo, el trabajador deberá manejar documentación confidencial de la empresa. La terminación anticipada requiere un preaviso de 15 días por cualquiera de las partes.</td>
             <td>
               <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalContrato">Editar</button>
-              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerContrato">Ver</button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerContrato2">Ver</button>
               <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarContrato">Eliminar</button>
             </td>
           </tr>
@@ -82,6 +79,14 @@
               <label for="descripcionContrato" class="form-label">Descripción de las Condiciones</label>
               <textarea class="form-control" id="descripcionContrato" rows="3" placeholder="Ingresa las Condiciones del Contrato" required></textarea>
             </div>
+            <div class="mb-3">
+              <label for="tipoContrato" class="form-label">Tipo Contrato</label>
+              <select class="form-select" id="tipoContrato" required>
+                <option value="" disabled selected>Selecciona el Tipo de Contrato</option>
+                <option value="conDuracion">Contrato con duracion determinada</option>
+                <option value="sinLimite">Contrato sin límite de duración</option>
+              </select>
+            </div>
             <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
           </form>
         </div>
@@ -90,22 +95,42 @@
   </div>
 
   <!-- Modal para Ver Detalles -->
-  <div class="modal fade" id="modalVerContrato" tabindex="-1" aria-labelledby="modalVerContratoLabel" aria-hidden="true">
+  <div class="modal fade" id="modalVerContrato1" tabindex="-1" aria-labelledby="modalVerContrato1Label" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalVerContratoLabel">Detalles del Contrato</h5>
+          <h5 class="modal-title" id="modalVerContrato1Label">Detalles del Contrato</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <p><strong>Fecha de Inicio:</strong> 2025-01-01</p>
           <p><strong>Fecha de Fin:</strong> 2025-12-01</p>
           <p><strong>Descripción de las Condiciones:</strong> Contrato de trabajo para el puesto de Analista de Datos en el área de Tecnología de la Información, con jornada laboral de lunes a viernes de 9:00 a 18:00 horas. El salario mensual bruto es de $2,500, incluye beneficios como seguro médico privado, vales de despensa y fondo de ahorro. El contrato es por tiempo indefinido, sujeto a un período de prueba de 3 meses. Se otorgan 20 días hábiles de vacaciones anuales tras el primer año y se exige confidencialidad sobre la información manejada. Ambas partes pueden finalizar el contrato con un preaviso de 30 días, conforme a la legislación vigente.</td>          </p>
+          <p><strong>Tipo Contrato:</strong> Contrato con duracion determinada</p>
+          <p><strong>Monto:</strong> $3000</p>
         </div>
       </div>
     </div>
   </div>
   
+  <div class="modal fade" id="modalVerContrato2" tabindex="-1" aria-labelledby="modalVerContrato2Label" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalVerContrato2Label">Detalles del Contrato</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Fecha de Inicio:</strong> 2025-02-01</p>
+          <p><strong>Fecha de Fin:</strong> 2025-10-28</p>
+          <p><strong>Descripción de las Condiciones:</strong> Contrato de trabajo para el puesto de Asistente Administrativo en el área de Recursos Humanos. La jornada laboral es de lunes a viernes, de 8:00 a 16:00 horas, con un salario mensual bruto de $1,800. Se incluye acceso a prestaciones como seguro social, aguinaldo equivalente a 15 días de salario y vacaciones conforme a la ley. El contrato es por tiempo determinado, con una duración inicial de 6 meses, renovable según desempeño. Durante el empleo, el trabajador deberá manejar documentación confidencial de la empresa. La terminación anticipada requiere un preaviso de 15 días por cualquiera de las partes.</td></p>
+          <p><strong>Tipo Contrato:</strong> Contrato con duracion determinada</p>
+          <p><strong>Monto:</strong> $3000</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal para Confirmar Eliminación -->
   <div class="modal fade" id="modalEliminarContrato" tabindex="-1" aria-labelledby="modalEliminarContratoLabel" aria-hidden="true">
     <div class="modal-dialog">
