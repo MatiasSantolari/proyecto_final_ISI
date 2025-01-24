@@ -38,7 +38,7 @@
             <td>1</td>
             <td>
               <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCargo">Editar</button>
-              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerCargo">Ver</button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerCargo1">Ver</button>
               <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarCargo">Eliminar</button>
             </td>
           </tr>
@@ -51,7 +51,7 @@
             <td>1</td>
             <td>
               <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCargo">Editar</button>
-              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerCargo">Ver</button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerCargo2">Ver</button>
               <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarCargo">Eliminar</button>
             </td>
           </tr>
@@ -94,17 +94,36 @@
   </div>
 
   <!-- Modal para Ver Detalles -->
-  <div class="modal fade" id="modalVerCargo" tabindex="-1" aria-labelledby="modalVerCargoLabel" aria-hidden="true">
+  <div class="modal fade" id="modalVerCargo1" tabindex="-1" aria-labelledby="modalVerCargo1Label" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalVerCargoLabel">Detalles del Cargo</h5>
+          <h5 class="modal-title" id="modalVerCargo1Label">Detalles del Cargo</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <p><strong>Nombre:</strong> Tecnico de Infraestructura</p>
           <p><strong>Descripción:</strong> Encargado de resolver problemas y realizar el mantenimiento de la Infraestructura</p>
           <p><strong>Sueldo:</strong> $1500</p>
+          <p><strong>Vigencia Sueldo desde:</strong> 2025-01-01</p>
+          <p><strong>Vacantes:</strong> 1</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalVerCargo2" tabindex="-1" aria-labelledby="modalVerCargo2Label" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalVerCargo2Label">Detalles del Cargo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Nombre:</strong> Personal de Limpieza</p>
+          <p><strong>Descripción:</strong> Encargado de mantener la limpieza e higiene del lugar de trabajo</p>
+          <p><strong>Sueldo:</strong> $800</p>
+          <p><strong>Vigencia Sueldo desde:</strong> 2024-12-15</p>
           <p><strong>Vacantes:</strong> 1</p>
         </div>
       </div>
