@@ -8,92 +8,158 @@
   <link rel="stylesheet" href="../static/estilo_base.css">
 </head>
 <body>
+  <!-- Barra de Navegación -->
+  <nav class="navbar navbar-expand-lg" style="background-color: var(--color-primario);">
+    <div class="container">
+      <a class="navbar-brand text-white" href="#">Mi Empresa</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">Inicio</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">Ofertas de Empleo</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">Cerrar Sesión</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
   <!-- Contenido Principal -->
   <div class="container my-5">
-    <h1 class="text-center mb-4" style="color: var(--color-primario);">Publicar Ofertas de Empleo</h1>
-    <p class="text-center text-muted">Selecciona una vacante y publica la oferta en la plataforma deseada.</p>
-
-    <!-- Lista de Vacantes Disponibles -->
-    <div class="card mx-auto mb-4" style="max-width: 800px;">
+    <h1 class="text-center mb-4" style="color: var(--color-primario);">Gestión de Ofertas de Empleo</h1>
+    
+    <!-- Filtros -->
+    <div class="card mb-4">
       <div class="card-body">
-        <h5 class="card-title mb-3">Vacantes Disponibles</h5>
-        <form>
-          <!-- Selección de Vacante -->
-          <div class="mb-3">
-            <label for="selectVacante" class="form-label">Seleccionar Vacante</label>
-            <select class="form-select" id="selectVacante" required>
-              <option value="" disabled selected>Selecciona una vacante</option>
+        <h5 class="card-title">Filtrar Ofertas</h5>
+        <form class="row g-3">
+          <div class="col-md-6">
+            <label for="filterEstado" class="form-label">Filtrar por Estado</label>
+            <select id="filterEstado" class="form-select">
+              <option value="" selected>Todos</option>
+              <option value="activa">Activa</option>
+              <option value="cerrada">Cerrada</option>
+              <option value="pendiente">Pendiente</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="filterVacante" class="form-label">Filtrar por Vacante</label>
+            <select id="filterVacante" class="form-select">
+              <option value="" selected>Todas</option>
               <option value="marketing-manager">Marketing Manager</option>
               <option value="seo-analyst">SEO Analyst</option>
               <option value="software-engineer">Software Engineer</option>
               <option value="sales-representative">Sales Representative</option>
             </select>
           </div>
-
-          <!-- Selección de Plataforma -->
-          <div class="mb-3">
-            <label for="selectPlataforma" class="form-label">Seleccionar Plataforma de Publicación</label>
-            <select class="form-select" id="selectPlataforma" required>
-              <option value="" disabled selected>Selecciona una plataforma</option>
-              <option value="portal-interno">Portal Interno</option>
-              <option value="linkedin">LinkedIn</option>
-              <option value="indeed">Indeed</option>
-              <option value="otros">Otros</option>
-            </select>
+          <div class="col-12">
+            <button type="button" class="btn w-100" style="background-color: var(--color-primario); color: white;">Aplicar Filtros</button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Formulario para Detalles de la Oferta -->
-    <div class="card mx-auto" style="max-width: 800px;">
+    <!-- Lista de Ofertas -->
+    <div class="card mb-4">
       <div class="card-body">
-        <h5 class="card-title mb-3">Detalles de la Oferta</h5>
-        <form>
-          <!-- Campo de Descripción -->
-          <div class="mb-3">
-            <label for="inputDescripcion" class="form-label">Descripción de la Oferta</label>
-            <textarea class="form-control" id="inputDescripcion" rows="4" placeholder="Ingresa una descripción detallada de la oferta" required></textarea>
-          </div>
-
-          <!-- Campo de Fecha -->
-          <div class="mb-3">
-            <label for="inputFecha" class="form-label">Fecha de Creación</label>
-            <input type="date" class="form-control" id="inputFecha" required>
-          </div>
-
-          <!-- Campo de Estado -->
-          <div class="mb-3">
-            <label for="selectEstado" class="form-label">Estado de la Oferta</label>
-            <select class="form-select" id="selectEstado" required>
-              <option value="" disabled selected>Selecciona un estado</option>
-              <option value="activa">Activa</option>
-              <option value="cerrada">Cerrada</option>
-              <option value="pendiente">Pendiente</option>
-            </select>
-          </div>
-
-          <!-- Botón para Publicar -->
-          <button type="submit" class="btn btn-primary w-100" style="background-color: var(--color-primario); color: white;">Publicar Oferta</button>
-        </form>
+        <h5 class="card-title">Ofertas Actuales</h5>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Descripción</th>
+              <th>Vacante</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Marketing Manager para liderar campañas internacionales</td>
+              <td>Marketing Manager</td>
+              <td>Activa</td>
+              <td>
+                <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;">Editar</button>
+              </td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Ingeniero de software con experiencia en JavaScript</td>
+              <td>Software Engineer</td>
+              <td>Pendiente</td>
+              <td>
+                <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;">Editar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <button class="btn w-100" style="background-color: var(--color-primario); color: white;" data-bs-toggle="modal" data-bs-target="#modalNuevaOferta">Agregar Nueva Oferta</button>
       </div>
     </div>
   </div>
 
-  <!-- Mensaje Modal de Confirmación -->
-  <div class="modal fade" id="modalConfirmacion" tabindex="-1" aria-labelledby="modalConfirmacionLabel" aria-hidden="true">
-    <div class="modal-dialog">
+  <!-- Modal: Crear/Editar Oferta -->
+  <div class="modal fade" id="modalNuevaOferta" tabindex="-1" aria-labelledby="modalNuevaOfertaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
       <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title" id="modalConfirmacionLabel">Confirmación</h5>
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalNuevaOfertaLabel">Agregar/Editar Oferta de Empleo</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p class="text-center">La oferta de empleo ha sido publicada con éxito.</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <form>
+            <!-- Campo Descripción -->
+            <div class="mb-3">
+              <label for="inputDescripcion" class="form-label">Descripción</label>
+              <textarea class="form-control" id="inputDescripcion" rows="4" placeholder="Ingresa una descripción detallada" required></textarea>
+            </div>
+            <!-- Campo Vacante -->
+            <div class="mb-3">
+              <label for="selectVacante" class="form-label">Vacante</label>
+              <select class="form-select" id="selectVacante" required>
+                <option value="" disabled selected>Selecciona una vacante</option>
+                <option value="marketing-manager">Marketing Manager</option>
+                <option value="seo-analyst">SEO Analyst</option>
+                <option value="software-engineer">Software Engineer</option>
+                <option value="sales-representative">Sales Representative</option>
+              </select>
+            </div>
+            <!-- Campo Estado -->
+            <div class="mb-3">
+              <label for="selectEstado" class="form-label">Estado</label>
+              <select class="form-select" id="selectEstado" required>
+                <option value="" disabled selected>Selecciona un estado</option>
+                <option value="activa">Activa</option>
+                <option value="cerrada">Cerrada</option>
+                <option value="pendiente">Pendiente</option>
+              </select>
+            </div>
+            <!-- Campo Fecha -->
+            <div class="mb-3">
+              <label for="inputFecha" class="form-label">Fecha de Creación</label>
+              <input type="date" class="form-control" id="inputFecha" required>
+            </div>
+            <!-- Campo Plataformas -->
+            <div class="mb-3">
+              <label for="selectPlataforma" class="form-label">Plataforma/s de Publicación</label>
+              <select class="form-select" id="selectPlataforma" required>
+                <option value="" disabled selected>Selecciona una plataforma</option>
+                <option value="portal-interno">Portal Interno</option>
+                <option value="linkedin">LinkedIn</option>
+                <option value="indeed">Indeed</option>
+                <option value="otros">Otros</option>
+              </select>
+            </div>
+            <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar y Publicar</button>
+          </form>
         </div>
       </div>
     </div>
