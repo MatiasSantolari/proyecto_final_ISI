@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Informe de Competencias Faltantes</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../static/estilo_base.css">
+</head>
+<body>
+
+    <!-- Barra de Navegación -->
+    <nav class="navbar navbar-expand-lg" style="background-color: var(--color-primario);">
+      <div class="container">
+        <a class="navbar-brand text-white" href="#">Mi Empresa</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link text-white" href="#">Inicio</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="#">Informes</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="#">Cerrar Sesión</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container my-5">
+        <h1 class="text-center mb-4" style="color: var(--color-primario);">Informe de Competencias Faltantes</h1>
+        <p class="text-center text-muted">Seleccione el período y genere el informe de competencias faltantes en el personal.</p>
+
+        <!-- Filtros -->
+        <div class="p-4 mb-4 text-center" style="background-color: var(--color-suave); border-radius: 10px;">
+            
+            <!-- Filtro por Departamento -->
+            <div class="mb-3">
+                <label for="filtroDepartamento" class="form-label">Departamento:</label>
+                <select class="form-select d-inline-block w-auto" id="filtroDepartamento" onchange="filtrarDatos()">
+                <option value="todos" selected>Todos</option>
+                <option value="tecnología">Tecnología</option>
+                <option value="recursos humanos">Recursos Humanos</option>
+                <option value="marketing">Marketing</option>
+                </select>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="periodoInicio" class="form-label">Fecha de Inicio:</label>
+                    <input type="date" class="form-control" id="periodoInicio" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="periodoFin" class="form-label">Fecha de Fin:</label>
+                    <input type="date" class="form-control" id="periodoFin">
+                </div>
+            </div>
+
+            <!-- Botón Generar Informe -->
+            <div class="text-center">
+                <button class="btn w-50" style="background-color: var(--color-primario); color: white;" onclick="generarInforme()">Generar Informe</button>
+            </div>
+        </div>
+
+        <!-- Tabla de Competencias Faltantes -->
+        <div class="table-responsive">
+            <table class="table table-bordered text-center" id="tablaCompetencias">
+                <thead style="background-color: var(--color-suave);">
+                    <tr>
+                        <th>Empleado</th>
+                        <th>Departamento</th>
+                        <th>Competencia Faltante</th>
+                        <th>Recomendación de IA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Ana Gómez</td>
+                        <td>IT</td>
+                        <td>Gestión de Proyectos</td>
+                        <td>Curso de Scrum Master</td>
+                    </tr>
+                    <tr>
+                        <td>Juan Pérez</td>
+                        <td>Marketing</td>
+                        <td>Analítica de Datos</td>
+                        <td>Capacitación en Google Analytics</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal de Informe -->
+    <div class="modal fade" id="modalInforme" tabindex="-1" aria-labelledby="modalInformeLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+                    <h5 class="modal-title">Resumen del Informe</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Este informe presenta un análisis de competencias faltantes basado en evaluaciones de desempeño.</p>
+                    <p><strong>Recomendaciones de IA:</strong> Se sugiere reforzar la capacitación en análisis de datos y gestión de proyectos.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button class="btn btn-primary" onclick="descargarPDF()">Descargar PDF</button>
+                    <button class="btn btn-success" onclick="descargarExcel()">Descargar Excel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function generarInforme() {
+            // Mostrar el modal con el informe
+            const modal = new bootstrap.Modal(document.getElementById('modalInforme'));
+            modal.show();
+        }
+
+        function descargarPDF() {
+            alert("Generando PDF...");
+        }
+
+        function descargarExcel() {
+            alert("Generando Excel...");
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
