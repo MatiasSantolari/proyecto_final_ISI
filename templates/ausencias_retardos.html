@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seguimiento de Ausencias y Retardos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../static/estilo_base.css">
+</head>
+<body>
+  <!-- Barra de Navegación -->
+  <nav class="navbar navbar-expand-lg" style="background-color: var(--color-primario);">
+    <div class="container">
+      <a class="navbar-brand text-white" href="#">Mi Empresa</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">Página Principal</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">Seguimiento de Asistencias</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">Cerrar Sesión</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container my-5">
+    <h1 class="mb-4" style="color: var(--color-primario);">Seguimiento de Ausencias y Retardos</h1>
+
+    <!-- Filtros -->
+    <div class="mb-3">
+      <label for="filtroDNI" class="form-label">Filtrar por DNI:</label>
+      <input type="text" class="form-control" id="filtroDNI" placeholder="Ingrese el DNI del empleado">
+    </div>
+    <div class="mb-3">
+      <label for="filtroEstado" class="form-label">Filtrar por Estado:</label>
+      <select class="form-select" id="filtroEstado">
+        <option value="">Todos</option>
+        <option value="A tiempo">A tiempo</option>
+        <option value="Retardo">Retardo</option>
+        <option value="Ausente">Ausente</option>
+      </select>
+    </div>
+
+    <!-- Tabla de Asistencias -->
+    <div class="table-responsive">
+      <table class="table table-bordered text-center">
+        <thead style="background-color: var(--color-suave);">
+          <tr>
+            <th>DNI</th>
+            <th>Nombre y Apellido</th>
+            <th>Fecha</th>
+            <th>Hora de Ingreso</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="tablaAsistencias">
+          <!-- Datos de ejemplo (ordenados de más reciente a más antigua) -->
+          <tr>
+            <td>12345678</td>
+            <td>Juan Pérez</td>
+            <td>2025-02-04</td>
+            <td>08:05</td>
+            <td style="color: orange;">Retardo</td>
+          </tr>
+          <tr>
+            <td>87654321</td>
+            <td>María Gómez</td>
+            <td>2025-02-04</td>
+            <td>08:02</td>
+            <td style="color: orange;">Retardo</td>
+          </tr>
+          <tr>
+            <td>12345678</td>
+            <td>Juan Pérez</td>
+            <td>2025-02-03</td>
+            <td>08:00</td>
+            <td style="color: green;">A tiempo</td>
+          </tr>
+          <tr>
+            <td>87654321</td>
+            <td>María Gómez</td>
+            <td>2025-02-03</td>
+            <td>---</td>
+            <td style="color: red;">Ausente</td>
+          </tr>
+          <tr>
+            <td>12345678</td>
+            <td>Juan Pérez</td>
+            <td>2025-02-02</td>
+            <td>---</td>
+            <td style="color: red;">Ausente</td>
+          </tr>
+          <tr>
+            <td>87654321</td>
+            <td>María Gómez</td>
+            <td>2025-02-02</td>
+            <td>08:00</td>
+            <td style="color: green;">A tiempo</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.getElementById('filtroDNI').addEventListener('input', filtrarYOrdenarTabla);
+    document.getElementById('filtroEstado').addEventListener('change', filtrarYOrdenarTabla);
+
+    function filtrarYOrdenarTabla() {
+      let dniFiltro = document.getElementById('filtroDNI').value.trim();
+      let estadoFiltro = document.getElementById('filtroEstado').value;
+      let tabla = document.getElementById("tablaAsistencias");
+      let filas = Array.from(tabla.rows);
+
+      // Filtrar las filas según el DNI y el estado seleccionado
+      filas.forEach(fila => {
+        let dni = fila.cells[0].textContent;
+        let estado = fila.cells[4].textContent;
+        let mostrar = true;
+
+        if (dniFiltro && !dni.includes(dniFiltro)) {
+          mostrar = false;
+        }
+        if (estadoFiltro && estado !== estadoFiltro) {
+          mostrar = false;
+        }
+
+        fila.style.display = mostrar ? '' : 'none';
+      });
+
+      // Ordenar las filas por fecha (de más reciente a más antigua)
+      let filasVisibles = filas.filter(fila => fila.style.display !== 'none');
+      filasVisibles.sort((a, b) => {
+        let fechaA = new Date(a.cells[2].textContent);
+        let fechaB = new Date(b.cells[2].textContent);
+        return fechaB - fechaA; // Orden descendente
+      });
+
+      filasVisibles.forEach(fila => tabla.appendChild(fila)); // Reinsertar en orden
+    }
+
+    // Asegurar que al cargar la página los datos estén ordenados correctamente
+    filtrarYOrdenarTabla();
+  </script>
+</body>
+</html>
