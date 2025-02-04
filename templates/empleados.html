@@ -65,9 +65,9 @@
       <table class="table table-bordered text-center">
         <thead style="background-color: var(--color-suave);">
           <tr>
+            <th>DNI</th>
             <th>Nombre</th>
             <th>Apellido</th>
-            <th>DNI</th>
             <th>Email</th>
             <th>Telefono</th>
             <th>Fecha Nacimiento</th>
@@ -78,9 +78,9 @@
         </thead>
         <tbody>
           <tr class="fila-empleado" data-estado="activo">
+            <td>11223344</td>
             <td>Pedro</td>
             <td>Pérez</td>
-            <td>11223344</td>
             <td>pedro.perez@email.com</td>
             <td>+54 11 4568 7920</td>
             <td>1995-05-17</td>
@@ -94,9 +94,9 @@
           </tr>
           <!-- Ejemplo adicional -->
           <tr class="fila-empleado" data-estado="licencia">
+            <td>87654321</td>
             <td>Ana</td>
             <td>López</td>
-            <td>87654321</td>
             <td>ana.lopez@email.com</td>
             <td>+54 11 9876 5432</td>
             <td>1990-07-22</td>
@@ -124,16 +124,16 @@
         <div class="modal-body">
           <form>
             <div class="mb-3">
+              <label for="dniEmpleado" class="form-label">DNI</label>
+              <input type="text" class="form-control" id="dniEmpleado" placeholder="Ingrese el DNI" required></textarea>
+            </div>
+            <div class="mb-3">
               <label for="nombreEmpleado" class="form-label">Nombre</label>
               <input type="text" class="form-control" id="nombreEmpleado" placeholder="Ingrese el Nombre" required></textarea>
             </div>
             <div class="mb-3">
               <label for="apellidoEmpleado" class="form-label">Apellido</label>
               <input type="text" class="form-control" id="apellidoEmpleado" placeholder="Ingrese el Apellido" required></textarea>
-            </div>
-            <div class="mb-3">
-              <label for="dniEmpleado" class="form-label">DNI</label>
-              <input type="text" class="form-control" id="dniEmpleado" placeholder="Ingrese el DNI" required></textarea>
             </div>
             <div class="mb-3">
               <label for="emailEmpleado" class="form-label">Email</label>
@@ -150,6 +150,15 @@
             <div class="mb-3">
               <label for="direccionEmpleado" class="form-label">Direccion</label>
               <input type="text" class="form-control" id="direccionEmpleado" placeholder="ej: Av. Siempreviva 123, CABA" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="cargoEmpleado" class="form-label">Cargo del Empleado</label>
+              <select class="form-select" id="estadoEmpleado" required>
+                <option value="" disabled selected>Selecciona el Cargo del Empleado</option>
+                <option value="1">Desarrolador Backend</option>
+                <option value="2">Desarrolador Frontend</option>
+                <option value="3">Diseñador Grafico</option>
+              </select>
             </div>
             <div class="mb-3">
               <label for="estadoEmpleado" class="form-label">Estado del Empleado</label>
@@ -180,13 +189,14 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
+          <p><strong>DNI:</strong> 11223344</p>
           <p><strong>Nombre:</strong> Pedro</p>
           <p><strong>Apellido:</strong> Pérez</p>
-          <p><strong>DNI:</strong> 11223344</p>
           <p><strong>Email:</strong> pedro.perez@email.com</p>
           <p><strong>Telefono:</strong> +54 11 4568 7920</p>
           <p><strong>Fecha de Nacimiento:</strong> 1995-05-17</p>
           <p><strong>Direccion:</strong> Av. Flanders 1234, CABA</p>
+          <p><strong>Cargo:</strong> Desarrolador Backend</p>
           <p><strong>Estado de Empleado:</strong> Activo</p>
         </div>
       </div>

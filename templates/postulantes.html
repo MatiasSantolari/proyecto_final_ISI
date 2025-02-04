@@ -34,57 +34,55 @@
   <div class="container my-5">
     <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Postulantes</h1>
 
-  <div class="d-flex align-items-center justify-content-between mb-3">
-    <!-- Botón para Crear -->
-    <button type="button" class="btn mb-3" style="background-color: var(--color-primario); color: white;" data-bs-toggle="modal" data-bs-target="#modalPostulante">
-      + Crear Nuevo Postulante   <!-- En realidad se crean en "Persona", pero puede crearse directamente aqui, igual se hace una validacion por DNI para no crear uno que ya se encuentre en "Persona" con el "estado" de "Postulante", puede darse un mensaje como "Persona ya cargada como Postulante, desea cambiar su estado a Postulante?" -->
-    </button>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <!-- Botón para Crear -->
+      <button type="button" class="btn mb-3" style="background-color: var(--color-primario); color: white;" data-bs-toggle="modal" data-bs-target="#modalPostulante">
+        + Crear Nuevo Postulante   <!-- En realidad se crean en "Persona", pero puede crearse directamente aqui, igual se hace una validacion por DNI para no crear uno que ya se encuentre en "Persona" con el "estado" de "Postulante", puede darse un mensaje como "Persona ya cargada como Postulante, desea cambiar su estado a Postulante?" -->
+      </button>
 
-    <!-- Buscador por DNI -->
-    <div class="ms-3">
-      <input type="text" class="form-control" id="buscadorDNI" placeholder="Buscar por DNI" style="width: 200px;">
-    </div>
+      <!-- Buscador por DNI -->
+      <div class="ms-3">
+        <input type="text" class="form-control" id="buscadorDNI" placeholder="Buscar por DNI" style="width: 200px;">
+      </div>
 
-    <!-- Filtro Estado de Postulante -->
-    <div class="mb-3">
-      <label for="filtroEstadoPostulante" class="form-label">Filtrar por Estado:</label>
-      <select class="form-select" id="filtroEstadoPostulante">
-        <option value="todos" selected>Todos</option>
-        <option value="proceso">En Proceso</option>
-        <option value="aceptado">Aceptado</option>
-        <option value="rechazado">Rechazado</option>
-      </select>
+      <!-- Filtro Estado de Postulante -->
+      <div class="mb-3">
+        <label for="filtroEstadoPostulante" class="form-label">Filtrar por Estado:</label>
+        <select class="form-select" id="filtroEstadoPostulante">
+          <option value="todos" selected>Todos</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="aceptado">Aceptado</option>
+          <option value="rechazado">Rechazado</option>
+        </select>
+      </div>
     </div>
-  </div>
 
     <!-- Tabla de Postulantes -->
     <div class="table-responsive">
       <table class="table table-bordered text-center">
         <thead style="background-color: var(--color-suave);">
           <tr>
+            <th>DNI</th>
             <th>Nombre</th>
             <th>Apellido</th>
-            <th>DNI</th>
             <th>Email</th>
             <th>Telefono</th>
-            <th>Fecha Nacimiento</th>
-            <th>Direccion</th>
             <th>Fecha Postulacion</th>
+            <th>Cargo</th>
             <th>Estado</th>
             <th style="width: 15%;">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr class="fila-postulante" data-estado="proceso">
+          <tr class="fila-postulante" data-estado="pendiente">
+            <td>12345678</td>
             <td>Juan</td>
             <td>Pérez</td>
-            <td>12345678</td>
             <td>juan.perez@email.com</td>
             <td>+54 11 4567 8910</td>
-            <td>1985-03-15</td>
-            <td>Av. Siempreviva 123, CABA</td>
             <td>2024-12-15</td>
-            <td>En Proceso</td>
+            <td>Desarrollador Backend</td>
+            <td>Pendiente</td>
             <td>
               <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalPostulante">Editar</button>
               <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerPostulante">Ver</button>
@@ -93,14 +91,13 @@
           </tr>
           <!-- Ejemplo adicional -->
           <tr class="fila-postulante" data-estado="rechazado">
+            <td>88776655</td>
             <td>Claudia</td>
             <td>López</td>
-            <td>88776655</td>
             <td>claudia.lopez@email.com</td>
             <td>+54 11 5479 5252</td>
-            <td>1993-07-12</td>
-            <td>Calle Real 126, Córdoba</td>
             <td>2024-08-15</td>
+            <td>Diseñador Grafico</td>
             <td>Rechazado</td>
             <td>
               <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalPostulante">Editar</button>
@@ -124,16 +121,16 @@
         <div class="modal-body">
           <form>
             <div class="mb-3">
+              <label for="dniPostulante" class="form-label">DNI</label>
+              <input type="text" class="form-control" id="dniPostulante" placeholder="Ingrese el DNI" required></textarea>
+            </div>
+            <div class="mb-3">
               <label for="nombrePostulante" class="form-label">Nombre</label>
               <input type="text" class="form-control" id="nombrePostulante" placeholder="Ingrese el Nombre" required></textarea>
             </div>
             <div class="mb-3">
               <label for="apellidoPostulante" class="form-label">Apellido</label>
               <input type="text" class="form-control" id="apellidoPostulante" placeholder="Ingrese el Apellido" required></textarea>
-            </div>
-            <div class="mb-3">
-              <label for="dniPostulante" class="form-label">DNI</label>
-              <input type="text" class="form-control" id="dniPostulante" placeholder="Ingrese el DNI" required></textarea>
             </div>
             <div class="mb-3">
               <label for="emailPostulante" class="form-label">Email</label>
@@ -156,11 +153,20 @@
               <input type="date" class="form-control" id="fechaPostulacionPostulante" required>
             </div>
             <div class="mb-3">
+              <label for="cargoEmpleado" class="form-label">Cargo del Empleado</label>
+              <select class="form-select" id="estadoEmpleado" required>
+                <option value="" disabled selected>Selecciona el Cargo del Empleado</option>
+                <option value="1">Desarrolador Backend</option>
+                <option value="2">Desarrolador Frontend</option>
+                <option value="3">Diseñador Grafico</option>
+              </select>
+            </div>
+            <div class="mb-3">
               <label for="estadoPostulante" class="form-label">Estado del Postulante</label>
               <select class="form-select" id="estadoPostulante" required>
                 <option value="" disabled selected>Selecciona el Estado del Postulante</option>
                 <option value="todos" selected>Todos</option>
-                <option value="proceso">En Proceso</option>
+                <option value="pendiente">Pendiente</option>
                 <option value="aceptado">Aceptado</option>
                 <option value="rechazado">Rechazado</option>
               </select>
@@ -181,15 +187,16 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
+          <p><strong>DNI:</strong> 12345678</p>
           <p><strong>Nombre:</strong> Juan</p>
           <p><strong>Apellido:</strong> Pérez</p>
-          <p><strong>DNI:</strong> 12345678</p>
           <p><strong>Email:</strong> juan.perez@email.com</p>
           <p><strong>Telefono:</strong> +54 11 4567 8910</p>
           <p><strong>Fecha de Nacimiento:</strong> 1985-03-15</p>
           <p><strong>Direccion:</strong> Av. Siempreviva 123, CABA</p>
           <p><strong>Fecha de Postulacion:</strong> 2024-12-15</p>
-          <p><strong>Estado:</strong> En Proceso</p>
+          <p><strong>Cargo:</strong> Desarrolador Backend</p>
+          <p><strong>Estado:</strong> Pendiente</p>
         </div>
       </div>
     </div>
