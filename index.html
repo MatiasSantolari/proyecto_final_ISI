@@ -145,6 +145,36 @@
             transition: margin-left 0.3s;
         }
 
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .dashboard-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .dashboard-card h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar div {
+            height: 100%;
+            background-color: #4caf50;
+        }
     </style>
 </head>
 <body>
@@ -202,7 +232,56 @@
     <!-- Contenido principal -->
     <div class="content">
         <h1>Bienvenido al Sistema</h1>
-        <p>Selecciona una opción en el menú lateral para continuar.</p>
+        <p>Selecciona una opción en el menú lateral ( ☰ ) para continuar.</p>
+        
+        <div class="dashboard-container">
+            <!-- Objetivos y Metas -->
+            <div class="dashboard-card">
+                <h3>🎯 Objetivos y Metas</h3>
+                <p>Completa los objetivos asignados y obtén recompensas.</p>
+                <p><strong>Objetivo:</strong> Finalizar el curso de liderazgo</p>
+                <div class="progress-bar"><div style="width: 60%;"></div></div>
+                <p>Progreso: 60%</p>
+            </div>
+        
+            <!-- Logros -->
+            <div class="dashboard-card">
+                <h3>🏆 Logros y Reconocimientos</h3>
+                <p>Último logro desbloqueado: <strong>Empleado del mes</strong></p>
+                <p>¡Sigue así! Próximo logro en 2 tareas más.</p>
+            </div>
+        
+            <!-- Tareas Pendientes -->
+            <div class="dashboard-card">
+                <h3>📅 Tareas Pendientes</h3>
+                <ul>
+                    <li>🟢 Evaluar desempeño de tu equipo</li>
+                    <li>🔴 Completar autoevaluación</li>
+                    <li>🟡 Asistir a la reunión mensual</li>
+                </ul>
+            </div>
+        
+            <!-- Beneficios Disponibles -->
+            <div class="dashboard-card">
+                <h3>💰 Beneficios Disponibles</h3>
+                <p>Tienes <strong>3 días de home office</strong> acumulados.</p>
+                <p>Crédito de bienestar: <strong>$500 en cursos</strong></p>
+            </div>
+        
+            <!-- Informe Personalizado -->
+            <div class="dashboard-card">
+                <h3>📊 Informe Personalizado</h3>
+                <p><strong>Asistencia:</strong> 95% este mes</p>
+                <p><strong>Evaluación de desempeño:</strong> 4.5/5 ⭐</p>
+            </div>
+        
+            <!-- Anuncios Importantes -->
+            <div class="dashboard-card">
+                <h3>📣 Anuncios Importantes</h3>
+                <p>📢 Nuevo bono por desempeño aprobado 🏅</p>
+                <p>📅 Próxima capacitación: Gestión de Proyectos - 10 de Febrero</p>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -222,6 +301,5 @@
             }
         }
     </script>
-
 </body>
 </html>
