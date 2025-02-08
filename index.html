@@ -175,6 +175,34 @@
             height: 100%;
             background-color: #4caf50;
         }
+
+        .quick-access a {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .admin-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .admin-toggle {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background-color: var(--color-primario);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .admin-toggle:hover {
+            background-color: var(--color-secundario);
+        }
     </style>
 </head>
 <body>
@@ -183,9 +211,9 @@
     <nav class="navbar">
         <button class="toggle-btn" id="toggle-btn" onclick="toggleSidebar()">☰</button>
         <div class="nav-links">
-            <a href="#">Inicio</a>
-            <a href="#">Configuración</a>
-            <a href="#">Cerrar Sesión</a>
+            <a href="#">🏠 Inicio</a>
+            <a href="#">⚙️ Configuración</a>
+            <a href="#">🚪 Cerrar Sesión</a>
         </div>
     </nav>
 
@@ -231,58 +259,91 @@
 
     <!-- Contenido principal -->
     <div class="content">
-        <h1>Bienvenido al Sistema</h1>
-        <p>Selecciona una opción en el menú lateral ( ☰ ) para continuar.</p>
-        
-        <div class="dashboard-container">
-            <!-- Objetivos y Metas -->
-            <div class="dashboard-card">
-                <h3>🎯 Objetivos y Metas</h3>
-                <p>Completa los objetivos asignados y obtén recompensas.</p>
-                <p><strong>Objetivo:</strong> Finalizar el curso de liderazgo</p>
-                <div class="progress-bar"><div style="width: 60%;"></div></div>
-                <p>Progreso: 60%</p>
-            </div>
-        
-            <!-- Logros -->
-            <div class="dashboard-card">
-                <h3>🏆 Logros y Reconocimientos</h3>
-                <p>Último logro desbloqueado: <strong>Empleado del mes</strong></p>
-                <p>¡Sigue así! Próximo logro en 2 tareas más.</p>
-            </div>
-        
-            <!-- Tareas Pendientes -->
-            <div class="dashboard-card">
-                <h3>📅 Tareas Pendientes</h3>
-                <ul>
-                    <li>🟢 Evaluar desempeño de tu equipo</li>
-                    <li>🔴 Completar autoevaluación</li>
-                    <li>🟡 Asistir a la reunión mensual</li>
-                </ul>
-            </div>
-        
-            <!-- Beneficios Disponibles -->
-            <div class="dashboard-card">
-                <h3>💰 Beneficios Disponibles</h3>
-                <p>Tienes <strong>3 días de home office</strong> acumulados.</p>
-                <p>Crédito de bienestar: <strong>$500 en cursos</strong></p>
-            </div>
-        
-            <!-- Informe Personalizado -->
-            <div class="dashboard-card">
-                <h3>📊 Informe Personalizado</h3>
-                <p><strong>Asistencia:</strong> 95% este mes</p>
-                <p><strong>Evaluación de desempeño:</strong> 4.5/5 ⭐</p>
-            </div>
-        
-            <!-- Anuncios Importantes -->
-            <div class="dashboard-card">
-                <h3>📣 Anuncios Importantes</h3>
-                <p>📢 Nuevo bono por desempeño aprobado 🏅</p>
-                <p>📅 Próxima capacitación: Gestión de Proyectos - 10 de Febrero</p>
+        <div class="user-content" id="user-content">  
+            <h1>Bienvenido al Sistema</h1>
+            <p>Selecciona una opción en el menú lateral ( ☰ ) para continuar.</p>
+            <button class="admin-toggle" onclick="toggleAdminMode()">Modo Admin</button>
+            
+            <div class="dashboard-container">
+                <!-- Objetivos y Metas -->
+                <div class="dashboard-card">
+                    <h3><strong>🎯 Objetivos y Metas</strong></h3>
+                    <p>Completa los objetivos asignados y obtén recompensas.</p>
+                    <p><strong>Objetivo:</strong> Finalizar el curso de liderazgo</p>
+                    <div class="progress-bar"><div style="width: 60%;"></div></div>
+                    <p>Progreso: 60%</p>
+                </div>
+            
+                <!-- Logros -->
+                <div class="dashboard-card">
+                    <h3><strong>🏆 Logros y Reconocimientos</strong></h3>
+                    <p>Último logro desbloqueado: <strong>Empleado del mes</strong></p>
+                    <p>¡Sigue así! Próximo logro en 2 tareas más.</p>
+                </div>
+            
+                <!-- Tareas Pendientes -->
+                <div class="dashboard-card">
+                    <h3><strong>📅 Tareas Pendientes</strong></h3>
+                    <ul>
+                        <li>🟢 Evaluar desempeño de tu equipo</li>
+                        <li>🔴 Completar autoevaluación</li>
+                        <li>🟡 Asistir a la reunión mensual</li>
+                    </ul>
+                </div>
+            
+                <!-- Beneficios Disponibles -->
+                <div class="dashboard-card">
+                    <h3><strong>💰 Beneficios Disponibles</strong></h3>
+                    <p>Tienes <strong>3 días de home office</strong> acumulados.</p>
+                    <p>Crédito de bienestar: <strong>$500 en cursos</strong></p>
+                </div>
+            
+                <!-- Informe Personalizado -->
+                <div class="dashboard-card">
+                    <h3><strong>📊 Informe Personalizado</strong></h3>
+                    <p><strong>Asistencia:</strong> 95% este mes</p>
+                    <p><strong>Evaluación de desempeño:</strong> 4.5/5 ⭐</p>
+                </div>
+            
+                <!-- Anuncios Importantes -->
+                <div class="dashboard-card">
+                    <h3><strong>📣 Anuncios Importantes</strong></h3>
+                    <p>📢 Nuevo bono por desempeño aprobado 🏅</p>
+                    <p>📅 Próxima capacitación: Gestión de Proyectos - 10 de Febrero</p>
+                </div>
+                <!-- Accesos rápidos -->
+                <div class="dashboard-card">
+                    <div class="quick-access">
+                        <h3><strong>📜 Accesos Rápidos</strong></h3>
+                        <a href="#">📌 Solicitar Vacaciones</a>
+                        <a href="#">📌 Registrar Asistencia</a>
+                        <a href="#">📌 Postularse a una Oferta Interna</a>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <div class="admin-content" id="admin-content">
+            <h1>🛠️ Panel de Administración</h1>
+            <p>📌 Aquí se gestionan todas las actividades del administrador.</p>
+            <button class="admin-toggle" onclick="toggleAdminMode()">Modo Usuario</button>
+            <div class="dashboard-container">
+                <div class="dashboard-card">
+                    <h3><strong>👥 Gestión de Usuarios</strong></h3>
+                    <p>🔑 Administrar permisos y roles.</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3><strong>📈 Informes</strong></h3>
+                    <p>📊 Informe Costos de Personal</p>
+                    <p>📊 Informes de Competencias Faltantes</p>
+                    <p>📊 Informes de Costos de Contratación</p>
+                    <p>📊 Visualizar reportes de Evaluación de Desempeño</p>
+                </div>
+            </div>
+        </div>
+
     </div>
+
 
     <script>
         function toggleSidebar() {
@@ -299,6 +360,14 @@
                 overlay.classList.add("active");
                 toggleBtn.style.display = "none"; // Oculta el botón de la barra de navegación
             }
+        }
+
+        function toggleAdminMode() {
+            let userContent = document.getElementById("user-content");
+            let adminContent = document.getElementById("admin-content");
+            let isAdminVisible = adminContent.style.display === "block";
+            adminContent.style.display = isAdminVisible ? "none" : "block";
+            userContent.style.display = isAdminVisible ? "block" : "none";
         }
     </script>
 </body>
