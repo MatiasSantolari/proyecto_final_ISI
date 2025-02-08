@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Principal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="static/estilo_base.css">
+    <style>
+        /* Fondo con degradado */
+        body {
+            background: linear-gradient(to bottom, #ffe4ea, #f5abb0);
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Barra de navegación superior */
+        .navbar {
+            background-color: var(--color-primario);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            height: 60px;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            margin-left: auto;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Botón ☰ */
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Estilos de la barra lateral */
+        .sidebar {
+            width: 0;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background-color: var(--color-primario);
+            overflow-x: hidden;
+            overflow-y: auto;
+            transition: width 0.3s ease;
+            white-space: nowrap;
+            padding-top: 20px;
+            box-shadow: 4px 0px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 0 10px 10px 0;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .sidebar a {
+        display: block;
+        color: white;
+        font-weight: bold;
+        text-decoration: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        padding: 10px 15px;
+        margin-top: 10px;
+        max-width: 90%; /* Para que no ocupe todo el ancho */
+        word-wrap: break-word; /* Evita que el texto se salga del contenedor */
+        overflow-wrap: break-word; /* Soporte adicional para navegadores modernos */
+        white-space: normal; /* Permite saltos de línea automáticos */
+    }
+
+        .sidebar a:hover {
+            background-color: var(--color-secundario);
+            border-radius: 5px;
+        }
+
+        /* Cuando el menú está abierto */
+        .sidebar.open {
+            width: 250px;
+        }
+
+        .sidebar.open a {
+            opacity: 1;
+        }
+
+        /* Botón ☰ dentro del menú alineado al de la barra de navegación */
+        .sidebar .menu-header {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            height: 60px;
+            width: 100%;
+            padding: 0 15px;
+        }
+
+        .sidebar .toggle-btn {
+            position: static;
+            margin-right: auto;
+        }
+
+        /* Fondo oscuro al abrir el menú */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 1000;
+        }
+
+        .overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Ajustes para el contenido */
+        .content {
+            padding: 20px;
+            transition: margin-left 0.3s;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Barra de navegación superior -->
+    <nav class="navbar">
+        <button class="toggle-btn" id="toggle-btn" onclick="toggleSidebar()">☰</button>
+        <div class="nav-links">
+            <a href="#">Inicio</a>
+            <a href="#">Configuración</a>
+            <a href="#">Cerrar Sesión</a>
+        </div>
+    </nav>
+
+    <!-- Fondo oscuro al abrir el menú -->
+    <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Barra lateral -->
+    <div id="sidebar" class="sidebar">
+        <div class="menu-header">
+            <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+        </div>
+        <a href="templates/agregar_sueldo_base.html">Agregar Sueldo Base</a>
+        <a href="templates/beneficios.html">Beneficios</a>
+        <a href="templates/calcular_bonificaciones.html">Calcular Bonificaciones</a>
+        <a href="templates/capacitaciones.html">Capacitaciones</a>
+        <a href="templates/cargos.html">Cargos</a>
+        <a href="templates/competencias.html">Competencias</a>
+        <a href="templates/contratos.html">Contratos</a>
+        <a href="templates/costos_de_personal.html">Informe Costos de Personal</a>
+        <a href="templates/criterios_evaluacion.html">Criterios de Evaluación</a>
+        <a href="templates/departamentos.html">Departamentos</a>
+        <a href="templates/empleados.html">Empleados</a>
+        <a href="templates/evaluacion_desempeno.html">Evaluación de Desempeño</a>
+        <a href="templates/habilidades.html">Habilidades</a>
+        <a href="templates/iniciar_sesion.html">Iniciar Sesión</a>
+        <a href="templates/instituciones.html">Instituciones</a>
+        <a href="templates/logros.html">Logros</a>
+        <a href="templates/nominas.html">Nóminas</a>
+        <a href="templates/objetivos.html">Objetivos</a>
+        <a href="templates/personas.html">Personas</a>
+        <a href="templates/postulantes.html">Postulantes</a>
+        <a href="templates/publicar_ofertas_de_empleo.html">Publicar Ofertas de Empleo</a>
+        <a href="templates/registrar_asistencia.html">Registrar Asistencia</a>
+        <a href="templates/solicitudes_nuevos_empleados.html">Solicitudes de Nuevos Empleados</a>
+        <a href="templates/tipo_criterio_evaluacion.html">Tipo de Criterio de Evaluación</a>
+        <a href="templates/tipos_contrato.html">Tipos de Contrato</a>
+        <a href="templates/competencias_faltantes.html">Informes de Competencias Faltantes</a>
+        <a href="templates/costos_de_contratacion.html">Informes de Costos de Contratación</a>
+        <a href="templates/reporte_evaluacion_desempeno.html">Reportes de Evaluación de Desempeño</a>
+        <a href="templates/contratar_nuevo_empleado.html">Contratar Nuevo Empleado</a>
+        <a href="templates/ausencias_retardos.html">Seguimiento de Ausencias y Retardos</a>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="content">
+        <h1>Bienvenido al Sistema</h1>
+        <p>Selecciona una opción en el menú lateral para continuar.</p>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            let sidebar = document.getElementById("sidebar");
+            let overlay = document.getElementById("overlay");
+            let toggleBtn = document.getElementById("toggle-btn");
+
+            if (sidebar.classList.contains("open")) {
+                sidebar.classList.remove("open");
+                overlay.classList.remove("active");
+                toggleBtn.style.display = "block"; // Vuelve a la barra de navegación
+            } else {
+                sidebar.classList.add("open");
+                overlay.classList.add("active");
+                toggleBtn.style.display = "none"; // Oculta el botón de la barra de navegación
+            }
+        }
+    </script>
+
+</body>
+</html>
