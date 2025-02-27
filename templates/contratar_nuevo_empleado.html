@@ -11,23 +11,15 @@
   <!-- Barra de Navegación -->
   <nav class="navbar navbar-expand-lg" style="background-color: var(--color-primario);">
     <div class="container">
-      <a class="navbar-brand text-white" href="#">Mi Empresa</a>
+      <a class="navbar-brand text-white" href="../index.html">Mi Empresa</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link text-white" href="#">Página Principal</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link text-white" href="#">Contratar Nuevo Empleado</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link text-white" href="#">Cerrar Sesión</a>
-          </li>
-        </ul>
-      </div>
+      <div class="nav-links">
+        <a href="index.html">🏠 Inicio</a>
+        <a href="#">⚙️ Configuración</a>
+        <a href="iniciar_sesion.html">🚪 Cerrar Sesión</a>
+    </div>
     </div>
   </nav>
 
@@ -53,7 +45,6 @@
       <table class="table table-bordered text-center">
         <thead style="background-color: var(--color-suave);">
           <tr>
-            <th>ID</th>
             <th>Nombre</th>
             <th>Cargo</th>
             <th>Estado</th>
@@ -63,7 +54,6 @@
         <tbody>
           <!-- Ejemplo de un postulante -->
           <tr class="fila-postulante" data-estado="pendiente">
-            <td>1</td>
             <td>Juan Pérez</td>
             <td>Desarrollador Backend</td>
             <td>Pendiente</td>
@@ -72,7 +62,6 @@
             </td>
           </tr>
           <tr class="fila-postulante" data-estado="aceptado">
-            <td>2</td>
             <td>María Gómez</td>
             <td>Diseñadora Gráfica</td>
             <td>Aceptado</td>

@@ -11,23 +11,15 @@
     <!-- Barra de Navegación -->
     <nav class="navbar navbar-expand-lg" style="background-color: var(--color-primario);">
       <div class="container">
-        <a class="navbar-brand text-white" href="#">Mi Empresa</a>
+        <a class="navbar-brand text-white" href="../index.html">Mi Empresa</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a class="nav-link text-white" href="#">Página Principal</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white" href="#">Gestión de Capacitaciones</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white" href="#">Cerrar Sesión</a>
-            </li>
-          </ul>
-        </div>
+        <div class="nav-links">
+          <a href="index.html">🏠 Inicio</a>
+          <a href="#">⚙️ Configuración</a>
+          <a href="iniciar_sesion.html">🚪 Cerrar Sesión</a>
+      </div>
       </div>
     </nav>
 
@@ -44,7 +36,6 @@
       <table class="table table-bordered text-center">
         <thead style="background-color: var(--color-suave);">
           <tr>
-            <th style="width: 2%;">ID</th>
             <th style="width: 15%;">Nombre</th>
             <th style="width: 32%;">Descripcion</th>
             <th style="width: 11%;">Fecha de Inicio</th>
@@ -55,11 +46,10 @@
         </thead>
         <tbody>
           <tr>
-            <td>1</td>
             <td>Comunicación Efectiva en el Trabajo</td>
             <td>Taller práctico para mejorar habilidades de comunicación interpersonal y manejo de conflictos en entornos laborales.</td>
-            <td>2025-02-01</td>
-            <td>2025-04-01</td>
+            <td>01-02-2025</td>
+            <td>01-04-2025</td>
             <td>Centro de Desarrollo Profesional y Liderazgo (CDPL)</td>
             <td>
               <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCapacitacion">Editar</button>
@@ -69,11 +59,10 @@
           </tr>
           <!-- Ejemplo adicional -->
           <tr>
-            <td>2</td>
             <td>Certificación en Gestión de Proyectos Ágiles</td>
             <td>Curso avanzado sobre principios y prácticas de metodologías ágiles, incluyendo Scrum y Kanban, orientado a la gestión de proyectos.</td>
-            <td>2025-03-10</td>
-            <td>2025-07-30</td>
+            <td>10-03-2025</td>
+            <td>30-07-2025</td>
             <td>Academia Internacional de Gestión Ágil (AIGA)</td>
             <td>
               <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCapacitacion">Editar</button>
@@ -138,8 +127,8 @@
         <div class="modal-body">
           <p><strong>Nombre:</strong> Comunicación Efectiva en el Trabajo</p>
           <p><strong>Descripcion:</strong> Taller práctico para mejorar habilidades de comunicación interpersonal y manejo de conflictos en entornos laborales.</p>
-          <p><strong>Fecha de Inicio:</strong> 2025-02-01</p>
-          <p><strong>Fecha de Fin:</strong> 2025-04-01</p>
+          <p><strong>Fecha de Inicio:</strong> 01-02-2025</p>
+          <p><strong>Fecha de Fin:</strong> 01-04-2025</p>
         </div>
       </div>
     </div>

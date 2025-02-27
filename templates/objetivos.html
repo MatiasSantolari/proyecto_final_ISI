@@ -11,23 +11,15 @@
     <!-- Barra de Navegación -->
     <nav class="navbar navbar-expand-lg" style="background-color: var(--color-primario);">
       <div class="container">
-        <a class="navbar-brand text-white" href="#">Mi Empresa</a>
+        <a class="navbar-brand text-white" href="../index.html">Mi Empresa</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a class="nav-link text-white" href="#">Página Principal</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white" href="#">Gestión de Objetivos</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white" href="#">Cerrar Sesión</a>
-            </li>
-          </ul>
-        </div>
+        <div class="nav-links">
+          <a href="index.html">🏠 Inicio</a>
+          <a href="#">⚙️ Configuración</a>
+          <a href="iniciar_sesion.html">🚪 Cerrar Sesión</a>
+      </div>
       </div>
     </nav>
 
@@ -44,7 +36,6 @@
       <table class="table table-bordered text-center">
         <thead style="background-color: var(--color-suave);">
           <tr>
-            <th style="width: 2%;">ID</th>
             <th style="width: 50%;">descripcion</th>
             <th style="width: 12%;">Fecha de Inicio</th>
             <th style="width: 10%;">Fecha de Fin</th>
@@ -54,10 +45,9 @@
         </thead>
         <tbody>
           <tr>
-            <td>1</td>
             <td>Mejorar habilidades de comunicación para presentaciones efectivas</td>
-            <td>2025-01-01</td>
-            <td>2025-04-30</td>
+            <td>01-01-2025</td>
+            <td>30-04-2025</td>
             <td>En Proceso</td>
             <td>
               <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalObjetivo">Editar</button>
@@ -67,10 +57,9 @@
           </tr>
           <!-- Ejemplo adicional -->
           <tr>
-            <td>2</td>
             <td>Completar el curso de certificación en gestión de proyectos (PMP)</td>
-            <td>2024-11-15</td>
-            <td>2025-02-15</td>
+            <td>15-11-2024</td>
+            <td>15-02-2025</td>
             <td>Completado</td>
             <td>
               <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalObjetivo">Editar</button>
@@ -133,8 +122,8 @@
         </div>
         <div class="modal-body">
           <p><strong>Descripcion:</strong> Mejorar habilidades de comunicación para presentaciones efectivas</p>
-          <p><strong>Fecha de Inicio:</strong> 2025-01-01</p>
-          <p><strong>Fecha de Fin:</strong> 2025-04-30</p>
+          <p><strong>Fecha de Inicio:</strong> 01-01-2025</p>
+          <p><strong>Fecha de Fin:</strong> 30-04-2025</p>
           <p><strong>Estado:</strong> En Proceso</p>
         </div>
       </div>

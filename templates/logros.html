@@ -11,23 +11,15 @@
     <!-- Barra de Navegación -->
     <nav class="navbar navbar-expand-lg" style="background-color: var(--color-primario);">
       <div class="container">
-        <a class="navbar-brand text-white" href="#">Mi Empresa</a>
+        <a class="navbar-brand text-white" href="../index.html">Mi Empresa</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a class="nav-link text-white" href="#">Página Principal</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white" href="#">Gestión de Logros</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white" href="#">Cerrar Sesión</a>
-            </li>
-          </ul>
-        </div>
+        <div class="nav-links">
+          <a href="index.html">🏠 Inicio</a>
+          <a href="#">⚙️ Configuración</a>
+          <a href="iniciar_sesion.html">🚪 Cerrar Sesión</a>
+      </div>
       </div>
     </nav>
 
@@ -44,7 +36,6 @@
       <table class="table table-bordered text-center">
         <thead style="background-color: var(--color-suave);">
           <tr>
-            <th>ID</th>
             <th>Descripción</th>
             <th>Fecha de Inicio</th>
             <th>Fecha de Fin</th>
@@ -53,10 +44,9 @@
         </thead>
         <tbody>
           <tr>
-            <td>1</td>
             <td>Completar el curso de certificación profesional</td>
-            <td>2025-01-01</td>
-            <td>2025-01-15</td>
+            <td>01-01-2025</td>
+            <td>15-01-2025</td>
             <td>
               <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalLogro">Editar</button>
               <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerLogro">Ver</button>
@@ -65,10 +55,9 @@
           </tr>
           <!-- Ejemplo adicional -->
           <tr>
-            <td>2</td>
             <td>Publicar artículo técnico en la revista corporativa</td>
-            <td>2025-02-01</td>
-            <td>2025-02-28</td>
+            <td>01-02-2025</td>
+            <td>28-02-2025</td>
             <td>
               <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalLogro">Editar</button>
               <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerLogro">Ver</button>
@@ -119,8 +108,8 @@
         </div>
         <div class="modal-body">
           <p><strong>Descripción:</strong> Completar el curso de certificación profesional</p>
-          <p><strong>Fecha de Inicio:</strong> 2025-01-01</p>
-          <p><strong>Fecha de Fin:</strong> 2025-01-15</p>
+          <p><strong>Fecha de Inicio:</strong> 01-01-2025</p>
+          <p><strong>Fecha de Fin:</strong> 15-01-2025</p>
         </div>
       </div>
     </div>

@@ -11,23 +11,15 @@
     <!-- Barra de Navegación -->
     <nav class="navbar navbar-expand-lg" style="background-color: var(--color-primario);">
       <div class="container">
-        <a class="navbar-brand text-white" href="#">Mi Empresa</a>
+        <a class="navbar-brand text-white" href="../index.html">Mi Empresa</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a class="nav-link text-white" href="#">Página Principal</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white" href="#">Gestión de Evaluaciones</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white" href="#">Cerrar Sesión</a>
-            </li>
-          </ul>
-        </div>
+        <div class="nav-links">
+          <a href="index.html">🏠 Inicio</a>
+          <a href="#">⚙️ Configuración</a>
+          <a href="iniciar_sesion.html">🚪 Cerrar Sesión</a>
+      </div>
       </div>
     </nav>
 
@@ -44,7 +36,6 @@
       <table class="table table-bordered text-center">
         <thead style="background-color: var(--color-suave);">
           <tr>
-            <th>ID</th>
             <th>Fecha de Evaluación</th>
             <th>Descripción</th>
             <th>Comentarios</th>
@@ -54,8 +45,7 @@
         </thead>
         <tbody>
           <tr>
-            <td>1</td>
-            <td>2025-01-10</td>
+            <td>10-01-2025</td>
             <td>Evaluación Anual del Desempeño</td>
             <td>Buen rendimiento en proyectos clave</td>
             <td>85</td>
@@ -67,8 +57,7 @@
           </tr>
           <!-- Ejemplo adicional -->
           <tr>
-            <td>2</td>
-            <td>2025-01-08</td>
+            <td>08-01-2025</td>
             <td>Revisión Semestral</td>
             <td>Necesita mejorar habilidades de comunicación</td>
             <td>70</td>
@@ -125,7 +114,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p><strong>Fecha de Evaluación:</strong> 2025-01-10</p>
+          <p><strong>Fecha de Evaluación:</strong> 10-01-2025</p>
           <p><strong>Descripción:</strong> Evaluación Anual del Desempeño</p>
           <p><strong>Comentarios:</strong> Buen rendimiento en proyectos clave</p>
           <p><strong>Calificación Final:</strong> 85</p>
