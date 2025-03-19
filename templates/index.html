@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Principal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="static/estilo_base.css">
+    <style>
+        /* Fondo con degradado */
+        body {
+            background: linear-gradient(to bottom, #ffe4ea, #f5abb0);
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Barra de navegación superior */
+        .navbar {
+            background-color: var(--color-primario);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            height: 60px;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            margin-left: auto;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Botón ☰ */
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Estilos de la barra lateral */
+        .sidebar {
+            width: 0;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background-color: var(--color-primario);
+            overflow-x: hidden;
+            overflow-y: auto;
+            transition: width 0.3s ease;
+            white-space: nowrap;
+            padding-top: 20px;
+            box-shadow: 4px 0px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 0 10px 10px 0;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .sidebar a {
+        display: block;
+        color: white;
+        font-weight: bold;
+        text-decoration: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        padding: 5px 10px;
+        margin-top: 10px;
+        max-width: 95%; /* Para que no ocupe todo el ancho */
+        word-wrap: break-word; /* Evita que el texto se salga del contenedor */
+        overflow-wrap: break-word; /* Soporte adicional para navegadores modernos */
+        white-space: normal; /* Permite saltos de línea automáticos */
+        font-size: 14px;
+    }
+
+        .sidebar a:hover {
+            background-color: var(--color-secundario);
+            border-radius: 5px;
+        }
+
+        /* Cuando el menú está abierto */
+        .sidebar.open {
+            width: 250px;
+        }
+
+        .sidebar.open a {
+            opacity: 1;
+        }
+
+        /* Botón ☰ dentro del menú alineado al de la barra de navegación */
+        .sidebar .menu-header {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            height: 60px;
+            width: 100%;
+            padding: 0 15px;
+        }
+
+        .sidebar .toggle-btn {
+            position: static;
+            margin-right: auto;
+        }
+
+        /* Fondo oscuro al abrir el menú */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 1000;
+        }
+
+        .overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Ajustes para el contenido */
+        .content {
+            padding: 20px;
+            transition: margin-left 0.3s;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .dashboard-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .dashboard-card h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar div {
+            height: 100%;
+            background-color: #4caf50;
+        }
+
+        .quick-access a {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .admin-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .admin-toggle {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background-color: var(--color-primario);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .admin-toggle:hover {
+            background-color: var(--color-secundario);
+        }
+    </style>
+</head>
+<body>
+
+    {% extends "base_menu_barraNav.html" %}
+
+  {% block title %}Pagina Principal{% endblock %}
+  
+  {% block content %}
+
+    <!-- Fondo oscuro al abrir el menú -->
+    <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Barra lateral -->
+    <div id="sidebar" class="sidebar">
+        <div class="menu-header">
+            <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+        </div>
+            <a href="{% url 'agregar_sueldo_base' %}">Agregar Sueldo Base</a>
+            <a href="{% url 'beneficios' %}">Beneficios</a>
+            <a href="{% url 'calcular_bonificaciones' %}">Calcular Bonificaciones</a>
+            <a href="{% url 'capacitaciones' %}">Capacitaciones</a>
+            <a href="{% url 'cargos' %}">Cargos</a>
+            <a href="{% url 'competencias' %}">Competencias</a>
+            <a href="{% url 'contratos' %}">Contratos</a>
+            <a href="{% url 'costos_de_personal' %}">Informe Costos de Personal</a>
+            <a href="{% url 'criterios_evaluacion' %}">Criterios de Evaluación</a>
+            <a href="{% url 'departamentos' %}">Departamentos</a>
+            <a href="{% url 'empleados' %}">Empleados</a>
+            <a href="{% url 'evaluacion_desempeno' %}">Evaluación de Desempeño</a>
+            <a href="{% url 'habilidades' %}">Habilidades</a>
+            <a href="{% url 'iniciar_sesion' %}">Iniciar Sesión</a>
+            <a href="{% url 'instituciones' %}">Instituciones</a>
+            <a href="{% url 'logros' %}">Logros</a>
+            <a href="{% url 'nominas' %}">Nóminas</a>
+            <a href="{% url 'objetivos' %}">Objetivos</a>
+            <a href="{% url 'personas' %}">Personas</a>
+            <a href="{% url 'postulantes' %}">Postulantes</a>
+            <a href="{% url 'publicar_ofertas_de_empleo' %}">Publicar Ofertas de Empleo</a>
+            <a href="{% url 'registrar_asistencia' %}">Registrar Asistencia</a>
+            <a href="{% url 'solicitudes_nuevos_empleados' %}">Solicitudes de Nuevos Empleados</a>
+            <a href="{% url 'tipo_criterio_evaluacion' %}">Tipo de Criterio de Evaluación</a>
+            <a href="{% url 'tipos_contrato' %}">Tipos de Contrato</a>
+            <a href="{% url 'competencias_faltantes' %}">Informes de Competencias Faltantes</a>
+            <a href="{% url 'costos_de_contratacion' %}">Informes de Costos de Contratación</a>
+            <a href="{% url 'reporte_evaluacion_desempeno' %}">Reportes de Evaluación de Desempeño</a>
+            <a href="{% url 'contratar_nuevo_empleado' %}">Contratar Nuevo Empleado</a>
+            <a href="{% url 'ausencias_retardos' %}">Seguimiento de Ausencias y Retardos</a>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="content">
+        <div class="user-content" id="user-content">  
+            <h1>Bienvenido al Sistema</h1>
+            <p>Selecciona una opción en el menú lateral ( ☰ ) para continuar.</p>
+            <button class="admin-toggle" onclick="toggleAdminMode()">Modo Admin</button>
+            
+            <div class="dashboard-container">
+                <!-- Objetivos y Metas -->
+                <div class="dashboard-card">
+                    <h3><strong>🎯 Objetivos y Metas</strong></h3>
+                    <p>Completa los objetivos asignados y obtén recompensas.</p>
+                    <p><strong>Objetivo:</strong> Finalizar el curso de liderazgo</p>
+                    <div class="progress-bar"><div style="width: 60%;"></div></div>
+                    <p>Progreso: 60%</p>
+                </div>
+            
+                <!-- Logros -->
+                <div class="dashboard-card">
+                    <h3><strong>🏆 Logros y Reconocimientos</strong></h3>
+                    <p>Último logro desbloqueado: <strong>Empleado del mes</strong></p>
+                    <p>¡Sigue así! Próximo logro en 2 tareas más.</p>
+                </div>
+            
+                <!-- Tareas Pendientes -->
+                <div class="dashboard-card">
+                    <h3><strong>📅 Tareas Pendientes</strong></h3>
+                    <ul>
+                        <li>🟢 Evaluar desempeño de tu equipo</li>
+                        <li>🔴 Completar autoevaluación</li>
+                        <li>🟡 Asistir a la reunión mensual</li>
+                    </ul>
+                </div>
+            
+                <!-- Beneficios Disponibles -->
+                <div class="dashboard-card">
+                    <h3><strong>💰 Beneficios Disponibles</strong></h3>
+                    <p>Tienes <strong>3 días de home office</strong> acumulados.</p>
+                    <p>Crédito de bienestar: <strong>$500 en cursos</strong></p>
+                </div>
+            
+                <!-- Informe Personalizado -->
+                <div class="dashboard-card">
+                    <h3><strong>📊 Informe Personalizado</strong></h3>
+                    <p><strong>Asistencia:</strong> 95% este mes</p>
+                    <p><strong>Evaluación de desempeño:</strong> 4.5/5 ⭐</p>
+                </div>
+            
+                <!-- Anuncios Importantes -->
+                <div class="dashboard-card">
+                    <h3><strong>📣 Anuncios Importantes</strong></h3>
+                    <p>📢 Nuevo bono por desempeño aprobado 🏅</p>
+                    <p>📅 Próxima capacitación: Gestión de Proyectos - 10 de Febrero</p>
+                </div>
+                <!-- Accesos rápidos -->
+                <div class="dashboard-card">
+                    <div class="quick-access">
+                        <h3><strong>📜 Accesos Rápidos</strong></h3>
+                        <a href="#">📌 Solicitar Vacaciones</a>
+                        <a href="#">📌 Registrar Asistencia</a>
+                        <a href="#">📌 Postularse a una Oferta Interna</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-content" id="admin-content">
+            <h1>🛠️ Panel de Administración</h1>
+            <p>📌 Aquí se gestionan todas las actividades del administrador.</p>
+            <button class="admin-toggle" onclick="toggleAdminMode()">Modo Usuario</button>
+            <div class="dashboard-container">
+                <div class="dashboard-card">
+                    <h3><strong>👥 Gestión de Usuarios</strong></h3>
+                    <p>🔑 Administrar permisos y roles.</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3><strong>📈 Informes</strong></h3>
+                    <p>📊 Informe Costos de Personal</p>
+                    <p>📊 Informes de Competencias Faltantes</p>
+                    <p>📊 Informes de Costos de Contratación</p>
+                    <p>📊 Visualizar reportes de Evaluación de Desempeño</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    {% endblock %}
+
+    <script>
+        function toggleSidebar() {
+            let sidebar = document.getElementById("sidebar");
+            let overlay = document.getElementById("overlay");
+            let toggleBtn = document.getElementById("toggle-btn");
+
+            if (sidebar.classList.contains("open")) {
+                sidebar.classList.remove("open");
+                overlay.classList.remove("active");
+                toggleBtn.style.display = "block"; // Vuelve a la barra de navegación
+            } else {
+                sidebar.classList.add("open");
+                overlay.classList.add("active");
+                toggleBtn.style.display = "none"; // Oculta el botón de la barra de navegación
+            }
+        }
+
+        function toggleAdminMode() {
+            let userContent = document.getElementById("user-content");
+            let adminContent = document.getElementById("admin-content");
+            let isAdminVisible = adminContent.style.display === "block";
+            adminContent.style.display = isAdminVisible ? "none" : "block";
+            userContent.style.display = isAdminVisible ? "block" : "none";
+        }
+    </script>
+</body>
+</html>

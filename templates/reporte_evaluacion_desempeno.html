@@ -10,20 +10,11 @@
 </head>
 <body>
 
-    <!-- Barra de Navegación -->
-    <nav class="navbar navbar-expand-lg" style="background-color: var(--color-primario);">
-      <div class="container">
-        <a class="navbar-brand text-white" href="../index.html">Mi Empresa</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="nav-links">
-            <a href="index.html">🏠 Inicio</a>
-            <a href="#">⚙️ Configuración</a>
-            <a href="iniciar_sesion.html">🚪 Cerrar Sesión</a>
-        </div>
-      </div>
-    </nav>
+    {% extends "base_menu_barraNav.html" %}
+
+  {% block title %}Reporte de Evaluación de Desempeño{% endblock %}
+  
+  {% block content %}
 
     <div class="container my-5">
         <h1 class="text-center mb-4" style="color: var(--color-primario);">Reporte de Evaluación de Desempeño</h1>
@@ -103,7 +94,7 @@
             </div>
         </div>
     </div>
-
+    {% endblock %}
     <script>
         function generarReporte() {
             // Mostrar el modal con el reporte
