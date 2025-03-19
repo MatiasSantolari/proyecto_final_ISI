@@ -1,13 +1,20 @@
+from django.apps import apps
 from django.db import models
-from .cargo import Cargo
-from .cargo_departamento import CargoDepartamento
 
 class Departamento(models.Model):
     id_departamento = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
     descripcion = models.CharField(max_length=255, null=True, blank=True)
 
-    cargos = models.ManyToManyField(Cargo, through=CargoDepartamento, related_name="departamentos")
-
+    def get_cargo(self):
+        Cargo = apps.get_model('app_principal', 'Cargo')
+        return Cargo.objects.filter(departamento=self)
+    
+    cargos = models.ManyToManyField(
+        "app_principal.Cargo",
+        through="app_principal.CargoDepartamento",
+         related_name="departamento_cargos"
+    )
+    
     class Meta:
         db_table = "departamento"

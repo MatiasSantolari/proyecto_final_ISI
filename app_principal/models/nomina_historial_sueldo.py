@@ -1,9 +1,8 @@
 from django.db import models
-from .nomina import Nomina
 from .historial_sueldo_base import HistorialSueldoBase
 
 class NominaHistorialSueldo(models.Model):
-    nomina = models.ForeignKey(Nomina, on_delete=models.CASCADE)
+    nomina = models.ForeignKey('app_principal.Nomina', on_delete=models.CASCADE)
     historial_sueldo = models.ForeignKey(HistorialSueldoBase, on_delete=models.CASCADE)
 
     class Meta:

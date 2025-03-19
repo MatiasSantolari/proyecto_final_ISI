@@ -3,10 +3,10 @@ from .persona import Persona
 from .usuario import Usuario
 from .logro import Logro
 from .logro_empleado import LogroEmpleado
-from objetivo import Objetivo
-from objetivo_empleado import ObjetivoEmpleado
-from habilidad import Habilidad
-from habilidad_empleado import HabilidadEmpleado
+from .objetivo import Objetivo
+from .objetivo_empleado import ObjetivoEmpleado
+from .habilidad import Habilidad
+from .habilidad_empleado import HabilidadEmpleado
 from .capacitacion import Capacitacion
 from .capacitacion_empleado import CapacitacionEmpleado
 from .competencia import Competencia

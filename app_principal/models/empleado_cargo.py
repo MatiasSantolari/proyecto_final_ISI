@@ -1,9 +1,8 @@
 from django.db import models
-from .empleado import Empleado
 from .cargo import Cargo
 
 class EmpleadoCargo(models.Model):
-    empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
+    empleado = models.ForeignKey('app_principal.Empleado', on_delete=models.CASCADE)
     cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE)
     fecha_asignacion = models.DateField()
     fecha_desasignado = models.DateField(null=True, blank=True)

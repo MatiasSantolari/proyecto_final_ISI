@@ -1,10 +1,9 @@
 from django.db import models
-from .empleado import Empleado
 from .descuento import Descuento
 from .nomina import Nomina
 
 class DescuentoEmpleadoNomina(models.Model):
-    empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
+    empleado = models.ForeignKey('app_principal.Empleado', on_delete=models.CASCADE)
     descuento = models.ForeignKey(Descuento, on_delete=models.CASCADE)
     nomina = models.ForeignKey(Nomina, on_delete=models.CASCADE)
 

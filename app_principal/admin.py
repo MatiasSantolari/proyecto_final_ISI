@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Persona,Empleado,Usuario,Objetivo,Logro,ObjetivoEmpleado,LogroEmpleado,habilidad,habilidad_empleado,Capacitacion,CapacitacionEmpleado,Competencia,CompetenciaEmpleado,Institucion,InstitucionCapacitacion,TipoCriterio, CriterioEvaluacion, Evaluacion,DesempenoCriterio,HistorialContrato,TipoContrato,VacacionesDisponibles,VacacionesSolicitud,Solicitud,CargoDepartamento,Cargo,Departamento,EmpleadoCargo,Nomina, Descuento, DescuentoEmpleadoNomina,Beneficio, BeneficioEmpleadoNomina,HistorialSueldoBase, NominaHistorialSueldo,HistorialAsistencia
+from .models import Persona,Empleado,Usuario,Objetivo,Logro,ObjetivoEmpleado,LogroEmpleado,Habilidad,HabilidadEmpleado,Capacitacion,CapacitacionEmpleado,Competencia,CompetenciaEmpleado,Institucion,InstitucionCapacitacion,TipoCriterio, CriterioEvaluacion, Evaluacion,DesempenoCriterio,HistorialContrato,TipoContrato,VacacionesDisponibles,VacacionesSolicitud,Solicitud,CargoDepartamento,Cargo,Departamento,EmpleadoCargo,Nomina, Descuento, DescuentoEmpleadoNomina,Beneficio, BeneficioEmpleadoNomina,HistorialSueldoBase, NominaHistorialSueldo,HistorialAsistencia
 
 admin.site.register(Persona)
 admin.site.register(Empleado)
@@ -8,8 +8,8 @@ admin.site.register(Objetivo)
 admin.site.register(Logro)
 admin.site.register(ObjetivoEmpleado)
 admin.site.register(LogroEmpleado)
-admin.site.register(habilidad_empleado)
-admin.site.register(habilidad)
+admin.site.register(HabilidadEmpleado)
+admin.site.register(Habilidad)
 admin.site.register(Capacitacion)
 admin.site.register(CapacitacionEmpleado)
 admin.site.register(Competencia)

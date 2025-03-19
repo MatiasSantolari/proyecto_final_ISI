@@ -1,6 +1,4 @@
 from django.db import models
-from .departamento import Departamento
-from .cargo_departamento import CargoDepartamento
 
 class Cargo(models.Model):
     id_cargo = models.AutoField(primary_key=True)
@@ -8,7 +6,11 @@ class Cargo(models.Model):
     descripcion = models.CharField(max_length=255, null=True, blank=True)
     total_vacantes = models.IntegerField(null=False)
 
-    departamentos = models.ManyToManyField(Departamento, through=CargoDepartamento, related_name="cargos")
+    departamentos = models.ManyToManyField(
+        "app_principal.Departamento",
+        through="app_principal.CargoDepartamento",
+        related_name="cargos_departamento"
+    )
     
     class Meta:
         db_table = "cargo"

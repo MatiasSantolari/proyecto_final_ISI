@@ -14,7 +14,6 @@ from .tipo_contrato import TipoContrato
 from .historial_contrato import HistorialContrato
 from .cargo import Cargo
 from .empleado_cargo import EmpleadoCargo
-from .nomina import Nomina
 from .descuento import Descuento
 from .descuento_empleado_nomina import DescuentoEmpleadoNomina
 from .beneficio import Beneficio
@@ -38,10 +37,8 @@ class Empleado(Persona):
     capacitaciones = models.ManyToManyField(Capacitacion, through=CapacitacionEmpleado, related_name="empleados")
     competencias = models.ManyToManyField(Competencia, through=CompetenciaEmpleado, related_name="empleados")
     contratos = models.ManyToManyField(TipoContrato, through=HistorialContrato, related_name="empleados")
-    cargos = models.ManyToManyField(Cargo, through=EmpleadoCargo, related_name="empleados")
-    nominas = models.ManyToManyField(Nomina, through=DescuentoEmpleadoNomina, related_name="empleados")
+    nominas = models.ManyToManyField('app_principal.Nomina', through=DescuentoEmpleadoNomina, related_name="empleados")
     descuentos = models.ManyToManyField(Descuento, through=DescuentoEmpleadoNomina, related_name="empleados")
-    nominas = models.ManyToManyField(Nomina, through=BeneficioEmpleadoNomina, related_name="empleados")
     beneficios = models.ManyToManyField(Beneficio, through=BeneficioEmpleadoNomina, related_name="empleados")
     
     class Meta:

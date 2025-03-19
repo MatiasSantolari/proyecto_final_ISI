@@ -1,5 +1,5 @@
 from django.db import models
-from .persona import Persona
+from django.apps import apps
 from .cargo import Cargo
 
 class Solicitud(models.Model):
@@ -10,7 +10,7 @@ class Solicitud(models.Model):
     ]
 
     id_solicitud = models.AutoField(primary_key=True)
-    persona = models.ForeignKey(Persona, on_delete=models.CASCADE, db_column="id_persona")
+    persona = models.ForeignKey("app_principal.Persona", on_delete=models.CASCADE, db_column="id_persona")
     cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE, db_column="id_cargo")
     descripcion = models.CharField(max_length=255, null=True, blank=True)
     fecha_postulacion = models.DateField(null=False)

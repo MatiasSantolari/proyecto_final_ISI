@@ -1,6 +1,4 @@
 from django.db import models
-from .cargo import Cargo
-from .solicitud import Solicitud
 
 class Persona(models.Model):
     id_persona = models.AutoField(primary_key=True)
@@ -18,7 +16,7 @@ class Persona(models.Model):
     ]
     tipo_persona = models.CharField(max_length=10, choices=TIPO_PERSONA_CHOICES)
 
-    cargos = models.ManyToManyField(Cargo, through=Solicitud, related_name="postulantes")
+    cargos = models.ManyToManyField("app_principal.Cargo", through="app_principal.Solicitud", related_name="postulantes")
 
     class Meta:
         db_table = 'persona'  

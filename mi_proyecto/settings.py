@@ -7,6 +7,7 @@ DEBUG = True  # Cambiar a False en producción
 
 ALLOWED_HOSTS = ['*']  # Cambia esto para producción
 
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 INSTALLED_APPS = [
     'django.contrib.admin',       
@@ -15,7 +16,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'app_principal',             
+    'app_principal',
 ]
 
 
@@ -55,13 +56,14 @@ WSGI_APPLICATION = 'mi_proyecto.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # Motor de MySQL
-        'NAME': 'nombre_de_tu_bd',            # Cambia por el nombre real de tu BD
-        'USER': 'root',                        # Usuario de MySQL
-        'PASSWORD': 'tu_contraseña',           # Contraseña de MySQL
-        'HOST': 'localhost',                   # Servidor de la base de datos
+        'NAME': 'sistemarrhh',            # Cambia por el nombre real de tu BD
+        'USER': 'appRRHH',                        # Usuario de MySQL
+        'PASSWORD': 'sanbamero2025',           # Contraseña de MySQL
+        'HOST': '127.0.0.1',                   # Servidor de la base de datos
         'PORT': '3306',                        # Puerto de MySQL
         'OPTIONS': {
             'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
     }
 }

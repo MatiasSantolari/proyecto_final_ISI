@@ -1,9 +1,8 @@
 from django.db import models
-from .empleado import Empleado
 from .tipo_contrato import TipoContrato
 
 class HistorialContrato(models.Model):
-    id_empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE, db_column="id_empleado")
+    id_empleado = models.ForeignKey('app_principal.Empleado', on_delete=models.CASCADE, db_column="id_empleado")
     id_contrato = models.ForeignKey(TipoContrato, on_delete=models.CASCADE, db_column="id_contrato")
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
