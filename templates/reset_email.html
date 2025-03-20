@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Recuperar Contraseña</title>
+</head>
+<body>
+  <h2>Recupera tu Contraseña</h2>
+  <p>Hola {{ user.username }},</p>
+  <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+  <p><a href="{{ reset_url|safe }}">Restablecer mi contraseña</a></p>
+  <p>Si no solicitaste este cambio, por favor ignora este correo.</p>
+</body>
+</html>

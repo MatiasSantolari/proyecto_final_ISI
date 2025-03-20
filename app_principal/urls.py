@@ -16,7 +16,11 @@ urlpatterns = [
     path('empleados/', views.empleados, name='empleados'),
     path('evaluacion_desempeno/', views.evaluacion_desempeno, name='evaluacion_desempeno'),
     path('habilidades/', views.habilidades, name='habilidades'),
+
     path('iniciar_sesion/', views.iniciar_sesion, name='iniciar_sesion'),
+    path('recuperar_contrasena/', views.recuperar_contrasena, name='recuperar_contrasena'),
+    path('resetear_contrasena/<uidb64>/<token>/', views.resetear_contrasena, name='resetear_contrasena'),
+
     path('instituciones/', views.instituciones, name='instituciones'),
     path('logros/', views.logros, name='logros'),
     path('nominas/', views.nominas, name='nominas'),
