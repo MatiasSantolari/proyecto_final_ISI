@@ -1,0 +1,28 @@
+# Ignorar archivos compilados de Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+
+# Ignorar migraciones de Django
+migrations/
+
+# Ignorar configuraciones locales y archivos sensibles
+.env
+*.log
+*.pot
+*.pyc
+*.pyo
+db.sqlite3
+
+# Ignorar archivos de entornos virtuales
+venv/
+env/
+*.venv
+
+# Ignorar archivos de dependencias de VS Code y otros editores
+.vscode/
+.idea/
+*.swp
+
+# Ignorar archivos de caché de Mac y Linux
+.DS_Store
