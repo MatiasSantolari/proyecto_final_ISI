@@ -22,6 +22,7 @@ def iniciar_sesion(request):
     if request.method == "POST":
         nombre_usuario = request.POST.get("nombre_usuario")
         password = request.POST.get("password")
+
         usuario = authenticate(request, username=nombre_usuario, password=password)
         if usuario is not None:
             usuario.ultimo_acceso = timezone.now()
