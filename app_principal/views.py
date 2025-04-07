@@ -13,7 +13,11 @@ from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from .forms import LoginForm # Se usa en iniciar_sesion
 from django.utils.encoding import force_bytes
-
+from .forms import PersonaForm
+from .models import Persona, Empleado, Solicitud, EmpleadoCargo, Cargo
+from datetime import date
+from django.core.exceptions import ObjectDoesNotExist
+from django.views.decorators.http import require_POST
 
 def iniciar_sesion(request):
     uidb64 = request.GET.get("uidb64", "") 
@@ -100,6 +104,93 @@ def resetear_contrasena(request, uidb64, token):
     return redirect("iniciar_sesion")
 
 
+################## CRUD PERSONA ################
+
+def crear_persona(request):
+    if request.method == 'POST':
+        form = PersonaForm(request.POST)
+        if form.is_valid():
+            tipo_persona = form.cleaned_data.get('tipo_persona')
+            estado_empleado = form.cleaned_data.get('estado_empleado')
+            cargo = form.cleaned_data.get('cargo')
+
+            if tipo_persona == 'empleado':
+                # Crear directamente el Empleado (hereda de Persona)
+                empleado = Empleado.objects.create(
+                    nombre=form.cleaned_data['nombre'],
+                    apellido=form.cleaned_data['apellido'],
+                    dni=form.cleaned_data['dni'],
+                    email=form.cleaned_data['email'],
+                    telefono=form.cleaned_data['telefono'],
+                    fecha_nacimiento=form.cleaned_data['fecha_nacimiento'],
+                    direccion=form.cleaned_data['direccion'],
+                    tipo_persona='empleado',
+                    estado=estado_empleado
+                )
+
+                if cargo:
+                    EmpleadoCargo.objects.create(
+                        empleado=empleado,
+                        cargo=cargo,
+                        fecha_asignacion=date.today()
+                    )
+
+            else:
+                persona = form.save()
+
+            return redirect('personas')
+        else:
+            print("Errores en el formulario:", form.errors)
+    else:
+        form = PersonaForm()
+
+    personas = Persona.objects.all()
+    return render(request, 'personas.html', {'form': form, 'personas': personas})
+
+
+def personas(request):
+    personas = Persona.objects.all()
+    form = PersonaForm()
+    return render(request, 'personas.html', {'personas': personas, 'form': form})
+
+
+def obtener_datos_persona(request, persona_id):
+    try:
+        persona = Persona.objects.get(id_persona=persona_id)
+        data = {
+            'nombre': persona.nombre,
+            'apellido': persona.apellido,
+            'dni': persona.dni,
+            'email': persona.email,
+            'telefono': persona.telefono,
+            'fecha_nacimiento': persona.fecha_nacimiento.strftime('%Y-%m-%d'),
+            'direccion': persona.direccion,
+            'tipo_persona': persona.tipo_persona,
+        }
+
+        if persona.tipo_persona == 'empleado':
+            empleado = Empleado.objects.get(id_persona=persona_id)
+            data['estado_empleado'] = empleado.estado
+            if empleado.empleadocargo_set.exists():
+                ultimo_cargo = empleado.empleadocargo_set.last()
+                data['cargo'] = ultimo_cargo.cargo_id
+                data['cargo_nombre'] = ultimo_cargo.cargo.nombre
+            else:
+                data['cargo'] = ''
+                data['cargo_nombre'] = ''
+        return JsonResponse(data)
+
+    except Persona.DoesNotExist:
+        return JsonResponse({'error': 'Persona no encontrada'}, status=404)
+
+
+@require_POST
+def eliminar_persona(request, persona_id):
+    persona = get_object_or_404(Persona, id_persona=persona_id)
+    persona.delete()
+    return redirect('personas')
+
+
 
 def index(request): return render(request, 'index.html')
 def agregar_sueldo_base(request): return render(request, 'agregar_sueldo_base.html')
@@ -119,7 +210,7 @@ def instituciones(request): return render(request, 'instituciones.html')
 def logros(request): return render(request, 'logros.html')
 def nominas(request): return render(request, 'nominas.html')
 def objetivos(request): return render(request, 'objetivos.html')
-def personas(request): return render(request, 'personas.html')
+
 def postulantes(request): return render(request, 'postulantes.html')
 def publicar_ofertas_de_empleo(request): return render(request, 'publicar_ofertas_de_empleo.html')
 def registrar_asistencia(request): return render(request, 'registrar_asistencia.html')

@@ -25,7 +25,14 @@ urlpatterns = [
     path('logros/', views.logros, name='logros'),
     path('nominas/', views.nominas, name='nominas'),
     path('objetivos/', views.objetivos, name='objetivos'),
+    
     path('personas/', views.personas, name='personas'),
+    path('personas/crear/', views.crear_persona, name='crear_persona'),
+    path('personas/<int:persona_id>/datos/', views.obtener_datos_persona, name='obtener_datos_persona'),
+    path('personas/<int:persona_id>/eliminar/', views.eliminar_persona, name='eliminar_persona'),
+
+    
+    
     path('postulantes/', views.postulantes, name='postulantes'),
     path('publicar_ofertas_de_empleo/', views.publicar_ofertas_de_empleo, name='publicar_ofertas_de_empleo'),
     path('registrar_asistencia/', views.registrar_asistencia, name='registrar_asistencia'),

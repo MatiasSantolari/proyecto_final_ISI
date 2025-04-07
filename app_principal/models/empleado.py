@@ -21,15 +21,16 @@ from .beneficio_empleado_nomina import BeneficioEmpleadoNomina
 
 class Empleado(Persona):  
     id_empleado = models.AutoField(primary_key=True)
-    
+   
     ESTADO_CHOICES = [
+        ('activo', 'Activo'),
         ('inactivo', 'Inactivo'),
-        ('en licencia', 'En licencia'),
+        ('licencia', 'En licencia'),
         ('suspendido', 'Suspendido'),
-        ('en prueba', 'En Prueba'),
+        ('prueba', 'En Periodo de Prueba'),
         ('jubilado', 'Jubilado'),
     ]
-    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, blank=True, null=True)
 
     habilidades = models.ManyToManyField(Habilidad, through=HabilidadEmpleado, related_name="empleados")
     logros = models.ManyToManyField(Logro, through=LogroEmpleado, related_name="empleados")

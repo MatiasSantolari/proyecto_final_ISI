@@ -14,9 +14,21 @@ class Persona(models.Model):
         ('empleado', 'Empleado'),
         ('postulante', 'Postulante'),
     ]
+
     tipo_persona = models.CharField(max_length=10, choices=TIPO_PERSONA_CHOICES)
+   
+    ##estado_postulante = models.CharField(max_length=20, choices=ESTADO_POSTULANTE_CHOICES, blank=True, null=True)
+    ##fecha_postulacion = models.DateField(blank=True, null=True)
 
     cargos = models.ManyToManyField("app_principal.Cargo", through="app_principal.Solicitud", related_name="postulantes")
 
     class Meta:
         db_table = 'persona'  
+
+"""
+    ESTADO_POSTULANTE_CHOICES = [
+        ('proceso', 'En Proceso'),
+        ('aceptado', 'Aceptado'),
+        ('rechazado', 'Rechazado'),
+    ]
+"""

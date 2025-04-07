@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Personas</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="../static/estilo_base.css">
+  <link rel="stylesheet" href="/static/estilo_base.css">
 </head>
 <body>
   {% extends "base_menu_barraNav.html" %}
@@ -19,7 +19,7 @@
 
   <div class="d-flex align-items-center justify-content-between mb-3">
     <!-- Botón para Crear -->
-    <button type="button" class="btn mb-3" style="background-color: var(--color-primario); color: white;" data-bs-toggle="modal" data-bs-target="#modalPersona">
+    <button type="button" class="btn mb-3" id="btnCrearPersona" style="background-color: var(--color-primario); color: white;" data-bs-toggle="modal" data-bs-target="#modalPersona">
       + Crear Nueva Persona
     </button>
 
@@ -56,37 +56,27 @@
           </tr>
         </thead>
         <tbody>
-          <tr class="fila-persona" data-tipo="postulante">
-            <td>Juan</td>
-            <td>Pérez</td>
-            <td>12345678</td>
-            <td>juan.perez@email.com</td>
-            <td>+54 11 4567 8910</td>
-            <td>15-03-1985</td>
-            <td>Av. Siempreviva 123, CABA</td>
-            <td>Postulante</td>
-            <td>
-              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalPersona">Editar</button>
-              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerPersona">Ver</button>
-              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarPersona">Eliminar</button>
-            </td>
-          </tr>
-          <!-- Ejemplo adicional -->
-          <tr class="fila-persona" data-tipo="empleado">
-            <td>Ana</td>
-            <td>López</td>
-            <td>87654321</td>
-            <td>ana.lopez@email.com</td>
-            <td>+54 11 9876 5432</td>
-            <td>22-07-1990</td>
-            <td>Calle Falsa 456, Córdoba</td>
-            <td>Empleado</td>
-            <td>
-              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalPersona">Editar</button>
-              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerPersona">Ver</button>
-              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarPersona">Eliminar</button>
-            </td>
-          </tr>
+          {% for persona in personas %}
+            <tr class="fila-persona" data-tipo="{{ persona.tipo_persona }}">
+              <td>{{ persona.nombre }}</td>
+              <td>{{ persona.apellido }}</td>
+              <td>{{ persona.dni }}</td>
+              <td>{{ persona.email }}</td>
+              <td>{{ persona.telefono }}</td>
+              <td>{{ persona.fecha_nacimiento|date:"d-m-Y" }}</td>
+              <td>{{ persona.direccion }}</td>
+              <td>{{ persona.tipo_persona|capfirst }}</td>
+              <td>
+                <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalPersona" data-id="{{ persona.id_persona }}">Editar</button>
+                <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerPersona" data-id="{{ persona.id_persona }}">Ver</button>
+                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarPersona" data-id="{{ persona.id_persona }}">Eliminar</button>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="9">No hay personas registradas.</td>
+            </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
@@ -101,70 +91,62 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <form>
+          <form method="post" action="{% url 'crear_persona' %}" id="formPersona">
+            {% csrf_token %}
+          
             <div class="mb-3">
-              <label for="nombrePersona" class="form-label">Nombre</label>
-              <input type="text" class="form-control" id="nombrePersona" placeholder="Ingrese el Nombre" required></textarea>
+              <label for="id_nombre" class="form-label">Nombre</label>
+              {{ form.nombre }}
             </div>
             <div class="mb-3">
-              <label for="apellidoPersona" class="form-label">Apellido</label>
-              <input type="text" class="form-control" id="apellidoPersona" placeholder="Ingrese el Apellido" required></textarea>
+              <label for="id_apellido" class="form-label">Apellido</label>
+              {{ form.apellido }}
             </div>
             <div class="mb-3">
-              <label for="dniPersona" class="form-label">DNI</label>
-              <input type="text" class="form-control" id="dniPersona" placeholder="Ingrese el DNI" required></textarea>
+              <label for="id_dni" class="form-label">DNI</label>
+              {{ form.dni }}
             </div>
             <div class="mb-3">
-              <label for="emailPersona" class="form-label">Email</label>
-              <input type="text" class="form-control" id="emailPersona" placeholder="Ingrese el Email" required></textarea>
+              <label for="id_email" class="form-label">Email</label>
+              {{ form.email }}
             </div>
             <div class="mb-3">
-              <label for="telefonoPersona" class="form-label">Telefono</label>
-              <input type="text" class="form-control" id="telefonoPersona" placeholder="Ingrese el Telefono" required></textarea>
+              <label for="id_telefono" class="form-label">Teléfono</label>
+              {{ form.telefono }}
             </div>
             <div class="mb-3">
-              <label for="fechaNacimientoPersona" class="form-label">Fecha de Nacimiento</label>
-              <input type="date" class="form-control" id="fechaNacimientoPersona" required>
+              <label for="id_fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+              {{ form.fecha_nacimiento }}
             </div>
             <div class="mb-3">
-              <label for="direccionPersona" class="form-label">Direccion</label>
-              <input type="text" class="form-control" id="direccionPersona" placeholder="ej: Av. Siempreviva 123, CABA" required></textarea>
+              <label for="id_direccion" class="form-label">Dirección</label>
+              {{ form.direccion }}
             </div>
+          
             <div class="mb-3">
-              <label for="tipoPersona" class="form-label">Tipo de Persona</label>
-              <select class="form-select" id="tipoPersona" required>
-                <option value="" disabled selected>Selecciona el Tipo de Persona</option>
-                <option value="postulante">Postulante</option>
-                <option value="empleado">Empleado</option>
-              </select>
+              <label for="id_tipo_persona" class="form-label">Tipo de Persona</label>
+              {{ form.tipo_persona }}
             </div>
-
-            <!-- Campos dinámicos -->
+          
+            <!-- Campo para Empleado -->
             <div id="campoEmpleado" class="mb-3" style="display: none;">
-              <label for="estadoEmpleado" class="form-label">Estado del Empleado</label>
-              <select class="form-select" id="estadoEmpleado">
-                <option value="" disabled selected>Selecciona el Estado del Empleado</option>
-                <option value="activo">Activo</option>
-                <option value="inactivo">Inactivo</option>
-                <option value="licencia">En licencia</option>
-                <option value="suspendido">Suspendido</option>
-                <option value="prueba">En Periodo de Prueba</option>
-                <option value="jubilado">Jubilado</option>
-              </select>
+              <label for="id_estado_empleado" class="form-label">Estado del Empleado</label>
+              {{ form.estado_empleado }}
             </div>
 
+            <div id="campoCargo" class="mb-3" style="display: none;">
+              <label for="id_cargo" class="form-label">Cargo</label>
+              {{ form.cargo }}
+            </div>
+          
+            <!-- Campo para Postulante 
             <div id="campoPostulante" class="mb-3" style="display: none;">
-              <label for="fechaPostulacion" class="form-label">Fecha de Postulación</label>
-              <input type="date" class="form-control" id="fechaPostulacion" required>
-              <label for="estadoPostulante" class="form-label">Estado de Postulación</label>
-              <select class="form-select" id="estadoPostulante">
-                <option value="" disabled selected>Selecciona el Estado del Postulante</option>
-                <option value="proceso">En Proceso</option>
-                <option value="aceptado">Aceptado</option>
-                <option value="rechazado">Rechazado</option>
-              </select>
+              <label for="id_fecha_postulacion" class="form-label">Fecha de Postulación</label>
+              {{ form.fecha_postulacion }}
+              <label for="id_estado_postulante" class="form-label">Estado de Postulación</label>
+              {{ form.estado_postulante }}
             </div>
-
+          -->
             <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
           </form>
         </div>
@@ -181,14 +163,16 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p><strong>Nombre:</strong> Juan</p>
-          <p><strong>Apellido:</strong> Pérez</p>
-          <p><strong>DNI:</strong> 12345678</p>
-          <p><strong>Email:</strong> juan.perez@email.com</p>
-          <p><strong>Telefono:</strong> +54 11 4567 8910</p>
-          <p><strong>Fecha de Nacimiento:</strong> 15-03-1985</p>
-          <p><strong>Direccion:</strong> Av. Siempreviva 123, CABA</p>
-          <p><strong>Tipo de Persona:</strong> Postulante</p>
+          <p><strong>Nombre:</strong> <span id="ver_nombre"></span></p>
+          <p><strong>Apellido:</strong> <span id="ver_apellido"></span></p>
+          <p><strong>DNI:</strong> <span id="ver_dni"></span></p>
+          <p><strong>Email:</strong> <span id="ver_email"></span></p>
+          <p><strong>Teléfono:</strong> <span id="ver_telefono"></span></p>
+          <p><strong>Fecha de Nacimiento:</strong> <span id="ver_fecha_nacimiento"></span></p>
+          <p><strong>Dirección:</strong> <span id="ver_direccion"></span></p>
+          <p><strong>Tipo de Persona:</strong> <span id="ver_tipo_persona"></span></p>
+          <p id="ver_estado_container" style="display:none;"><strong>Estado del Empleado:</strong> <span id="ver_estado"></span></p>
+          <p id="ver_cargo_container" style="display:none;"><strong>Cargo:</strong> <span id="ver_cargo"></span></p>
         </div>
       </div>
     </div>
@@ -206,44 +190,163 @@
           <p>¿Estás seguro de que deseas eliminar esta Persona?</p>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger">Eliminar</button>
+          <form id="formEliminarPersona" method="post">
+            {% csrf_token %}
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-danger">Eliminar</button>
+          </form>
         </div>
       </div>
     </div>
   </div>
-  {% endblock %}
+ 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const tipoPersona = document.getElementById('id_tipo_persona');
+      const campoEmpleado = document.getElementById('campoEmpleado');
+      const campoCargo = document.getElementById('campoCargo');
+    
+      function toggleCampos() {
+        if (tipoPersona.value === 'empleado') {
+          campoEmpleado.style.display = 'block';
+          campoCargo.style.display = 'block';
+        } else {
+          campoEmpleado.style.display = 'none';
+          campoCargo.style.display = 'none';
+        }
+      }
+    
+      tipoPersona.addEventListener('change', toggleCampos);
+      toggleCampos(); // Inicializar según el valor actual
+    
+      // ⚡️ Escuchar clicks en todos los botones "Editar"
+      document.querySelectorAll('button[data-id]').forEach(button => {
+        button.addEventListener('click', function () {
+          const personaId = this.getAttribute('data-id');
+    
+          // Llamar a la vista que devuelve los datos en JSON
+          fetch(`/personas/${personaId}/datos/`)
+            .then(response => response.json())
+            .then(data => {
+              const form = document.getElementById('formPersona');
+    
+              // Llenar los campos del formulario con los datos
+              document.getElementById('id_nombre').value = data.nombre;
+              document.getElementById('id_apellido').value = data.apellido;
+              document.getElementById('id_dni').value = data.dni;
+              document.getElementById('id_email').value = data.email;
+              document.getElementById('id_telefono').value = data.telefono;
+              document.getElementById('id_fecha_nacimiento').value = data.fecha_nacimiento;
+              document.getElementById('id_direccion').value = data.direccion;
+              document.getElementById('id_tipo_persona').value = data.tipo_persona;
+    
+              // Mostrar u ocultar los campos dinámicos
+              toggleCampos();
+    
+              // Llenar campos dinámicos solo si es empleado
+              if (data.tipo_persona === 'empleado') {
+                // Asegurarse de que los campos están visibles antes de asignar valores
+                setTimeout(() => {
+                  document.getElementById('id_estado_empleado').value = data.estado_empleado;
+                  document.getElementById('id_cargo').value = data.cargo;
+                }, 50); // Esperar un momento por si toggleCampos tarda
+              }
+    
+              // Establecer acción del formulario
+              form.action = `/personas/${personaId}/editar/`;
+    
+              // Cambiar título del modal
+              document.getElementById('modalPersonaLabel').textContent = 'Editar Persona';
+            })
+            .catch(error => {
+              console.error('Error al obtener los datos:', error);
+            });
+        });
+      });
+      const modalEliminar = document.getElementById('modalEliminarPersona');
+      modalEliminar.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const personaId = button.getAttribute('data-id');
+        const form = document.getElementById('formEliminarPersona');
+        form.action = `/personas/${personaId}/eliminar/`;
+      });
+
+      const modalVer = document.getElementById('modalVerPersona');
+      modalVer.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const personaId = button.getAttribute('data-id');
+
+        fetch(`/personas/${personaId}/datos/`)
+          .then(response => response.json())
+          .then(data => {
+            document.getElementById('ver_nombre').textContent = data.nombre;
+            document.getElementById('ver_apellido').textContent = data.apellido;
+            document.getElementById('ver_dni').textContent = data.dni;
+            document.getElementById('ver_email').textContent = data.email;
+            document.getElementById('ver_telefono').textContent = data.telefono;
+            document.getElementById('ver_fecha_nacimiento').textContent = data.fecha_nacimiento;
+            document.getElementById('ver_direccion').textContent = data.direccion;
+            document.getElementById('ver_tipo_persona').textContent = data.tipo_persona;
+
+            if (data.tipo_persona === 'empleado') {
+              document.getElementById('ver_estado_container').style.display = 'block';
+              document.getElementById('ver_estado').textContent = data.estado_empleado;
+              document.getElementById('ver_cargo_container').style.display = 'block';
+              document.getElementById('ver_cargo').textContent = data.cargo_nombre;
+            } else {
+              document.getElementById('ver_estado_container').style.display = 'none';
+              document.getElementById('ver_cargo_container').style.display = 'none';
+            }
+          })
+          .catch(error => {
+            console.error('Error al obtener los datos:', error);
+          });
+      });
+    });
+    
+    
+    
     document.getElementById("buscadorDNI").addEventListener("input", function () {
-      const filtro = this.value.trim(); // Valor del buscador
-      const filas = document.querySelectorAll(".fila-persona"); // Todas las filas de la tabla
+      const filtro = this.value.trim(); 
+      const filas = document.querySelectorAll(".fila-persona");
     
       filas.forEach(fila => {
-        const dni = fila.querySelector("td:nth-child(3)").textContent; // Columna de DNI
+        const dni = fila.querySelector("td:nth-child(3)").textContent;
         if (dni.includes(filtro)) {
-          fila.style.display = ""; // Mostrar fila
+          fila.style.display = "";
         } else {
-          fila.style.display = "none"; // Ocultar fila
+          fila.style.display = "none";
         }
       });
     });
     
     document.getElementById('filtroTipoPersona').addEventListener('change', function () {
-    const filtro = this.value; // Obtiene el valor seleccionado
-    const filas = document.querySelectorAll('.fila-persona'); // Obtiene todas las filas de personas
+    const filtro = this.value; 
+    const filas = document.querySelectorAll('.fila-persona'); 
   
     filas.forEach(fila => {
-      const tipo = fila.getAttribute('data-tipo'); // Obtiene el tipo de persona de la fila
+      const tipo = fila.getAttribute('data-tipo'); 
   
       if (filtro === 'todos' || filtro === tipo) {
-        fila.style.display = ''; // Muestra la fila
+        fila.style.display = ''; 
       } else {
-        fila.style.display = 'none'; // Oculta la fila
+        fila.style.display = 'none'; 
       }
     });
   });
+
+
+  // Escuchar el botón para crear nueva persona
+document.getElementById('btnCrearPersona').addEventListener('click', function () {
+  const form = document.getElementById('formPersona');
+  form.reset();
+  form.action = '/personas/crear/';
+  document.getElementById('modalPersonaLabel').textContent = 'Crear Persona';
+  toggleCampos();
+});
+
 
   // Mostrar campos dinámicos según el tipo de persona seleccionado
   document.getElementById('tipoPersona').addEventListener('change', function () {
@@ -263,5 +366,6 @@
     }
   });
 </script>
+{% endblock %}
 </body>
 </html>
