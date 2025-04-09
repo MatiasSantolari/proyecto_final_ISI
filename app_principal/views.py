@@ -147,6 +147,7 @@ def personas(request):
 
 
 
+
 def crear_persona(request):
     if request.method == 'POST':
         id_persona = request.POST.get('id_persona')
