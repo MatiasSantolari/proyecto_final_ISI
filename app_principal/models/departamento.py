@@ -18,3 +18,6 @@ class Departamento(models.Model):
     
     class Meta:
         db_table = "departamento"
+
+    def __str__(self):
+        return self.nombre

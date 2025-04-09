@@ -2,8 +2,8 @@ from django.db import models
 from .cargo import Cargo
 
 class HistorialSueldoBase(models.Model):
-    fecha_sueldo = models.DateField()
-    cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE)
+    fecha_sueldo = models.DateTimeField()
+    cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE, related_name='historial_sueldos')
     sueldo_base = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:

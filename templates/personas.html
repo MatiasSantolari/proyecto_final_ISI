@@ -52,7 +52,9 @@
             <th>Fecha Nacimiento</th>
             <th>Direccion</th>
             <th>Tipo Persona</th>
-            <th>Acciones</th>
+            <th>Estado</th>
+            <th>Cargo</th>
+            <th style="width:15%">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -66,10 +68,36 @@
               <td>{{ persona.fecha_nacimiento|date:"d-m-Y" }}</td>
               <td>{{ persona.direccion }}</td>
               <td>{{ persona.tipo_persona|capfirst }}</td>
+              <td>{{ persona.estado }}</td>
+              <td>{{ persona.nombre_cargo }}</td>
               <td>
-                <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalPersona" data-id="{{ persona.id_persona }}">Editar</button>
-                <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerPersona" data-id="{{ persona.id_persona }}">Ver</button>
-                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarPersona" data-id="{{ persona.id_persona }}">Eliminar</button>
+                <button class="btn btn-sm btn-editar" style="background-color: var(--color-secundario); color: white;" 
+                data-bs-toggle="modal" data-bs-target="#modalPersona"
+                  data-id="{{ persona.id }}"
+                  data-nombre="{{ persona.nombre }}"
+                  data-apellido="{{ persona.apellido }}"
+                  data-dni="{{ persona.dni }}"
+                  data-email="{{ persona.email }}"
+                  data-telefono="{{ persona.telefono }}"
+                  data-fecha-nacimiento="{{ persona.fecha_nacimiento|date:'Y-m-d' }}"
+                  data-direccion="{{ persona.direccion }}"
+                  data-tipo-persona="{{ persona.tipo_persona }}"
+                  {% if persona.tipo_persona == 'empleado' %}
+                  data-estado="{{ persona.estado }}"
+                  {% else %}
+                  data-estado=""
+                {% endif %}
+                {% if persona.cargo != null %}
+                  data-cargo="{{ persona.cargo }}"
+                  {% else %}
+                  data-cargo=""
+                {% endif %}
+                  onclick="editarPersona(this)" 
+                  >
+                  Editar
+                </button>
+                <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerPersona{{ persona.id }}" data-id="{{ persona.id }}">Ver</button>
+                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarPersona" data-id="{{ persona.id }}">Eliminar</button>
               </td>
             </tr>
           {% empty %}
@@ -93,7 +121,7 @@
         <div class="modal-body">
           <form method="post" action="{% url 'crear_persona' %}" id="formPersona">
             {% csrf_token %}
-          
+            <input type="hidden" name="id_persona" id="id_persona">
             <div class="mb-3">
               <label for="id_nombre" class="form-label">Nombre</label>
               {{ form.nombre }}
@@ -127,18 +155,16 @@
               <label for="id_tipo_persona" class="form-label">Tipo de Persona</label>
               {{ form.tipo_persona }}
             </div>
-          
-            <!-- Campo para Empleado -->
-            <div id="campoEmpleado" class="mb-3" style="display: none;">
-              <label for="id_estado_empleado" class="form-label">Estado del Empleado</label>
-              {{ form.estado_empleado }}
-            </div>
+              <!-- Campo para Empleado -->
+              <div id="campoEstado" class="mb-3" style="display: none;">
+                <label for="id_estado" class="form-label">Estado del Empleado</label>
+                {{ form.estado }}
+              </div>
 
-            <div id="campoCargo" class="mb-3" style="display: none;">
-              <label for="id_cargo" class="form-label">Cargo</label>
-              {{ form.cargo }}
-            </div>
-          
+              <div id="campoCargo" class="mb-3" style="display: none;">
+                <label for="id_cargo" class="form-label">Cargo</label>
+                {{ form.cargo }}
+              </div>
             <!-- Campo para Postulante 
             <div id="campoPostulante" class="mb-3" style="display: none;">
               <label for="id_fecha_postulacion" class="form-label">Fecha de Postulación</label>
@@ -155,28 +181,32 @@
   </div>
 
   <!-- Modal para Ver Detalles -->
-  <div class="modal fade" id="modalVerPersona" tabindex="-1" aria-labelledby="modalVerPersonaLabel" aria-hidden="true">
+  {% for persona in personas %}
+  <div class="modal fade" id="modalVerPersona{{ persona.id }}" tabindex="-1" aria-labelledby="modalVerPersonaLabel{{ persona.id }}" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalVerPersonaLabel">Detalles de la Persona</h5>
+          <h5 class="modal-title" id="modalVerPersonaLabel{{ persona.id }}">Detalles de la Persona</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p><strong>Nombre:</strong> <span id="ver_nombre"></span></p>
-          <p><strong>Apellido:</strong> <span id="ver_apellido"></span></p>
-          <p><strong>DNI:</strong> <span id="ver_dni"></span></p>
-          <p><strong>Email:</strong> <span id="ver_email"></span></p>
-          <p><strong>Teléfono:</strong> <span id="ver_telefono"></span></p>
-          <p><strong>Fecha de Nacimiento:</strong> <span id="ver_fecha_nacimiento"></span></p>
-          <p><strong>Dirección:</strong> <span id="ver_direccion"></span></p>
-          <p><strong>Tipo de Persona:</strong> <span id="ver_tipo_persona"></span></p>
-          <p id="ver_estado_container" style="display:none;"><strong>Estado del Empleado:</strong> <span id="ver_estado"></span></p>
-          <p id="ver_cargo_container" style="display:none;"><strong>Cargo:</strong> <span id="ver_cargo"></span></p>
+          <p><strong>Nombre:</strong> <span>{{ persona.nombre }}</span></p>
+          <p><strong>Apellido:</strong> <span>{{ persona.apellido }}</span></p>
+          <p><strong>DNI:</strong> <span>{{ persona.dni }}</span></p>
+          <p><strong>Email:</strong> <span>{{ persona.email }}</span></p>
+          <p><strong>Teléfono:</strong> <span>{{ persona.telefono }}</span></p>
+          <p><strong>Fecha de Nacimiento:</strong> <span>{{ persona.fecha_nacimiento }}</span></p>
+          <p><strong>Dirección:</strong> <span>{{ persona.direccion }}</span></p>
+          <p><strong>Tipo de Persona:</strong> <span>{{ persona.tipo_persona }}</span></p>
+          {% if persona.tipo_persona == 'empleado' %}
+            <p><strong>Estado del Empleado:</strong> <span>{{ persona.estado }}</span></p>
+            <p><strong>Cargo:</strong> <span>{{ persona.nombre_cargo }}</span></p>
+        {% endif %}
         </div>
       </div>
     </div>
   </div>
+  {% endfor %}
 
   <!-- Modal para Confirmar Eliminación -->
   <div class="modal fade" id="modalEliminarPersona" tabindex="-1" aria-labelledby="modalEliminarPersonaLabel" aria-hidden="true">
@@ -203,68 +233,31 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const tipoPersona = document.getElementById('id_tipo_persona');
-      const campoEmpleado = document.getElementById('campoEmpleado');
+
+    function toggleCampos() {
+      const tipoPersona = document.getElementById('id_tipo_persona').value;
+      const campoEstado = document.getElementById('campoEstado');
       const campoCargo = document.getElementById('campoCargo');
     
-      function toggleCampos() {
-        if (tipoPersona.value === 'empleado') {
-          campoEmpleado.style.display = 'block';
-          campoCargo.style.display = 'block';
-        } else {
-          campoEmpleado.style.display = 'none';
-          campoCargo.style.display = 'none';
-        }
+      if (tipoPersona === 'empleado') {
+        campoEstado.style.display = 'block';
+        campoCargo.style.display = 'block';
+      } else {
+        campoEstado.style.display = 'none';
+        campoCargo.style.display = 'none';
       }
-    
+    }
+
+
+    document.getElementById('btnCrearPersona').addEventListener('click', limpiarFormulario);
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const tipoPersona = document.getElementById('id_tipo_persona');
       tipoPersona.addEventListener('change', toggleCampos);
-      toggleCampos(); // Inicializar según el valor actual
-    
-      // ⚡️ Escuchar clicks en todos los botones "Editar"
-      document.querySelectorAll('button[data-id]').forEach(button => {
-        button.addEventListener('click', function () {
-          const personaId = this.getAttribute('data-id');
-    
-          // Llamar a la vista que devuelve los datos en JSON
-          fetch(`/personas/${personaId}/datos/`)
-            .then(response => response.json())
-            .then(data => {
-              const form = document.getElementById('formPersona');
-    
-              // Llenar los campos del formulario con los datos
-              document.getElementById('id_nombre').value = data.nombre;
-              document.getElementById('id_apellido').value = data.apellido;
-              document.getElementById('id_dni').value = data.dni;
-              document.getElementById('id_email').value = data.email;
-              document.getElementById('id_telefono').value = data.telefono;
-              document.getElementById('id_fecha_nacimiento').value = data.fecha_nacimiento;
-              document.getElementById('id_direccion').value = data.direccion;
-              document.getElementById('id_tipo_persona').value = data.tipo_persona;
-    
-              // Mostrar u ocultar los campos dinámicos
-              toggleCampos();
-    
-              // Llenar campos dinámicos solo si es empleado
-              if (data.tipo_persona === 'empleado') {
-                // Asegurarse de que los campos están visibles antes de asignar valores
-                setTimeout(() => {
-                  document.getElementById('id_estado_empleado').value = data.estado_empleado;
-                  document.getElementById('id_cargo').value = data.cargo;
-                }, 50); // Esperar un momento por si toggleCampos tarda
-              }
-    
-              // Establecer acción del formulario
-              form.action = `/personas/${personaId}/editar/`;
-    
-              // Cambiar título del modal
-              document.getElementById('modalPersonaLabel').textContent = 'Editar Persona';
-            })
-            .catch(error => {
-              console.error('Error al obtener los datos:', error);
-            });
-        });
-      });
+      toggleCampos();
+
+
+
       const modalEliminar = document.getElementById('modalEliminarPersona');
       modalEliminar.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
@@ -273,41 +266,75 @@
         form.action = `/personas/${personaId}/eliminar/`;
       });
 
-      const modalVer = document.getElementById('modalVerPersona');
-      modalVer.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const personaId = button.getAttribute('data-id');
-
-        fetch(`/personas/${personaId}/datos/`)
-          .then(response => response.json())
-          .then(data => {
-            document.getElementById('ver_nombre').textContent = data.nombre;
-            document.getElementById('ver_apellido').textContent = data.apellido;
-            document.getElementById('ver_dni').textContent = data.dni;
-            document.getElementById('ver_email').textContent = data.email;
-            document.getElementById('ver_telefono').textContent = data.telefono;
-            document.getElementById('ver_fecha_nacimiento').textContent = data.fecha_nacimiento;
-            document.getElementById('ver_direccion').textContent = data.direccion;
-            document.getElementById('ver_tipo_persona').textContent = data.tipo_persona;
-
-            if (data.tipo_persona === 'empleado') {
-              document.getElementById('ver_estado_container').style.display = 'block';
-              document.getElementById('ver_estado').textContent = data.estado_empleado;
-              document.getElementById('ver_cargo_container').style.display = 'block';
-              document.getElementById('ver_cargo').textContent = data.cargo_nombre;
-            } else {
-              document.getElementById('ver_estado_container').style.display = 'none';
-              document.getElementById('ver_cargo_container').style.display = 'none';
-            }
-          })
-          .catch(error => {
-            console.error('Error al obtener los datos:', error);
-          });
-      });
+      
     });
-    
-    
-    
+
+
+    /*
+    // Mostrar/ocultar campos adicionales según tipo_persona
+    function toggleEmpleadoFields() {
+      const tipoPersona = document.getElementById('id_tipo_persona').value;
+      const empleadoFields = document.getElementById('empleado_fields');
+      empleadoFields.style.display = (tipoPersona === 'empleado') ? 'block' : 'none';
+    }
+    */
+    // Limpiar el formulario al crear una nueva persona
+    function limpiarFormulario() {
+      const form = document.getElementById('formPersona');
+      form.reset();
+      document.getElementById('id_persona').value = '';
+      document.getElementById('modalPersonaLabel').textContent = 'Crear Nueva Persona';
+      document.querySelector('#formPersona button[type="submit"]').textContent = 'Guardar';
+      //toggleEmpleadoFields();
+      toggleCampos();
+    }
+
+    // Cargar datos de la persona en el modal para editar
+    function editarPersona(button) {
+      document.getElementById('id_estado').value = '';
+      document.getElementById('id_cargo').value = '';
+
+      const personaId = button.getAttribute('data-id');
+      const nombre = button.getAttribute('data-nombre');
+      const apellido = button.getAttribute('data-apellido');
+      const dni = button.getAttribute('data-dni');
+      const email = button.getAttribute('data-email');
+      const telefono = button.getAttribute('data-telefono');
+      const fechaNacimiento = button.getAttribute('data-fecha-nacimiento');
+      const direccion = button.getAttribute('data-direccion');
+      const tipoPersona = button.getAttribute('data-tipo-persona');
+      const estado = button.getAttribute('data-estado');
+      const cargo = button.getAttribute('data-cargo');
+
+      document.getElementById('id_persona').value = personaId;
+      document.getElementById('id_nombre').value = nombre;
+      document.getElementById('id_apellido').value = apellido;
+      document.getElementById('id_dni').value = dni;
+      document.getElementById('id_email').value = email;
+      document.getElementById('id_telefono').value = telefono;
+      document.getElementById('id_fecha_nacimiento').value = fechaNacimiento;
+      document.getElementById('id_direccion').value = direccion;
+      document.getElementById('id_tipo_persona').value = tipoPersona;
+      toggleCampos();
+      
+      if (tipoPersona === 'empleado') {
+        const estado = button.getAttribute('data-estado');
+        const cargo = button.getAttribute('data-cargo');
+        if (estado) {
+          document.getElementById('id_estado').value = estado;
+        }
+        if (cargo) {
+          document.getElementById('id_cargo').value = cargo;
+        }
+      }
+
+      document.getElementById('modalPersonaLabel').textContent = 'Editar Persona';
+      document.querySelector('#formPersona button[type="submit"]').textContent = 'Actualizar';
+    }
+
+
+
+
     document.getElementById("buscadorDNI").addEventListener("input", function () {
       const filtro = this.value.trim(); 
       const filas = document.querySelectorAll(".fila-persona");
@@ -322,6 +349,8 @@
       });
     });
     
+
+
     document.getElementById('filtroTipoPersona').addEventListener('change', function () {
     const filtro = this.value; 
     const filas = document.querySelectorAll('.fila-persona'); 
@@ -348,10 +377,11 @@ document.getElementById('btnCrearPersona').addEventListener('click', function ()
 });
 
 
+
   // Mostrar campos dinámicos según el tipo de persona seleccionado
   document.getElementById('tipoPersona').addEventListener('change', function () {
     const tipoPersona = this.value;
-    const campoEmpleado = document.getElementById('campoEmpleado');
+    const campoEstado = document.getElementById('campoEstado');
     const campoPostulante = document.getElementById('campoPostulante');
 
     if (tipoPersona === 'empleado') {
@@ -365,6 +395,7 @@ document.getElementById('btnCrearPersona').addEventListener('click', function ()
       campoPostulante.style.display = 'none';
     }
   });
+
 </script>
 {% endblock %}
 </body>

@@ -4,7 +4,6 @@ class Cargo(models.Model):
     id_cargo = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100, null=False)
     descripcion = models.CharField(max_length=255, null=True, blank=True)
-    total_vacantes = models.IntegerField(null=False)
 
     departamentos = models.ManyToManyField(
         "app_principal.Departamento",

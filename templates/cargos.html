@@ -30,108 +30,100 @@
             <th>Nombre</th>
             <th>Descripción</th>
             <th>Sueldo</th>
-            <th>Vacantes</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
+          {% for cargo in cargos %}
           <tr>
-            <td>Tecnico de Infraestructura</td>
-            <td>Encargado de resolver problemas y realizar el mantenimiento de la Infraestructura</td>
-            <td>$1500,00</td>
-            <td>1</td>
+            <td>{{ cargo.nombre }}</td>
+            <td>{{ cargo.descripcion }}</td>
             <td>
-              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCargo">Editar</button>
-              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerCargo1">Ver</button>
-              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarCargo">Eliminar</button>
+              {% if cargo.sueldo_base %}
+                ${{ cargo.sueldo_base }}
+              {% else %}
+                Sin sueldo registrado
+              {% endif %}
+            </td>
+            <td>
+              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;"
+                data-bs-toggle="modal"
+                data-bs-target="#modalCargo"
+                data-id="{{ cargo.id }}"
+                data-nombre="{{ cargo.nombre }}"
+                data-descripcion="{{ cargo.descripcion }}"
+                data-sueldo="{{ cargo.sueldo_base}}">
+                Editar
+              </button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerCargo{{ cargo.id }}">Ver</button>
+              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarCargo" data-id="{{ cargo.id }}">Eliminar</button>
             </td>
           </tr>
-          <!-- Ejemplo adicional -->
-          <tr>
-            <td>Personal de Limpieza</td>
-            <td>Encargado de mantener la limpieza e higiene del lugar de trabajo</td>
-            <td>$800,00</td>
-            <td>1</td>
-            <td>
-              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCargo">Editar</button>
-              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerCargo2">Ver</button>
-              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarCargo">Eliminar</button>
-            </td>
-          </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- Modal para Crear/Actualizar -->
-  <div class="modal fade" id="modalCargo" tabindex="-1" aria-labelledby="modalCargoLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
+  <!-- Modal para Crear/Editar Cargo -->
+<div class="modal fade" id="modalCargo" tabindex="-1" aria-labelledby="modalCargoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{% url 'crear_cargo' %}" id="formCargo">
+        {% csrf_token %}
         <div class="modal-header" style="background-color: var(--color-primario); color: white;">
           <h5 class="modal-title" id="modalCargoLabel">Crear/Editar Cargo</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+        <input type="hidden" name="id_cargo" id="id_cargo">
         <div class="modal-body">
-          <form>
-            <div class="mb-3">
-              <label for="nombreCargo" class="form-label">Nombre</label>
-              <input type="text" class="form-control" id="nombreCargo" placeholder="Ej. Operario" required>
-            </div>
-            <div class="mb-3">
-              <label for="descripcionCargo" class="form-label">Descripción</label>
-              <textarea class="form-control" id="descripcionCargo" rows="3" placeholder="Ingresa una breve descripción" required></textarea>
-            </div>
-            <div class="mb-3">
-              <label for="vacantesCargo" class="form-label">Vacantes</label>
-              <input type="number" class="form-control" id="vacantesCargo" placeholder="Ingresa la cantidad de Vacantes. Ej. 2" required>
-            </div>
-            <div class="mb-3">
-              <label for="SueldoCargo" class="form-label">Sueldo</label>
-              <input type="number" class="form-control" id="SueldoCargo" placeholder="Ingrese el sueldo del Cargo. Ej. 1000" required>
-            </div>
-            <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
-          </form>
+          <div class="mb-3">
+            <label for="id_nombre" class="form-label">Nombre</label>
+            {{ form.nombre }}
+          </div>
+          <div class="mb-3">
+            <label for="id_descripcion" class="form-label">Descripción</label>
+            {{ form.descripcion }}
+          </div>
+          <div class="mb-3">
+            <label for="id_sueldo_base" class="form-label">Sueldo Base</label>
+            {{ form.sueldo_base }}
+          </div>
         </div>
-      </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
+        </div>
+      </form>
     </div>
   </div>
+</div>
+
 
   <!-- Modal para Ver Detalles -->
-  <div class="modal fade" id="modalVerCargo1" tabindex="-1" aria-labelledby="modalVerCargo1Label" aria-hidden="true">
+  {% for cargo in cargos %}
+  <div class="modal fade" id="modalVerCargo{{ cargo.id }}" tabindex="-1" aria-labelledby="modalVerCargo{{ cargo.id }}Label" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalVerCargo1Label">Detalles del Cargo</h5>
+          <h5 class="modal-title" id="modalVerCargo{{ cargo.id }}Label">Detalles del Cargo</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p><strong>Nombre:</strong> Tecnico de Infraestructura</p>
-          <p><strong>Descripción:</strong> Encargado de resolver problemas y realizar el mantenimiento de la Infraestructura</p>
-          <p><strong>Sueldo:</strong> $1500,00</p>
-          <p><strong>Vigencia Sueldo desde:</strong> 01-01-2025</p>
-          <p><strong>Vacantes:</strong> 1</p>
+          <p><strong>Nombre:</strong> {{ cargo.nombre }}</p>
+          <p><strong>Descripción:</strong> {{ cargo.descripcion }}</p>
+          <p><strong>Sueldo Base:</strong> 
+              {% if cargo.sueldo_base %}
+                ${{ cargo.sueldo_base }}
+              {% else %}
+                Sin sueldo registrado
+              {% endif %}
+          </p>
         </div>
       </div>
     </div>
   </div>
+  {% endfor %}
 
-  <div class="modal fade" id="modalVerCargo2" tabindex="-1" aria-labelledby="modalVerCargo2Label" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalVerCargo2Label">Detalles del Cargo</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p><strong>Nombre:</strong> Personal de Limpieza</p>
-          <p><strong>Descripción:</strong> Encargado de mantener la limpieza e higiene del lugar de trabajo</p>
-          <p><strong>Sueldo:</strong> $800,00</p>
-          <p><strong>Vigencia Sueldo desde:</strong> 15-12-2024</p>
-          <p><strong>Vacantes:</strong> 1</p>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Modal para Confirmar Eliminación -->
   <div class="modal fade" id="modalEliminarCargo" tabindex="-1" aria-labelledby="modalEliminarCargoLabel" aria-hidden="true">
@@ -145,14 +137,46 @@
           <p>¿Estás seguro de que deseas eliminar este Cargo?</p>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger">Eliminar</button>
+          <form id="formEliminarCargo" method="post">
+            {% csrf_token %}
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-danger">Eliminar</button>
+          </form>
         </div>
       </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modalCargo = document.getElementById('modalCargo');
+    
+        modalCargo.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+    
+            const cargoId = button.getAttribute('data-id');
+            const nombre = button.getAttribute('data-nombre');
+            const descripcion = button.getAttribute('data-descripcion');
+            const sueldo = parseFloat(button.getAttribute('data-sueldo'));
+    
+            document.getElementById('id_cargo').value = cargoId || '';
+            document.getElementById('id_nombre').value = nombre || '';
+            document.getElementById('id_descripcion').value = descripcion || '';
+            document.getElementById('id_sueldo_base').value = isNaN(sueldo) ? '' : sueldo;
+        });
+
+        const modalEliminar = document.getElementById('modalEliminarCargo');
+        modalEliminar.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const cargoId = button.getAttribute('data-id');
+        const form = document.getElementById('formEliminarCargo');
+        form.action = `/cargos/${cargoId}/eliminar/`;
+      });
+
+    });
+    </script>
+    
   {% endblock %}
 </body>
 </html>
