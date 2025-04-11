@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Categorías de Cargo</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../static/estilo_base.css">
+</head>
+<body>
+  {% extends "base_menu_barraNav.html" %}
+
+  {% block title %}Gestión de Categorías de Cargo{% endblock %}
+  
+  {% block content %}
+
+  <div class="container my-5">
+    <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Categorías de Cargo</h1>
+
+    <!-- Botón para Crear -->
+    <button type="button" class="btn mb-3" style="background-color: var(--color-primario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCategoriaCargo">
+      + Crear Nueva Categoría
+    </button>
+
+    <!-- Tabla de Categorías -->
+    <div class="table-responsive">
+      <table class="table table-bordered text-center">
+        <thead style="background-color: var(--color-suave);">
+          <tr>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Administrativo</td>
+            <td>Encargados de tareas administrativas internas.</td>
+            <td>
+              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCategoriaCargo">Editar</button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerCategoriaCargo">Ver</button>
+              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarCategoriaCargo">Eliminar</button>
+            </td>
+          </tr>
+          <tr>
+            <td>Técnico</td>
+            <td>Soporte técnico y mantenimiento de equipos.</td>
+            <td>
+              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCategoriaCargo">Editar</button>
+              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerCategoriaCargo">Ver</button>
+              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarCategoriaCargo">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal para Crear/Editar -->
+  <div class="modal fade" id="modalCategoriaCargo" tabindex="-1" aria-labelledby="modalCategoriaCargoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalCategoriaCargoLabel">Crear/Editar Categoría de Cargo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3">
+              <label for="nombreCategoria" class="form-label">Nombre</label>
+              <input type="text" class="form-control" id="nombreCategoria" placeholder="Ej. Técnico, Administrativo..." required>
+            </div>
+            <div class="mb-3">
+              <label for="descripcionCategoria" class="form-label">Descripción</label>
+              <textarea class="form-control" id="descripcionCategoria" rows="3" placeholder="Describa brevemente esta categoría" required></textarea>
+            </div>
+            <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Ver Detalles -->
+  <div class="modal fade" id="modalVerCategoriaCargo" tabindex="-1" aria-labelledby="modalVerCategoriaCargoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
+          <h5 class="modal-title" id="modalVerCategoriaCargoLabel">Detalles de la Categoría</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Nombre:</strong> Técnico</p>
+          <p><strong>Descripción:</strong> Soporte técnico y mantenimiento de equipos.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Confirmar Eliminación -->
+  <div class="modal fade" id="modalEliminarCategoriaCargo" tabindex="-1" aria-labelledby="modalEliminarCategoriaCargoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color-enfasis); color: white;">
+          <h5 class="modal-title" id="modalEliminarCategoriaCargoLabel">Confirmar Eliminación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas eliminar esta categoría?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  {% endblock %}
+</body>
+</html>
