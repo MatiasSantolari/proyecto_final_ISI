@@ -21,6 +21,11 @@ urlpatterns = [
     path('cargos/<int:cargo_id>/eliminar/', views.eliminar_cargo, name='eliminar_cargo'),
     
 
+## CATEGORIA del CARGO ##
+    path('cargo_categoria/', views.cargos_categoria, name='cargo_categoria'),
+    path('cargo_categoria/crear/', views.crear_cargo_categoria, name='crear_cargo_categoria'), ## Sirve para editar tambien
+    path('cargo_categoria/<int:categoria_id>/eliminar/', views.eliminar_cargo_categoria, name='eliminar_cargo_categoria'),
+
 
 
     path('agregar_sueldo_base/', views.agregar_sueldo_base, name='agregar_sueldo_base'),
@@ -44,7 +49,6 @@ urlpatterns = [
     path('nominas/', views.nominas, name='nominas'),
     path('objetivos/', views.objetivos, name='objetivos'),
    
-    
     path('postulantes/', views.postulantes, name='postulantes'),
     path('publicar_ofertas_de_empleo/', views.publicar_ofertas_de_empleo, name='publicar_ofertas_de_empleo'),
     path('registrar_asistencia/', views.registrar_asistencia, name='registrar_asistencia'),

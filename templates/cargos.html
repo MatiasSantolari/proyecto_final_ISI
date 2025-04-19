@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Cargos</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="../static/estilo_base.css">
+  <link rel="stylesheet" href="/static/estilo_base.css">
 </head>
 <body>
   {% extends "base_menu_barraNav.html" %}
@@ -18,7 +18,7 @@
     <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Cargos</h1>
 
     <!-- Botón para Crear -->
-    <button type="button" class="btn mb-3" style="background-color: var(--color-primario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCargo">
+    <button type="button" class="btn mb-3" id="btnCrearCargo" style="background-color: var(--color-primario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCargo">
       + Crear Nuevo Cargo
     </button>
 
@@ -30,6 +30,7 @@
             <th>Nombre</th>
             <th>Descripción</th>
             <th>Sueldo</th>
+            <th>Categoria</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -45,14 +46,17 @@
                 Sin sueldo registrado
               {% endif %}
             </td>
+            <td>{{ cargo.categoria.nombre }}</td>
             <td>
-              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;"
-                data-bs-toggle="modal"
-                data-bs-target="#modalCargo"
+              <button class="btn btn-sm btn-editar" style="background-color: var(--color-secundario); color: white;"
+                data-bs-toggle="modal" data-bs-target="#modalCargo"
                 data-id="{{ cargo.id }}"
                 data-nombre="{{ cargo.nombre }}"
                 data-descripcion="{{ cargo.descripcion }}"
-                data-sueldo="{{ cargo.sueldo_base}}">
+                data-sueldo="{{ cargo.sueldo_base }}"
+                data-categoria="{{ cargo.categoria.id_categoria }}"
+                onclick="editarCargo(this)"
+                >
                 Editar
               </button>
               <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerCargo{{ cargo.id }}">Ver</button>
@@ -89,6 +93,10 @@
             <label for="id_sueldo_base" class="form-label">Sueldo Base</label>
             {{ form.sueldo_base }}
           </div>
+          <div class="mb-3">
+            <label for="id_categoria" class="form-label">Categoria</label>
+            {{ form.categoria }}
+          </div>
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
@@ -118,6 +126,7 @@
                 Sin sueldo registrado
               {% endif %}
           </p>
+          <p><strong>Categoria:</strong> {{ cargo.categoria }}</p>
         </div>
       </div>
     </div>
@@ -150,22 +159,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const modalCargo = document.getElementById('modalCargo');
-    
-        modalCargo.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget;
-    
-            const cargoId = button.getAttribute('data-id');
-            const nombre = button.getAttribute('data-nombre');
-            const descripcion = button.getAttribute('data-descripcion');
-            const sueldo = parseFloat(button.getAttribute('data-sueldo'));
-    
-            document.getElementById('id_cargo').value = cargoId || '';
-            document.getElementById('id_nombre').value = nombre || '';
-            document.getElementById('id_descripcion').value = descripcion || '';
-            document.getElementById('id_sueldo_base').value = isNaN(sueldo) ? '' : sueldo;
-        });
-
+        
         const modalEliminar = document.getElementById('modalEliminarCargo');
         modalEliminar.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
@@ -173,10 +167,39 @@
         const form = document.getElementById('formEliminarCargo');
         form.action = `/cargos/${cargoId}/eliminar/`;
       });
-
     });
+
+    document.getElementById('btnCrearCargo').addEventListener('click', limpiarFormulario);
+
+
+    function editarCargo(button) {
+      const cargoId = button.getAttribute('data-id');
+      const nombre = button.getAttribute('data-nombre');
+      const descripcion = button.getAttribute('data-descripcion');
+      const sueldo = parseFloat(button.getAttribute('data-sueldo'));
+      const categoria = button.getAttribute('data-categoria');
+
+      document.getElementById('id_cargo').value = cargoId || '';
+      document.getElementById('id_nombre').value = nombre || '';
+      document.getElementById('id_descripcion').value = descripcion || '';
+      document.getElementById('id_sueldo_base').value = isNaN(sueldo) ? '' : sueldo;
+      document.getElementById('id_categoria').value = categoria || '';
+
+
+      document.getElementById('modalCargoLabel').textContent = 'Editar Cargo';
+      document.querySelector('#formCargo button[type="submit"]').textContent = 'Actualizar';
+    }
+
+
+    function limpiarFormulario() {
+      const form = document.getElementById('formCargo');
+      form.reset();
+      document.getElementById('id_cargo').value = '';
+      document.getElementById('modalCargoLabel').textContent = 'Crear Nuevo Cargo';
+      document.querySelector('#formCargo button[type="submit"]').textContent = 'Guardar';
+    }
+
     </script>
-    
   {% endblock %}
 </body>
 </html>

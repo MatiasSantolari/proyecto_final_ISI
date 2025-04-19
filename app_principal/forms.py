@@ -1,5 +1,5 @@
 from django import forms
-from .models import Persona, Cargo, Departamento
+from .models import Persona, Cargo, Departamento, CategoriaCargo
 
 class LoginForm(forms.Form):
     nombre_usuario = forms.CharField(max_length=50)
@@ -48,6 +48,12 @@ class PersonaForm(forms.ModelForm):
 
 
 class CargoForm(forms.ModelForm):
+    categoria = forms.ModelChoiceField(
+        queryset=CategoriaCargo.objects.all(),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_categoria'})
+    )
+    
     sueldo_base = forms.DecimalField(
         label='Sueldo base',
         max_digits=10,
@@ -63,8 +69,26 @@ class CargoForm(forms.ModelForm):
 
     class Meta:
         model = Cargo
-        fields = ['nombre', 'descripcion']
+        exclude = ['departamentos']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ingrese el Nombre del Cargo'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Ingrese una Descripción','rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['categoria'].required = False
+
+
+
+#############################
+
+
+class CategoriaCargoForm(forms.ModelForm):
+    class Meta:
+        model = CategoriaCargo
+        fields = '__all__' 
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ingrese el Nombre de la Categoria del Cargo'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Ingrese una Descripción de la categoria','rows': 3}),
         }

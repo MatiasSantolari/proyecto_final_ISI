@@ -17,8 +17,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.http import require_POST
 from django.db.models import Prefetch
 
-from .forms import PersonaForm, CargoForm, LoginForm
-from .models import Persona, Empleado, Solicitud, EmpleadoCargo, Cargo, HistorialSueldoBase
+from .forms import PersonaForm, CargoForm, LoginForm, CategoriaCargoForm
+from .models import Persona, Empleado, Solicitud, EmpleadoCargo, Cargo, HistorialSueldoBase, CategoriaCargo
 
 
 def iniciar_sesion(request):
@@ -284,13 +284,17 @@ def cargos(request):
         ultimo_sueldo = HistorialSueldoBase.objects.filter(cargo=cargo).order_by('-fecha_sueldo').first()
         sueldo = ultimo_sueldo.sueldo_base if ultimo_sueldo else None
 
+        print(f"Cargo: {cargo.nombre}, Categoria: {cargo.categoria}, ID: {cargo.categoria.id_categoria}")
+        
         cargos_con_sueldo.append({
             'id': cargo.id_cargo,
             'nombre': cargo.nombre,
             'descripcion': cargo.descripcion,
             'sueldo_base': sueldo,
+            'categoria': cargo.categoria,
         })
-    return render(request, 'cargos.html', {'cargos': cargos_con_sueldo, 'form': form})
+    return render(request, 'cargos.html', {'cargos': cargos_con_sueldo, 'form': form}) 
+
 
 
 def crear_cargo(request):
@@ -302,7 +306,7 @@ def crear_cargo(request):
             form = CargoForm(request.POST, instance=cargo)
         else:
             form = CargoForm(request.POST)
-
+        print(f"Cargo: {cargo.nombre}, Categoria: {cargo.categoria}, ID: {cargo.categoria.id_categoria}")
         if form.is_valid():
             cargo_guardado = form.save()
             sueldo_base = form.cleaned_data['sueldo_base']
@@ -315,8 +319,10 @@ def crear_cargo(request):
                 )
             return redirect('cargos')
     else:
-        form = CargoForm()
-    return render(request, 'cargos.html', {'form': form})
+        form = CargoForm(instance=cargo)
+    cargos = Cargo.objects.all()
+
+    return render(request, 'cargos.html', {'form': form, 'cargos': cargos})
 
 
 @require_POST
@@ -327,9 +333,43 @@ def eliminar_cargo(request, cargo_id):
 
 
 
+########## CRUD CATEGORIA CARGO #################
+def cargos_categoria(request):
+    categorias = CategoriaCargo.objects.all()
+    form = CategoriaCargoForm()
+    return render(request, 'cargo_categoria.html', {'categorias': categorias, 'form': form}) 
+
+
+def crear_cargo_categoria(request):
+    if request.method == 'POST':
+        id_categoria = request.POST.get('id_categoria')
+        
+        if id_categoria:
+            categoria = get_object_or_404(CategoriaCargo, pk=id_categoria)
+            form = CategoriaCargoForm(request.POST, instance=categoria)
+        else:
+            form = CategoriaCargoForm(request.POST)
+            
+        if form.is_valid():
+            form.save()
+            return redirect('cargo_categoria')
+        
+    categorias = CategoriaCargo.objects.all()
+
+    return render(request, 'cargo_categoria.html', {'form': form, 'categorias': categorias})
+
+
+@require_POST
+def eliminar_cargo_categoria(request, categoria_id):
+    categoria = get_object_or_404(CategoriaCargo, id_categoria=categoria_id)
+    categoria.delete()
+    return redirect('cargo_categoria')
+
+
 
 
 def index(request): return render(request, 'index.html')
+def cargo_categoria(request): return render(request, 'cargo_categoria.html')
 def agregar_sueldo_base(request): return render(request, 'agregar_sueldo_base.html')
 def beneficios(request): return render(request, 'beneficios.html')
 def calcular_bonificaciones(request): return render(request, 'calcular_bonificaciones.html')

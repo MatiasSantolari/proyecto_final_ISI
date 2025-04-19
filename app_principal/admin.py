@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Persona,Empleado,Usuario,Objetivo,Logro,ObjetivoEmpleado,LogroEmpleado,Habilidad,HabilidadEmpleado,Capacitacion,CapacitacionEmpleado,Competencia,CompetenciaEmpleado,Institucion,InstitucionCapacitacion,TipoCriterio, CriterioEvaluacion, Evaluacion,DesempenoCriterio,HistorialContrato,TipoContrato,VacacionesDisponibles,VacacionesSolicitud,Solicitud,CargoDepartamento,Cargo,Departamento,EmpleadoCargo,Nomina, Descuento, DescuentoEmpleadoNomina,Beneficio, BeneficioEmpleadoNomina,HistorialSueldoBase, NominaHistorialSueldo,HistorialAsistencia
+from .models import Persona,Empleado,CategoriaCargo, Usuario,Objetivo,Logro,ObjetivoEmpleado,LogroEmpleado,Habilidad,HabilidadEmpleado,Capacitacion,CapacitacionEmpleado,Competencia,CompetenciaEmpleado,Institucion,InstitucionCapacitacion,TipoCriterio, CriterioEvaluacion, Evaluacion,DesempenoCriterio,HistorialContrato,TipoContrato,VacacionesDisponibles,VacacionesSolicitud,Solicitud,CargoDepartamento,Cargo,Departamento,EmpleadoCargo,Nomina, Descuento, DescuentoEmpleadoNomina,Beneficio, BeneficioEmpleadoNomina,HistorialSueldoBase, NominaHistorialSueldo,HistorialAsistencia
 
 admin.site.register(Persona)
 admin.site.register(Empleado)
@@ -27,6 +27,7 @@ admin.site.register(VacacionesSolicitud)
 admin.site.register(Solicitud)
 admin.site.register(CargoDepartamento)
 admin.site.register(Cargo)
+admin.site.register(CategoriaCargo)
 admin.site.register(Departamento)
 admin.site.register(EmpleadoCargo)
 admin.site.register(Descuento)

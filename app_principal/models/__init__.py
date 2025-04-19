@@ -25,6 +25,7 @@ from .solicitud import Solicitud
 from .cargo_departamento import CargoDepartamento
 from .departamento import Departamento
 from .cargo import Cargo
+from .cargo_categoria import CategoriaCargo
 from .empleado_cargo import EmpleadoCargo
 from .nomina import Nomina
 from .descuento import Descuento

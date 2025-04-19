@@ -5,7 +5,7 @@ class Cargo(models.Model):
     id_cargo = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100, null=False)
     descripcion = models.CharField(max_length=255, null=True, blank=True)
-    id_categoria = models.ForeignKey(CategoriaCargo, on_delete=models.CASCADE, db_column="id_categoria_cargo")
+    categoria = models.ForeignKey(CategoriaCargo, on_delete=models.CASCADE, db_column="id_categoria")
     
 
     departamentos = models.ManyToManyField(
