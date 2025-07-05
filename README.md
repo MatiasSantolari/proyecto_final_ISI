@@ -1,14 +1,17 @@
 # proyecto_final_ISI
 proyecto final de la carrera de ISI de UTN FRRo
 
---> Ver de forma directa los Templates en :
-    https://facundobasualdo.github.io
+Instalar:
+pip install social-auth-app-django
+pip install python-dotenv
+pip install Pillow
+
 
 Pasos para configurar la Base de datos con Django
 crear usuario en mysql con los datos:
-         'NAME': 'sistemarrhh',
-        'USER': 'appRRHH',
-        'PASSWORD': 'sanbamero2025',
+         'NAME': 'apprrhh',
+        'USER': 'facu',
+        'PASSWORD': 'Facu1234',
         'HOST': '127.0.0.1',
         'PORT': '3306',
     
@@ -24,11 +27,7 @@ Y agregar esto en __init__.py de la app principal:
     pymysql.install_as_MySQLdb()
 
 Generar las Migraciones
-Ejecutar en la terminal del proyecto:
     python manage.py makemigrations
-
-Aplicar las Migraciones
-Luego, ejecutar:
     python manage.py migrate
 
 Crear un Superusuario (Opcional, para acceder al Admin de Django)
@@ -36,9 +35,7 @@ Crear un Superusuario (Opcional, para acceder al Admin de Django)
 
 Probar la Conexión
 Ejecutar el servidor de Django:
-    python manage.py runserver
+    python manage.py runserver 8000
 
-Y acceder a:
-http://127.0.0.1:8000/admin/
-o
+Y acceder utilizando:
 http://127.0.0.1:8000

@@ -14,6 +14,7 @@ class Empleado(Persona):
     ]
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, verbose_name='Estado Empleado')
     cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE)
+    cantidad_dias_disponibles = models.IntegerField(verbose_name='Cantidad dias disponibles de vacaciones')
 
     class Meta:
         verbose_name = 'Empleado'        

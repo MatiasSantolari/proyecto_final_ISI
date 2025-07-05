@@ -29,5 +29,4 @@ from .solicitud import Solicitud
 from .tipo_contrato import TipoContrato
 from .tipo_criterio import TipoCriterio
 from .usuario import Usuario
-from .vacaciones_disponibles import VacacionesDisponibles
 from .vacaciones_solicitud import VacacionesSolicitud
