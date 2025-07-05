@@ -1,0 +1,63 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-4 py-2">
+  <a class="navbar-brand fw-bold text-primary" href="{% url 'home' %}">
+    <i class="fas fa-home me-2"></i>MiApp
+  </a>
+
+  <!-- Botón de menú móvil -->
+  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <!-- Contenido de la navbar -->
+  <div class="collapse navbar-collapse" id="navbarContent">
+    <!-- Enlaces izquierda -->
+    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'home' %}">Inicio</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Contacto</a>
+      </li>
+    </ul>
+
+    <!-- Búsqueda -->
+    <form class="d-flex me-3" role="search">
+      <input class="form-control me-2" type="search" placeholder="Buscar" aria-label="Buscar">
+      <button class="btn btn-outline-primary" type="submit">
+        <i class="fas fa-search"></i>
+      </button>
+    </form>
+
+    <!-- Notificaciones y Perfil -->
+    <ul class="navbar-nav mb-2 mb-lg-0">
+      <li class="nav-item dropdown">
+        <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown">
+          <i class="far fa-bell"></i>
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning">
+            3
+            <span class="visually-hidden">notificaciones no leídas</span>
+          </span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><h6 class="dropdown-header">Notificaciones</h6></li>
+          <li><a class="dropdown-item" href="#">Nueva solicitud recibida</a></li>
+          <li><a class="dropdown-item" href="#">Actualización de perfil</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="#">Ver todas</a></li>
+        </ul>
+      </li>
+
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+          <i class="fas fa-user-circle me-1"></i> {{ request.user.nombre_usuario }}
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="#">Perfil</a></li>
+          <li><a class="dropdown-item" href="#">Configuración</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">Cerrar sesión</a></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</nav>

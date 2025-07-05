@@ -19,6 +19,7 @@ db.sqlite3
 venv/
 env/
 *.venv
+.env
 
 # Ignorar archivos de dependencias de VS Code y otros editores
 .vscode/

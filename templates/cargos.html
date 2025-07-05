@@ -1,14 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestión de Cargos</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="/static/estilo_base.css">
-</head>
-<body>
-  {% extends "base_menu_barraNav.html" %}
+{% extends "base.html"%}
 
   {% block title %}Gestión de Cargos{% endblock %}
   
@@ -18,7 +8,7 @@
     <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Cargos</h1>
 
     <!-- Botón para Crear -->
-    <button type="button" class="btn mb-3" id="btnCrearCargo" style="background-color: var(--color-primario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCargo">
+    <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalCargo">
       + Crear Nuevo Cargo
     </button>
 
@@ -48,7 +38,7 @@
             </td>
             <td>{{ cargo.categoria.nombre }}</td>
             <td>
-              <button class="btn btn-sm btn-editar" style="background-color: var(--color-secundario); color: white;"
+              <button class="btn btn-sm btn-editar btn-secondary"
                 data-bs-toggle="modal" data-bs-target="#modalCargo"
                 data-id="{{ cargo.id }}"
                 data-nombre="{{ cargo.nombre }}"
@@ -59,7 +49,7 @@
                 >
                 Editar
               </button>
-              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerCargo{{ cargo.id }}">Ver</button>
+              <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalVerCargo{{ cargo.id }}">Ver</button>
               <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarCargo" data-id="{{ cargo.id }}">Eliminar</button>
             </td>
           </tr>

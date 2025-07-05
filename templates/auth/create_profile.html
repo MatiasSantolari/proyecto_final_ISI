@@ -1,0 +1,127 @@
+{% include 'auth/partials/base_head.html' %}
+<body>
+  <div class="login-container text-white text-center">
+    <div class="mb-1">
+      <i class="bi bi-person-badge-fill text-success" style="font-size: 3rem;"></i>
+    </div>
+
+    <h2 class="mb-3">Crear Perfil</h2>
+    <p class="mb-4" style="opacity: 0.9;">Completá tus datos personales para continuar.</p>
+
+    <form method="POST" enctype="multipart/form-data" class="text-start">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <div class="row">
+        <!-- Nombre -->
+        <div class="mb-3 position-relative col-md-6">
+          {{ form.nombre.errors }}
+          {{ form.nombre }}
+          <i class="bi bi-person-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
+        </div>
+
+        <!-- Apellido -->
+        <div class="mb-3 position-relative col-md-6">
+          {{ form.apellido.errors }}
+          {{ form.apellido }}
+          <i class="bi bi-person-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
+        </div>
+
+        <!-- DNI -->
+        <div class="mb-3 position-relative col-md-6">
+          {{ form.dni.errors }}
+          {{ form.dni }}
+          <i class="bi bi-credit-card-2-front-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
+        </div>
+
+        <!-- Email -->
+        <div class="mb-3 position-relative col-md-6">
+          {{ form.email.errors }}
+          {{ form.email }}
+          <i class="bi bi-envelope-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
+        </div>
+
+        <!-- Fecha de nacimiento -->
+        <div class="mb-3 position-relative col-md-6">
+          {{ form.fecha_nacimiento.errors }}
+          {{ form.fecha_nacimiento }}
+          <i class="bi bi-calendar-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
+        </div>
+
+        <!-- Género -->
+        <div class="mb-3 position-relative col-md-6">
+          {{ form.genero.errors }}
+          {{ form.genero }}
+          <i class="bi bi-gender-ambiguous position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
+        </div>
+
+
+        <!-- Teléfono -->
+        <label class="mb-1">Teléfono</label>
+        <div class="row mb-3">
+          <div class="col-md-3 position-relative">
+            {{ form.prefijo_pais.errors }}
+            {{ form.prefijo_pais }}
+            <i class="bi bi-globe position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
+          </div>
+          <div class="col-md-9 position-relative">
+            {{ form.numero_telefono.errors }}
+            {{ form.numero_telefono }}
+            <i class="bi bi-telephone-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
+          </div>
+        </div>
+
+        <!-- Dirección -->
+        <label class="mb-1">Dirección</label>
+        <div class="row mb-3">
+          <div class="col-md-5 position-relative">
+            {{ form.pais.errors }}
+            {{ form.pais }}
+            <i class="bi bi-flag position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
+          </div>
+          <div class="col-md-7 position-relative">
+            {{ form.provincia.errors }}
+            {{ form.provincia }}
+            <i class="bi bi-map-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-5 position-relative">
+            {{ form.ciudad.errors }}
+            {{ form.ciudad }}
+            <i class="bi bi-geo-alt-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
+          </div>
+          <div class="col-md-4 position-relative">
+            {{ form.calle.errors }}
+            {{ form.calle }}
+            <i class="bi bi-signpost-2-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
+          </div>
+          <div class="col-md-3 position-relative">
+            {{ form.numero.errors }}
+            {{ form.numero }}
+            <i class="bi bi-hash position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
+          </div>
+        </div>
+
+        <!-- Avatar -->
+        <div class="mb-3 col-md-6">
+          <label for="id_avatar" class="form-label">Foto de Perfil (opcional)</label>
+          <input type="file" name="avatar" id="id_avatar" class="form-control bg-transparent text-white border-white" accept="image/*">
+        </div>
+
+        <!-- CVitae -->
+        <div class="mb-3 col-md-6">
+          <label for="id_cvitae" class="form-label">CV (opcional)</label>
+          <input type="file" name="cvitae" id="id_cvitae" class="form-control bg-transparent text-white border-white" accept=".pdf,.doc,.docx">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-success w-100 fw-bold shadow mt-2">
+        <i class="bi bi-person-check-fill me-2"></i> Guardar perfil
+      </button>
+    </form>
+  </div>
+
+  {% include 'auth/partials/base_scripts.html' %}
+</body>
+</html>

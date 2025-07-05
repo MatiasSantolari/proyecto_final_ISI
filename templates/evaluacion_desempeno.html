@@ -1,15 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestión de Evaluaciones de Desempeño</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="../static/estilo_base.css">
-</head>
-<body>
-  {% extends "base_menu_barraNav.html" %}
-
+{% extends "base.html"%}
   {% block title %}Gestión de Evaluaciones de Desempeño{% endblock %}
   
   {% block content %}
@@ -18,7 +7,7 @@
     <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Evaluaciones de Desempeño</h1>
 
     <!-- Botón para Crear -->
-    <button type="button" class="btn mb-3" style="background-color: var(--color-primario); color: white;" data-bs-toggle="modal" data-bs-target="#modalEvaluacion">
+    <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalEvaluacion">
       + Crear Nueva Evaluación
     </button>
 
@@ -41,8 +30,8 @@
             <td>Buen rendimiento en proyectos clave</td>
             <td>85</td>
             <td>
-              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalEvaluacion">Editar</button>
-              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerEvaluacion">Ver</button>
+              <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#modalEvaluacion">Editar</button>
+              <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalVerEvaluacion">Ver</button>
               <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarEvaluacion">Eliminar</button>
             </td>
           </tr>

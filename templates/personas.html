@@ -1,14 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestión de Personas</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="/static/estilo_base.css">
-</head>
-<body>
-  {% extends "base_menu_barraNav.html" %}
+{% extends "base.html"%}
 
   {% block title %}Gestión de Personas{% endblock %}
   
@@ -19,7 +9,7 @@
 
   <div class="d-flex align-items-center justify-content-between mb-3">
     <!-- Botón para Crear -->
-    <button type="button" class="btn mb-3" id="btnCrearPersona" style="background-color: var(--color-primario); color: white;" 
+    <button type="button" class="btn mb-3 btn-primary" id="btnCrearPersona"
     data-bs-toggle="modal" data-bs-target="#modalPersona">
       + Crear Nueva Persona
     </button>
@@ -72,7 +62,7 @@
               <td>{{ persona.estado }}</td>
               <td>{{ persona.nombre_cargo }}</td>
               <td>
-                <button class="btn btn-sm btn-editar" style="background-color: var(--color-secundario); color: white;" 
+                <button class="btn btn-sm btn-editar btn-secondary"
                 data-bs-toggle="modal" data-bs-target="#modalPersona"
                   data-id="{{ persona.id }}"
                   data-nombre="{{ persona.nombre }}"
@@ -97,7 +87,7 @@
                   >
                   Editar
                 </button>
-                <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerPersona{{ persona.id }}" data-id="{{ persona.id }}">Ver</button>
+                <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalVerPersona{{ persona.id }}" data-id="{{ persona.id }}">Ver</button>
                 <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarPersona" data-id="{{ persona.id }}">Eliminar</button>
               </td>
             </tr>
