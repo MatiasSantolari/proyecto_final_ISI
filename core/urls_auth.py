@@ -22,6 +22,6 @@ urlpatterns = [
 
     # Registro usuario
     path('registro/', views.registrar_usuario, name='registro'),
-    
+
 ]
 

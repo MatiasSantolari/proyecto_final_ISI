@@ -1,37 +1,3 @@
-"""
-{# core/templates/core/dashboard_normal.html #}
-
-<h1>Bienvenido, {{ user.username }}</h1>
-
-{% if user.rol == 'admin' %}
-  <p>Eres administrador. <a href="{% url 'dashboard_admin' %}">Ir al Panel Admin</a></p>
-{% elif user.rol == 'gerente' %}
-  <p>Eres gerente. <a href="{% url 'dashboard_admin' %}">Ir al Panel Admin</a></p>
-{% elif user.rol == 'empleado' %}
-  <p>Eres empleado. <a href="{% url 'dashboard_empleado' %}">Ir a tu Dashboard</a></p>
-{% else %}
-  <p>Eres usuario normal.</p>
-{% endif %}
-
-"""
-"""
-{# en base_menu.html, por ejemplo #}
-
-<nav>
-  <ul>
-    <li><a href="{% url 'dashboard_normal' %}">Inicio</a></li>
-
-    {% if user.rol == 'admin' or user.rol == 'gerente' %}
-      <li><a href="{% url 'dashboard_admin' %}">Administración</a></li>
-    {% endif %}
-
-    {% if user.rol == 'empleado' %}
-      <li><a href="{% url 'dashboard_empleado' %}">Mi Área</a></li>
-    {% endif %}
-  </ul>
-</nav>
-"""
-
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from core import views
@@ -40,6 +6,9 @@ urlpatterns = [
     path('home/', views.home, name='home'),
     
     path('profile/create/', views.create_persona, name='create_profile'),
+
+    # Perfil usuario
+    path('perfil/', views.perfil_usuario, name='user_perfil'),
 
 # urlpatterns = [
 #    path('dashboard/admin/', views.dashboard_admin, name='dashboard_admin'),

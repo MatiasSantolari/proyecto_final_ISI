@@ -1,0 +1,168 @@
+{% include 'auth/partials/base_head.html' %}
+<body class="bg-dark text-white" style="min-height: 100vh; overflow-x: hidden;">
+
+  <div class="container py-3 d-flex justify-content-center align-items-start" style="min-height: 100vh;">
+    <div class="w-100 position-relative" style="max-width: 750px;">
+
+      <!-- AVATAR y nombre + botones -->
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <!-- Avatar con "+" abajo derecha -->
+        <div id="avatarContainer" class="position-relative" style="cursor: not-allowed;">
+          {% if request.user.persona.avatar %}
+            <img src="{{ request.user.persona.avatar.url }}" alt="Avatar"
+                 class="rounded-circle border border-white shadow"
+                 style="width: 100px; height: 100px; object-fit: cover;">
+          {% else %}
+            <i class="bi bi-person-circle text-white" style="font-size: 100px;"></i>
+          {% endif %}
+          <div class="position-absolute bg-secondary rounded-circle d-flex justify-content-center align-items-center"
+               id="avatarPlus"
+               style="width: 24px; height: 24px; bottom: 5px; right: 5px; cursor: pointer; font-size: 1rem; display: none;">
+            <i class="bi bi-plus text-white"></i>
+          </div>
+          <input type="file" name="avatar" id="id_avatar" accept="image/*" class="d-none">
+        </div>
+
+        <!-- Nombre, email y botones -->
+        <div class="ms-3 flex-grow-1">
+          <h5>{{ request.user.persona.nombre }} {{ request.user.persona.apellido }}</h5>
+          <p class="text-muted mb-0">{{ request.user.email }}</p>
+        </div>
+
+        <!-- Botón salir X al mismo nivel que avatar -->
+        <button class="btn btn-outline-danger" id="salirBtn" style="height: 40px; width: 40px;">
+          <i class="bi bi-x-lg fs-4"></i>
+        </button>
+      </div>
+
+      <!-- Botón Editar perfil -->
+      <div class="mb-3 text-end">
+        <button type="button" id="editarBtn" class="btn btn-warning">
+          <i class="bi bi-pencil-fill"></i> Editar perfil
+        </button>
+      </div>
+
+      <!-- FORMULARIO -->
+      <form method="POST" enctype="multipart/form-data" id="perfilForm">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div class="row">
+          <div class="mb-2 col-md-6">{{ form.nombre.label_tag }} {{ form.nombre }}</div>
+          <div class="mb-2 col-md-6">{{ form.apellido.label_tag }} {{ form.apellido }}</div>
+          <div class="mb-2 col-md-6">{{ form.email.label_tag }} {{ form.email }}</div>
+          <div class="mb-2 col-md-6">{{ form.dni.label_tag }} {{ form.dni }}</div>
+          <div class="mb-2 col-md-4">{{ form.prefijo_pais.label_tag }} {{ form.prefijo_pais }}</div>
+          <div class="mb-2 col-md-8">{{ form.telefono.label_tag }} {{ form.telefono }}</div>
+          <div class="mb-2 col-md-4">{{ form.pais.label_tag }} {{ form.pais }}</div>
+          <div class="mb-2 col-md-4">{{ form.provincia.label_tag }} {{ form.provincia }}</div>
+          <div class="mb-2 col-md-4">{{ form.ciudad.label_tag }} {{ form.ciudad }}</div>
+          <div class="mb-2 col-md-6">{{ form.calle.label_tag }} {{ form.calle }}</div>
+          <div class="mb-2 col-md-6">{{ form.numero.label_tag }} {{ form.numero }}</div>
+          <div class="mb-2 col-md-6">{{ form.fecha_nacimiento.label_tag }} {{ form.fecha_nacimiento }}</div>
+          <div class="mb-2 col-md-6">{{ form.genero.label_tag }} {{ form.genero }}</div>
+        </div>
+
+        <!-- Botones Guardar y Cancelar (inicialmente ocultos) -->
+        <div class="d-flex justify-content-end mt-4 gap-2 d-none" id="editarAcciones">
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-check-circle"></i> Guardar
+          </button>
+          <button type="button" class="btn btn-secondary" id="cancelarBtn">
+            <i class="bi bi-x-circle"></i> Cancelar
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Modal Confirmación Salir -->
+  <div class="modal fade" id="confirmSalirModal" tabindex="-1" aria-labelledby="confirmSalirLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark text-white">
+        <div class="modal-header border-0">
+          <h5 class="modal-title" id="confirmSalirLabel">Confirmar salida</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          ¿Estás seguro que querés salir sin guardar los cambios?
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="confirmSalirBtn">Salir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.onload = () => {
+      const form = document.getElementById('perfilForm');
+      const inputs = form.querySelectorAll('input, select');
+      const editarBtn = document.getElementById('editarBtn');
+      const editarAcciones = document.getElementById('editarAcciones');
+      const cancelarBtn = document.getElementById('cancelarBtn');
+      const avatarInput = document.getElementById('id_avatar');
+      const avatarContainer = document.getElementById('avatarContainer');
+      const avatarPlus = document.getElementById('avatarPlus');
+      const salirBtn = document.getElementById('salirBtn');
+
+      // Bootstrap modal
+      const confirmSalirModal = new bootstrap.Modal(document.getElementById('confirmSalirModal'));
+      const confirmSalirBtn = document.getElementById('confirmSalirBtn');
+
+      // Deshabilitar campos al cargar (excepto avatar que está oculto)
+      inputs.forEach(input => {
+        if (input.type !== "hidden" && input.id !== "id_avatar") {
+          input.disabled = true;
+        }
+      });
+      avatarInput.disabled = true;
+      avatarContainer.classList.add('opacity-75');
+      avatarContainer.style.cursor = 'not-allowed';
+      avatarPlus.style.display = 'none';
+
+      // Clic en avatar solo si está habilitado
+      avatarContainer.addEventListener('click', (e) => {
+        if (!avatarInput.disabled) {
+          avatarInput.click();
+        }
+      });
+
+      // Mostrar + solo en modo edición
+      function activarModoEdicion() {
+        inputs.forEach(input => input.disabled = false);
+        avatarInput.disabled = false;
+        avatarContainer.classList.remove('opacity-75');
+        avatarContainer.style.cursor = 'pointer';
+        avatarPlus.style.display = 'flex';
+        avatarPlus.classList.add('activo');
+        editarBtn.classList.add('d-none');
+        editarAcciones.classList.remove('d-none');
+      }
+
+      // Botón editar
+      editarBtn.addEventListener('click', activarModoEdicion);
+
+      // Botón cancelar - recarga la página para descartar cambios
+      cancelarBtn.addEventListener('click', () => {
+        avatarPlus.classList.remove('activo');
+        location.reload();
+      });
+
+      // Botón salir - abre modal confirmación
+      salirBtn.addEventListener('click', () => {
+        confirmSalirModal.show();
+      });
+
+      // Confirmar salida sin guardar
+      confirmSalirBtn.addEventListener('click', () => {
+        window.location.href = "{% url 'home' %}";
+      });
+    }
+  </script>
+
+  {% include 'auth/partials/base_scripts.html' %}
+</body>
+</html>

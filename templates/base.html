@@ -112,7 +112,7 @@
             <i class="fas fa-user-circle me-1"></i> {{ request.user.nombre_usuario }}
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="#">Perfil</a></li>
+            <li><a class="dropdown-item" href="{% url 'user_perfil' %}">Perfil</a></li>
             <li><a class="dropdown-item" href="#">Configuración</a></li>
             <li><hr class="dropdown-divider"></li>
             <li>
@@ -140,6 +140,19 @@
   <div class="sidebar">
     <nav class="mt-2">
       <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+        
+        {% if user.rol == 'admin' %}
+        <!-- Poner las url que son para admin -->
+        {% elif user.rol == 'gerente' %}
+        <!-- Poner las url que son para gerente -->
+        {% elif user.rol == 'jefe' %}
+         <!-- Poner las url que son para jefe -->
+        {% elif user.rol == 'empleado' %}
+         <!-- Poner las url que son para empleado -->
+        {% else %}
+        <!-- Poner las url que son para normal -->
+        {% endif %}
+
         <li class="nav-item"><a class="nav-link" href="{% url 'agregar_sueldo_base' %}"><i class="nav-icon fas fa-dollar-sign"></i><p>Agregar Sueldo Base</p></a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'beneficios' %}"><i class="nav-icon fas fa-gift"></i><p>Beneficios</p></a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'calcular_bonificaciones' %}"><i class="nav-icon fas fa-calculator"></i><p>Bonificaciones</p></a></li>

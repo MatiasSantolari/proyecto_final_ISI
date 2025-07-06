@@ -61,15 +61,20 @@ ESTADO_EMPLEADO_CHOICES = [
 
 class PersonaFormCreate(forms.ModelForm):
     fecha_nacimiento = forms.DateField(
-        widget=DateInput(attrs={'type': 'date', 'class': 'form-control bg-transparent text-white border-white ps-4 pe-5'}),
+        widget=DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+        }),
+        input_formats=['%Y-%m-%d'],
         required=True
     )
+
     prefijo_pais = forms.CharField(required=False, widget=forms.TextInput(attrs={
         'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
         'placeholder': '(Ej: +54)'
     }))
 
-    numero_telefono = forms.CharField(required=False, widget=forms.TextInput(attrs={
+    telefono = forms.CharField(required=False, widget=forms.TextInput(attrs={
         'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
         'placeholder': 'Número Teléfono'
     }))
@@ -131,7 +136,7 @@ class PersonaFormCreate(forms.ModelForm):
 
     class Meta:
         model = Persona
-        fields = ['nombre', 'apellido', 'dni', 'email', 'telefono', 'fecha_nacimiento', 'pais', 
+        fields = ['nombre', 'apellido', 'dni', 'email', 'telefono', 'prefijo_pais', 'fecha_nacimiento', 'pais', 
                   'provincia', 'ciudad', 'calle', 'numero', 'genero']
 
 

@@ -8,6 +8,7 @@ class Persona(models.Model):
     email = models.CharField(max_length=50, verbose_name='Email')
 
     telefono = models.CharField(max_length=15, null=True, blank=True, verbose_name='Telefono')
+    prefijo_pais = models.CharField(max_length=5, null=True, blank=True, verbose_name='Codigo Pais Telefono')
     
     fecha_nacimiento = models.DateField(verbose_name='Fecha de Nacimiento')
     fecha_ingreso = models.DateField(default=datetime.now, verbose_name='Fecha de ingreso')
