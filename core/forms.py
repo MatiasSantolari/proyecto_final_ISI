@@ -59,85 +59,98 @@ ESTADO_EMPLEADO_CHOICES = [
 ]
 
 
+
 class PersonaFormCreate(forms.ModelForm):
     fecha_nacimiento = forms.DateField(
         widget=DateInput(attrs={
             'type': 'date',
-            'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+            'class': 'form-control',
         }),
         input_formats=['%Y-%m-%d'],
         required=True
     )
 
     prefijo_pais = forms.CharField(required=False, widget=forms.TextInput(attrs={
-        'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+        'class': 'form-control',
         'placeholder': '(Ej: +54)'
     }))
 
     telefono = forms.CharField(required=False, widget=forms.TextInput(attrs={
-        'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
-        'placeholder': 'Número Teléfono'
+        'class': 'form-control',
+        'placeholder': 'Número de teléfono'
     }))
 
     pais = forms.CharField(required=False, widget=forms.TextInput(attrs={
-        'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+        'class': 'form-control',
         'placeholder': 'País'
     }))
+    
     provincia = forms.CharField(required=False, widget=forms.TextInput(attrs={
-        'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+        'class': 'form-control',
         'placeholder': 'Provincia'
     }))
+    
     ciudad = forms.CharField(required=False, widget=forms.TextInput(attrs={
-        'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+        'class': 'form-control',
         'placeholder': 'Ciudad'
     }))
+    
     calle = forms.CharField(required=False, widget=forms.TextInput(attrs={
-        'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+        'class': 'form-control',
         'placeholder': 'Calle'
     }))
+    
     numero = forms.CharField(required=False, widget=forms.TextInput(attrs={
-        'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+        'class': 'form-control',
         'placeholder': 'Número'
     }))
 
-    genero_choices=[
+    genero_choices = [
         ('', 'Elegir género'), 
         ('masculino', 'Masculino'),
         ('femenino', 'Femenino'),
     ]
+
     genero = forms.ChoiceField(
         choices=genero_choices,
         widget=forms.Select(attrs={
-            'class': 'form-select bg-transparent text-white border-white ps-4 pe-5',
-            'placeholder': 'Género'
+            'class': 'form-select',
         }),
         required=True
     )
+
     nombre = forms.CharField(widget=forms.TextInput(attrs={
-        'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+        'class': 'form-control',
         'placeholder': 'Nombre',
-        'required': True,
     }))
+    
     apellido = forms.CharField(widget=forms.TextInput(attrs={
-        'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+        'class': 'form-control',
         'placeholder': 'Apellido',
-        'required': True,
     }))
+    
     dni = forms.CharField(widget=forms.TextInput(attrs={
-        'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+        'class': 'form-control',
         'placeholder': 'DNI',
-        'required': True,
     }))
+    
     email = forms.EmailField(widget=forms.EmailInput(attrs={
-        'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+        'class': 'form-control',
         'placeholder': 'Correo electrónico',
-        'required': True,
+    }))
+
+    avatar = forms.ImageField(required=False, widget=forms.ClearableFileInput(attrs={
+        'class': 'form-control'
     }))
 
     class Meta:
         model = Persona
-        fields = ['nombre', 'apellido', 'dni', 'email', 'telefono', 'prefijo_pais', 'fecha_nacimiento', 'pais', 
-                  'provincia', 'ciudad', 'calle', 'numero', 'genero']
+        fields = [
+            'nombre', 'apellido', 'dni', 'email',
+            'telefono', 'prefijo_pais', 'fecha_nacimiento',
+            'pais', 'provincia', 'ciudad',
+            'calle', 'numero', 'genero', 'avatar'
+        ]
 
 
 ############

@@ -1,94 +1,171 @@
-{% include 'auth/partials/base_head.html' %}
-<body class="bg-dark text-white" style="min-height: 100vh; overflow-x: hidden;">
+{% include 'auth/partials/base_head2.html' %}
+<body class="bg-light text-dark">
 
-  <div class="container py-3 d-flex justify-content-center align-items-start" style="min-height: 100vh;">
-    <div class="w-100 position-relative" style="max-width: 750px;">
-
-      <!-- AVATAR y nombre + botones -->
-      <div class="d-flex align-items-center justify-content-between mb-3">
-        <!-- Avatar con "+" abajo derecha -->
-        <div id="avatarContainer" class="position-relative" style="cursor: not-allowed;">
-          {% if request.user.persona.avatar %}
-            <img src="{{ request.user.persona.avatar.url }}" alt="Avatar"
-                 class="rounded-circle border border-white shadow"
-                 style="width: 100px; height: 100px; object-fit: cover;">
-          {% else %}
-            <i class="bi bi-person-circle text-white" style="font-size: 100px;"></i>
-          {% endif %}
-          <div class="position-absolute bg-secondary rounded-circle d-flex justify-content-center align-items-center"
-               id="avatarPlus"
-               style="width: 24px; height: 24px; bottom: 5px; right: 5px; cursor: pointer; font-size: 1rem; display: none;">
-            <i class="bi bi-plus text-white"></i>
-          </div>
-          <input type="file" name="avatar" id="id_avatar" accept="image/*" class="d-none">
-        </div>
-
-        <!-- Nombre, email y botones -->
-        <div class="ms-3 flex-grow-1">
-          <h5>{{ request.user.persona.nombre }} {{ request.user.persona.apellido }}</h5>
-          <p class="text-muted mb-0">{{ request.user.email }}</p>
-        </div>
-
-        <!-- Botón salir X al mismo nivel que avatar -->
-        <button class="btn btn-outline-danger" id="salirBtn" style="height: 40px; width: 40px;">
-          <i class="bi bi-x-lg fs-4"></i>
-        </button>
-      </div>
-
-      <!-- Botón Editar perfil -->
-      <div class="mb-3 text-end">
-        <button type="button" id="editarBtn" class="btn btn-warning">
+  <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="card shadow p-3 w-100" style="max-width: 800px;">
+      <!-- Botones arriba: Salir y Editar -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <button type="button" class="btn btn-warning" id="editarBtn">
           <i class="bi bi-pencil-fill"></i> Editar perfil
         </button>
+        
+        <button type="button" class="btn btn-outline-danger" id="salirBtn">
+          <i class="bi bi-box-arrow-right"></i> Salir
+        </button>
       </div>
 
-      <!-- FORMULARIO -->
-      <form method="POST" enctype="multipart/form-data" id="perfilForm">
+      <form method="POST" enctype="multipart/form-data" id="perfilForm" class="text-start">
         {% csrf_token %}
         {{ form.non_field_errors }}
+        <div class="text-center mb-3">
+          <!-- Avatar -->
+          <div id="avatarContainer" class="position-relative d-inline-block" style="cursor: pointer; width: 100px; height: 100px;">
+            {% if request.user.persona.avatar %}
+              <img id="previewAvatar" src="{{ request.user.persona.avatar.url }}" 
+                  class="rounded-circle border shadow" 
+                  style="width: 100%; height: 100%; object-fit: cover;" 
+                  alt="Avatar">
+            {% else %}
+              <div id="defaultAvatarIcon" 
+                  class="rounded-circle border shadow d-flex justify-content-center align-items-center bg-secondary text-white"
+                  style="width: 100%; height: 100%; font-size: 5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                  <path d="M13.468 12.37C12.758 11.226 11.48 10.5 10 10.5c-1.48 0-2.758.726-3.468 1.87A6.987 6.987 0 0 1 8 15a6.987 6.987 0 0 1 5.468-2.63z"/>
+                  <path fill-rule="evenodd" d="M8 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                  <path fill-rule="evenodd" d="M8 1a7 7 0 1 1 0 14A7 7 0 0 1 8 1z"/>
+                </svg>
+              </div>
+            {% endif %}
+              
+            <div class="position-absolute bg-primary rounded-circle d-flex justify-content-center align-items-center"
+                id="avatarPlus"
+                style="width: 24px; height: 24px; bottom: 5px; right: 5px; cursor: pointer; font-size: 1rem; display: none;">
+              <i class="bi bi-plus text-white"></i>
+            </div>
 
-        <div class="row">
-          <div class="mb-2 col-md-6">{{ form.nombre.label_tag }} {{ form.nombre }}</div>
-          <div class="mb-2 col-md-6">{{ form.apellido.label_tag }} {{ form.apellido }}</div>
-          <div class="mb-2 col-md-6">{{ form.email.label_tag }} {{ form.email }}</div>
-          <div class="mb-2 col-md-6">{{ form.dni.label_tag }} {{ form.dni }}</div>
-          <div class="mb-2 col-md-4">{{ form.prefijo_pais.label_tag }} {{ form.prefijo_pais }}</div>
-          <div class="mb-2 col-md-8">{{ form.telefono.label_tag }} {{ form.telefono }}</div>
-          <div class="mb-2 col-md-4">{{ form.pais.label_tag }} {{ form.pais }}</div>
-          <div class="mb-2 col-md-4">{{ form.provincia.label_tag }} {{ form.provincia }}</div>
-          <div class="mb-2 col-md-4">{{ form.ciudad.label_tag }} {{ form.ciudad }}</div>
-          <div class="mb-2 col-md-6">{{ form.calle.label_tag }} {{ form.calle }}</div>
-          <div class="mb-2 col-md-6">{{ form.numero.label_tag }} {{ form.numero }}</div>
-          <div class="mb-2 col-md-6">{{ form.fecha_nacimiento.label_tag }} {{ form.fecha_nacimiento }}</div>
-          <div class="mb-2 col-md-6">{{ form.genero.label_tag }} {{ form.genero }}</div>
+            <input type="file" name="avatar" id="id_avatar" accept="image/*" class="d-none">
+          </div>
+
+          <h2 class="mt-2">{{ request.user.persona.nombre }} {{ request.user.persona.apellido }}</h2>
+          <p class="text-muted">Información Personal</p>
         </div>
+      
 
-        <!-- Botones Guardar y Cancelar (inicialmente ocultos) -->
-        <div class="d-flex justify-content-end mt-4 gap-2 d-none" id="editarAcciones">
-          <button type="submit" class="btn btn-success">
-            <i class="bi bi-check-circle"></i> Guardar
-          </button>
-          <button type="button" class="btn btn-secondary" id="cancelarBtn">
-            <i class="bi bi-x-circle"></i> Cancelar
-          </button>
+        <div class="row g-3">
+          <!-- Nombre -->
+          <div class="col-md-6 position-relative">
+            {{ form.nombre.errors }}
+            {{ form.nombre }}
+            <i class="bi bi-person-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+
+          <!-- Apellido -->
+          <div class="col-md-6 position-relative">
+            {{ form.apellido.errors }}
+            {{ form.apellido }}
+            <i class="bi bi-person-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+
+          <!-- DNI -->
+          <div class="col-md-6 position-relative">
+            {{ form.dni.errors }}
+            {{ form.dni }}
+            <i class="bi bi-credit-card-2-front-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+
+          <!-- Email -->
+          <div class="col-md-6 position-relative">
+            {{ form.email.errors }}
+            {{ form.email }}
+            <i class="bi bi-envelope-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+
+          <!-- Fecha de nacimiento -->
+          <div class="col-md-6 position-relative">
+            {{ form.fecha_nacimiento.errors }}
+            {{ form.fecha_nacimiento }}
+            <i class="bi bi-calendar-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+
+          <!-- Género -->
+          <div class="col-md-6 position-relative">
+            {{ form.genero.errors }}
+            {{ form.genero }}
+            <i class="bi bi-gender-ambiguous position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+
+          <!-- Teléfono -->
+          <label class="mb-1 mt-3">Teléfono</label>
+          <div class="row mb-3">
+            <div class="col-md-3 position-relative">
+              {{ form.prefijo_pais.errors }}
+              {{ form.prefijo_pais }}
+              <i class="bi bi-globe position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+            </div>
+            <div class="col-md-9 position-relative">
+              {{ form.telefono.errors }}
+              {{ form.telefono }}
+              <i class="bi bi-telephone-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+            </div>
+          </div>
+
+          <!-- Dirección -->
+          <label class="mb-1 mt-3">Dirección</label>
+          <div class="row mb-3">
+            <div class="col-md-5 position-relative">
+              {{ form.pais.errors }}
+              {{ form.pais }}
+              <i class="bi bi-flag position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+            </div>
+            <div class="col-md-7 position-relative">
+              {{ form.provincia.errors }}
+              {{ form.provincia }}
+              <i class="bi bi-map-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-5 position-relative">
+              {{ form.ciudad.errors }}
+              {{ form.ciudad }}
+              <i class="bi bi-geo-alt-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+            </div>
+            <div class="col-md-4 position-relative">
+              {{ form.calle.errors }}
+              {{ form.calle }}
+              <i class="bi bi-signpost-2-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+            </div>
+            <div class="col-md-3 position-relative">
+              {{ form.numero.errors }}
+              {{ form.numero }}
+              <i class="bi bi-hash position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+            </div>
+          </div>
+
+          <!-- Botones Guardar / Cancelar abajo -->
+          <div class="d-none d-flex justify-content-end gap-2 mt-4" id="editarAcciones">
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-check-circle"></i> Guardar
+            </button>
+            <button type="button" class="btn btn-secondary" id="cancelarBtn">
+              <i class="bi bi-x-circle"></i> Cancelar
+            </button>
+          </div>
+
         </div>
       </form>
-
     </div>
   </div>
 
-  <!-- Modal Confirmación Salir -->
+  <!-- MODAL CONFIRMACIÓN -->
   <div class="modal fade" id="confirmSalirModal" tabindex="-1" aria-labelledby="confirmSalirLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content bg-dark text-white">
-        <div class="modal-header border-0">
-          <h5 class="modal-title" id="confirmSalirLabel">Confirmar salida</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmSalirLabel">¿Desea Salir?</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
-        <div class="modal-body">
-          ¿Estás seguro que querés salir sin guardar los cambios?
-        </div>
-        <div class="modal-footer border-0">
+        <div class="modal-body">¿Esta seguro que desea salir?<br> Si NO ha guardado los cambios se perderan.</div>
+        <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
           <button type="button" class="btn btn-danger" id="confirmSalirBtn">Salir</button>
         </div>
@@ -107,60 +184,63 @@
       const avatarContainer = document.getElementById('avatarContainer');
       const avatarPlus = document.getElementById('avatarPlus');
       const salirBtn = document.getElementById('salirBtn');
-
-      // Bootstrap modal
       const confirmSalirModal = new bootstrap.Modal(document.getElementById('confirmSalirModal'));
       const confirmSalirBtn = document.getElementById('confirmSalirBtn');
 
-      // Deshabilitar campos al cargar (excepto avatar que está oculto)
+      // Deshabilitar inputs al iniciar
       inputs.forEach(input => {
         if (input.type !== "hidden" && input.id !== "id_avatar") {
           input.disabled = true;
         }
       });
       avatarInput.disabled = true;
-      avatarContainer.classList.add('opacity-75');
-      avatarContainer.style.cursor = 'not-allowed';
       avatarPlus.style.display = 'none';
 
-      // Clic en avatar solo si está habilitado
-      avatarContainer.addEventListener('click', (e) => {
+      avatarContainer.addEventListener('click', () => {
         if (!avatarInput.disabled) {
           avatarInput.click();
         }
       });
 
-      // Mostrar + solo en modo edición
-      function activarModoEdicion() {
+      avatarInput.addEventListener('change', () => {
+        const file = avatarInput.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = e => {
+            const preview = document.getElementById('previewAvatar');
+            const defaultIcon = document.getElementById('defaultAvatarIcon');
+            if (preview) {
+              preview.src = e.target.result;
+              preview.style.display = 'block';
+            }
+            if (defaultIcon) {
+              defaultIcon.style.display = 'none';
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      editarBtn.addEventListener('click', () => {
         inputs.forEach(input => input.disabled = false);
         avatarInput.disabled = false;
-        avatarContainer.classList.remove('opacity-75');
-        avatarContainer.style.cursor = 'pointer';
         avatarPlus.style.display = 'flex';
-        avatarPlus.classList.add('activo');
         editarBtn.classList.add('d-none');
         editarAcciones.classList.remove('d-none');
-      }
+      });
 
-      // Botón editar
-      editarBtn.addEventListener('click', activarModoEdicion);
-
-      // Botón cancelar - recarga la página para descartar cambios
       cancelarBtn.addEventListener('click', () => {
-        avatarPlus.classList.remove('activo');
         location.reload();
       });
 
-      // Botón salir - abre modal confirmación
       salirBtn.addEventListener('click', () => {
         confirmSalirModal.show();
       });
 
-      // Confirmar salida sin guardar
       confirmSalirBtn.addEventListener('click', () => {
         window.location.href = "{% url 'home' %}";
       });
-    }
+    };
   </script>
 
   {% include 'auth/partials/base_scripts.html' %}

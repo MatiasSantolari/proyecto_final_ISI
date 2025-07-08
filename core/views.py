@@ -108,7 +108,9 @@ def perfil_usuario(request):
     })
 
     if request.method == 'POST' and form.is_valid():
+        print(request.FILES) 
         form.save()
+        print(persona.avatar)
         return redirect('user_perfil')
     
     return render(request, 'user_perfil.html', {'form': form})

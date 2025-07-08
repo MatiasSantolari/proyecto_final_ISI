@@ -1,127 +1,172 @@
-{% include 'auth/partials/base_head.html' %}
-<body>
-  <div class="login-container text-white text-center">
-    <div class="mb-1">
-      <i class="bi bi-person-badge-fill text-success" style="font-size: 3rem;"></i>
+{% include 'auth/partials/base_head2.html' %}
+<body class="bg-light text-dark">
+  <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="card shadow p-4 w-100" style="max-width: 800px;">
+      
+      <form method="POST" enctype="multipart/form-data" class="text-start">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="text-center mb-4">
+          <!-- Avatar -->
+          <div id="avatarContainer" class="position-relative d-inline-block" style="cursor: pointer; width: 100px; height: 100px;">
+            <!-- Imagen cargada -->
+            <img id="previewAvatar" src="" 
+                class="rounded-circle border shadow" 
+                style="width: 100%; height: 100%; object-fit: cover; display: none;" 
+                alt="Avatar">
+
+            <!-- Icono por defecto integrado SVG -->
+            <div id="defaultAvatarIcon" 
+                class="rounded-circle border shadow d-flex justify-content-center align-items-center bg-secondary text-white"
+                style="width: 100%; height: 100%; font-size: 5rem;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                <path d="M13.468 12.37C12.758 11.226 11.48 10.5 10 10.5c-1.48 0-2.758.726-3.468 1.87A6.987 6.987 0 0 1 8 15a6.987 6.987 0 0 1 5.468-2.63z"/>
+                <path fill-rule="evenodd" d="M8 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                <path fill-rule="evenodd" d="M8 1a7 7 0 1 1 0 14A7 7 0 0 1 8 1z"/>
+              </svg>
+            </div>
+
+            <div class="position-absolute bg-primary rounded-circle d-flex justify-content-center align-items-center"
+                id="avatarPlus"
+                style="width: 24px; height: 24px; bottom: 5px; right: 5px; cursor: pointer; font-size: 1rem;">
+              <i class="bi bi-plus text-white"></i>
+            </div>
+
+            <input type="file" name="avatar" id="id_avatar" accept="image/*" class="d-none">
+          </div>
+
+          <h2 class="mt-3">Crear Perfil</h2>
+          <p class="text-muted">Completá tus datos personales para continuar.</p>
+        </div>
+      
+
+        <div class="row g-3">
+          <!-- Nombre -->
+          <div class="col-md-6 position-relative">
+            {{ form.nombre.errors }}
+            {{ form.nombre }}
+            <i class="bi bi-person-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+
+          <!-- Apellido -->
+          <div class="col-md-6 position-relative">
+            {{ form.apellido.errors }}
+            {{ form.apellido }}
+            <i class="bi bi-person-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+
+          <!-- DNI -->
+          <div class="col-md-6 position-relative">
+            {{ form.dni.errors }}
+            {{ form.dni }}
+            <i class="bi bi-credit-card-2-front-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+
+          <!-- Email -->
+          <div class="col-md-6 position-relative">
+            {{ form.email.errors }}
+            {{ form.email }}
+            <i class="bi bi-envelope-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+
+          <!-- Fecha de nacimiento -->
+          <div class="col-md-6 position-relative">
+            {{ form.fecha_nacimiento.errors }}
+            {{ form.fecha_nacimiento }}
+            <i class="bi bi-calendar-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+
+          <!-- Género -->
+          <div class="col-md-6 position-relative">
+            {{ form.genero.errors }}
+            {{ form.genero }}
+            <i class="bi bi-gender-ambiguous position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+
+          <!-- Teléfono -->
+          <label class="mb-1 mt-3">Teléfono</label>
+          <div class="row mb-3">
+            <div class="col-md-3 position-relative">
+              {{ form.prefijo_pais.errors }}
+              {{ form.prefijo_pais }}
+              <i class="bi bi-globe position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+            </div>
+            <div class="col-md-9 position-relative">
+              {{ form.telefono.errors }}
+              {{ form.telefono }}
+              <i class="bi bi-telephone-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+            </div>
+          </div>
+
+          <!-- Dirección -->
+          <label class="mb-1 mt-3">Dirección</label>
+          <div class="row mb-3">
+            <div class="col-md-5 position-relative">
+              {{ form.pais.errors }}
+              {{ form.pais }}
+              <i class="bi bi-flag position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+            </div>
+            <div class="col-md-7 position-relative">
+              {{ form.provincia.errors }}
+              {{ form.provincia }}
+              <i class="bi bi-map-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-5 position-relative">
+              {{ form.ciudad.errors }}
+              {{ form.ciudad }}
+              <i class="bi bi-geo-alt-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+            </div>
+            <div class="col-md-4 position-relative">
+              {{ form.calle.errors }}
+              {{ form.calle }}
+              <i class="bi bi-signpost-2-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+            </div>
+            <div class="col-md-3 position-relative">
+              {{ form.numero.errors }}
+              {{ form.numero }}
+              <i class="bi bi-hash position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+            </div>
+          </div>
+
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 fw-bold shadow mt-4">
+          <i class="bi bi-person-check-fill me-2"></i> Guardar perfil
+        </button>
+      </form>
     </div>
-
-    <h2 class="mb-3">Crear Perfil</h2>
-    <p class="mb-4" style="opacity: 0.9;">Completá tus datos personales para continuar.</p>
-
-    <form method="POST" enctype="multipart/form-data" class="text-start">
-      {% csrf_token %}
-      {{ form.non_field_errors }}
-
-      <div class="row">
-        <!-- Nombre -->
-        <div class="mb-3 position-relative col-md-6">
-          {{ form.nombre.errors }}
-          {{ form.nombre }}
-          <i class="bi bi-person-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
-        </div>
-
-        <!-- Apellido -->
-        <div class="mb-3 position-relative col-md-6">
-          {{ form.apellido.errors }}
-          {{ form.apellido }}
-          <i class="bi bi-person-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
-        </div>
-
-        <!-- DNI -->
-        <div class="mb-3 position-relative col-md-6">
-          {{ form.dni.errors }}
-          {{ form.dni }}
-          <i class="bi bi-credit-card-2-front-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
-        </div>
-
-        <!-- Email -->
-        <div class="mb-3 position-relative col-md-6">
-          {{ form.email.errors }}
-          {{ form.email }}
-          <i class="bi bi-envelope-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
-        </div>
-
-        <!-- Fecha de nacimiento -->
-        <div class="mb-3 position-relative col-md-6">
-          {{ form.fecha_nacimiento.errors }}
-          {{ form.fecha_nacimiento }}
-          <i class="bi bi-calendar-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
-        </div>
-
-        <!-- Género -->
-        <div class="mb-3 position-relative col-md-6">
-          {{ form.genero.errors }}
-          {{ form.genero }}
-          <i class="bi bi-gender-ambiguous position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
-        </div>
-
-
-        <!-- Teléfono -->
-        <label class="mb-1">Teléfono</label>
-        <div class="row mb-3">
-          <div class="col-md-3 position-relative">
-            {{ form.prefijo_pais.errors }}
-            {{ form.prefijo_pais }}
-            <i class="bi bi-globe position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
-          </div>
-          <div class="col-md-9 position-relative">
-            {{ form.numero_telefono.errors }}
-            {{ form.numero_telefono }}
-            <i class="bi bi-telephone-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
-          </div>
-        </div>
-
-        <!-- Dirección -->
-        <label class="mb-1">Dirección</label>
-        <div class="row mb-3">
-          <div class="col-md-5 position-relative">
-            {{ form.pais.errors }}
-            {{ form.pais }}
-            <i class="bi bi-flag position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
-          </div>
-          <div class="col-md-7 position-relative">
-            {{ form.provincia.errors }}
-            {{ form.provincia }}
-            <i class="bi bi-map-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
-          </div>
-        </div>
-        <div class="row mb-3">
-          <div class="col-md-5 position-relative">
-            {{ form.ciudad.errors }}
-            {{ form.ciudad }}
-            <i class="bi bi-geo-alt-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
-          </div>
-          <div class="col-md-4 position-relative">
-            {{ form.calle.errors }}
-            {{ form.calle }}
-            <i class="bi bi-signpost-2-fill position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
-          </div>
-          <div class="col-md-3 position-relative">
-            {{ form.numero.errors }}
-            {{ form.numero }}
-            <i class="bi bi-hash position-absolute top-50 end-0 translate-middle-y text-white me-4"></i>
-          </div>
-        </div>
-
-        <!-- Avatar -->
-        <div class="mb-3 col-md-6">
-          <label for="id_avatar" class="form-label">Foto de Perfil (opcional)</label>
-          <input type="file" name="avatar" id="id_avatar" class="form-control bg-transparent text-white border-white" accept="image/*">
-        </div>
-
-        <!-- CVitae -->
-        <div class="mb-3 col-md-6">
-          <label for="id_cvitae" class="form-label">CV (opcional)</label>
-          <input type="file" name="cvitae" id="id_cvitae" class="form-control bg-transparent text-white border-white" accept=".pdf,.doc,.docx">
-        </div>
-      </div>
-
-      <button type="submit" class="btn btn-success w-100 fw-bold shadow mt-2">
-        <i class="bi bi-person-check-fill me-2"></i> Guardar perfil
-      </button>
-    </form>
   </div>
 
   {% include 'auth/partials/base_scripts.html' %}
+
+  <script>
+    const avatarContainer = document.getElementById('avatarContainer');
+    const avatarInput = document.getElementById('id_avatar');
+    const previewAvatar = document.getElementById('previewAvatar');
+    const defaultAvatarIcon = document.getElementById('defaultAvatarIcon');
+
+    avatarContainer.addEventListener('click', () => {
+      avatarInput.click();
+    });
+
+    avatarInput.addEventListener('change', () => {
+      const file = avatarInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          previewAvatar.src = e.target.result;
+          previewAvatar.style.display = 'block';
+          defaultAvatarIcon.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        previewAvatar.src = '';
+        previewAvatar.style.display = 'none';
+        defaultAvatarIcon.style.display = 'flex';
+      }
+    });
+  </script>
 </body>
 </html>

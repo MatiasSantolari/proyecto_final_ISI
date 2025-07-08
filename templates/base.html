@@ -56,7 +56,6 @@
       }
     }
 
-
     .bg-soft-success   { background-color: #d4edda !important; }
     .bg-soft-warning   { background-color: #fff3cd !important; }
     .bg-soft-info      { background-color: #d1ecf1 !important; }
@@ -65,71 +64,19 @@
     .bg-soft-secondary { background-color: #e2e3e5 !important; }
     .bg-soft-mint      { background-color: #d1f2eb !important; }
     .border-mint       { border-color: #1abc9c !important;}
+
   </style>
 
   {% block extra_head %}{% endblock %}
 </head>
 
 <body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed" data-keep-expanded="true">
-<!-- Navbar -->
-<nav class="main-header navbar navbar-expand navbar-white navbar-light shadow-sm fixed-top px-4 py-2" style="z-index:1100;">
-    <div class="collapse navbar-collapse" id="navbarContent">
-      <ul class="navbar-nav">
-        <li class="nav-item">
-          <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
-        </li>
-      </ul>    
 
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Inicio</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Contacto</a></li>
-      </ul>
-
-      <form class="d-flex me-3" role="search">
-        <input class="form-control me-2" type="search" placeholder="Buscar" aria-label="Buscar">
-        <button class="btn btn-outline-primary" type="submit">
-          <i class="fas fa-search"></i>
-        </button>
-      </form>
-
-      <ul class="navbar-nav mb-2 mb-lg-0">
-        <li class="nav-item dropdown">
-          <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown">
-            <i class="far fa-bell"></i>
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning">3</span>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><h6 class="dropdown-header">Notificaciones</h6></li>
-            <li><a class="dropdown-item" href="#">Nueva solicitud recibida</a></li>
-            <li><a class="dropdown-item" href="#">Actualización de perfil</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#">Ver todas</a></li>
-          </ul>
-        </li>
-
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-            <i class="fas fa-user-circle me-1"></i> {{ request.user.nombre_usuario }}
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="{% url 'user_perfil' %}">Perfil</a></li>
-            <li><a class="dropdown-item" href="#">Configuración</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-              <form action="{% url 'logout' %}" method="post" style="display: block; margin: 0;">
-                {% csrf_token %}
-                <button type="submit" class="dropdown-item text-danger" style="background: none; border: none; width: 100%; text-align: left; padding-left: 1rem;">
-                  Cerrar sesión
-                </button>
-              </form>
-            </li>
-          </ul>
-        </li>
-      </ul>
-    </div>
-</nav>
+  <!-- Navbar -->
+  {% include "partials/navbar.html" %}
 
 
+  
   <aside class="main-sidebar sidebar-dark-primary elevation-4" style="height: 100vh; overflow-y: auto;">
   <!-- Logo / título -->
   <a href="#" class="brand-link">
@@ -196,10 +143,10 @@
   </div>
 
   <!-- Footer -->
-  <footer class="app-footer">
-    <div class="float-end d-none d-sm-inline"><strong>Version</strong> 1.0</div>
-    <strong>&copy; 2025 <a href="#" class="text-decoration-none">Sanbamero</a>.</strong> Todos los derechos reservados.
-  </footer>
+  {% include "partials/footer.html" %}
+
+
+
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
