@@ -100,20 +100,29 @@ def create_persona(request):
 @login_required
 def perfil_usuario(request):
     persona = request.user.persona
-    form = PersonaFormCreate(request.POST or None, 
-                             request.FILES or None, 
-                             instance=persona,
-                             initial={
-                                    'fecha_nacimiento': persona.fecha_nacimiento.strftime('%Y-%m-%d')
-    })
+
+    form = PersonaFormCreate(
+        request.POST or None,
+        request.FILES or None,
+        instance=persona,
+        initial={
+            'fecha_nacimiento': persona.fecha_nacimiento.strftime('%Y-%m-%d') if persona.fecha_nacimiento else ''
+        }
+    )
 
     if request.method == 'POST' and form.is_valid():
-        print(request.FILES) 
+        # Si el usuario solicitó eliminar el CV
+        if request.POST.get('eliminar_cvitae') == '1':
+            if persona.cvitae:
+                if persona.cvitae.storage.exists(persona.cvitae.name):
+                    persona.cvitae.delete(save=False)
+                persona.cvitae = None
+
         form.save()
-        print(persona.avatar)
         return redirect('user_perfil')
-    
+
     return render(request, 'user_perfil.html', {'form': form})
+
 
 ##########################
 

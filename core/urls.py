@@ -10,6 +10,7 @@ urlpatterns = [
     # Perfil usuario
     path('perfil/', views.perfil_usuario, name='user_perfil'),
 
+
 # urlpatterns = [
 #    path('dashboard/admin/', views.dashboard_admin, name='dashboard_admin'),
  #   path('dashboard/empleado/', views.dashboard_empleado, name='dashboard_empleado'),

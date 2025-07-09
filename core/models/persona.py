@@ -1,3 +1,4 @@
+import os
 from django.db import models
 from datetime import datetime
 
@@ -34,3 +35,9 @@ class Persona(models.Model):
         verbose_name_plural = 'Personas'
         db_table = 'persona'
         ordering = ['id']  # - para oden descendente
+
+    
+    def cvitae_filename(self):
+        if self.cvitae:
+            return os.path.basename(self.cvitae.name)
+        return ""

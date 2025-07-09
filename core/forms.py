@@ -143,13 +143,21 @@ class PersonaFormCreate(forms.ModelForm):
         'class': 'form-control'
     }))
 
+    cvitae = forms.FileField(
+    required=False,
+    widget=forms.FileInput(attrs={
+        'class': 'form-control d-none', 
+        'accept': '.pdf,.zip',
+        'id': 'id_cvitae',
+    }))
+
     class Meta:
         model = Persona
         fields = [
             'nombre', 'apellido', 'dni', 'email',
             'telefono', 'prefijo_pais', 'fecha_nacimiento',
             'pais', 'provincia', 'ciudad',
-            'calle', 'numero', 'genero', 'avatar'
+            'calle', 'numero', 'genero', 'avatar', 'cvitae'
         ]
 
 

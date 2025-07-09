@@ -4,7 +4,7 @@
   <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
     <div class="card shadow p-3 w-100" style="max-width: 800px;">
       <!-- Botones arriba: Salir y Editar -->
-      <div class="d-flex justify-content-between align-items-center mb-4">
+      <div class="d-flex justify-content-between align-items-center">
         <button type="button" class="btn btn-warning" id="editarBtn">
           <i class="bi bi-pencil-fill"></i> Editar perfil
         </button>
@@ -19,7 +19,7 @@
         {{ form.non_field_errors }}
         <div class="text-center mb-3">
           <!-- Avatar -->
-          <div id="avatarContainer" class="position-relative d-inline-block" style="cursor: pointer; width: 100px; height: 100px;">
+          <div id="avatarContainer" class="position-relative d-inline-block" style="cursor: default; width: 100px; height: 100px;">
             {% if request.user.persona.avatar %}
               <img id="previewAvatar" src="{{ request.user.persona.avatar.url }}" 
                   class="rounded-circle border shadow" 
@@ -39,14 +39,14 @@
               
             <div class="position-absolute bg-primary rounded-circle d-flex justify-content-center align-items-center"
                 id="avatarPlus"
-                style="width: 24px; height: 24px; bottom: 5px; right: 5px; cursor: pointer; font-size: 1rem; display: none;">
+                style="width: 24px; height: 24px; bottom: 5px; right: 5px; cursor: default; font-size: 1rem; display: none;">
               <i class="bi bi-plus text-white"></i>
             </div>
 
             <input type="file" name="avatar" id="id_avatar" accept="image/*" class="d-none">
           </div>
 
-          <h2 class="mt-2">{{ request.user.persona.nombre }} {{ request.user.persona.apellido }}</h2>
+          <h3 class="mt-2">{{ request.user.persona.nombre }} {{ request.user.persona.apellido }}</h3>
           <p class="text-muted">Información Personal</p>
         </div>
       
@@ -140,6 +140,35 @@
               <i class="bi bi-hash position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
             </div>
           </div>
+          
+          <!-- Currículum Vitae -->
+          <div class="col-md-12">
+            <div class="col-md-12 d-flex align-items-center mb-2">
+              <label class="form-label mb-0 me-3">Currículum Vitae (PDF o ZIP)</label>
+
+              {% if request.user.persona.cvitae %}
+                <button type="button" id="eliminarCVBtn" class="btn btn-sm btn-outline-danger">
+                  <i class="bi bi-x-circle"></i> Eliminar CV Actual
+                </button>
+              {% endif %}
+            </div>
+
+            <div class="input-group">
+              <button type="button" class="btn btn-outline-secondary" id="seleccionarCVBtn">
+                <i class="bi bi-upload"></i> Seleccionar archivo
+              </button>
+              <input type="text" id="cvitaeNombre" class="form-control bg-white" placeholder="Ningún archivo seleccionado" readonly>
+              
+              {% if request.user.persona.cvitae %}
+                <a href="{{ request.user.persona.cvitae.url }}" target="_blank" id="verCVBtn" class="btn btn-outline-primary btn-sm">
+                  <i class="bi bi-file-earmark-arrow-down"></i> Ver currículum Actual
+                </a>
+              {% endif %}
+            </div>
+
+            <!-- Campo real oculto -->
+            {{ form.cvitae }}
+          </div>
 
           <!-- Botones Guardar / Cancelar abajo -->
           <div class="d-none d-flex justify-content-end gap-2 mt-4" id="editarAcciones">
@@ -155,6 +184,27 @@
       </form>
     </div>
   </div>
+
+
+  <!-- MODAL CONFIRMACIÓN ELIMINAR CV -->
+  <div class="modal fade" id="confirmEliminarCvModal" tabindex="-1" aria-labelledby="confirmEliminarCvLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmEliminarCvLabel">¿Eliminar Currículum?</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          ¿Estás seguro que querés eliminar el currículum actual?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="confirmEliminarCvBtn">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   <!-- MODAL CONFIRMACIÓN -->
   <div class="modal fade" id="confirmSalirModal" tabindex="-1" aria-labelledby="confirmSalirLabel" aria-hidden="true">
@@ -187,14 +237,36 @@
       const confirmSalirModal = new bootstrap.Modal(document.getElementById('confirmSalirModal'));
       const confirmSalirBtn = document.getElementById('confirmSalirBtn');
 
-      // Deshabilitar inputs al iniciar
-      inputs.forEach(input => {
-        if (input.type !== "hidden" && input.id !== "id_avatar") {
-          input.disabled = true;
-        }
-      });
-      avatarInput.disabled = true;
-      avatarPlus.style.display = 'none';
+      const seleccionarCVBtn = document.getElementById('seleccionarCVBtn');
+      const inputCVitae = document.getElementById('id_cvitae');
+      const cvitaeNombre = document.getElementById('cvitaeNombre');
+      const eliminarCVBtn = document.getElementById('eliminarCVBtn');
+      const verCVBtn = document.getElementById('verCVBtn');
+
+      // Nuevo modal para confirmar eliminación CV
+      const confirmEliminarCvModal = new bootstrap.Modal(document.getElementById('confirmEliminarCvModal'));
+      const confirmEliminarCvBtn = document.getElementById('confirmEliminarCvBtn');
+
+      // Función para activar o desactivar edición
+      function setModoEdicion(editar) {
+        inputs.forEach(input => {
+          if (input.type !== "hidden" && input.id !== "id_avatar") {
+            input.disabled = !editar;
+          }
+        });
+        avatarInput.disabled = !editar;
+        avatarPlus.style.display = editar ? 'flex' : 'none';
+
+        avatarContainer.style.cursor = editar ? 'pointer' : 'default';
+        avatarPlus.style.cursor = editar ? 'pointer' : 'default';
+
+        // Habilitar/deshabilitar botones subir y eliminar CV
+        if (seleccionarCVBtn) seleccionarCVBtn.disabled = !editar;
+        if (eliminarCVBtn) eliminarCVBtn.disabled = !editar;
+      }
+
+      // Al iniciar, modo lectura
+      setModoEdicion(false);
 
       avatarContainer.addEventListener('click', () => {
         if (!avatarInput.disabled) {
@@ -222,14 +294,13 @@
       });
 
       editarBtn.addEventListener('click', () => {
-        inputs.forEach(input => input.disabled = false);
-        avatarInput.disabled = false;
-        avatarPlus.style.display = 'flex';
-        editarBtn.classList.add('d-none');
+        setModoEdicion(true);
+        editarBtn.style.visibility = 'hidden';
         editarAcciones.classList.remove('d-none');
       });
 
       cancelarBtn.addEventListener('click', () => {
+        editarBtn.style.visibility = 'visible';
         location.reload();
       });
 
@@ -240,8 +311,56 @@
       confirmSalirBtn.addEventListener('click', () => {
         window.location.href = "{% url 'home' %}";
       });
+
+      if (seleccionarCVBtn && inputCVitae && cvitaeNombre) {
+        {% if request.user.persona.cvitae %}
+          cvitaeNombre.value = "{{ request.user.persona.cvitae_filename }}";
+        {% endif %}
+
+        seleccionarCVBtn.addEventListener('click', () => {
+          if (!seleccionarCVBtn.disabled) inputCVitae.click();
+        });
+
+        inputCVitae.addEventListener('change', () => {
+          if (inputCVitae.files.length > 0) {
+            cvitaeNombre.value = inputCVitae.files[0].name;
+          }
+        });
+      }
+
+      if (eliminarCVBtn) {
+        eliminarCVBtn.addEventListener('click', () => {
+          if (!eliminarCVBtn.disabled) {
+            confirmEliminarCvModal.show();
+          }
+        });
+      }
+
+      if (confirmEliminarCvBtn) {
+        confirmEliminarCvBtn.addEventListener('click', () => {
+          // Limpiar input visual y archivo
+          cvitaeNombre.value = '';
+          inputCVitae.value = '';
+
+          // Ocultar botón "Ver CV"
+          if (verCVBtn) verCVBtn.style.display = 'none';
+
+          // Crear o actualizar campo oculto eliminar_cvitae para backend
+          let inputHidden = document.querySelector('input[name="eliminar_cvitae"]');
+          if (!inputHidden) {
+            inputHidden = document.createElement('input');
+            inputHidden.type = 'hidden';
+            inputHidden.name = 'eliminar_cvitae';
+            inputHidden.value = '1';
+            form.appendChild(inputHidden);
+          }
+
+          confirmEliminarCvModal.hide();
+        });
+      }
     };
   </script>
+
 
   {% include 'auth/partials/base_scripts.html' %}
 </body>
