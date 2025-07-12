@@ -1,7 +1,6 @@
 from .beneficio_empleado_nomina import BeneficioEmpleadoNomina
 from .beneficio import Beneficio
 from .capacitacion_empleado import Capacitacion
-from .cargo_categoria import CategoriaCargo
 from .cargo_departamento import CargoDepartamento
 from .cargo import Cargo
 from .competencia_empleado import CompetenciaEmpleado

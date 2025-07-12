@@ -23,16 +23,18 @@ urlpatterns = [
     path('personas/<int:persona_id>/eliminar/', views.eliminar_persona, name='eliminar_persona'),
     ##path('personas/<int:persona_id>/datos/', views.obtener_datos_persona, name='obtener_datos_persona'),
 
+    path('personas/cargos_por_departamento/<int:dept_id>/', views.cargos_por_departamento, name='cargos_por_departamento'),
+
     ## CARGO ##
     path('cargos/', views.cargos, name='cargos'),
     path('cargos/crear/', views.crear_cargo, name='crear_cargo'), ## Sirve para editar tambien
-    path('cargos/<int:cargo_id>/eliminar/', views.eliminar_cargo, name='eliminar_cargo'),
+    path('cargos/<int:id_cargo>/eliminar/', views.eliminar_cargo, name='eliminar_cargo'),
     
 
 ## CATEGORIA del CARGO ##
-    path('cargo_categoria/', views.cargos_categoria, name='cargo_categoria'),
-    path('cargo_categoria/crear/', views.crear_cargo_categoria, name='crear_cargo_categoria'), ## Sirve para editar tambien
-    path('cargo_categoria/<int:categoria_id>/eliminar/', views.eliminar_cargo_categoria, name='eliminar_cargo_categoria'),
+  #  path('cargo_categoria/', views.cargos_categoria, name='cargo_categoria'),
+  #  path('cargo_categoria/crear/', views.crear_cargo_categoria, name='crear_cargo_categoria'), ## Sirve para editar tambien
+  #  path('cargo_categoria/<int:id_categoria>/eliminar/', views.eliminar_cargo_categoria, name='eliminar_cargo_categoria'),
 
 
 

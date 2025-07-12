@@ -8,12 +8,25 @@
   <div class="sidebar">
     <nav class="mt-2">
       <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+        
+        {% if user.rol == 'admin' %}
+        <!-- Poner las url que son para admin -->
+        {% elif user.rol == 'gerente' %}
+        <!-- Poner las url que son para gerente -->
+        {% elif user.rol == 'jefe' %}
+         <!-- Poner las url que son para jefe -->
+        {% elif user.rol == 'empleado' %}
+         <!-- Poner las url que son para empleado -->
+        {% else %}
+        <!-- Poner las url que son para normal -->
+        {% endif %}
+
         <li class="nav-item"><a class="nav-link" href="{% url 'agregar_sueldo_base' %}"><i class="nav-icon fas fa-dollar-sign"></i><p>Agregar Sueldo Base</p></a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'beneficios' %}"><i class="nav-icon fas fa-gift"></i><p>Beneficios</p></a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'calcular_bonificaciones' %}"><i class="nav-icon fas fa-calculator"></i><p>Bonificaciones</p></a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'capacitaciones' %}"><i class="nav-icon fas fa-chalkboard-teacher"></i><p>Capacitaciones</p></a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'cargos' %}"><i class="nav-icon fas fa-briefcase"></i><p>Cargos</p></a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'cargo_categoria' %}"><i class="nav-icon fas fa-layer-group"></i><p>Categorías de Cargos</p></a></li>
+        <li class="nav-item"><a class="nav-link" href=""><i class="nav-icon fas fa-layer-group"></i><p></p></a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'competencias' %}"><i class="nav-icon fas fa-tasks"></i><p>Competencias</p></a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'contratos' %}"><i class="nav-icon fas fa-file-contract"></i><p>Contratos</p></a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'costos_de_personal' %}"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Costos de Personal</p></a></li>

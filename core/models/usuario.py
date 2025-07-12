@@ -4,14 +4,14 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 
 
 class UsuarioManager(BaseUserManager):
-    def create_user(self, username, email, password=None, empleado=None, rol='normal'):
+    def create_user(self, username, email, password=None, persona=None, rol='normal'):
         if not email:
             raise ValueError("El usuario debe tener un correo electrónico")
         
         usuario = self.model(
             username=username,
             email=self.normalize_email(email),
-            empleado=empleado,
+            persona=persona,
             rol=rol
         )
         usuario.set_password(password)

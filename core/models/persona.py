@@ -6,7 +6,6 @@ class Persona(models.Model):
     nombre = models.CharField(max_length=50, verbose_name='Nombre')
     apellido = models.CharField(max_length=50, verbose_name='Apellido')
     dni = models.CharField(max_length=10, unique=True, verbose_name='Dni')
-    email = models.CharField(max_length=50, verbose_name='Email')
 
     telefono = models.CharField(max_length=15, null=True, blank=True, verbose_name='Telefono')
     prefijo_pais = models.CharField(max_length=5, null=True, blank=True, verbose_name='Codigo Pais Telefono')

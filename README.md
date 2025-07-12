@@ -5,6 +5,7 @@ Instalar:
 pip install social-auth-app-django
 pip install python-dotenv
 pip install Pillow
+pip install django-widget-tweaks
 
 
 Pasos para configurar la Base de datos con Django

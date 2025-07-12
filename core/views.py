@@ -22,6 +22,7 @@ from django.views.decorators.http import require_POST
 from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
 from .decorators import rol_requerido
+from django.utils.timezone import now
 
 
 # test
@@ -129,7 +130,7 @@ def perfil_usuario(request):
 
 ################## CRUD PERSONA ################
 def personas(request):
-    personas_qs = Persona.objects.select_related('empleado')
+    personas_qs = Persona.objects.select_related('empleado', 'usuario')
     
     personas_con_datos = []
 
@@ -137,29 +138,58 @@ def personas(request):
         estado = ""
         cargo_id = ""
         nombre_cargo = ""
+        tipo_usuario = ""
+        departamento_id = ""
+        departamento_nombre = ""
 
-        if persona.tipo_persona == 'empleado' and hasattr(persona, 'empleado'):
-            estado = persona.empleado.estado
+        # Si tiene usuario relacionado, extraemos el rol
+        if hasattr(persona, 'usuario'):
+            tipo_usuario = persona.usuario.rol
 
-            # Obtenemos el último cargo desde el empleado
-            ultimo_cargo = persona.empleado.empleadocargo_set.order_by('fecha_asignacion').last()
-            if ultimo_cargo:
-                cargo_id = ultimo_cargo.cargo.id_cargo
-                nombre_cargo = ultimo_cargo.cargo.nombre
+            # Si el rol es de tipo empleado o superior y tiene relación con Empleado
+            if tipo_usuario in ['empleado', 'jefe', 'gerente', 'admin'] and hasattr(persona, 'empleado'):
+                estado = persona.empleado.estado
+
+                # Obtenemos el último cargo
+                ultimo_cargo = persona.empleado.empleadocargo_set.order_by('fecha_inicio').last()
+                if ultimo_cargo:
+                    cargo = ultimo_cargo.cargo
+                    cargo_id = cargo.id
+                    nombre_cargo = cargo.nombre
+
+                    # Buscar departamento asociado al cargo desde la tabla intermedia
+                    cargo_departamento = CargoDepartamento.objects.filter(cargo=cargo).first()
+                    if cargo_departamento:
+                        departamento_id = cargo_departamento.departamento.id
+                        departamento_nombre = cargo_departamento.departamento.nombre
+            else:
+                estado = "Sin Estado"
+                nombre_cargo = "Sin Cargo"
+
 
         personas_con_datos.append({
-            'id': persona.id_persona,
+            'id': persona.id,
             'nombre': persona.nombre,
             'apellido': persona.apellido,
             'dni': persona.dni,
-            'email': persona.email,
+            'email': persona.usuario.email,
+            'prefijo_pais': persona.prefijo_pais,
             'telefono': persona.telefono,
             'fecha_nacimiento': persona.fecha_nacimiento,
-            'direccion': persona.direccion,
-            'tipo_persona': persona.tipo_persona,
+            'genero': persona.genero,
+            'pais': persona.pais,
+            'provincia': persona.provincia,
+            'ciudad': persona.ciudad,
+            'calle': persona.calle,
+            'numero': persona.numero,
+            'tipo_usuario': tipo_usuario,
             'estado': estado,
             'cargo': cargo_id,
             'nombre_cargo': nombre_cargo,
+            'departamento_id': departamento_id,
+            'departamento_nombre': departamento_nombre,
+
+            'telefono_completo': persona.prefijo_pais + persona.telefono,
         })
 
     form = PersonaForm()
@@ -168,84 +198,137 @@ def personas(request):
 
 
 
-
 def crear_persona(request):
     if request.method == 'POST':
         id_persona = request.POST.get('id_persona')
+        persona = get_object_or_404(Persona, id=id_persona) if id_persona else None
+        departamento_id = request.POST.get('departamento')
 
-        if id_persona:
-            persona = get_object_or_404(Persona, id_persona=id_persona)
-            form = PersonaForm(request.POST, instance=persona)
-        else:
-            form = PersonaForm(request.POST)
+        form = PersonaForm(request.POST, request.FILES, instance=persona, departamento_id=departamento_id)
 
         if form.is_valid():
-            tipo_persona = form.cleaned_data.get('tipo_persona')
-            estado_empleado = form.cleaned_data.get('estado')
-            cargo = form.cleaned_data.get('cargo')
+            email = form.cleaned_data.get('email')
+            
+            if not id_persona and Usuario.objects.filter(email=email).exists():
+                form.add_error('email', 'Ya existe un usuario registrado con ese correo electrónico.')
+            else:
+                persona = form.save()
+                rol = form.cleaned_data.get('tipo_usuario')
+               ## estado_empleado = form.cleaned_data.get('estado')
+                cargo = form.cleaned_data.get('cargo')
+                
+                 # Definir estado_empleado según si es creación o edición
+                if not id_persona:
+                    estado_empleado = "activo"  # Estado fijo para creación
+                else:
+                    estado_empleado = form.cleaned_data.get('estado')
 
-            if tipo_persona == 'empleado':
-                if id_persona:
-                    # Buscar si ya existe como empleado
-                    empleado = Empleado.objects.filter(id_persona=id_persona).first()
+                persona = form.save()
 
-                    if empleado:
-                        # Actualizar campos del empleado
-                        empleado.nombre = form.cleaned_data['nombre']
-                        empleado.apellido = form.cleaned_data['apellido']
-                        empleado.dni = form.cleaned_data['dni']
-                        empleado.email = form.cleaned_data['email']
-                        empleado.telefono = form.cleaned_data['telefono']
-                        empleado.fecha_nacimiento = form.cleaned_data['fecha_nacimiento']
-                        empleado.direccion = form.cleaned_data['direccion']
-                        empleado.tipo_persona = 'empleado'
-                        empleado.estado = estado_empleado
-                        empleado.save()
-                    else:
-                        # No existía como empleado, convertirlo
-                        persona = form.save(commit=False)
+                # CREAR USUARIO SI ES NUEVA PERSONA
+                if not id_persona:
+                    # Generar username único: nombre.apellido / nombre.apellido1 / etc.
+                    base_username = f"{persona.nombre}.{persona.apellido}".replace(" ", "").lower()
+                    username = base_username
+                    contador = 1
+                    while Usuario.objects.filter(username=username).exists():
+                        username = f"{base_username}{contador}"
+                        contador += 1
+
+                    password = persona.dni  # La contraseña es el DNI
+
+                    # Crear usuario
+                    usuario = Usuario.objects.create_user(
+                        username=username,
+                        password=password,
+                        email=email,
+                        persona=persona,
+                        rol=rol
+                    )
+
+                    # Enviar email con credenciales
+                    login_url = request.build_absolute_uri('/login/')
+                    try:
+                        send_mail(
+                            subject="Credenciales de acceso",
+                            message=f"Hola {persona.nombre},\n\n"
+                                    f"Tu cuenta ha sido creada.\n"
+                                    f"Usuario: {username}\n"
+                                    f"Contraseña: {password}\n\n"
+                                    f"Podés ingresar al sistema desde: {login_url}\n\n"
+                                    f"Por favor, cambiá su contraseña luego de ingresar.\n\n"
+                                    f"Saludos,\nEl equipo de RRHH",
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[email],
+                            fail_silently=False,
+                        )
+                    except Exception as e:
+                        print(f"Error al enviar el correo: {e}")
+
+                else:
+                    # Actualizar usuario si existe
+                    try:
+                        usuario = Usuario.objects.get(persona=persona)
+                        usuario.email = form.cleaned_data.get('email')
+                        usuario.rol = rol
+                        usuario.save()
+                    except Usuario.DoesNotExist:
+                        print(f"Usuario no encontrado para persona {persona.id}")
+
+                if rol in ['empleado', 'jefe', 'gerente', 'admin']:
+                    try:
+                        empleado = Empleado.objects.get(id=persona.id)
+                    except Empleado.DoesNotExist:
+                        # Clonar la persona y convertirla en empleado
                         empleado = Empleado.objects.create(
-                            id_persona=id_persona,
+                            id=persona.id,
                             nombre=persona.nombre,
                             apellido=persona.apellido,
                             dni=persona.dni,
-                            email=persona.email,
                             telefono=persona.telefono,
+                            prefijo_pais=persona.prefijo_pais,
                             fecha_nacimiento=persona.fecha_nacimiento,
-                            direccion=persona.direccion,
-                            tipo_persona='empleado',
-                            estado=estado_empleado
+                            fecha_ingreso=persona.fecha_ingreso,
+                            pais=persona.pais,
+                            provincia=persona.provincia,
+                            ciudad=persona.ciudad,
+                            calle=persona.calle,
+                            numero=persona.numero,
+                            genero=persona.genero,
+                            avatar=persona.avatar,
+                            cvitae=persona.cvitae,
+                            fecha_creacion=persona.fecha_creacion,
+                            fecha_actualizacion=persona.fecha_actualizacion,
+                            estado=estado_empleado,
+                            cargo=cargo,
+                            cantidad_dias_disponibles=0
                         )
+                    else:
+                        # Actualizar si ya existía
+                        empleado.estado = estado_empleado
+                        if cargo:
+                            empleado.cargo = cargo
+                        empleado.save()
 
+                    # Crear o actualizar historial de cargo
                     if cargo:
                         EmpleadoCargo.objects.update_or_create(
                             empleado=empleado,
-                            defaults={'cargo': cargo, 'fecha_asignacion': date.today()}
+                            defaults={
+                                'cargo': cargo,
+                                'fecha_inicio': date.today()
+                            }
                         )
                 else:
-                    # Nueva persona y empleado
-                    empleado = Empleado.objects.create(
-                        nombre=form.cleaned_data['nombre'],
-                        apellido=form.cleaned_data['apellido'],
-                        dni=form.cleaned_data['dni'],
-                        email=form.cleaned_data['email'],
-                        telefono=form.cleaned_data['telefono'],
-                        fecha_nacimiento=form.cleaned_data['fecha_nacimiento'],
-                        direccion=form.cleaned_data['direccion'],
-                        tipo_persona='empleado',
-                        estado=estado_empleado
-                    )
-                    if cargo:
-                        EmpleadoCargo.objects.create(
-                            empleado=empleado,
-                            cargo=cargo,
-                            fecha_asignacion=date.today()
-                        )
-            else:
-                # Si es postulante u otro tipo de persona
-                form.save()
+                    # Si pasa a rol normal, marcar como inactivo
+                    try:
+                        empleado = Empleado.objects.get(id=persona.id)
+                        empleado.estado = 'inactivo'
+                        empleado.save()
+                    except Empleado.DoesNotExist:
+                        pass
 
-            return redirect('personas')
+                return redirect('personas')
         else:
             print("Errores en el formulario:", form.errors)
     else:
@@ -256,36 +339,6 @@ def crear_persona(request):
 
 
 
-def obtener_datos_persona(request, persona_id):
-    try:
-        persona = Persona.objects.get(id_persona=persona_id)
-        data = {
-            'nombre': persona.nombre,
-            'apellido': persona.apellido,
-            'dni': persona.dni,
-            'email': persona.email,
-            'telefono': persona.telefono,
-            'fecha_nacimiento': persona.fecha_nacimiento.strftime('%Y-%m-%d'),
-            'direccion': persona.direccion,
-            'tipo_persona': persona.tipo_persona,
-        }
-
-        if persona.tipo_persona == 'empleado':
-            empleado = Empleado.objects.get(id_persona=persona_id)
-            data['estado_empleado'] = empleado.estado
-            if empleado.empleadocargo_set.exists():
-                ultimo_cargo = empleado.empleadocargo_set.last()
-                data['cargo'] = ultimo_cargo.cargo_id
-                data['cargo_nombre'] = ultimo_cargo.cargo.nombre
-            else:
-                data['cargo'] = ''
-                data['cargo_nombre'] = ''
-        return JsonResponse(data)
-
-    except Persona.DoesNotExist:
-        return JsonResponse({'error': 'Persona no encontrada'}, status=404)
-
-
 @require_POST
 def eliminar_persona(request, persona_id):
     persona = get_object_or_404(Persona, id_persona=persona_id)
@@ -294,27 +347,41 @@ def eliminar_persona(request, persona_id):
 
 
 
+def cargos_por_departamento(request, dept_id):
+    relaciones = CargoDepartamento.objects.filter(departamento_id=dept_id).select_related('cargo')
+    cargos = [{'id': r.cargo.id, 'nombre': r.cargo.nombre} for r in relaciones]
+    return JsonResponse({'cargos': cargos})
+
+
+
 ########## CRUD CARGO #################
 
 def cargos(request):
-    cargos = Cargo.objects.all()
-    form = CargoForm()
     cargos_con_sueldo = []
 
-    for cargo in cargos:
+    relaciones = CargoDepartamento.objects.select_related('cargo', 'departamento')
+
+    for relacion in relaciones:
+        cargo = relacion.cargo
+        departamento = relacion.departamento
+
+        # Sueldo base (último)
         ultimo_sueldo = HistorialSueldoBase.objects.filter(cargo=cargo).order_by('-fecha_sueldo').first()
         sueldo = ultimo_sueldo.sueldo_base if ultimo_sueldo else None
 
-        print(f"Cargo: {cargo.nombre}, Categoria: {cargo.categoria}, ID: {cargo.categoria.id_categoria}")
-        
         cargos_con_sueldo.append({
-            'id': cargo.id_cargo,
+            'id': cargo.id,
             'nombre': cargo.nombre,
             'descripcion': cargo.descripcion,
             'sueldo_base': sueldo,
-            'categoria': cargo.categoria,
+            'departamento_id': departamento.id,
+            'departamento': departamento.nombre,
+            'vacante': relacion.vacante
         })
-    return render(request, 'cargos.html', {'cargos': cargos_con_sueldo, 'form': form}) 
+
+    form = CargoForm()
+    return render(request, 'cargos.html', {'cargos': cargos_con_sueldo, 'form': form})
+
 
 
 
@@ -327,10 +394,21 @@ def crear_cargo(request):
             form = CargoForm(request.POST, instance=cargo)
         else:
             form = CargoForm(request.POST)
-        print(f"Cargo: {cargo.nombre}, Categoria: {cargo.categoria}, ID: {cargo.categoria.id_categoria}")
         if form.is_valid():
             cargo_guardado = form.save()
             sueldo_base = form.cleaned_data['sueldo_base']
+
+            departamento = form.cleaned_data['departamento']
+            vacante = form.cleaned_data['vacante']
+
+            # Crear o actualizar la relación intermedia CargoDepartamento
+            CargoDepartamento.objects.update_or_create(
+                cargo=cargo_guardado,
+                departamento=departamento,
+                defaults={'vacante': vacante}
+            )
+
+            # Registrar sueldo si cambió
             ultimo_sueldo = HistorialSueldoBase.objects.filter(cargo=cargo_guardado).order_by('-fecha_sueldo').first()
             if not ultimo_sueldo or ultimo_sueldo.sueldo_base != sueldo_base:
                 HistorialSueldoBase.objects.create(
@@ -338,54 +416,41 @@ def crear_cargo(request):
                     sueldo_base=sueldo_base,
                     fecha_sueldo=timezone.now()
                 )
+
             return redirect('cargos')
     else:
         form = CargoForm(instance=cargo)
+
+    # Listado para mostrar en el HTML
+    cargos_con_sueldo = []
     cargos = Cargo.objects.all()
 
-    return render(request, 'cargos.html', {'form': form, 'cargos': cargos})
+    for cargo in cargos:
+        cargo_departamento = CargoDepartamento.objects.filter(cargo=cargo).first()
+        departamento = cargo_departamento.departamento.nombre if cargo_departamento else 'Sin asignar'
+        vacante = cargo_departamento.vacante if cargo_departamento else 0
+
+        ultimo_sueldo = HistorialSueldoBase.objects.filter(cargo=cargo).order_by('-fecha_sueldo').first()
+        sueldo = ultimo_sueldo.sueldo_base if ultimo_sueldo else None
+
+        cargos_con_sueldo.append({
+            'id': cargo.id,
+            'nombre': cargo.nombre,
+            'descripcion': cargo.descripcion,
+            'sueldo_base': sueldo,
+            'departamento': departamento,
+            'vacante': vacante
+        })
+
+    return render(request, 'cargos.html', {'form': form, 'cargos': cargos_con_sueldo})
+
 
 
 @require_POST
-def eliminar_cargo(request, cargo_id):
-    cargo = get_object_or_404(Cargo, id_cargo=cargo_id)
+def eliminar_cargo(request, id_cargo):
+    cargo = get_object_or_404(Cargo, id=id_cargo)
     cargo.delete()
     return redirect('cargos')
-
-
-
-########## CRUD CATEGORIA CARGO #################
-def cargos_categoria(request):
-    categorias = CategoriaCargo.objects.all()
-    form = CategoriaCargoForm()
-    return render(request, 'cargo_categoria.html', {'categorias': categorias, 'form': form}) 
-
-
-def crear_cargo_categoria(request):
-    if request.method == 'POST':
-        id_categoria = request.POST.get('id_categoria')
-        
-        if id_categoria:
-            categoria = get_object_or_404(CategoriaCargo, pk=id_categoria)
-            form = CategoriaCargoForm(request.POST, instance=categoria)
-        else:
-            form = CategoriaCargoForm(request.POST)
-            
-        if form.is_valid():
-            form.save()
-            return redirect('cargo_categoria')
-        
-    categorias = CategoriaCargo.objects.all()
-
-    return render(request, 'cargo_categoria.html', {'form': form, 'categorias': categorias})
-
-
-@require_POST
-def eliminar_cargo_categoria(request, categoria_id):
-    categoria = get_object_or_404(CategoriaCargo, id_categoria=categoria_id)
-    categoria.delete()
-    return redirect('cargo_categoria')
-
 
 
 
@@ -419,3 +484,79 @@ def costos_de_contratacion(request): return render(request, 'costos_de_contratac
 def reporte_evaluacion_desempeno(request): return render(request, 'reporte_evaluacion_desempeno.html')
 def contratar_nuevo_empleado(request): return render(request, 'contratar_nuevo_empleado.html')
 def ausencias_retardos(request): return render(request, 'ausencias_retardos.html')
+
+
+
+
+
+
+
+
+"""
+########## CRUD CATEGORIA CARGO #################
+def cargos_categoria(request):
+    categorias = CategoriaCargo.objects.all()
+    form = CategoriaCargoForm()
+    return render(request, 'cargo_categoria.html', {'categorias': categorias, 'form': form}) 
+
+
+def crear_cargo_categoria(request):
+    if request.method == 'POST':
+        id_categoria = request.POST.get('id_categoria')
+        
+        if id_categoria:
+            categoria = get_object_or_404(CategoriaCargo, pk=id_categoria)
+            form = CategoriaCargoForm(request.POST, instance=categoria)
+        else:
+            form = CategoriaCargoForm(request.POST)
+            
+        if form.is_valid():
+            form.save()
+            return redirect('cargo_categoria')
+        
+    categorias = CategoriaCargo.objects.all()
+
+    return render(request, 'cargo_categoria.html', {'form': form, 'categorias': categorias})
+
+
+@require_POST
+def eliminar_cargo_categoria(request, id_categoria):
+    categoria = get_object_or_404(CategoriaCargo, id=id_categoria)
+    categoria.delete()
+    return redirect('cargo_categoria')
+"""
+
+
+
+
+
+"""
+def obtener_datos_persona(request, persona_id):
+    try:
+        persona = Persona.objects.get(id_persona=persona_id)
+        data = {
+            'nombre': persona.nombre,
+            'apellido': persona.apellido,
+            'dni': persona.dni,
+            'email': persona.usuario.email,
+            'telefono': persona.telefono,
+            'fecha_nacimiento': persona.fecha_nacimiento.strftime('%Y-%m-%d'),
+            'direccion': persona.direccion,
+            'tipo_persona': persona.tipo_persona,
+        }
+
+        if persona.tipo_persona == 'empleado':
+            empleado = Empleado.objects.get(id_persona=persona_id)
+            data['estado_empleado'] = empleado.estado
+            if empleado.empleadocargo_set.exists():
+                ultimo_cargo = empleado.empleadocargo_set.last()
+                data['cargo'] = ultimo_cargo.cargo_id
+                data['cargo_nombre'] = ultimo_cargo.cargo.nombre
+            else:
+                data['cargo'] = ''
+                data['cargo_nombre'] = ''
+        return JsonResponse(data)
+
+    except Persona.DoesNotExist:
+        return JsonResponse({'error': 'Persona no encontrada'}, status=404)
+"""
