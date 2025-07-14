@@ -247,18 +247,34 @@ class PersonaForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        # Extraer departamento_id si fue pasado desde la vista
         departamento_id = kwargs.pop('departamento_id', None)
+        tipo_usuario = None
+
+        # Intentamos detectar el tipo_usuario desde los datos enviados
+        if 'data' in kwargs:
+            tipo_usuario = kwargs['data'].get('tipo_usuario')
+        elif 'initial' in kwargs:
+            tipo_usuario = kwargs['initial'].get('tipo_usuario')
+
         super().__init__(*args, **kwargs)
 
-        # Si hay un departamento, filtrar cargos en base a él
-        if departamento_id:
-            self.fields['cargo'].queryset = Cargo.objects.filter(
-                id__in=CargoDepartamento.objects.filter(departamento_id=departamento_id).values_list('cargo_id', flat=True)
-            )
-        else:
-            # Si no hay departamento, deshabilitar el campo o dejarlo vacío
+        # Filtro inicial
+        if tipo_usuario == 'admin':
             self.fields['cargo'].queryset = Cargo.objects.none()
+            return
+        else:
+            cargos_qs = Cargo.objects.all()
+        
+            if tipo_usuario == 'jefe':
+                cargos_qs = cargos_qs.filter(es_jefe=True)
+            
+            if departamento_id:
+                cargos_qs = cargos_qs.filter(
+                    id__in=CargoDepartamento.objects.filter(departamento_id=departamento_id).values_list('cargo_id', flat=True)
+            )
+
+            self.fields['cargo'].queryset = cargos_qs
+
     
 
 #############################

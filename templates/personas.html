@@ -4,121 +4,125 @@
   
   {% block content %}
 
-  <div class="container my-5">
+  <div class="container-fluid my-5">
     <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Personas</h1>
 
-  <div class="d-flex align-items-center justify-content-between mb-3">
-    <!-- Botón para Crear -->
-    <button type="button" class="btn mb-3 btn-primary" id="btnCrearPersona"
-    data-bs-toggle="modal" data-bs-target="#modalPersona">
-      + Crear Nueva Persona
-    </button>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <!-- Botón para Crear -->
+      <button type="button" class="btn mb-3 btn-primary" id="btnCrearPersona"
+      data-bs-toggle="modal" data-bs-target="#modalPersona">
+        + Crear Nueva Persona
+      </button>
 
-    <!-- Buscador por DNI -->
-    <div class="ms-3">
-      <input type="text" class="form-control" id="buscadorDNI" placeholder="Buscar por DNI" style="width: 200px;">
-    </div>
+      <!-- Buscador por DNI -->
+      <div class="ms-3">
+        <input type="text" class="form-control" id="buscadorDNI" placeholder="Buscar por DNI" style="width: 200px;">
+      </div>
 
-    <!-- Filtro de Tipo de Usuario -->
-    <div class="mb-3">
-      <label for="filtroTipoUsuario" class="form-label">Filtrar por Tipo de Usuario:</label>
-      <select class="form-select" id="filtroTipoUsuario">
-        <option value="todos" selected>Todos</option>
-        <option value="normal">Normal</option>
-        <option value="empleado">Empleado</option>
-        <option value="jefe">Jefe</option>
-        <option value="gernete">Gerente</option>
-        <option value="admin">Administrador</option>
-      </select>
+      <!-- Filtro de Tipo de Usuario -->
+      <div class="mb-3">
+        <label for="filtroTipoUsuario" class="form-label">Filtrar por Tipo de Usuario:</label>
+        <select class="form-select" id="filtroTipoUsuario">
+          <option value="todos" selected>Todos</option>
+          <option value="normal">Normal</option>
+          <option value="empleado">Empleado</option>
+          <option value="jefe">Jefe</option>
+          <option value="gernete">Gerente</option>
+          <option value="admin">Administrador</option>
+        </select>
+      </div>
     </div>
-  </div>
 
     <!-- Tabla de Personas -->
-    <div class="table-responsive">
-      <table class="table table-bordered text-center">
-        <thead style="background-color: var(--color-suave);">
-          <tr>
-            <th>Nombre</th>
-            <th>Apellido</th>
-            <th>DNI</th>
-            <th>Email</th>
-            <th>Telefono</th>
-            <th>Tipo Usuario</th>
-            <th>Estado</th>
-            <th>Cargo</th>
-            <th style="width:15%">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for persona in personas %}
-            <tr class="fila-persona" data-tipo="{{ persona.tipo_usuario }}">
-              <td>{{ persona.nombre }}</td>
-              <td>{{ persona.apellido }}</td>
-              <td>{{ persona.dni }}</td>
-              <td>{{ persona.email }}</td>
-              <td>{{ persona.telefono_completo }}</td>
-              <td>{{ persona.tipo_usuario }}</td>
-              <td>{{ persona.estado }}</td>
-              <td>{{ persona.nombre_cargo }}</td>
-              <td>
-                <button class="btn btn-sm btn-editar btn-outline-secondary"
-                        data-bs-toggle="modal" data-bs-target="#modalPersona"
-                        data-id="{{ persona.id }}"
-                        data-nombre="{{ persona.nombre }}"
-                        data-apellido="{{ persona.apellido }}"
-                        data-dni="{{ persona.dni }}"
-                        data-email="{{ persona.email }}"
-                        data-prefijo="{{ persona.prefijo_pais }}"
-                        data-telefono="{{ persona.telefono }}"
-                        data-fecha-nacimiento="{{ persona.fecha_nacimiento|date:'Y-m-d' }}"
-                        data-genero="{{ persona.genero }}"
-                        data-pais="{{ persona.pais }}"
-                        data-provincia="{{ persona.provincia }}"
-                        data-ciudad="{{ persona.ciudad }}"
-                        data-calle="{{ persona.calle }}"
-                        data-numero="{{ persona.numero }}"
-                        data-tipo-usuario="{{ persona.tipo_usuario }}"
-                        {% if persona.tipo_persona != 'normal' %}
-                          data-estado="{{ persona.estado }}"                  
-                        {% else %}
-                          data-estado=""
-                        {% endif %}
-                        {% if persona.cargo %}
-                          data-departamento="{{ persona.departamento_id }}"
-                          data-cargo="{{ persona.cargo }}"
-                        {% else %}  
-                        data-departamento=""
-                        data-cargo=""
-                        {% endif %}
-                          onclick="editarPersona(this)" 
-                          data-bs-toggle="tooltip" title="Editar">
-                  <i class="bi bi-pencil-square"></i>
-                </button>
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+        <div class="table-responsive" style="overflow-x: auto;">
+          <table class="table table-hover table-bordered align-middle mb-0"style=" min-width: 1300px;">
+            <thead style="table-light text-center">
+              <tr>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>DNI</th>
+                <th>Email</th>
+                <th>Telefono</th>
+                <th>Tipo Usuario</th>
+                <th>Estado</th>
+                <th>Cargo</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for persona in personas %}
+                <tr class="fila-persona" data-tipo="{{ persona.tipo_usuario }}">
+                  <td>{{ persona.nombre }}</td>
+                  <td>{{ persona.apellido }}</td>
+                  <td>{{ persona.dni }}</td>
+                  <td>{{ persona.email }}</td>
+                  <td>{{ persona.telefono_completo }}</td>
+                  <td>{{ persona.tipo_usuario }}</td>
+                  <td>{{ persona.estado }}</td>
+                  <td>{{ persona.nombre_cargo }}</td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-editar btn-outline-secondary"
+                            data-bs-toggle="modal" data-bs-target="#modalPersona"
+                            data-id="{{ persona.id }}"
+                            data-nombre="{{ persona.nombre }}"
+                            data-apellido="{{ persona.apellido }}"
+                            data-dni="{{ persona.dni }}"
+                            data-email="{{ persona.email }}"
+                            data-prefijo="{{ persona.prefijo_pais }}"
+                            data-telefono="{{ persona.telefono }}"
+                            data-fecha-nacimiento="{{ persona.fecha_nacimiento|date:'Y-m-d' }}"
+                            data-genero="{{ persona.genero }}"
+                            data-pais="{{ persona.pais }}"
+                            data-provincia="{{ persona.provincia }}"
+                            data-ciudad="{{ persona.ciudad }}"
+                            data-calle="{{ persona.calle }}"
+                            data-numero="{{ persona.numero }}"
+                            data-tipo-usuario="{{ persona.tipo_usuario }}"
+                            {% if persona.tipo_persona != 'normal' %}
+                              data-estado="{{ persona.estado }}"                  
+                            {% else %}
+                              data-estado=""
+                            {% endif %}
+                            {% if persona.cargo %}
+                              data-departamento="{{ persona.departamento_id }}"
+                              data-cargo="{{ persona.cargo }}"
+                            {% else %}  
+                            data-departamento=""
+                            data-cargo=""
+                            {% endif %}
+                              onclick="editarPersona(this)" 
+                              data-bs-toggle="tooltip" title="Editar">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
 
-                <button class="btn btn-sm btn-outline-info" 
-                        data-bs-toggle="modal" 
-                        data-bs-target="#modalVerPersona{{ persona.id }}" 
-                        data-id="{{ persona.id }}"
-                        data-bs-toggle="tooltip" title="Ver">
-                  <i class="bi bi-eye"></i>
-                </button>
+                    <button class="btn btn-sm btn-outline-info" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modalVerPersona{{ persona.id }}" 
+                            data-id="{{ persona.id }}"
+                            data-bs-toggle="tooltip" title="Ver">
+                      <i class="bi bi-eye"></i>
+                    </button>
 
-                <button class="btn btn-sm btn-outline-danger" 
-                        data-bs-toggle="modal" 
-                        data-bs-target="#modalEliminarPersona" 
-                        data-id="{{ persona.id }}"
-                        data-bs-toggle="tooltip" title="Eliminar">
-                  <i class="bi bi-trash3"></i>
-                </button>
-              </td>
-            </tr>
-          {% empty %}
-            <tr>
-              <td colspan="9">No hay personas registradas.</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+                    <button class="btn btn-sm btn-outline-danger" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modalEliminarPersona" 
+                            data-id="{{ persona.id }}"
+                            data-bs-toggle="tooltip" title="Eliminar">
+                      <i class="bi bi-trash3"></i>
+                    </button>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="9">No hay personas registradas.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -127,7 +131,7 @@
     <div class="modal-dialog" style="margin-top: 2rem;">
       <div class="modal-content">
         <div class="modal-header" style="background-color: #3c8dbc;">
-          <h5 class="modal-title" id="modalPersonaLabel">Crear/Editar Persona</h5>
+          <h5 class="modal-title text-white" id="modalPersonaLabel">Crear/Editar Persona</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -201,6 +205,9 @@
               <div id="campoDepartamento" class="mb-3" style="display: none;">
                 <label for="id_departamento" class="form-label">Departamento</label>
                 {{ form.departamento }}
+                {% if form.departamento.errors %}
+                  <div class="text-danger">{{ form.departamento.errors }}</div>
+                {% endif %}
               </div>
               <div id="campoCargo" class="mb-3" style="display: none;">
                 <label for="id_cargo" class="form-label">Cargo</label>
@@ -279,16 +286,24 @@
     const campoDepartamento = document.getElementById('campoDepartamento');
     const idPersona = document.getElementById('id_persona').value;
 
-    const mostrar = ['empleado', 'jefe', 'gerente', 'admin'].includes(tipoUsuario);
+    // Si es admin, ocultar todo lo laboral
+    if (tipoUsuario === 'admin') {
+      campoDepartamento.style.display = 'none';
+      campoCargo.style.display = 'none';
+      campoEstado.style.display = 'none';
+      return;
+    }
+    const mostrar = ['empleado', 'jefe', 'gerente'].includes(tipoUsuario);
 
-    campoCargo.style.display = mostrar ? 'block' : 'none';
     campoDepartamento.style.display = mostrar ? 'block' : 'none';
 
-    if (mostrar && idPersona) {
-      campoEstado.style.display = 'block';
+    if (tipoUsuario === 'gerente') {
+      campoCargo.style.display = 'none';
     } else {
-      campoEstado.style.display = 'none';
+      campoCargo.style.display = mostrar ? 'block' : 'none';
     }
+    // Estado solo si es edición
+    campoEstado.style.display = (mostrar && idPersona) ? 'block' : 'none';
   }
 
   function limpiarFormulario() {
@@ -342,7 +357,7 @@
       departamentoSelect.value = departamento;
       cargoSelect.innerHTML = '<option value="">Cargando...</option>';
 
-      fetch(`/personas/cargos_por_departamento/${departamento}/`)
+      fetch(`/personas/cargos_por_departamento/${departamento}/?tipo_usuario=${tipoUsuario}`)
           .then(response => response.json())
           .then(data => {
 
@@ -374,7 +389,31 @@
     if (tipoUsuarioSelect) {
       tipoUsuarioSelect.addEventListener('change', toggleCampos);
       toggleCampos();
+      
+      tipoUsuarioSelect.addEventListener('change', function () {
+        const deptId = document.getElementById('id_departamento').value;
+        const tipoUsuario = this.value;
+        const cargoSelect = document.getElementById('id_cargo');
+
+        if (deptId) {
+            cargoSelect.innerHTML = '<option value="">Cargando...</option>';
+
+            fetch(`/personas/cargos_por_departamento/${deptId}/?tipo_usuario=${tipoUsuario}`)
+                .then(response => response.json())
+                .then(data => {
+                    cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
+                    data.cargos.forEach(c => {
+                        const option = document.createElement('option');
+                        option.value = c.id;
+                        option.textContent = c.nombre;
+                        cargoSelect.appendChild(option);
+                    });
+                });
+        }
+      });
     }
+    
+
 
     const modalEliminar = document.getElementById('modalEliminarPersona');
     modalEliminar.addEventListener('show.bs.modal', function (event) {
@@ -392,30 +431,32 @@
     const cargoSelect = document.getElementById('id_cargo');
 
     departamentoSelect.addEventListener('change', function () {
-        const deptId = this.value;
-        const cargoSelect = document.getElementById('id_cargo');
-        
-        cargoSelect.innerHTML = '<option value="">Cargando...</option>';
+      const deptId = this.value;
+      const tipoUsuario = document.getElementById('id_tipo_usuario').value;
+      const cargoSelect = document.getElementById('id_cargo');
+      
+      cargoSelect.innerHTML = '<option value="">Cargando...</option>';
 
-        if (deptId) {
-          fetch(`/personas/cargos_por_departamento/${deptId}/`)
-              .then(response => response.json())
-              .then(data => {
-                  cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
-                  data.cargos.forEach(c => {
-                      const option = document.createElement('option');
-                      option.value = c.id;
-                      option.textContent = c.nombre;
-                      cargoSelect.appendChild(option);
-                  });
-              });
-        } else {
-          cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
-        }
+      if (deptId) {
+        fetch(`/personas/cargos_por_departamento/${deptId}/?tipo_usuario=${tipoUsuario}`)
+            .then(response => response.json())
+            .then(data => {
+                cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
+                data.cargos.forEach(c => {
+                    const option = document.createElement('option');
+                    option.value = c.id;
+                    option.textContent = c.nombre;
+                    cargoSelect.appendChild(option);
+                });
+            });
+      } else {
+        cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
+      }
     });
 
   
   });
+
 </script>
 {% endblock %}
 </body>

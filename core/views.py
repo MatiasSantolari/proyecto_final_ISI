@@ -216,10 +216,16 @@ def crear_persona(request):
                 rol = form.cleaned_data.get('tipo_usuario')
                ## estado_empleado = form.cleaned_data.get('estado')
                 cargo = form.cleaned_data.get('cargo')
-                
-                 # Definir estado_empleado según si es creación o edición
+                # Si es gerente, asignar automaticamente el cargo de gerente del departamento
+                if rol == 'gerente' and departamento_id:
+                    cargo = Cargo.get_gerente_por_departamento(departamento_id)
+                    if not cargo:
+                        form.add_error('departamento', 'No hay un cargo de gerente configurado para este departamento.')
+                        personas = Persona.objects.all()
+                        return render(request, 'personas.html', {'form': form, 'personas': personas})
+                 # Definir estado_empleado según si es creacion o edicion
                 if not id_persona:
-                    estado_empleado = "activo"  # Estado fijo para creación
+                    estado_empleado = "activo"  # Estado fijo para creacion
                 else:
                     estado_empleado = form.cleaned_data.get('estado')
 
@@ -275,7 +281,14 @@ def crear_persona(request):
                     except Usuario.DoesNotExist:
                         print(f"Usuario no encontrado para persona {persona.id}")
 
-                if rol in ['empleado', 'jefe', 'gerente', 'admin']:
+                # Si es rol admin, le asignamos automáticamente el cargo "Administrador"
+                if rol == 'admin':
+                    try:
+                        cargo = Cargo.objects.get(nombre="Administrador")
+                    except Cargo.DoesNotExist:
+                        cargo = None  # Si no existe, lo dejamos sin cargo y no se crea como empleado
+
+                if rol in ['empleado', 'jefe', 'gerente', 'admin'] and cargo:
                     try:
                         empleado = Empleado.objects.get(id=persona.id)
                     except Empleado.DoesNotExist:
@@ -339,18 +352,28 @@ def crear_persona(request):
 
 
 
+def cargos_por_departamento(request, dept_id):
+    tipo_usuario = request.GET.get('tipo_usuario')
+
+    relaciones = CargoDepartamento.objects.filter(departamento_id=dept_id).select_related('cargo')
+    # Si se especifica tipo_usuario y es "jefe", filtramos los cargos con es_jefe=True
+    if tipo_usuario == 'jefe':
+        relaciones = relaciones.filter(cargo__es_jefe=True)
+    elif tipo_usuario == 'gerente':
+        # Excluir cargos que sean gerente, ya que se asignan automáticamente
+        relaciones = relaciones.exclude(cargo__es_gerente=True)
+
+    cargos = [{'id': r.cargo.id, 'nombre': r.cargo.nombre} for r in relaciones]
+    return JsonResponse({'cargos': cargos})
+
+
+
 @require_POST
 def eliminar_persona(request, persona_id):
     persona = get_object_or_404(Persona, id_persona=persona_id)
     persona.delete()
     return redirect('personas')
 
-
-
-def cargos_por_departamento(request, dept_id):
-    relaciones = CargoDepartamento.objects.filter(departamento_id=dept_id).select_related('cargo')
-    cargos = [{'id': r.cargo.id, 'nombre': r.cargo.nombre} for r in relaciones]
-    return JsonResponse({'cargos': cargos})
 
 
 
@@ -452,7 +475,17 @@ def eliminar_cargo(request, id_cargo):
     cargo.delete()
     return redirect('cargos')
 
+################
 
+######CRUD Departamentos #####################
+def departamentos(request): return render(request, 'departamentos.html')
+
+
+# Al crear un departamento debria crearse los cargos:
+#Cargo.objects.create(nombre='Jefe', departamento=departamento, es_jefe=True)
+#Cargo.objects.create(nombre='Sub-jefe', departamento=departamento, es_jefe=True)
+#Cargo.objects.create(nombre='Encargado', departamento=departamento, es_jefe=True)
+#################
 
 
 def cargo_categoria(request): return render(request, 'cargo_categoria.html')
@@ -464,7 +497,6 @@ def competencias(request): return render(request, 'competencias.html')
 def contratos(request): return render(request, 'contratos.html')
 def costos_de_personal(request): return render(request, 'costos_de_personal.html')
 def criterios_evaluacion(request): return render(request, 'criterios_evaluacion.html')
-def departamentos(request): return render(request, 'departamentos.html')
 def empleados(request): return render(request, 'empleados.html')
 def evaluacion_desempeno(request): return render(request, 'evaluacion_desempeno.html')
 def habilidades(request): return render(request, 'habilidades.html')
