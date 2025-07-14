@@ -359,9 +359,10 @@ def cargos_por_departamento(request, dept_id):
     # Si se especifica tipo_usuario y es "jefe", filtramos los cargos con es_jefe=True
     if tipo_usuario == 'jefe':
         relaciones = relaciones.filter(cargo__es_jefe=True)
-    elif tipo_usuario == 'gerente':
-        # Excluir cargos que sean gerente, ya que se asignan automáticamente
+    elif tipo_usuario == 'gerente':     # Excluir cargos que sean gerente, ya que se asignan automáticamente
         relaciones = relaciones.exclude(cargo__es_gerente=True)
+    elif tipo_usuario == 'empleado':
+        relaciones = relaciones.exclude(cargo__es_jefe=True).exclude(cargo__es_gerente=True)
 
     cargos = [{'id': r.cargo.id, 'nombre': r.cargo.nombre} for r in relaciones]
     return JsonResponse({'cargos': cargos})

@@ -267,7 +267,10 @@ class PersonaForm(forms.ModelForm):
         
             if tipo_usuario == 'jefe':
                 cargos_qs = cargos_qs.filter(es_jefe=True)
-            
+
+            if tipo_usuario == 'empleado':
+                cargos_qs = cargos_qs.filter(es_jefe=False, es_gerente=False)
+
             if departamento_id:
                 cargos_qs = cargos_qs.filter(
                     id__in=CargoDepartamento.objects.filter(departamento_id=departamento_id).values_list('cargo_id', flat=True)
