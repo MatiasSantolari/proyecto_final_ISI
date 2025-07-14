@@ -8,7 +8,7 @@ class CargoDepartamento(models.Model):
     vacante = models.PositiveIntegerField(default=0, verbose_name='Cantidad Vacantes')
 
     def __str__(self):
-        return self.cargo + " - " + self.departamento
+        return f"{self.cargo} - {self.departamento}"
     
     class Meta:
         verbose_name = 'CargoDepartamento'

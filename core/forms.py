@@ -327,6 +327,16 @@ class CargoForm(forms.ModelForm):
 ##        super().__init__(*args, **kwargs)
 ##        self.fields['categoria'].required = False
 
-
-
 #############################
+
+
+
+class DepartamentoForm(forms.ModelForm):
+    class Meta:
+        model = Departamento
+        fields = ['nombre', 'descripcion']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_nombre', 'placeholder': 'Ingrese el Nombre'}),
+            'descripcion': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_descripcion', 'placeholder': 'Ingrese una descripcion', 'rows': 3}),
+        }
+

@@ -479,14 +479,77 @@ def eliminar_cargo(request, id_cargo):
 ################
 
 ######CRUD Departamentos #####################
-def departamentos(request): return render(request, 'departamentos.html')
+def departamentos(request):
+    form = DepartamentoForm()
+    departamentosList = Departamento.objects.all()
+    return render(request, 'departamentos.html', {
+        'form': form,
+        'departamentos': departamentosList
+    })
 
 
-# Al crear un departamento debria crearse los cargos:
-#Cargo.objects.create(nombre='Jefe', departamento=departamento, es_jefe=True)
-#Cargo.objects.create(nombre='Sub-jefe', departamento=departamento, es_jefe=True)
-#Cargo.objects.create(nombre='Encargado', departamento=departamento, es_jefe=True)
-#################
+
+def crear_departamento(request):
+    id_departamento = request.POST.get('id_departamento')
+
+    if request.method == 'POST':
+        if id_departamento:
+            departamento = get_object_or_404(Departamento, pk=id_departamento)
+            form = DepartamentoForm(request.POST, instance=departamento)
+        else:
+            form = DepartamentoForm(request.POST)
+
+        if form.is_valid():
+            nuevo_departamento = form.save()
+
+            # Solo si es un departamento nuevo creamos los cargos automáticamente
+            if not id_departamento:
+                cargos_info = [
+                    ('Jefe de ' + nuevo_departamento.nombre, True, False),
+                    ('Gerente de ' + nuevo_departamento.nombre, False, True),
+                ]
+
+                for nombre_cargo, es_jefe, es_gerente in cargos_info:
+                    cargo = Cargo.objects.create(
+                        nombre=nombre_cargo,
+                        descripcion=f"",
+                        es_jefe=es_jefe,
+                        es_gerente=es_gerente
+                    )
+
+                    CargoDepartamento.objects.create(
+                        cargo=cargo,
+                        departamento=nuevo_departamento,
+                        vacante=1
+                    )
+
+            return redirect('departamentos')
+
+    else:
+        form = DepartamentoForm()
+
+    departamentosList = Departamento.objects.all()
+    return render(request, 'departamentos.html', {'form': form, 'departamentos': departamentosList})
+
+
+
+@require_POST
+def eliminar_departamento(request, id_departamento):
+    departamento = get_object_or_404(Departamento, id=id_departamento)
+    relaciones = CargoDepartamento.objects.filter(departamento=departamento)
+
+    for relacion in relaciones:
+        cargo = relacion.cargo
+        relacion.delete()
+        otros = CargoDepartamento.objects.filter(cargo=cargo).exists()
+        if not otros:
+            cargo.delete()
+
+    departamento.delete()
+
+    return redirect('departamentos')
+
+
 
 
 def cargo_categoria(request): return render(request, 'cargo_categoria.html')

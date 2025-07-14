@@ -31,6 +31,11 @@ urlpatterns = [
     path('cargos/<int:id_cargo>/eliminar/', views.eliminar_cargo, name='eliminar_cargo'),
     
 
+    ## DEPARTAMENTO ##
+    path('departamentos/', views.departamentos, name='departamentos'),
+    path('departamentos/crear/', views.crear_departamento, name='crear_departamento'),
+    path('departamentos/<int:id_departamento>/eliminar/', views.eliminar_departamento, name='eliminar_departamento'),
+
 ## CATEGORIA del CARGO ##
   #  path('cargo_categoria/', views.cargos_categoria, name='cargo_categoria'),
   #  path('cargo_categoria/crear/', views.crear_cargo_categoria, name='crear_cargo_categoria'), ## Sirve para editar tambien
