@@ -32,7 +32,13 @@
               {% for cargo in cargos %}
               <tr>
                 <td>{{ cargo.nombre }}</td>
-                <td>{{ cargo.descripcion }}</td>
+                <td>
+                  {% if cargo.descripcion %}
+                    {{ cargo.descripcion }}
+                  {% else %}
+                    -
+                  {% endif %}
+                  </td>
                 <td>
                   {% if cargo.sueldo_base %}
                     ${{ cargo.sueldo_base }}

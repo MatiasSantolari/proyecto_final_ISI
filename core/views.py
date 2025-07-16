@@ -325,13 +325,42 @@ def crear_persona(request):
 
                     # Crear o actualizar historial de cargo
                     if cargo:
-                        EmpleadoCargo.objects.update_or_create(
+                        # Cerrar el último cargo activo, si existe
+                        ultimo_cargo = EmpleadoCargo.objects.filter(
                             empleado=empleado,
-                            defaults={
-                                'cargo': cargo,
-                                'fecha_inicio': date.today()
-                            }
+                            fecha_fin__isnull=True
+                        ).order_by('-fecha_inicio').first()
+
+                        if ultimo_cargo and ultimo_cargo.cargo != cargo:
+                            ultimo_cargo.fecha_fin = date.today()
+                            ultimo_cargo.save()
+                            try:
+                                # Buscar el departamento anterior desde la relación CargoDepartamento
+                                relacion_anterior = CargoDepartamento.objects.get(
+                                    cargo=ultimo_cargo.cargo
+                                )
+                                relacion_anterior.vacante += 1
+                                relacion_anterior.save()
+                            except CargoDepartamento.DoesNotExist:
+                                pass
+
+                        # Registrar el nuevo cargo
+                        EmpleadoCargo.objects.create(
+                            empleado=empleado,
+                            cargo=cargo,
+                            fecha_inicio=date.today()
                         )
+                        # Descontar vacante del nuevo cargo
+                        try:
+                            relacion_nueva = CargoDepartamento.objects.get(
+                                cargo=cargo,
+                                departamento=departamento_id
+                            )
+                            if relacion_nueva.vacante > 0:
+                                relacion_nueva.vacante -= 1
+                                relacion_nueva.save()
+                        except CargoDepartamento.DoesNotExist:
+                            pass
                 else:
                     # Si pasa a rol normal, marcar como inactivo
                     try:
@@ -364,7 +393,15 @@ def cargos_por_departamento(request, dept_id):
     elif tipo_usuario == 'empleado':
         relaciones = relaciones.exclude(cargo__es_jefe=True).exclude(cargo__es_gerente=True)
 
-    cargos = [{'id': r.cargo.id, 'nombre': r.cargo.nombre} for r in relaciones]
+    cargos = []
+
+    for r in relaciones:
+        nombre = f"{r.cargo.nombre} ({r.vacante} vacantes)"
+        cargos.append({
+            'id': r.cargo.id,
+            'nombre': nombre,
+            'vacante': r.vacante
+        })
     return JsonResponse({'cargos': cargos})
 
 
@@ -378,7 +415,9 @@ def eliminar_persona(request, persona_id):
 
 
 
+
 ########## CRUD CARGO #################
+
 
 def cargos(request):
     cargos_con_sueldo = []
@@ -476,9 +515,13 @@ def eliminar_cargo(request, id_cargo):
     cargo.delete()
     return redirect('cargos')
 
+
+
+
 ################
 
 ######CRUD Departamentos #####################
+
 def departamentos(request):
     form = DepartamentoForm()
     departamentosList = Departamento.objects.all()
@@ -580,79 +623,3 @@ def costos_de_contratacion(request): return render(request, 'costos_de_contratac
 def reporte_evaluacion_desempeno(request): return render(request, 'reporte_evaluacion_desempeno.html')
 def contratar_nuevo_empleado(request): return render(request, 'contratar_nuevo_empleado.html')
 def ausencias_retardos(request): return render(request, 'ausencias_retardos.html')
-
-
-
-
-
-
-
-
-"""
-########## CRUD CATEGORIA CARGO #################
-def cargos_categoria(request):
-    categorias = CategoriaCargo.objects.all()
-    form = CategoriaCargoForm()
-    return render(request, 'cargo_categoria.html', {'categorias': categorias, 'form': form}) 
-
-
-def crear_cargo_categoria(request):
-    if request.method == 'POST':
-        id_categoria = request.POST.get('id_categoria')
-        
-        if id_categoria:
-            categoria = get_object_or_404(CategoriaCargo, pk=id_categoria)
-            form = CategoriaCargoForm(request.POST, instance=categoria)
-        else:
-            form = CategoriaCargoForm(request.POST)
-            
-        if form.is_valid():
-            form.save()
-            return redirect('cargo_categoria')
-        
-    categorias = CategoriaCargo.objects.all()
-
-    return render(request, 'cargo_categoria.html', {'form': form, 'categorias': categorias})
-
-
-@require_POST
-def eliminar_cargo_categoria(request, id_categoria):
-    categoria = get_object_or_404(CategoriaCargo, id=id_categoria)
-    categoria.delete()
-    return redirect('cargo_categoria')
-"""
-
-
-
-
-
-"""
-def obtener_datos_persona(request, persona_id):
-    try:
-        persona = Persona.objects.get(id_persona=persona_id)
-        data = {
-            'nombre': persona.nombre,
-            'apellido': persona.apellido,
-            'dni': persona.dni,
-            'email': persona.usuario.email,
-            'telefono': persona.telefono,
-            'fecha_nacimiento': persona.fecha_nacimiento.strftime('%Y-%m-%d'),
-            'direccion': persona.direccion,
-            'tipo_persona': persona.tipo_persona,
-        }
-
-        if persona.tipo_persona == 'empleado':
-            empleado = Empleado.objects.get(id_persona=persona_id)
-            data['estado_empleado'] = empleado.estado
-            if empleado.empleadocargo_set.exists():
-                ultimo_cargo = empleado.empleadocargo_set.last()
-                data['cargo'] = ultimo_cargo.cargo_id
-                data['cargo_nombre'] = ultimo_cargo.cargo.nombre
-            else:
-                data['cargo'] = ''
-                data['cargo_nombre'] = ''
-        return JsonResponse(data)
-
-    except Persona.DoesNotExist:
-        return JsonResponse({'error': 'Persona no encontrada'}, status=404)
-"""

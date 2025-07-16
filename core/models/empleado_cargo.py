@@ -9,8 +9,6 @@ class EmpleadoCargo(models.Model):
     fecha_inicio = models.DateField(default=datetime.now, verbose_name='Fecha de asignacion')
     fecha_fin = models.DateField(null=True, blank=True, verbose_name='Fecha de desasignacion')
     
-    def __str__(self):
-        return self.empleado + " - " + self.cargo
 
     class Meta:
         verbose_name = 'EmpleadoCargo'
@@ -19,4 +17,5 @@ class EmpleadoCargo(models.Model):
         ordering = ['id']  # - para oden descendente
     
 
-    
+    def __str__(self):
+        return f"{self.empleado} - {self.cargo}"

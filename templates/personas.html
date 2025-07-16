@@ -368,6 +368,10 @@
                   const option = document.createElement('option');
                   option.value = c.id;
                   option.textContent = c.nombre;
+                  if (c.vacante === 0) {
+                    option.disabled = true;
+                    option.style.color = 'gray';
+                  }
                   if (c.id == cargo) {
                       option.selected = true;
                   }
@@ -403,11 +407,18 @@
                 .then(data => {
                     cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
                     data.cargos.forEach(c => {
-                        const option = document.createElement('option');
-                        option.value = c.id;
-                        option.textContent = c.nombre;
-                        cargoSelect.appendChild(option);
-                    });
+                      const option = document.createElement('option');
+                      option.value = c.id;
+                      option.textContent = c.nombre;
+                      if (c.vacante === 0) {
+                          option.disabled = true;
+                          option.style.color = 'gray';
+                      }
+                      if (c.id == cargo) {
+                          option.selected = true;
+                      }
+                      cargoSelect.appendChild(option);
+                  });
                 });
         }
       });
@@ -443,11 +454,15 @@
             .then(data => {
                 cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
                 data.cargos.forEach(c => {
-                    const option = document.createElement('option');
-                    option.value = c.id;
-                    option.textContent = c.nombre;
-                    cargoSelect.appendChild(option);
-                });
+                  const option = document.createElement('option');
+                  option.value = c.id;
+                  option.textContent = c.nombre;
+                  if (c.vacante === 0) {
+                      option.disabled = true;
+                      option.style.color = 'gray';
+                  }
+                  cargoSelect.appendChild(option);
+              });
             });
       } else {
         cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
@@ -459,5 +474,3 @@
 
 </script>
 {% endblock %}
-</body>
-</html>

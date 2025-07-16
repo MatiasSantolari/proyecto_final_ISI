@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+from decouple import config
 from dotenv import load_dotenv
 
 # Cargar variables desde el archivo .env
@@ -103,17 +104,16 @@ WSGI_APPLICATION = 'app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'apprrhh',
-        'USER': 'facu',
-        'PASSWORD': 'Facu1234',
-        'HOST': 'localhost',   # o IP del servidor si está en red  127.0.0.1
-        'PORT': '3306',        # puerto por defecto de MySQL
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='3306'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         }
     }
 }
-
 
 
 # Password validation

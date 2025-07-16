@@ -4,6 +4,7 @@ proyecto final de la carrera de ISI de UTN FRRo
 Instalar:
 pip install social-auth-app-django
 pip install python-dotenv
+pip install python-decouple
 pip install Pillow
 pip install django-widget-tweaks
 
