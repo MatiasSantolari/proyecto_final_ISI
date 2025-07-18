@@ -1,3 +1,4 @@
+import os
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from .models import *
@@ -591,6 +592,77 @@ def eliminar_departamento(request, id_departamento):
     departamento.delete()
 
     return redirect('departamentos')
+
+
+###################################
+##########  POSTULARSE  ###########
+
+def listar_ofertas(request):
+    persona = request.user.persona  # Suponemos que está autenticado y asociado
+    cargos_departamento = CargoDepartamento.objects.select_related('cargo', 'departamento').filter(vacante__gt=0)
+
+    solicitudes = Solicitud.objects.filter(persona=persona)
+    postulaciones = {s.cargo.id: s.fecha for s in solicitudes}
+
+    nombre_cv = None
+    if persona.cvitae:
+        nombre_cv = os.path.basename(persona.cvitae.name)
+        
+    context = {
+        'cargos_departamento': cargos_departamento,
+        'postulaciones': postulaciones,
+        'nombre_cv': nombre_cv,
+    }
+    return render(request, 'ofertas_empleo.html', context)
+
+
+
+
+def postularse_a_cargo(request, cargo_id):
+    if request.method == 'POST':
+        persona = request.user.persona
+        cargo = get_object_or_404(Cargo, pk=cargo_id)
+
+        solicitud = Solicitud.objects.filter(persona=persona, cargo=cargo).order_by('-fecha').first()
+        if solicitud:
+            dias_espera = 30
+            if (now().date() - solicitud.fecha).days < dias_espera:
+                return JsonResponse({'exito': False, 'mensaje': 'Ya te postulaste recientemente a este cargo.'})
+
+        forzar = request.POST.get('forzar_sin_cv', 'false') == 'true'
+        if not persona.cvitae and not forzar:
+            return JsonResponse({'requiere_confirmacion_cv': True})
+
+        es_interno = request.user.rol in ['empleado', 'jefe', 'gerente', 'admin']
+        Solicitud.objects.create(
+            persona=persona,
+            cargo=cargo,
+            estado='pendiente',
+            es_interno=es_interno,
+        )
+        return JsonResponse({'exito': True})
+
+
+
+@login_required
+def actualizar_cv_ajax(request):
+    if request.method == 'POST':
+        persona = request.user.persona
+        archivo_cv = request.FILES.get('cv')
+
+        if archivo_cv:
+            # Eliminar archivo anterior si existe
+            if persona.cvitae:
+                ruta_anterior = persona.cvitae.path
+                if os.path.isfile(ruta_anterior):
+                    os.remove(ruta_anterior)
+
+            persona.cvitae = archivo_cv
+            persona.save()
+            return JsonResponse({'exito': True})
+
+        return JsonResponse({'exito': False, 'error': 'No se envió ningún archivo.'})
+    return JsonResponse({'exito': False, 'error': 'Método no permitido.'})
 
 
 

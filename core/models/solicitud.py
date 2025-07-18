@@ -10,7 +10,7 @@ from .cargo import Cargo
 class Solicitud(models.Model): # Relacion Persona(en estado Postulante) con Cargo(al cual se Postula)
     persona = models.ForeignKey(Persona, on_delete=models.CASCADE)
     cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE)
-    fecha = models.DateField(verbose_name='Fecha Realizacion')
+    fecha = models.DateField(auto_now_add=True, verbose_name='Fecha Realizacion')
     descripcion = models.CharField(max_length=255, null=True, blank=True)
     ESTADO_CHOICES = [
         ('pendiente', 'Pendiente'),
@@ -18,10 +18,9 @@ class Solicitud(models.Model): # Relacion Persona(en estado Postulante) con Carg
         ('rechazado', 'Rechazado'),
     ]
     estado = models.CharField(max_length=50, choices=ESTADO_CHOICES, verbose_name='Estado Solicitud')
+    es_interno = models.BooleanField(default=False, verbose_name='Indentificador es Interno')
 
-    def __str__(self):
-        return self.fecha + self.persona
-
+    
     class Meta:
         verbose_name = 'Solicitud'        
         verbose_name_plural = 'Solicitudes'
@@ -31,3 +30,5 @@ class Solicitud(models.Model): # Relacion Persona(en estado Postulante) con Carg
         ]
         ordering = ['id']  # - para oden descendente
 
+    def __str__(self):
+        return f"{self.persona} - {self.cargo} ({self.fecha})"

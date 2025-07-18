@@ -9,6 +9,7 @@ urlpatterns = [
 
     # Perfil usuario
     path('perfil/', views.perfil_usuario, name='user_perfil'),
+    path('actualizar-cv/', views.actualizar_cv_ajax, name='actualizar_cv_ajax'),
 
 
 # urlpatterns = [
@@ -35,6 +36,12 @@ urlpatterns = [
     path('departamentos/', views.departamentos, name='departamentos'),
     path('departamentos/crear/', views.crear_departamento, name='crear_departamento'),
     path('departamentos/<int:id_departamento>/eliminar/', views.eliminar_departamento, name='eliminar_departamento'),
+
+    ## SOLICITUDES ##
+    path('ofertas/', views.listar_ofertas, name='ofertas_empleo'),
+    path('postularse/<int:cargo_id>/', views.postularse_a_cargo, name='postularse'),
+
+
 
 ## CATEGORIA del CARGO ##
   #  path('cargo_categoria/', views.cargos_categoria, name='cargo_categoria'),

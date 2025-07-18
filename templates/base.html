@@ -100,12 +100,44 @@
     }
 
 
+    .toast-custom-animate {
+      animation: slideFadeIn 0.6s ease-out;
+    }
+
+    @keyframes slideFadeIn {
+      0% {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .toast.fade-out {
+      animation: slideFadeOut 0.6s ease-in forwards;
+    }
+
+    @keyframes slideFadeOut {
+      0% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+    }
+
   </style>
 
   {% block extra_head %}{% endblock %}
 </head>
 
 <body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed d-flex flex-column">
+  <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100; margin-top: 45px;"></div>
+
 
   <!-- Navbar -->
   {% include "partials/navbar.html" %}
@@ -160,6 +192,47 @@
   document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
     new bootstrap.Tooltip(el)
   });
+
+
+  function mostrarToast(mensaje, tipo = 'success') {
+    const toastContainer = document.getElementById('toast-container');
+    const toastId = 'toast-' + Date.now();
+
+    const toastHtml = `
+      <div id="${toastId}" class="toast toast-custom-animate align-items-center text-white bg-${tipo} border-0 mb-2 fade show" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body">${mensaje}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+        </div>
+      </div>
+    `;
+
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    const toastEl = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+    toast.show();
+    setTimeout(() => {
+      toastEl.classList.add('fade-out');
+    }, 4500); // un poco antes del delay de 5000
+
+    setTimeout(() => {
+      toastEl.remove();
+    }, 5100); 
+  }
+
+
+  // Mostrar automáticamente un toast si hay mensaje guardado en sessionStorage
+  window.addEventListener('DOMContentLoaded', () => {
+    const mensaje = sessionStorage.getItem('mensaje_toast');
+    const tipo = sessionStorage.getItem('tipo_toast');
+
+    if (mensaje) {
+      mostrarToast(mensaje, tipo || 'success');
+      sessionStorage.removeItem('mensaje_toast');
+      sessionStorage.removeItem('tipo_toast');
+    }
+  });
+
 </script>
 
 </body>
