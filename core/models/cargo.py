@@ -25,3 +25,8 @@ class Cargo(models.Model):
             cargo__es_gerente=True
         ).select_related('cargo').first()
         return relacion.cargo if relacion else None
+    
+
+    def tiene_vacantes(self):
+        from .cargo_departamento import CargoDepartamento
+        return CargoDepartamento.objects.filter(cargo=self, vacante__gt=0).exists()

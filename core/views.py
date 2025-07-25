@@ -24,7 +24,8 @@ from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
 from .decorators import rol_requerido
 from django.utils.timezone import now
-
+from collections import defaultdict
+from django.contrib.admin.views.decorators import staff_member_required
 
 # test
 # def myview(request):
@@ -598,15 +599,14 @@ def eliminar_departamento(request, id_departamento):
 ##########  POSTULARSE  ###########
 
 def listar_ofertas(request):
-    persona = request.user.persona  # Suponemos que está autenticado y asociado
-    cargos_departamento = CargoDepartamento.objects.select_related('cargo', 'departamento').filter(vacante__gt=0)
+    persona = request.user.persona  
+    cargos_departamento = CargoDepartamento.objects.select_related('cargo', 'departamento')\
+        .filter(visible=True)  # Mostramos todos los cargos visibles, sin importar vacantes
 
     solicitudes = Solicitud.objects.filter(persona=persona)
     postulaciones = {s.cargo.id: s.fecha for s in solicitudes}
 
-    nombre_cv = None
-    if persona.cvitae:
-        nombre_cv = os.path.basename(persona.cvitae.name)
+    nombre_cv = os.path.basename(persona.cvitae.name) if persona.cvitae else None
         
     context = {
         'cargos_departamento': cargos_departamento,
@@ -663,6 +663,75 @@ def actualizar_cv_ajax(request):
 
         return JsonResponse({'exito': False, 'error': 'No se envió ningún archivo.'})
     return JsonResponse({'exito': False, 'error': 'Método no permitido.'})
+
+
+
+@staff_member_required
+def ver_postulaciones_admin(request):
+    visibles = Cargo.objects.filter(
+        cargodepartamento__visible=True,
+    ).distinct().prefetch_related(
+        Prefetch('solicitud_set', queryset=Solicitud.objects.filter(visible=True).select_related('persona').order_by('-fecha'))
+    )
+
+    no_visibles = Cargo.objects.filter(
+        cargodepartamento__visible=False
+    ).distinct().prefetch_related(
+        Prefetch('solicitud_set', queryset=Solicitud.objects.select_related('persona').order_by('-fecha'))
+    )
+
+    context = {
+        'cargos_visibles': visibles,
+        'cargos_no_visibles': no_visibles,
+    }
+    return render(request, 'admin_postulaciones.html', context)
+
+
+
+@require_POST
+@staff_member_required
+def cambiar_estado_solicitud(request):
+    solicitud_id = request.POST.get('solicitud_id')
+    nuevo_estado = request.POST.get('nuevo_estado')
+
+    if nuevo_estado not in ['pendiente', 'seleccionado', 'descartado']:
+        return JsonResponse({'exito': False, 'mensaje': 'Estado inválido'})
+
+    try:
+        solicitud = Solicitud.objects.get(id=solicitud_id)
+        solicitud.estado = nuevo_estado
+        solicitud.save()
+        return JsonResponse({'exito': True})
+    except Solicitud.DoesNotExist:
+        return JsonResponse({'exito': False, 'mensaje': 'Solicitud no encontrada'})
+
+
+
+@require_POST
+@staff_member_required
+def finalizar_postulaciones_cargo(request):
+    cargo_id = request.POST.get('cargo_id')
+    
+    Solicitud.objects.filter(cargo_id=cargo_id, visible=True).update(visible=False)
+    CargoDepartamento.objects.filter(cargo_id=cargo_id).update(visible=False)
+
+    return JsonResponse({'exito': True})
+
+
+@require_POST
+@staff_member_required
+def limpiar_postulantes_cargo(request):
+    cargo_id = request.POST.get('cargo_id')
+    Solicitud.objects.filter(cargo_id=cargo_id, visible=True).update(visible=False)
+    return JsonResponse({'exito': True})
+
+
+@require_POST
+@staff_member_required
+def habilitar_cargo_para_postulaciones(request):
+    cargo_id = request.POST.get('cargo_id')
+    CargoDepartamento.objects.filter(cargo_id=cargo_id).update(visible=True)
+    return JsonResponse({'exito': True})
 
 
 

@@ -40,7 +40,11 @@ urlpatterns = [
     ## SOLICITUDES ##
     path('ofertas/', views.listar_ofertas, name='ofertas_empleo'),
     path('postularse/<int:cargo_id>/', views.postularse_a_cargo, name='postularse'),
-
+    path('postulaciones/', views.ver_postulaciones_admin, name='admin_postulaciones'),
+    path('postulaciones/cambiar_estado/', views.cambiar_estado_solicitud, name='cambiar_estado_solicitud'),
+    path('postulaciones/finalizar/', views.finalizar_postulaciones_cargo, name='finalizar_postulaciones'),
+    path('habilitar_cargo/', views.habilitar_cargo_para_postulaciones, name='habilitar_cargo'),
+    path('limpiar_postulantes/', views.limpiar_postulantes_cargo, name='limpiar_postulantes'),
 
 
 ## CATEGORIA del CARGO ##

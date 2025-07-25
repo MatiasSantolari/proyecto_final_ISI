@@ -1,0 +1,418 @@
+{% extends "base.html" %}
+{% block title %}Postulaciones por Cargo{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center mb-4" style="color: var(--color-primario);">Postulaciones Recibidas</h2>
+
+{% if cargos_visibles or cargos_no_visibles %}
+
+    <!-- CARGOS ACTIVOS -->
+    {% if cargos_visibles %}
+      <h4 class="mt-4 text-success">Cargos con búsqueda activa</h4>
+      <div class="accordion" id="accordionActivos">
+        {% for cargo in cargos_visibles %}
+          <div class="accordion-item mb-2 shadow-sm" id="accordion-cargo-{{ cargo.id }}">
+            <h2 class="accordion-header" id="heading{{ cargo.id }}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ cargo.id }}" aria-expanded="false" aria-controls="collapse{{ cargo.id }}">
+                {{ cargo.nombre }}
+                </button>
+            </h2>
+            <div id="collapse{{ cargo.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ cargo.id }}">
+                <div class="accordion-body">
+                {% if cargo.solicitud_set.all %}
+                    <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                        <th>Nombre</th>
+                        <th>DNI</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>CV</th>
+                        <th>Ver datos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for solicitud in cargo.solicitud_set.all %}
+                        <tr>
+                        <td>{{ solicitud.persona.apellido }}, {{ solicitud.persona.nombre }}</td>
+                        <td>{{ solicitud.persona.dni }}</td>
+                        <td>{{ solicitud.fecha|date:"d/m/Y" }}</td>
+                        <td>
+                            <select class="form-select form-select-sm cambiar-estado" data-id="{{ solicitud.id }}">
+                            <option value="pendiente" {% if solicitud.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                            <option value="seleccionado" {% if solicitud.estado == 'seleccionado' %}selected{% endif %}>Seleccionado</option>
+                            <option value="descartado" {% if solicitud.estado == 'descartado' %}selected{% endif %}>Descartado</option>
+                            </select>
+                        </td>
+                        <td>
+                            {% if solicitud.persona.cvitae %}
+                            <a href="{{ solicitud.persona.cvitae.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Ver CV</a>
+                            {% else %}
+                            <em class="text-muted">No disponible</em>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalVerPersona{{ solicitud.persona.id }}">Ver</button>
+                        </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-muted">No hay postulantes aún.</p>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-sm btn-danger finalizar-postulaciones mt-2" data-cargo-id="{{ cargo.id }}">
+                        Finalizar postulaciones para este cargo
+                    </button>
+                    {% if cargo.solicitud_set.all %}
+                        <button type="button" class="btn btn-sm btn-warning limpiar-postulantes mt-2 ms-2" data-cargo-id="{{ cargo.id }}">
+                            Limpiar postulantes
+                        </button>
+                    {% endif %}
+                </form>
+
+                </div>
+            </div>
+            </div>
+
+            <!-- MODALES -->
+            {% for solicitud in cargo.solicitud_set.all %}
+            <div class="modal fade" id="modalVerPersona{{ solicitud.persona.id }}" tabindex="-1" aria-labelledby="modalVerPersonaLabel{{ solicitud.persona.id }}" aria-hidden="true">
+                <div class="modal-dialog" style="margin-top: 6rem;">
+                    <div class="modal-content">
+                        <div class="modal-header bg-info text-white">
+                            <h5 class="modal-title" id="modalVerPersonaLabel{{ solicitud.persona.id }}">Datos del Postulante</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p><strong>Nombre:</strong> {{ solicitud.persona.nombre }}</p>
+                            <p><strong>Apellido:</strong> {{ solicitud.persona.apellido }}</p>
+                            <p><strong>DNI:</strong> {{ solicitud.persona.dni }}</p>
+                            <p><strong>Teléfono:</strong> {{ solicitud.persona.prefijo_pais }} {{ solicitud.persona.telefono }}</p>
+                            <p><strong>Fecha de nacimiento:</strong> {{ solicitud.persona.fecha_nacimiento|date:"d/m/Y" }}</p>
+                            <p><strong>Género:</strong> {{ solicitud.persona.genero }}</p>
+                            <p><strong>Dirección:</strong>
+                            {{ solicitud.persona.calle }} {{ solicitud.persona.numero }},
+                            {{ solicitud.persona.ciudad }},
+                            {{ solicitud.persona.provincia }},
+                            {{ solicitud.persona.pais }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+        {% endfor %}
+      </div>
+    {% endif %}
+
+
+
+
+    <!-- CARGOS CERRADOS -->
+    {% if cargos_no_visibles %}
+      <h4 class="mt-5 text-muted">Cargos con Busqueda Cerrada</h4>
+      <div class="accordion" id="accordionCerrados">
+        {% for cargo in cargos_no_visibles %}
+          <div class="accordion-item mb-2 shadow-sm" id="accordion-cargo-{{ cargo.id }}">
+            <h2 class="accordion-header" id="heading{{ cargo.id }}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ cargo.id }}" aria-expanded="false" aria-controls="collapse{{ cargo.id }}">
+                {{ cargo.nombre }}
+                </button>
+            </h2>
+            <div id="collapse{{ cargo.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ cargo.id }}">
+                <div class="accordion-body">
+                {% if cargo.solicitud_set.all %}
+                    <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                        <th>Nombre</th>
+                        <th>DNI</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>CV</th>
+                        <th>Ver datos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for solicitud in cargo.solicitud_set.all %}
+                        <tr>
+                        <td>{{ solicitud.persona.apellido }}, {{ solicitud.persona.nombre }}</td>
+                        <td>{{ solicitud.persona.dni }}</td>
+                        <td>{{ solicitud.fecha|date:"d/m/Y" }}</td>
+                        <td>
+                            <select class="form-select form-select-sm cambiar-estado" data-id="{{ solicitud.id }}">
+                            <option value="pendiente" {% if solicitud.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                            <option value="seleccionado" {% if solicitud.estado == 'seleccionado' %}selected{% endif %}>Seleccionado</option>
+                            <option value="descartado" {% if solicitud.estado == 'descartado' %}selected{% endif %}>Descartado</option>
+                            </select>
+                        </td>
+                        <td>
+                            {% if solicitud.persona.cvitae %}
+                            <a href="{{ solicitud.persona.cvitae.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Ver CV</a>
+                            {% else %}
+                            <em class="text-muted">No disponible</em>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalVerPersona{{ solicitud.persona.id }}">Ver</button>
+                        </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    </table>
+
+                {% else %}
+                    <p class="text-muted">No hay postulantes aún.</p>
+                {% endif %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="button" class="btn btn-sm btn-success mostrar-cargo mt-2" data-cargo-id="{{ cargo.id }}">
+                            Reabrir búsqueda para este cargo
+                        </button>
+                        {% if cargo.solicitud_set.all %}
+                            <button type="button" class="btn btn-sm btn-warning limpiar-postulantes mt-2 ms-2" data-cargo-id="{{ cargo.id }}">
+                                Limpiar postulantes
+                            </button>
+                        {% endif %}    
+                    </form>    
+                </div>
+            </div>
+            </div>
+
+            <!-- MODALES -->
+            {% for solicitud in cargo.solicitud_set.all %}
+            <div class="modal fade" id="modalVerPersona{{ solicitud.persona.id }}" tabindex="-1" aria-labelledby="modalVerPersonaLabel{{ solicitud.persona.id }}" aria-hidden="true">
+            <div class="modal-dialog" style="margin-top: 6rem;">
+                <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="modalVerPersonaLabel{{ solicitud.persona.id }}">Datos del Postulante</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Nombre:</strong> {{ solicitud.persona.nombre }}</p>
+                    <p><strong>Apellido:</strong> {{ solicitud.persona.apellido }}</p>
+                    <p><strong>DNI:</strong> {{ solicitud.persona.dni }}</p>
+                    <p><strong>Teléfono:</strong> {{ solicitud.persona.prefijo_pais }} {{ solicitud.persona.telefono }}</p>
+                    <p><strong>Fecha de nacimiento:</strong> {{ solicitud.persona.fecha_nacimiento|date:"d/m/Y" }}</p>
+                    <p><strong>Género:</strong> {{ solicitud.persona.genero }}</p>
+                    <p><strong>Dirección:</strong>
+                    {{ solicitud.persona.calle }} {{ solicitud.persona.numero }},
+                    {{ solicitud.persona.ciudad }},
+                    {{ solicitud.persona.provincia }},
+                    {{ solicitud.persona.pais }}
+                    </p>
+                </div>
+                </div>
+            </div>
+            </div>
+            {% endfor %}
+
+        {% endfor %}
+      </div>
+    {% endif %}
+
+  {% else %}
+    <div class="alert alert-info text-center">
+      No hay postulaciones disponibles.
+    </div>
+  {% endif %}
+
+
+    <!-- Modal de Confirmación -->
+    <div class="modal fade" id="modalConfirmacion" tabindex="-1" aria-labelledby="modalConfirmacionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+        <div class="modal-header bg-warning text-dark">
+            <h5 class="modal-title" id="modalConfirmacionLabel">Confirmar acción</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body" id="modalConfirmacionMensaje">
+            ¿Estás seguro de realizar esta acción?
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="btnConfirmarAccion">Aceptar</button>
+        </div>
+        </div>
+    </div>
+    </div>
+
+
+
+    <!-- Modal de Feedback -->
+    <div class="modal fade" id="modalFeedback" tabindex="-1" aria-labelledby="modalFeedbackLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+        <div class="modal-header bg-success text-white">
+            <h5 class="modal-title" id="modalFeedbackLabel">Mensaje</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body" id="modalFeedbackMensaje">
+            Resultado de la acción.
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+        </div>
+    </div>
+    </div>
+
+</div>
+
+
+<script>
+  const csrfToken = "{{ csrf_token }}";
+</script>
+<script>
+document.querySelectorAll('.cambiar-estado').forEach(select => {
+    select.addEventListener('change', function () {
+        const solicitudId = this.dataset.id;
+        const nuevoEstado = this.value;
+
+        fetch("{% url 'cambiar_estado_solicitud' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken,
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `solicitud_id=${solicitudId}&nuevo_estado=${nuevoEstado}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.exito) {
+                alert("Error: " + data.mensaje);
+            }
+        });
+    });
+});
+
+document.querySelectorAll('.finalizar-postulaciones').forEach(button => {
+    button.addEventListener('click', function () {
+  
+        const cargoId = this.dataset.cargoId;
+        mostrarModalConfirmacion(
+            "¿Estás seguro de finalizar las postulaciones para este cargo? Esta acción no se puede deshacer.",
+            () => {
+            fetch("{% url 'finalizar_postulaciones' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `cargo_id=${cargoId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exito) {
+                    const acordeon = document.getElementById(`accordion-cargo-${cargoId}`);
+                    location.reload();
+                } else {
+                    alert("Error: " + data.mensaje);
+                }
+            });
+            }
+        );
+   });
+});
+
+
+document.querySelectorAll('.mostrar-cargo').forEach(button => {
+    button.addEventListener('click', function () {
+        const cargoId = this.dataset.cargoId;
+
+         mostrarModalConfirmacion(
+            "¿Estás seguro de Reabrir las postulaciones para este cargo? Esta acción no se puede deshacer.",
+            () => {
+            fetch("{% url 'habilitar_cargo' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `cargo_id=${cargoId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exito) {
+                    const acordeon = document.getElementById(`accordion-cargo-${cargoId}`);
+                    location.reload(); // O mover dinámicamente entre secciones
+                } else {
+                    alert("Error: " + data.mensaje);
+                }
+            });
+            }
+        );
+    });
+});
+
+
+document.querySelectorAll('.limpiar-postulantes').forEach(button => {
+    button.addEventListener('click', function () {
+
+        const cargoId = this.dataset.cargoId;
+
+         mostrarModalConfirmacion(
+            "¿Deseas ocultar todas las postulaciones de este cargo sin cerrarlo?",
+            () => {
+            fetch("{% url 'limpiar_postulantes' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `cargo_id=${cargoId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exito) {
+                    mostrarModalFeedback("Postulantes ocultados.", "Éxito", "success");
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    mostrarModalFeedback("Error al limpiar postulantes.", "Error", "danger");
+                }
+            });
+            }
+        );
+    });
+});
+
+
+
+let accionConfirmada = null;
+
+function mostrarModalConfirmacion(mensaje, callback) {
+    document.getElementById('modalConfirmacionMensaje').textContent = mensaje;
+    const modal = new bootstrap.Modal(document.getElementById('modalConfirmacion'));
+    accionConfirmada = callback;
+    modal.show();
+}
+
+document.getElementById('btnConfirmarAccion').addEventListener('click', function () {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalConfirmacion'));
+    modal.hide();
+    if (accionConfirmada) accionConfirmada();
+});
+
+
+
+function mostrarModalFeedback(mensaje, titulo = "Mensaje", color = "success") {
+    const modal = new bootstrap.Modal(document.getElementById('modalFeedback'));
+    document.getElementById('modalFeedbackMensaje').textContent = mensaje;
+    document.getElementById('modalFeedbackLabel').textContent = titulo;
+
+    const header = document.querySelector('#modalFeedback .modal-header');
+    header.className = `modal-header bg-${color} text-white`; // Cambia el color según tipo
+
+    modal.show();
+}
+
+
+</script>
+
+{% endblock %}

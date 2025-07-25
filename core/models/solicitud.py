@@ -14,12 +14,12 @@ class Solicitud(models.Model): # Relacion Persona(en estado Postulante) con Carg
     descripcion = models.CharField(max_length=255, null=True, blank=True)
     ESTADO_CHOICES = [
         ('pendiente', 'Pendiente'),
-        ('aprobado', 'Aprobado'),
-        ('rechazado', 'Rechazado'),
+        ('seleccionado', 'Seleccionado'),
+        ('descartado', 'Descartado'),
     ]
     estado = models.CharField(max_length=50, choices=ESTADO_CHOICES, verbose_name='Estado Solicitud')
     es_interno = models.BooleanField(default=False, verbose_name='Indentificador es Interno')
-
+    visible = models.BooleanField(default=True)
     
     class Meta:
         verbose_name = 'Solicitud'        
