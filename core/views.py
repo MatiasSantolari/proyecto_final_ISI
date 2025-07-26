@@ -668,22 +668,48 @@ def actualizar_cv_ajax(request):
 
 @staff_member_required
 def ver_postulaciones_admin(request):
-    visibles = Cargo.objects.filter(
-        cargodepartamento__visible=True,
-    ).distinct().prefetch_related(
-        Prefetch('solicitud_set', queryset=Solicitud.objects.filter(visible=True).select_related('persona').order_by('-fecha'))
+    solicitud_visible = Prefetch(
+        'cargo__solicitud_set',
+        queryset=Solicitud.objects.filter(visible=True).select_related('persona').order_by('-fecha'),
+        to_attr='solicitudes_visibles'
     )
 
-    no_visibles = Cargo.objects.filter(
-        cargodepartamento__visible=False
-    ).distinct().prefetch_related(
-        Prefetch('solicitud_set', queryset=Solicitud.objects.select_related('persona').order_by('-fecha'))
+    todas_solicitudes = Prefetch(
+        'cargo__solicitud_set',
+        queryset=Solicitud.objects.select_related('persona').order_by('-fecha'),
+        to_attr='solicitudes'
     )
+
+    visibles = CargoDepartamento.objects.select_related('cargo', 'departamento') \
+        .filter(visible=True) \
+        .prefetch_related(solicitud_visible)
+
+    no_visibles = CargoDepartamento.objects.select_related('cargo', 'departamento') \
+        .filter(visible=False) \
+        .prefetch_related(solicitud_visible)
+
+    todas = CargoDepartamento.objects.select_related('cargo', 'departamento') \
+        .prefetch_related(todas_solicitudes)
+
+
+    cargos_visibles_por_dpto = defaultdict(list)
+    for relacion in visibles:
+        cargos_visibles_por_dpto[relacion.departamento.nombre].append(relacion)
+
+    cargos_no_visibles_por_dpto = defaultdict(list)
+    for relacion in no_visibles:
+        cargos_no_visibles_por_dpto[relacion.departamento.nombre].append(relacion)
+
+    todas_por_dpto = defaultdict(list)
+    for relacion in todas:
+        todas_por_dpto[relacion.departamento.nombre].append(relacion)
 
     context = {
-        'cargos_visibles': visibles,
-        'cargos_no_visibles': no_visibles,
+        'cargos_visibles_por_dpto': dict(cargos_visibles_por_dpto),
+        'cargos_no_visibles_por_dpto': dict(cargos_no_visibles_por_dpto),
+        'todas': dict(todas_por_dpto),
     }
+
     return render(request, 'admin_postulaciones.html', context)
 
 
@@ -712,7 +738,7 @@ def cambiar_estado_solicitud(request):
 def finalizar_postulaciones_cargo(request):
     cargo_id = request.POST.get('cargo_id')
     
-    Solicitud.objects.filter(cargo_id=cargo_id, visible=True).update(visible=False)
+    ##Solicitud.objects.filter(cargo_id=cargo_id, visible=True).update(visible=False)
     CargoDepartamento.objects.filter(cargo_id=cargo_id).update(visible=False)
 
     return JsonResponse({'exito': True})
