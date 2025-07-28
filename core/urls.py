@@ -37,6 +37,11 @@ urlpatterns = [
     path('departamentos/crear/', views.crear_departamento, name='crear_departamento'),
     path('departamentos/<int:id_departamento>/eliminar/', views.eliminar_departamento, name='eliminar_departamento'),
 
+    ## Habilidad ##
+    path('habilidades/', views.habilidades, name='habilidades'),
+    path('habilidades/crear/', views.crear_habilidad, name='crear_habilidad'),
+    path('habilidades/<int:id_habilidades>/eliminar/', views.eliminar_habilidad, name='eliminar_habilidad'),
+
     ## SOLICITUDES ##
     path('ofertas/', views.listar_ofertas, name='ofertas_empleo'),
     path('postularse/<int:cargo_id>/', views.postularse_a_cargo, name='postularse'),

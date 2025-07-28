@@ -759,7 +759,52 @@ def habilitar_cargo_para_postulaciones(request):
     CargoDepartamento.objects.filter(cargo_id=cargo_id).update(visible=True)
     return JsonResponse({'exito': True})
 
+###################################
+##########  CRUD HABILIDADES  ###########
+def habilidades(request):
+    form = HabilidadForm()
+    habilidadesList = Habilidad.objects.all()
+    return render(request, 'habilidades.html', {
+        'form': form,
+        'departamentos': habilidadesList
+    })
 
+
+def crear_habilidad(request):
+    id_habilidad = request.POST.get('id_habilidad')
+
+    if request.method == 'POST':
+        if id_habilidad:
+            habilidad = get_object_or_404(Habilidad, pk=id_habilidad)
+            form = HabilidadForm(request.POST, instance=habilidad)
+        else:
+            form = HabilidadForm(request.POST)
+
+        if form.is_valid():
+            nueva_habilidad = form.save()
+            return redirect('habilidades')
+
+    else:
+        form = HabilidadForm()
+
+    habilidadesList = Habilidad.objects.all()
+    return render(request, 'habilidades.html', {'form': form, 'habilidades': habilidadesList})
+
+@require_POST
+def eliminar_habilidad(request, id_habilidad):
+    habilidad = get_object_or_404(Habilidad, id=id_habilidad)
+    relaciones = HabilidadEmpleado.objects.filter(habilidad=habilidad)
+
+    for relacion in relaciones:
+        empleado = relacion.empleado
+        relacion.delete()
+        otros = HabilidadEmpleado.objects.filter(empleado=empleado).exists()
+        if not otros:
+            empleado.delete()
+
+    habilidad.delete()
+
+    return redirect('habilidades')
 
 
 def cargo_categoria(request): return render(request, 'cargo_categoria.html')
