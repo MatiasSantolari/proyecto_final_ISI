@@ -59,7 +59,7 @@ def home(request):
         return redirect('create_profile')
     else:
         if rol == 'admin':
-            return render(request, 'index.html')
+            return render(request, 'index.html')    #Luego segun el rol tendria una vista distinta, habria que verlo bien.
         elif rol == 'gerente':
             return render(request, 'index.html')
         elif rol == 'empleado':
@@ -81,6 +81,7 @@ def registrar_usuario(request):
 
 
 @login_required
+@require_POST
 def create_persona(request):
     if request.method == 'POST':
         form = PersonaFormCreate(request.POST, request.FILES)
@@ -131,6 +132,7 @@ def perfil_usuario(request):
 
 
 ################## CRUD PERSONA ################
+@login_required
 def personas(request):
     personas_qs = Persona.objects.select_related('empleado', 'usuario')
     
@@ -199,7 +201,8 @@ def personas(request):
 
 
 
-
+@login_required
+@require_POST
 def crear_persona(request):
     if request.method == 'POST':
         id_persona = request.POST.get('id_persona')
@@ -382,7 +385,7 @@ def crear_persona(request):
     return render(request, 'personas.html', {'form': form, 'personas': personas})
 
 
-
+@login_required
 def cargos_por_departamento(request, dept_id):
     tipo_usuario = request.GET.get('tipo_usuario')
 
@@ -407,7 +410,7 @@ def cargos_por_departamento(request, dept_id):
     return JsonResponse({'cargos': cargos})
 
 
-
+@login_required
 @require_POST
 def eliminar_persona(request, persona_id):
     persona = get_object_or_404(Persona, id_persona=persona_id)
@@ -420,7 +423,7 @@ def eliminar_persona(request, persona_id):
 
 ########## CRUD CARGO #################
 
-
+@login_required
 def cargos(request):
     cargos_con_sueldo = []
 
@@ -449,7 +452,8 @@ def cargos(request):
 
 
 
-
+@login_required
+@require_POST
 def crear_cargo(request):
     if request.method == 'POST':
         id_cargo = request.POST.get('id_cargo')
@@ -510,7 +514,7 @@ def crear_cargo(request):
     return render(request, 'cargos.html', {'form': form, 'cargos': cargos_con_sueldo})
 
 
-
+@login_required
 @require_POST
 def eliminar_cargo(request, id_cargo):
     cargo = get_object_or_404(Cargo, id=id_cargo)
@@ -523,7 +527,7 @@ def eliminar_cargo(request, id_cargo):
 ################
 
 ######CRUD Departamentos #####################
-
+@login_required
 def departamentos(request):
     form = DepartamentoForm()
     departamentosList = Departamento.objects.all()
@@ -533,7 +537,8 @@ def departamentos(request):
     })
 
 
-
+@login_required
+@require_POST
 def crear_departamento(request):
     id_departamento = request.POST.get('id_departamento')
 
@@ -577,7 +582,7 @@ def crear_departamento(request):
     return render(request, 'departamentos.html', {'form': form, 'departamentos': departamentosList})
 
 
-
+@login_required
 @require_POST
 def eliminar_departamento(request, id_departamento):
     departamento = get_object_or_404(Departamento, id=id_departamento)
@@ -597,7 +602,7 @@ def eliminar_departamento(request, id_departamento):
 
 ###################################
 ##########  POSTULARSE  ###########
-
+@login_required
 def listar_ofertas(request):
     persona = request.user.persona  
     cargos_departamento = CargoDepartamento.objects.select_related('cargo', 'departamento')\
@@ -617,7 +622,7 @@ def listar_ofertas(request):
 
 
 
-
+@login_required
 def postularse_a_cargo(request, cargo_id):
     if request.method == 'POST':
         persona = request.user.persona
@@ -665,7 +670,7 @@ def actualizar_cv_ajax(request):
     return JsonResponse({'exito': False, 'error': 'Método no permitido.'})
 
 
-
+@login_required
 @staff_member_required
 def ver_postulaciones_admin(request):
     solicitud_visible = Prefetch(
@@ -713,7 +718,7 @@ def ver_postulaciones_admin(request):
     return render(request, 'admin_postulaciones.html', context)
 
 
-
+@login_required
 @require_POST
 @staff_member_required
 def cambiar_estado_solicitud(request):
@@ -732,7 +737,7 @@ def cambiar_estado_solicitud(request):
         return JsonResponse({'exito': False, 'mensaje': 'Solicitud no encontrada'})
 
 
-
+@login_required
 @require_POST
 @staff_member_required
 def finalizar_postulaciones_cargo(request):
@@ -744,6 +749,7 @@ def finalizar_postulaciones_cargo(request):
     return JsonResponse({'exito': True})
 
 
+@login_required
 @require_POST
 @staff_member_required
 def limpiar_postulantes_cargo(request):
@@ -752,6 +758,7 @@ def limpiar_postulantes_cargo(request):
     return JsonResponse({'exito': True})
 
 
+@login_required
 @require_POST
 @staff_member_required
 def habilitar_cargo_para_postulaciones(request):
