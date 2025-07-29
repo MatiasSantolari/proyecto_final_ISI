@@ -22,6 +22,7 @@ from .logro_empleado import LogroEmpleado
 from .logro import Logro
 from .nomina import Nomina
 from .objetivo_empleado import ObjetivoEmpleado
+from .objetivo_cargo import ObjetivoCargo
 from .objetivo import Objetivo
 from .persona import Persona
 from .solicitud import Solicitud
