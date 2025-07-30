@@ -26,6 +26,15 @@ class Cargo(models.Model):
         ).select_related('cargo').first()
         return relacion.cargo if relacion else None
     
+    @staticmethod
+    def get_jefe_por_departamento(departamento_id):
+        from .cargo_departamento import CargoDepartamento  # o donde esté definido
+        relacion = CargoDepartamento.objects.filter(
+            departamento_id=departamento_id,
+            cargo__es_jefe=True
+        ).select_related('cargo').first()
+        return relacion.cargo if relacion else None
+
 
     def tiene_vacantes(self):
         from .cargo_departamento import CargoDepartamento

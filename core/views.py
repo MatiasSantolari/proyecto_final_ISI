@@ -228,6 +228,13 @@ def crear_persona(request):
                         form.add_error('departamento', 'No hay un cargo de gerente configurado para este departamento.')
                         personas = Persona.objects.all()
                         return render(request, 'personas.html', {'form': form, 'personas': personas})
+                    
+                if (rol == 'gerente' or rol == 'jefe') and not cargo and departamento_id:
+                    if rol == 'gerente':
+                        cargo = Cargo.get_gerente_por_departamento(departamento_id)
+                    else:
+                        cargo = Cargo.get_jefe_por_departamento(departamento_id)
+
                  # Definir estado_empleado según si es creacion o edicion
                 if not id_persona:
                     estado_empleado = "activo"  # Estado fijo para creacion
@@ -267,7 +274,7 @@ def crear_persona(request):
                                     f"Usuario: {username}\n"
                                     f"Contraseña: {password}\n\n"
                                     f"Podés ingresar al sistema desde: {login_url}\n\n"
-                                    f"Por favor, cambiá su contraseña luego de ingresar.\n\n"
+                                    f"Por favor, cambie su contraseña luego de ingresar.\n\n"
                                     f"Saludos,\nEl equipo de RRHH",
                             from_email=settings.DEFAULT_FROM_EMAIL,
                             recipient_list=[email],
@@ -383,6 +390,7 @@ def crear_persona(request):
 
     personas = Persona.objects.all()
     return render(request, 'personas.html', {'form': form, 'personas': personas})
+
 
 
 @login_required
@@ -769,7 +777,93 @@ def habilitar_cargo_para_postulaciones(request):
 
 
 
-def cargo_categoria(request): return render(request, 'cargo_categoria.html')
+############### CRUD OBJETIVOS ##################
+
+@login_required
+def objetivos(request):
+    objetivosList = Objetivo.objects.prefetch_related(
+        Prefetch('objetivoempleado_set', queryset=ObjetivoEmpleado.objects.select_related('empleado__persona')),
+        Prefetch('objetivocargo_set', queryset=ObjetivoCargo.objects.select_related('cargo'))
+    )
+    empleados = Empleado.objects.select_related('persona_ptr')
+    cargos = Cargo.objects.all()
+    form = ObjetivoForm()
+
+    context = {
+        'objetivos': objetivosList,
+        'empleados': empleados,
+        'cargos': cargos,
+        'form': form
+    }
+    return render(request, 'objetivos.html', context)
+
+
+@login_required
+@require_POST
+def crear_objetivo(request):
+    id_objetivo = request.POST.get("id_objetivo")
+    tipo_asignacion = request.POST.get("tipo_asignacion")
+    es_recurrente = request.POST.get("es_recurrente") == "on"
+    fecha_fin = request.POST.get("fecha_fin")
+
+    if id_objetivo:
+        objetivo = get_object_or_404(Objetivo, pk=id_objetivo)
+    else:
+        objetivo = Objetivo()
+
+    objetivo.titulo = request.POST.get("titulo")
+    objetivo.descripcion = request.POST.get("descripcion")
+    objetivo.fecha_asignacion = date.today()
+    objetivo.fecha_fin = fecha_fin if fecha_fin else None
+    objetivo.estado = "en proceso"
+    objetivo.es_recurrente = es_recurrente
+    objetivo.activo = True
+
+    if tipo_asignacion == "empleado":
+        empleado_id = request.POST.get("empleado_id")
+        if empleado_id:
+            objetivo.empleado_id = empleado_id
+    elif tipo_asignacion == "cargo":
+        cargo_id = request.POST.get("cargo_id")
+        if cargo_id:
+            empleados = Empleado.objects.filter(
+                empleadocargo__cargo_id=cargo_id,
+                empleadocargo__activo=True
+            ).distinct()
+            objetivo.save()
+            for emp in empleados:
+                Objetivo.objects.create(
+                    titulo=objetivo.titulo,
+                    descripcion=objetivo.descripcion,
+                    fecha_asignacion=objetivo.fecha_asignacion,
+                    fecha_fin=objetivo.fecha_fin,
+                    estado=objetivo.estado,
+                    es_recurrente=objetivo.es_recurrente,
+                    activo=objetivo.activo,
+                    empleado=emp
+                )
+            messages.success(request, "Objetivo asignado por cargo con éxito.")
+            return redirect("objetivos")
+    else:
+        messages.error(request, "Debe seleccionar un tipo de asignación.")
+        return redirect("objetivos")
+
+    objetivo.save()
+    messages.success(request, "Objetivo guardado con éxito.")
+    return redirect("objetivos")
+
+
+@login_required
+@require_POST
+def eliminar_objetivo(request, id):
+    objetivo = get_object_or_404(Objetivo, id=id)
+    objetivo.delete()
+    return redirect('objetivos')
+
+
+##################################################
+
+
 def agregar_sueldo_base(request): return render(request, 'agregar_sueldo_base.html')
 def beneficios(request): return render(request, 'beneficios.html')
 def calcular_bonificaciones(request): return render(request, 'calcular_bonificaciones.html')
@@ -784,7 +878,6 @@ def habilidades(request): return render(request, 'habilidades.html')
 def instituciones(request): return render(request, 'instituciones.html')
 def logros(request): return render(request, 'logros.html')
 def nominas(request): return render(request, 'nominas.html')
-def objetivos(request): return render(request, 'objetivos.html')
 
 def postulantes(request): return render(request, 'postulantes.html')
 def publicar_ofertas_de_empleo(request): return render(request, 'publicar_ofertas_de_empleo.html')
