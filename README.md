@@ -12,8 +12,8 @@ pip install django-widget-tweaks
 Pasos para configurar la Base de datos con Django
 crear usuario en mysql con los datos:
          'NAME': 'apprrhh',
-        'USER': 'facu',
-        'PASSWORD': 'Facu1234',
+        'USER': ,
+        'PASSWORD': ,
         'HOST': '127.0.0.1',
         'PORT': '3306',
     
