@@ -40,7 +40,8 @@ urlpatterns = [
     ## Habilidad ##
     path('habilidades/', views.habilidades, name='habilidades'),
     path('habilidades/crear/', views.crear_habilidad, name='crear_habilidad'),
-    path('habilidades/<int:id_habilidades>/eliminar/', views.eliminar_habilidad, name='eliminar_habilidad'),
+    path('habilidades/<int:id_habilidad>/eliminar/', views.eliminar_habilidad, name='eliminar_habilidad'),
+
 
     ## SOLICITUDES ##
     path('ofertas/', views.listar_ofertas, name='ofertas_empleo'),

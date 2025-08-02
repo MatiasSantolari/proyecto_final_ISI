@@ -792,17 +792,8 @@ def crear_habilidad(request):
 @require_POST
 def eliminar_habilidad(request, id_habilidad):
     habilidad = get_object_or_404(Habilidad, id=id_habilidad)
-    relaciones = HabilidadEmpleado.objects.filter(habilidad=habilidad)
-
-    for relacion in relaciones:
-        empleado = relacion.empleado
-        relacion.delete()
-        otros = HabilidadEmpleado.objects.filter(empleado=empleado).exists()
-        if not otros:
-            empleado.delete()
-
+    HabilidadEmpleado.objects.filter(habilidad=habilidad).delete() # Elimina todas las relaciones de empleados con esta habilidad
     habilidad.delete()
-
     return redirect('habilidades')
 
 
