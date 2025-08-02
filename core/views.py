@@ -766,9 +766,8 @@ def habilidades(request):
     habilidadesList = Habilidad.objects.all()
     return render(request, 'habilidades.html', {
         'form': form,
-        'departamentos': habilidadesList
+        'habilidades': habilidadesList
     })
-
 
 def crear_habilidad(request):
     id_habilidad = request.POST.get('id_habilidad')
@@ -818,7 +817,6 @@ def costos_de_personal(request): return render(request, 'costos_de_personal.html
 def criterios_evaluacion(request): return render(request, 'criterios_evaluacion.html')
 def empleados(request): return render(request, 'empleados.html')
 def evaluacion_desempeno(request): return render(request, 'evaluacion_desempeno.html')
-def habilidades(request): return render(request, 'habilidades.html')
 def instituciones(request): return render(request, 'instituciones.html')
 def logros(request): return render(request, 'logros.html')
 def nominas(request): return render(request, 'nominas.html')

@@ -67,7 +67,7 @@
   <div class="modal fade" id="modalHabilidad" tabindex="-1" aria-labelledby="modalHabilidadLabel" aria-hidden="true">
     <div class="modal-dialog" style="margin-top: 6rem;">
       <div class="modal-content">
-        <form method="post" action="{% url 'crear_habilidad' %}" id="formHabilidad">
+        <form method="post" action="{% url 'crear_habilidad' %}" id="formHabilidad" autocomplete="off">
           {% csrf_token %}
           <div class="modal-header" style="background-color: #3c8dbc;">
             <h5 class="modal-title text-white" id="modalHabilidadLabel">Crear/Editar Habilidad</h5>
@@ -138,29 +138,51 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+    // Modal de eliminación
     const modalEliminar = document.getElementById('modalEliminarHabilidad');
-    modalEliminar.addEventListener('show.bs.modal', function (event) {
-      const button = event.relatedTarget;
-      const habilidadId = button.getAttribute('data-id');
-      const form = document.getElementById('formEliminarHabilidad');
-      form.action = `/habilidades/${habilidadId}/eliminar/`;
-    });
+    if (modalEliminar) {
+      modalEliminar.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const habilidadId = button.getAttribute('data-id');
+        const form = document.getElementById('formEliminarHabilidad');
+        form.action = `/habilidades/${habilidadId}/eliminar/`;
+      });
+    }
 
+    // Modal de creación/edición
     const modalCrearEditar = document.getElementById('modalHabilidad');
-    modalCrearEditar.addEventListener('show.bs.modal', function (event) {
-      const triggerButton = event.relatedTarget;
-      if (!triggerButton.getAttribute('data-id')) {
-        limpiarFormulario();
-      }
-    });
+    if (modalCrearEditar) {
+      modalCrearEditar.addEventListener('show.bs.modal', function (event) {
+        const triggerButton = event.relatedTarget;
+
+        const esCreacion = !triggerButton.getAttribute('data-id');
+        if (esCreacion) {
+          limpiarFormulario();
+        }
+      });
+    }
   });
 
   function limpiarFormulario() {
     const form = document.getElementById('formHabilidad');
-    form.reset();
-    document.getElementById('id_habilidad').value = '';
-    document.getElementById('modalHabilidadLabel').textContent = 'Crear Nueva Habilidad';
-    document.querySelector('#formHabilidad button[type="submit"]').textContent = 'Guardar';
+    if (!form) return;
+
+    form.reset();  // Limpia valores antiguos
+
+    const modal = document.getElementById('modalHabilidad');
+
+    modal.addEventListener('shown.bs.modal', function () {
+      const inputNombre = document.getElementById('id_nombre');
+      const inputDescripcion = document.getElementById('id_descripcion');
+      const inputId = document.getElementById('id_habilidad');
+
+      if (inputNombre) inputNombre.value = '';
+      if (inputDescripcion) inputDescripcion.value = '';
+      if (inputId) inputId.value = '';
+
+      document.getElementById('modalHabilidadLabel').textContent = 'Crear Nueva Habilidad';
+      document.querySelector('#formHabilidad button[type="submit"]').textContent = 'Guardar';
+    }, { once: true });
   }
 
   function editarHabilidad(button) {
@@ -168,12 +190,17 @@
     const nombre = button.getAttribute('data-nombre');
     const descripcion = button.getAttribute('data-descripcion');
 
-    document.getElementById('id_habilidad').value = id || '';
-    document.getElementById('id_nombre').value = nombre || '';
-    document.getElementById('id_descripcion').value = descripcion || '';
+    const inputId = document.getElementById('id_habilidad');
+    const inputNombre = document.getElementById('id_nombre');
+    const inputDescripcion = document.getElementById('id_descripcion');
+
+    if (inputId) inputId.value = id || '';
+    if (inputNombre) inputNombre.value = nombre || '';
+    if (inputDescripcion) inputDescripcion.value = descripcion || '';
 
     document.getElementById('modalHabilidadLabel').textContent = 'Editar Habilidad';
     document.querySelector('#formHabilidad button[type="submit"]').textContent = 'Actualizar';
   }
 </script>
+
 {% endblock %}

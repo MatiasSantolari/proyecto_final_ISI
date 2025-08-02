@@ -344,11 +344,3 @@ class HabilidadForm(forms.ModelForm):
     class Meta:
         model = Habilidad
         fields = ['nombre', 'descripcion']
-        widgets = {
-            'nombre': forms.TextInput(
-                attrs={'class': 'form-control', 'id': 'id_nombre',
-                       'placeholder': 'Ingrese el Nombre de la Habilidad'}),
-            'descripcion': forms.TextInput(
-                attrs={'class': 'form-control', 'id': 'id_descripcion',
-                       'placeholder': 'Ingrese una descripcion de la Habilidad', 'rows': 3}),
-        }

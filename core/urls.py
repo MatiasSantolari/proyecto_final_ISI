@@ -71,7 +71,6 @@ urlpatterns = [
     path('departamentos/', views.departamentos, name='departamentos'),
     path('empleados/', views.empleados, name='empleados'),
     path('evaluacion_desempeno/', views.evaluacion_desempeno, name='evaluacion_desempeno'),
-    path('habilidades/', views.habilidades, name='habilidades'),
 
 
 
