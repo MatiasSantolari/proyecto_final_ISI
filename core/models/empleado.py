@@ -22,3 +22,15 @@ class Empleado(Persona):
         db_table = 'empleado'
         ordering = ['id']  # - para oden descendente
 
+    def departamento_actual(self):
+        cargo_activo = self.empleadocargo_set.filter(fecha_inicio__isnull=False, fecha_fin__isnull=True).first()
+        if cargo_activo:
+            cargo = cargo_activo.cargo
+            cargo_departamento = cargo.cargodepartamento_set.first() 
+            if cargo_departamento:
+                return cargo_departamento.departamento
+        return None
+
+
+
+

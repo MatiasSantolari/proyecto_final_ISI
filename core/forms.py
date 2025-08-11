@@ -340,3 +340,30 @@ class DepartamentoForm(forms.ModelForm):
             'descripcion': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_descripcion', 'placeholder': 'Ingrese una descripcion', 'rows': 3}),
         }
 
+
+################################
+
+class ObjetivoForm(forms.ModelForm):
+    class Meta:
+        model = Objetivo
+        fields = ['titulo', 'descripcion', 'fecha_fin', 'es_recurrente']
+        widgets = {
+            'titulo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ingrese el Título'
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ingrese la Descripción',
+                'rows': 3
+            }),
+            'fecha_fin': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date',
+                'id': 'id_fecha_fin',
+                'placeholder': 'Ingrese la Fecha de Fin'
+            }),
+            'es_recurrente': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+        }

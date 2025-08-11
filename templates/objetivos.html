@@ -1,4 +1,6 @@
 {% extends "base.html"%}
+{% load widget_tweaks %}
+
   {% block title %}Gestión de Objetivos{% endblock %}
   
   {% block content %}
@@ -12,124 +14,444 @@
     </button>
 
     <!-- Tabla de Objetivos -->
-    <div class="table-responsive">
-      <table class="table table-bordered text-center">
-        <thead style="background-color: var(--color-suave);">
-          <tr>
-            <th style="width: 50%;">descripcion</th>
-            <th style="width: 12%;">Fecha de Inicio</th>
-            <th style="width: 10%;">Fecha de Fin</th>
-            <th style="width: 11%;">Estado</th>
-            <th style="width: 15%;">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Mejorar habilidades de comunicación para presentaciones efectivas</td>
-            <td>01-01-2025</td>
-            <td>30-04-2025</td>
-            <td>En Proceso</td>
-            <td>
-              <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#modalObjetivo">Editar</button>
-              <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalVerObjetivo">Ver</button>
-              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarObjetivo">Eliminar</button>
-            </td>
-          </tr>
-          <!-- Ejemplo adicional -->
-          <tr>
-            <td>Completar el curso de certificación en gestión de proyectos (PMP)</td>
-            <td>15-11-2024</td>
-            <td>15-02-2025</td>
-            <td>Completado</td>
-            <td>
-              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalObjetivo">Editar</button>
-              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerObjetivo">Ver</button>
-              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarObjetivo">Eliminar</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Modal para Crear/Editar Objetivo -->
-  <div class="modal fade" id="modalObjetivo" tabindex="-1" aria-labelledby="modalObjetivoLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalObjetivoLabel">Crear/Editar Objetivo</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover table-bordered align-middle mb-0">
+            <thead style="table-light text-center">
+              <tr>
+                <th style="width: 55%;">Titulo</th>
+                <th style="width: 10%;">Fecha de Asignacion</th>
+                <th style="width: 10%;">Fecha Fin</th>
+                <th style="width: 15%;">Estado</th>
+                <th style="width: 10%;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for objetivo in objetivos %}
+              <tr>
+                <td>{{ objetivo.titulo }}</td>
+                <td>{{ objetivo.fecha_asignacion|default:"-"  }}</td>
+                <td>
+                  {% if objetivo.fecha_fin %}
+                    {{ objetivo.fecha_fin|date:"d/m/Y" }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {{ objetivo.estado_asignacion }}
+                </td>
+                <td>
+                  <div class="d-flex justify-content-center gap-2">
+                     <button class="btn btn-sm btn-outline-primary"
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modalAsignarObjetivo"
+                            data-objetivo-id="{{ objetivo.id }}"
+                            data-objetivo-titulo="{{ objetivo.titulo }}"
+                            data-bs-toggle="tooltip" title="Asignar">
+                      <i class="bi bi-person-plus"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" 
+                            data-bs-toggle="modal" data-bs-target="#modalObjetivo"
+                            data-id="{{ objetivo.id }}"
+                            data-titulo="{{ objetivo.titulo }}"
+                            data-fechaFin="{{ objetivo.fecha_fin|date:'Y-m-d' }}"
+                            data-descripcion="{{ objetivo.descripcion }}"
+                            data-esrecurrente="{{ objetivo.es_recurrente }}"
+                            data-estado="{{ objetivo.estado }}"
+                            onclick="editarObjetivo(this)"
+                            data-bs-toggle="tooltip" title="Editar">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modalVerObjetivo{{ objetivo.id }}"
+                            data-bs-toggle="tooltip" title="Ver">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modalEliminarObjetivo"
+                            data-id="{{ objetivo.id }}"
+                            data-bs-toggle="tooltip" title="Eliminar">
+                      <i class="bi bi-trash3"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
-        <div class="modal-body">
-          <form>
-            <div class="mb-3">
-              <label for="descripcionObjetivo" class="form-label">Descripción del Objetivo</label>
-              <textarea class="form-control" id="descripcionObjetivo" rows="3" placeholder="Ingresa la descripcion del Objetivo" required></textarea>
+      </div>
+    </div>
+
+
+    <!-- Modal para Crear/Editar Objetivo -->
+    <div class="modal fade" id="modalObjetivo" tabindex="-1" aria-labelledby="modalObjetivoLabel" aria-hidden="true">
+      <div class="modal-dialog" style="margin-top: 6rem;">
+        <div class="modal-content">
+          <form method="post" action="{% url 'crear_objetivo' %}" id="formObjetivo">
+            {% csrf_token %}
+            <div class="modal-header" style="background-color: #3c8dbc;">
+              <h5 class="modal-title text-white" id="modalObjetivoLabel">Crear/Editar Objetivo</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="mb-3">
-              <label for="fechaInicioObjetivo" class="form-label">Fecha de Inicio</label>
-              <input type="date" class="form-control" id="fechaInicioObjetivo" required>
+            <input type="hidden" name="id_objetivo" id="id_objetivo">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="id_titulo" class="form-label">Titulo del Objetivo</label>
+                {{ form.titulo }}
+              </div>
+              <div class="mb-3">
+                <label for="id_descripcion" class="form-label">Descripcion del Objetivo</label>
+                {{ form.descripcion }}
+              </div>
+              <div class="mb-3 form-check">
+                {{ form.es_recurrente }}
+                <label for="id_es_recurrente" class="form-check-label">¿Es recurrente?</label>
+              </div>
+              <div class="mb-3">
+                <label for="id_fechaFin" class="form-label">Fecha de Fin</label>
+                {{ form.fecha_fin }}
+              </div>
+              
+             
+              
+              <div class="modal-footer bg-light">
+                <button type="submit" class="btn btn-success w-50 fw-bold" name="accion" value="guardar">
+                  <i class="bi bi-save"></i> Guardar
+                </button>
+                <button type="submit" class="btn btn-primary w-50 fw-bold" name="accion" value="guardar_y_asignar">
+                  <i class="bi bi-check2-circle"></i> Guardar y Asignar
+                </button>
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="fechaFinObjetivo" class="form-label">Fecha de Fin</label>
-              <input type="date" class="form-control" id="fechaFinObjetivo" required>
-            </div>
-            <div class="mb-3">
-              <label for="estadoObjetivo" class="form-label">Estado del Objetivo</label>
-              <select class="form-select" id="estadoObjetivo" required>
-                <option value="" disabled selected>Selecciona el estado</option>
-                <option value="en_proceso">En Proceso</option>
-                <option value="completado">Completado</option>
-                <option value="no_completado">No Completado</option>
-                <option value="pendiente">Pendiente</option>
-                <option value="cancelado">Cancelado</option>
-              </select>
-            </div>
-            <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
           </form>
         </div>
       </div>
     </div>
-  </div>
+    
+    <!-- Modal Asignar Objetivo -->
+    <div class="modal fade" id="modalAsignarObjetivo" tabindex="-1" aria-labelledby="modalAsignarObjetivoLabel" aria-hidden="true">
+      <div class="modal-dialog" style="margin-top: 6rem;">
+        <div class="modal-content">
+          <form method="post" action="{% url 'asignar_objetivo' %}">
+            {% csrf_token %}
+            <input type="hidden" name="objetivo_id" id="asignarObjetivoId">
 
-  <!-- Modal para Ver Detalles -->
-  <div class="modal fade" id="modalVerObjetivo" tabindex="-1" aria-labelledby="modalVerObjetivoLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalVerObjetivoLabel">Detalles del Objetivo</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p><strong>Descripcion:</strong> Mejorar habilidades de comunicación para presentaciones efectivas</p>
-          <p><strong>Fecha de Inicio:</strong> 01-01-2025</p>
-          <p><strong>Fecha de Fin:</strong> 30-04-2025</p>
-          <p><strong>Estado:</strong> En Proceso</p>
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title" id="modalAsignarObjetivoLabel">Asignar Objetivo</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="tipoAsignacion" class="form-label">Asignar a:</label>
+                <select id="tipoAsignacion" name="tipo_asignacion" class="form-select" onchange="mostrarSelectorAsignacion(this.value)" required>
+                  <option value="">Seleccione una opción</option>
+                  <option value="empleado">Empleado</option>
+                  <option value="cargo">Cargo</option>
+                </select>
+              </div>
+
+              <div class="mb-3 d-none" id="selectorEmpleado">
+                <label class="form-label">Seleccione Empleado</label>
+                <div>
+                  {% for empleado in empleados %}
+                    {% with empleado.empleadocargo_set.last as cargo_actual %}
+                      <div class="form-check">
+                        <input 
+                          class="form-check-input" 
+                          type="checkbox" 
+                          name="empleado_id" 
+                          value="{{ empleado.id }}" 
+                          id="empleado{{ empleado.id }}"
+                        >
+                        <label class="form-check-label" for="empleado{{ empleado.id }}">
+                          {{ empleado.nombre }} {{ empleado.apellido }}
+                          {% if cargo_actual %} - {{ cargo_actual.cargo.nombre }}{% endif %}
+                        </label>
+                      </div>
+                    {% endwith %}
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="mb-3 d-none" id="selectorCargo">
+                <label for="cargoSelect" class="form-label">Seleccione Cargo</label>
+                <select name="cargo_id" id="cargoSelect" class="form-select" required>
+                  {% for cargo in cargos %}
+                    <option value="{{ cargo.id }}">{{ cargo.nombre }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="modal-footer bg-light">
+              <button type="submit" class="btn btn-primary w-100 fw-bold">
+                <i class="bi bi-send"></i> Asignar
+              </button>
+            </div>
+
+          </form>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Modal para Confirmar Eliminación -->
-  <div class="modal fade" id="modalEliminarObjetivo" tabindex="-1" aria-labelledby="modalEliminarObjetivoLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-enfasis); color: white;">
-          <h5 class="modal-title" id="modalEliminarObjetivoLabel">Confirmar Eliminación</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>¿Estás seguro de que deseas eliminar este Objetivo?</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger">Eliminar</button>
+
+    <!-- Modal para Ver Detalles -->
+    {% for objetivo in objetivos %}
+    <div class="modal fade" id="modalVerObjetivo{{ objetivo.id }}" tabindex="-1" aria-labelledby="modalVerObjetivoLabel{{ objetivo.id }}" aria-hidden="true">
+      <div class="modal-dialog" style="margin-top: 6rem;">
+        <div class="modal-content">
+          <div class="modal-header" style="background-color: #3c8dbc;">
+            <h5 class="modal-title text-white" id="modalVerObjetivoLabel{{ objetivo.id }}">Detalles del Objetivo</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p><strong>Titulo:</strong> {{ objetivo.titulo}}</p>
+            <p><strong>Descripcion:</strong> {{ objetivo.descripcion|default:"-"}}</p>
+            <p><strong>Fecha de Creacion:</strong> {{ objetivo.fecha_creacion}}</p>
+            <p><strong>Fecha de Asignacion:</strong> {{ objetivo.fecha_asignacion_representativa|default:"No asignado" }}</p>
+            <p><strong>Fecha de Fin:</strong> {{objetivo.fecha_fin|default:"-"}}</p>
+            <p><strong>Estado:</strong> {{ objetivo.estado_asignacion }}</p>
+            <p><strong>Recurrencia:</strong> 
+              {% if objetivo.es_recurrente %}
+                Siempre
+              {% else %}
+                Unica Vez
+              {% endif %}
+            </p>  
+          </div>
         </div>
       </div>
     </div>
+    {% endfor %}
+
+
+    <!-- Modal para Confirmar Eliminación -->
+    <div class="modal fade" id="modalEliminarObjetivo" tabindex="-1" aria-labelledby="modalEliminarObjetivoLabel" aria-hidden="true">
+      <div class="modal-dialog" style="margin-top: 12rem;">
+        <div class="modal-content">
+          <div class="modal-header" style="background-color: #3c8dbc;">
+            <h5 class="modal-title text-white" id="modalEliminarObjetivoLabel">Confirmar Eliminación</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>¿Estás seguro de que deseas eliminar este Objetivo?</p>
+          </div>
+          <div class="modal-footer">
+            <form id="formEliminarObjetivo" method="post">
+              {% csrf_token %}
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-danger">Eliminar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modales = document.querySelectorAll('.modal');
+
+        modales.forEach(modal => {
+            modal.addEventListener('show.bs.modal', function () {
+                const modalId = this.getAttribute('id');
+                const objetivoId = modalId.replace('modalVerObjetivo', '');
+                const historial = document.getElementById('historial' + objetivoId);
+                
+                if (historial && !historial.classList.contains('show')) {
+                    const bsCollapse = bootstrap.Collapse.getOrCreateInstance(historial);
+                    bsCollapse.show();
+                }
+            });
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const esRecurrenteCheckbox = document.getElementById('id_es_recurrente');
+      const fechaFinInput = document.getElementById('id_fecha_fin');
+
+      function toggleFechaFin() {
+        if (esRecurrenteCheckbox.checked) {
+          fechaFinInput.disabled = true;
+          fechaFinInput.value = '';
+        } else {
+          fechaFinInput.disabled = false;
+        }
+      }
+
+      esRecurrenteCheckbox.addEventListener('change', toggleFechaFin);
+
+      toggleFechaFin();
+
+
+      const modalAsignar = document.getElementById('modalAsignarObjetivo');
+
+      modalAsignar.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget; 
+        const objetivoId = button.getAttribute('data-objetivo-id');
+        const objetivoTitulo = button.getAttribute('data-objetivo-titulo');
+
+        document.getElementById('asignarObjetivoId').value = objetivoId;
+
+       const tituloSpan = modalAsignar.querySelector('#tituloObjetivoAsignar');
+        if (tituloSpan) {
+          tituloSpan.textContent = objetivoTitulo;
+        }
+        
+        document.getElementById('tipoAsignacion').value = '';
+        mostrarSelectorAsignacion('');
+      });
+
+      const tipoAsignacionSelect = document.getElementById('tipo_asignacion');
+      const contenedorEmpleado = document.getElementById('contenedor_empleado');
+      const contenedorCargo = document.getElementById('contenedor_cargo');
+      const empleadoSelect = document.getElementById('empleado_id');
+      const cargoSelect = document.getElementById('cargo_id');
+
+      function limpiarSelect(select) {
+          select.innerHTML = '<option value="">Seleccione una opción</option>';
+      }
+
+      function cargarDatos(tipo) {
+          fetch(`/objetivos/obtener_datos_asignacion/?tipo=${tipo}`)
+              .then(response => response.json())
+              .then(data => {
+                  if (data.data) {
+                      const targetSelect = (tipo === 'empleado') ? empleadoSelect : cargoSelect;
+                      limpiarSelect(targetSelect);
+                      data.data.forEach(obj => {
+                          const option = document.createElement('option');
+                          option.value = obj.id;
+                          option.textContent = obj.nombre;
+                          targetSelect.appendChild(option);
+                      });
+                  }
+              });
+      }
+
+      tipoAsignacionSelect.addEventListener('change', function () {
+          const tipo = this.value;
+          if (tipo === 'empleado') {
+              contenedorEmpleado.style.display = 'block';
+              contenedorCargo.style.display = 'none';
+          } else if (tipo === 'cargo') {
+              contenedorEmpleado.style.display = 'none';
+              contenedorCargo.style.display = 'block';
+          } else {
+              contenedorEmpleado.style.display = 'none';
+              contenedorCargo.style.display = 'none';
+          }
+
+          if (tipo === 'empleado' || tipo === 'cargo') {
+              cargarDatos(tipo);
+          }
+      });
+
+      // Ejecutar al cargar la página si ya hay una opción preseleccionada
+      const tipoInicial = tipoAsignacionSelect.value;
+      if (tipoInicial === 'empleado' || tipoInicial === 'cargo') {
+          cargarDatos(tipoInicial);
+          contenedorEmpleado.style.display = (tipoInicial === 'empleado') ? 'block' : 'none';
+          contenedorCargo.style.display = (tipoInicial === 'cargo') ? 'block' : 'none';
+      }
+
+  });
+
+    function mostrarSelectorAsignacion(valor) {
+      document.getElementById("selectorEmpleado").classList.add("d-none");
+      document.getElementById("selectorCargo").classList.add("d-none");
+
+      if (valor === "empleado") {
+        document.getElementById("selectorEmpleado").classList.remove("d-none");
+      } else if (valor === "cargo") {
+        document.getElementById("selectorCargo").classList.remove("d-none");
+      }
+    }
+
+     // Mostrar segundo modal si fue solicitado
+    {% if objetivo_para_asignar %}
+      const asignarModal = new bootstrap.Modal(document.getElementById('modalAsignarObjetivo'));
+      document.getElementById('asignarObjetivoId').value = "{{ objetivo_para_asignar.id }}";
+      asignarModal.show();
+    {% endif %}
+  
+
+
+  document.addEventListener("DOMContentLoaded", function () {
+    
+    const modalEliminar = document.getElementById('modalEliminarObjetivo');
+    modalEliminar.addEventListener('show.bs.modal', function (event) {
+      const button = event.relatedTarget;
+      const objetivoId = button.getAttribute('data-id');
+      const form = document.getElementById('formEliminarObjetivo');
+      form.action = `/objetivos/${objetivoId}/eliminar/`;
+      const titulo = button.closest('tr').querySelector('td').textContent.trim();
+      document.getElementById('textoConfirmacionEliminarObjetivo').textContent = `¿Estás seguro de eliminar el objetivo "${titulo}"?`;
+
+    });
+  });
+    
+
+    const asignarId = "{{ objetivo_a_asignar|default:'' }}";
+    if (asignarId) {
+      document.getElementById("asignarObjetivoId").value = asignarId;
+      const modal = new bootstrap.Modal(document.getElementById('modalAsignarObjetivo'));
+      modal.show();
+    }
+
+    window.mostrarSelectorAsignacion = function(valor) {
+      document.getElementById('selectorEmpleado').classList.toggle('d-none', valor !== 'empleado');
+      document.getElementById('selectorCargo').classList.toggle('d-none', valor !== 'cargo');
+    }
+
+
+
+
+  function editarObjetivo(button) {
+    const id = button.getAttribute('data-id');
+    const titulo = button.getAttribute('data-titulo');
+    const fechaFin = button.getAttribute('data-fechaFin');
+    const descripcion = button.getAttribute('data-descripcion');
+    const esRecurrente = button.getAttribute('data-esrecurrente') === 'True';
+
+
+    // Llenar los campos del formulario
+    document.getElementById('id_objetivo').value = id;
+    document.getElementById('id_titulo').value = titulo;
+    document.getElementById('id_descripcion').value = descripcion || '';
+    document.getElementById('id_es_recurrente').checked = esRecurrente;
+
+    if (fechaFin) {
+      const fechaFormateada = new Date(fechaFin).toISOString().split('T')[0];
+      document.getElementById('id_fecha_fin').value = fechaFormateada;
+    } else {
+      document.getElementById('id_fecha_fin').value = '';
+    }
+
+    document.getElementById('modalObjetivoLabel').textContent = "Editar Objetivo";
+  }
+
+
+
+  document.querySelector('button[data-bs-target="#modalObjetivo"]').addEventListener('click', function () {
+    if (!this.hasAttribute('data-id')) {
+      document.getElementById('formObjetivo').reset();
+      document.getElementById('id_objetivo').value = '';
+      document.getElementById('modalObjetivoLabel').textContent = "Crear Objetivo";
+    }
+  });
+
+
+  </script>
+
   {% endblock %}
 </body>
 </html>

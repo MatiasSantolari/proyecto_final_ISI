@@ -149,8 +149,8 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
         
-        const modalEliminar = document.getElementById('modalEliminarDepartamento');
-        modalEliminar.addEventListener('show.bs.modal', function (event) {
+      const modalEliminar = document.getElementById('modalEliminarDepartamento');
+      modalEliminar.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
         const departamentoId = button.getAttribute('data-id');
         const form = document.getElementById('formEliminarDepartamento');

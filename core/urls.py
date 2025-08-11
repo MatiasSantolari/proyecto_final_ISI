@@ -47,6 +47,14 @@ urlpatterns = [
     path('limpiar_postulantes/', views.limpiar_postulantes_cargo, name='limpiar_postulantes'),
 
 
+    ## OBJETIVOS ##
+    path('objetivos/', views.objetivos, name='objetivos'),
+    path('objetivos/crear/', views.crear_objetivo, name='crear_objetivo'),
+    path('objetivos/<int:id_objetivo>/eliminar/', views.eliminar_objetivo, name='eliminar_objetivo'),
+    path('objetivos/obtener_datos_asignacion/', views.obtener_datos_asignacion, name='obtener_datos_asignacion'),
+    path('objetivos/asignar/', views.asignar_objetivo, name='asignar_objetivo'),
+
+
 ## CATEGORIA del CARGO ##
   #  path('cargo_categoria/', views.cargos_categoria, name='cargo_categoria'),
   #  path('cargo_categoria/crear/', views.crear_cargo_categoria, name='crear_cargo_categoria'), ## Sirve para editar tambien
@@ -73,7 +81,6 @@ urlpatterns = [
     path('instituciones/', views.instituciones, name='instituciones'),
     path('logros/', views.logros, name='logros'),
     path('nominas/', views.nominas, name='nominas'),
-    path('objetivos/', views.objetivos, name='objetivos'),
    
     path('postulantes/', views.postulantes, name='postulantes'),
     path('publicar_ofertas_de_empleo/', views.publicar_ofertas_de_empleo, name='publicar_ofertas_de_empleo'),
