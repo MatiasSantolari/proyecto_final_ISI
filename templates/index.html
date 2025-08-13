@@ -16,14 +16,30 @@
             <div class="col-md-4 mb-4">
                 <div class="card bg-soft-success bg-light text-dark border-start border-4 border-success shadow-sm h-100 rounded-4">
                     <div class="card-body">
-                        <h5 class="card-title">🎯 Objetivos y Metas</h5><hr><hr>
-                        <p><strong>Objetivo:</strong> Finalizar el curso de liderazgo</p>
-                        <div class="progress">
-                            <div class="progress-bar bg-success" role="progressbar" style="width: 60%;">60%</div>
+                        <h5 class="card-title">🎯 Objetivos y Metas</h5>
+                        <hr>
+                        {% if objetivos_con_estado %}
+                            {% for item in objetivos_con_estado %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input objetivo-check" type="checkbox"
+                                        data-id="{{ item.objetivo.id }}"
+                                        {% if item.completado %}checked{% endif %}>
+                                    <label class="form-check-label">{{ item.objetivo.titulo }}</label>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p>No tienes objetivos asignados.</p>
+                        {% endif %}
+                        <div class="progress mt-3">
+                            <div id="barra-progreso" style="min-width: 30px;" class="progress-bar bg-success" role="progressbar"
+                                style="width: {{ progreso }}%;">
+                                {{ progreso }}%
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
 
             <!-- Logros -->
             <div class="col-md-4 mb-4">
@@ -110,11 +126,35 @@
 
 {% block extra_js %}
 <script>
-  function toggleAdminMode() {
-    const userContent = document.getElementById('user-content');
-    const adminContent = document.getElementById('admin-content');
-    userContent.classList.toggle('d-none');
-    adminContent.classList.toggle('d-none');
-  }
+    function toggleAdminMode() {
+        const userContent = document.getElementById('user-content');
+        const adminContent = document.getElementById('admin-content');
+        userContent.classList.toggle('d-none');
+        adminContent.classList.toggle('d-none');
+    }
+
+
+    $(document).on("change", ".objetivo-check", function() {
+        let objetivoId = $(this).data("id");
+        let completado = $(this).is(":checked");
+
+        $.ajax({
+            url: "{% url 'marcar_objetivo' %}",
+            type: "POST",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'objetivo_id': objetivoId,
+                'completado': completado
+            },
+            success: function(response) {
+                if (response.success) {
+                    $("#barra-progreso")
+                        .css("width", response.progreso + "%")
+                        .text(response.progreso + "%");
+                }
+            }
+        });
+    });
+
 </script>
 {% endblock %}

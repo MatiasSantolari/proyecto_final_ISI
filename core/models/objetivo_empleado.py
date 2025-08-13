@@ -8,11 +8,7 @@ class ObjetivoEmpleado(models.Model):
     empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
     fecha_asignacion = models.DateField(default=datetime.now, verbose_name='Fecha de Asignacion')
     fecha_limite = models.DateField(null=True, blank=True, verbose_name='Fecha limite')
-    ESTADO_CHOICES = [
-        ('en proceso', 'En Proceso'),
-        ('completado', 'Completado'),
-    ]
-    estado = models.CharField(max_length=50, choices=ESTADO_CHOICES, default='en proceso', verbose_name='Estado')
+    completado = models.BooleanField(default=False, verbose_name='estado de completitud')
 
 
     class Meta:        

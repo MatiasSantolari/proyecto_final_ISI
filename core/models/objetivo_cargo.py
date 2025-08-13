@@ -7,12 +7,7 @@ class ObjetivoCargo(models.Model):
     objetivo = models.ForeignKey(Objetivo, on_delete=models.CASCADE)
     cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE)
     fecha_asignacion = models.DateField(default=datetime.now, verbose_name='Fecha de Asignacion')
-    activo = models.BooleanField(default=False, verbose_name='si esta activo')
-    ESTADO_CHOICES = [
-            ('en proceso', 'En Proceso'),
-            ('completado', 'Completado'),
-        ]
-    estado = models.CharField(max_length=50, choices=ESTADO_CHOICES, default='en proceso', verbose_name='Estado')
+    completado = models.BooleanField(default=False, verbose_name='estado de completitud')
 
     class Meta:        
         verbose_name = 'ObjetivoCargo'

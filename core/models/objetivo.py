@@ -11,6 +11,7 @@ class Objetivo(models.Model):
     fecha_creacion = models.DateField(default=datetime.now, verbose_name='Fecha de creacion')
     fecha_fin = models.DateField(null=True, blank=True, verbose_name='Fecha de fin')
     es_recurrente = models.BooleanField(default=False, verbose_name='si es recurrente')
+    activo = models.BooleanField(default=True, verbose_name='estado de actividad')
 
     class Meta:
         verbose_name = 'Objetivo'

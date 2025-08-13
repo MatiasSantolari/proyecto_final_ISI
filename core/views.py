@@ -17,7 +17,7 @@ from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.utils.encoding import force_bytes
-from datetime import date
+from datetime import datetime, date
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.http import require_POST
 from django.db.models import Prefetch
@@ -51,22 +51,71 @@ def dashboard_normal(request):
     return render(request, 'core/dashboard_normal.html')
 """
 
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Objetivo, ObjetivoEmpleado
+
 @login_required
 def home(request):
     user = request.user
-    rol = user.rol
-    if not user.persona:
+
+    if not hasattr(user, 'persona'):
         return redirect('create_profile')
-    else:
-        if rol == 'admin':
-            return render(request, 'index.html')    #Luego segun el rol tendria una vista distinta, habria que verlo bien.
-        elif rol == 'gerente':
-            return render(request, 'index.html')
-        elif rol == 'empleado':
-            return render(request, 'index.html')
+
+    if user.rol == 'empleado':
+        persona = user.persona
+
+        if hasattr(persona, 'empleado'):
+            empleado = persona.empleado
+
+            # Obtener objetivos directos y por cargo
+            objetivos_directos = Objetivo.objects.filter(objetivoempleado__empleado=empleado)
+            objetivos_por_cargo = Objetivo.objects.filter(
+                objetivocargo__cargo__empleadocargo__empleado=empleado
+            )
+
+            objetivos = (objetivos_directos | objetivos_por_cargo).distinct()
+
+            total = objetivos.count()
+
+            # Calcular cuantos están completados para este empleado (usando completado booleano)
+            completados = ObjetivoEmpleado.objects.filter(
+                empleado=empleado,
+                completado=True
+            ).count()
+
+            progreso = int((completados / total) * 100) if total > 0 else 0
+
+            # Armar lista con estado booleano para cada objetivo
+            objetivos_con_estado = []
+            for obj in objetivos:
+                oe = obj.objetivoempleado_set.filter(empleado=empleado).first()
+                completado = oe.completado if oe else False
+                objetivos_con_estado.append({
+                    'objetivo': obj,
+                    'completado': completado,
+                })
+
         else:
-            return render(request, 'index.html')
-    
+            objetivos_con_estado = []
+            progreso = 0
+            empleado = None
+
+        return render(request, 'index.html', {
+            'objetivos_con_estado': objetivos_con_estado,
+            'progreso': progreso,
+            'empleado': empleado,
+        })
+
+    elif user.rol in ['admin', 'gerente']:
+        return render(request, 'index.html')
+
+    # Otros roles
+    return render(request, 'index.html')
+
+
+
 
 def registrar_usuario(request):
     if request.method == "POST":
@@ -801,6 +850,7 @@ def objetivos(request):
         Prefetch('objetivocargo_set', queryset=ObjetivoCargo.objects.select_related('cargo'))
     ).distinct()
 
+    objetivos_con_fechas = []
     for objetivo in objetivosList:
         tiene_empleados = objetivo.objetivoempleado_set.exists()
         tiene_cargos = objetivo.objetivocargo_set.exists()
@@ -813,6 +863,19 @@ def objetivos(request):
         fecha_min_cargo = objetivo.objetivocargo_set.aggregate(Min('fecha_asignacion'))['fecha_asignacion__min']
         fechas = [f for f in [fecha_min_empleado, fecha_min_cargo] if f is not None]
         objetivo.fecha_asignacion_representativa = min(fechas) if fechas else None
+
+        objetivos_con_fechas.append(objetivo)
+
+
+    # Ordenar por activo (descendente, True primero) y luego fecha_asignacion_representativa (descendente)
+    objetivos_ordenados = sorted(
+        objetivos_con_fechas,
+        key=lambda o: (
+            not o.activo,
+            o.fecha_asignacion_representativa is None,
+            -(o.fecha_asignacion_representativa.toordinal() if o.fecha_asignacion_representativa else 0)
+        )
+    )
 
 
     empleados = Empleado.objects.filter(
@@ -828,11 +891,11 @@ def objetivos(request):
     objetivo_a_asignar = request.GET.get("asignar")
 
     context = {
-        'objetivos': objetivosList,
+        'objetivos': objetivos_ordenados,
         'empleados': empleados,
         'cargos': cargos,
         'form': form,
-        'objetivo_a_asignar': objetivo_a_asignar
+        'objetivo_a_asignar': objetivo_a_asignar,
     }
 
     return render(request, 'objetivos.html', context)
@@ -960,8 +1023,22 @@ def asignar_objetivo(request):
 def eliminar_objetivo(request, id_objetivo):
     try:
         objetivo = get_object_or_404(Objetivo, id=id_objetivo)
-        objetivo.delete()
-        messages.success(request, "Objetivo eliminado correctamente.")
+        objetivo.activo = False
+        objetivo.save()
+        messages.success(request, "Objetivo desactivado correctamente.")
+    except Objetivo.DoesNotExist:
+        messages.error(request, "El objetivo no existe.")
+    return redirect('objetivos')
+
+
+@login_required
+@require_POST
+def activar_objetivo(request, id_objetivo):
+    try:
+        objetivo = get_object_or_404(Objetivo, id=id_objetivo)
+        objetivo.activo = True
+        objetivo.save()
+        messages.success(request, "Objetivo activado correctamente.")
     except Objetivo.DoesNotExist:
         messages.error(request, "El objetivo no existe.")
     return redirect('objetivos')
@@ -994,6 +1071,40 @@ def obtener_datos_asignacion(request):
         return JsonResponse({'error': 'Tipo no válido'}, status=400)
 
     return JsonResponse({'data': data})
+
+
+@login_required
+def marcar_objetivo(request):
+    if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        user = request.user
+        persona = getattr(user, 'persona', None)
+        if not persona or not hasattr(persona, 'empleado'):
+            return JsonResponse({'success': False, 'error': 'Empleado no encontrado.'})
+
+        empleado = persona.empleado
+        objetivo_id = request.POST.get('objetivo_id')
+        completado = request.POST.get('completado') == 'true' 
+
+        try:
+            oe, created = ObjetivoEmpleado.objects.get_or_create(
+                empleado=empleado,
+                objetivo_id=objetivo_id,
+                defaults={'completado': completado}
+            )
+            if not created:
+                oe.completado = completado
+                oe.save()
+
+            total_objetivos = ObjetivoEmpleado.objects.filter(empleado=empleado).count()
+            completados = ObjetivoEmpleado.objects.filter(empleado=empleado, completado=True).count()
+            progreso = int((completados / total_objetivos) * 100) if total_objetivos > 0 else 0
+
+            return JsonResponse({'success': True, 'progreso': progreso})
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
 
 
 ##################################################

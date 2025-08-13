@@ -20,10 +20,11 @@
           <table class="table table-hover table-bordered align-middle mb-0">
             <thead style="table-light text-center">
               <tr>
-                <th style="width: 55%;">Titulo</th>
-                <th style="width: 10%;">Fecha de Asignacion</th>
+                <th style="width: 50%;">Titulo</th>
+                <th style="width: 10%;">Fecha Creacion</th>
                 <th style="width: 10%;">Fecha Fin</th>
-                <th style="width: 15%;">Estado</th>
+                <th style="width: 10%;">Estado</th>
+                <th style="width: 10%;">Activo</th>
                 <th style="width: 10%;">Acciones</th>
               </tr>
             </thead>
@@ -31,7 +32,13 @@
               {% for objetivo in objetivos %}
               <tr>
                 <td>{{ objetivo.titulo }}</td>
-                <td>{{ objetivo.fecha_asignacion|default:"-"  }}</td>
+                <td>
+                  {% if objetivo.fecha_creacion %}
+                    {{ objetivo.fecha_creacion|date:"d/m/Y" }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
                 <td>
                   {% if objetivo.fecha_fin %}
                     {{ objetivo.fecha_fin|date:"d/m/Y" }}
@@ -41,6 +48,13 @@
                 </td>
                 <td>
                   {{ objetivo.estado_asignacion }}
+                </td>
+                <td class="text-center">
+                  {% if objetivo.activo %}
+                    <span class="badge bg-success">Sí</span>
+                  {% else %}
+                    <span class="badge bg-danger">No</span>
+                  {% endif %}
                 </td>
                 <td>
                   <div class="d-flex justify-content-center gap-2">
@@ -70,13 +84,23 @@
                             data-bs-toggle="tooltip" title="Ver">
                       <i class="bi bi-eye"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#modalEliminarObjetivo"
-                            data-id="{{ objetivo.id }}"
-                            data-bs-toggle="tooltip" title="Eliminar">
-                      <i class="bi bi-trash3"></i>
-                    </button>
+                    {% if objetivo.activo %}
+                      <button class="btn btn-sm btn-outline-danger" 
+                              data-bs-toggle="modal" 
+                              data-bs-target="#modalEliminarObjetivo"
+                              data-id="{{ objetivo.id }}"
+                              data-bs-toggle="tooltip" title="Eliminar">
+                        <i class="bi bi-trash3"></i>
+                      </button>
+                    {% else %}
+                      <button class="btn btn-sm btn-outline-success" 
+                              data-bs-toggle="modal" 
+                              data-bs-target="#modalActivarObjetivo"
+                              data-id="{{ objetivo.id }}"
+                              data-bs-toggle="tooltip" title="Activar">
+                        <i class="bi bi-arrow-clockwise"></i>
+                      </button>
+                    {% endif %}
                   </div>
                 </td>
               </tr>
@@ -217,6 +241,13 @@
             <p><strong>Fecha de Asignacion:</strong> {{ objetivo.fecha_asignacion_representativa|default:"No asignado" }}</p>
             <p><strong>Fecha de Fin:</strong> {{objetivo.fecha_fin|default:"-"}}</p>
             <p><strong>Estado:</strong> {{ objetivo.estado_asignacion }}</p>
+            <p><strong>Activo:</strong> 
+              {% if objetivo.activo %}
+                Sí
+              {% else %}
+                No
+              {% endif %}
+            </p>
             <p><strong>Recurrencia:</strong> 
               {% if objetivo.es_recurrente %}
                 Siempre
@@ -247,6 +278,28 @@
               {% csrf_token %}
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
               <button type="submit" class="btn btn-danger">Eliminar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para Confirmar Activación -->
+    <div class="modal fade" id="modalActivarObjetivo" tabindex="-1" aria-labelledby="modalActivarObjetivoLabel" aria-hidden="true">
+      <div class="modal-dialog" style="margin-top: 12rem;">
+        <div class="modal-content">
+          <div class="modal-header" style="background-color: #198754;"> <!-- verde bootstrap -->
+            <h5 class="modal-title text-white" id="modalActivarObjetivoLabel">Confirmar Activación</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p><span id="textoConfirmacionActivarObjetivo"></span></p>
+          </div>
+          <div class="modal-footer">
+            <form id="formActivarObjetivo" method="post">
+              {% csrf_token %}
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-success">Activar</button>
             </form>
           </div>
         </div>
@@ -397,6 +450,17 @@
       document.getElementById('textoConfirmacionEliminarObjetivo').textContent = `¿Estás seguro de eliminar el objetivo "${titulo}"?`;
 
     });
+
+     const modalActivar = document.getElementById('modalActivarObjetivo');
+    modalActivar.addEventListener('show.bs.modal', function (event) {
+      const button = event.relatedTarget;
+      const objetivoId = button.getAttribute('data-id');
+      const form = document.getElementById('formActivarObjetivo');
+      form.action = `/objetivos/${objetivoId}/activar/`;
+      const titulo = button.closest('tr').querySelector('td').textContent.trim();
+      document.getElementById('textoConfirmacionActivarObjetivo').textContent = `¿Estás seguro de activar el objetivo "${titulo}"?`;
+    });
+
   });
     
 
