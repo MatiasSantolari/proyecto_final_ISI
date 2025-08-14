@@ -16,7 +16,7 @@ class ObjetivoEmpleado(models.Model):
         verbose_name_plural = 'ObjetivosEmpleados'
         db_table = 'objetivo_empleado'
         ordering = ['id']  # - para oden descendente
-        unique_together = ('objetivo', 'empleado')
+        unique_together = ('objetivo', 'empleado', 'fecha_asignacion')
         
     def __str__(self):
         return f"Objetivo {self.objetivo} - Empleado {self.empleado}"

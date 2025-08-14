@@ -87,9 +87,9 @@
                     {% if objetivo.activo %}
                       <button class="btn btn-sm btn-outline-danger" 
                               data-bs-toggle="modal" 
-                              data-bs-target="#modalEliminarObjetivo"
+                              data-bs-target="#modalDesactivarObjetivo"
                               data-id="{{ objetivo.id }}"
-                              data-bs-toggle="tooltip" title="Eliminar">
+                              data-bs-toggle="tooltip" title="Desactivar">
                         <i class="bi bi-trash3"></i>
                       </button>
                     {% else %}
@@ -262,22 +262,26 @@
     {% endfor %}
 
 
-    <!-- Modal para Confirmar Eliminación -->
-    <div class="modal fade" id="modalEliminarObjetivo" tabindex="-1" aria-labelledby="modalEliminarObjetivoLabel" aria-hidden="true">
+    <!-- Modal para Confirmar Desactivacion -->
+    <div class="modal fade" id="modalDesactivarObjetivo" tabindex="-1" aria-labelledby="modalDesactivarObjetivoLabel" aria-hidden="true">
       <div class="modal-dialog" style="margin-top: 12rem;">
         <div class="modal-content">
           <div class="modal-header" style="background-color: #3c8dbc;">
-            <h5 class="modal-title text-white" id="modalEliminarObjetivoLabel">Confirmar Eliminación</h5>
+            <h5 class="modal-title text-white" id="modalDesactivarObjetivoLabel">Confirmar Desactivacion o Eliminacion</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <p>¿Estás seguro de que deseas eliminar este Objetivo?</p>
+            <p>¿Estás seguro de que deseas Desactivar o Eliminar este Objetivo?</p>
           </div>
           <div class="modal-footer">
             <form id="formEliminarObjetivo" method="post">
               {% csrf_token %}
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
               <button type="submit" class="btn btn-danger">Eliminar</button>
+            </form>
+            <form id="formDesactivarObjetivo" method="post">
+              {% csrf_token %}
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" name="accion" value="desactivar" class="btn btn-warning">Desactivar</button>
             </form>
           </div>
         </div>
@@ -440,14 +444,19 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     
-    const modalEliminar = document.getElementById('modalEliminarObjetivo');
-    modalEliminar.addEventListener('show.bs.modal', function (event) {
+    const modalDesactivar = document.getElementById('modalDesactivarObjetivo');
+    modalDesactivar.addEventListener('show.bs.modal', function (event) {
       const button = event.relatedTarget;
       const objetivoId = button.getAttribute('data-id');
-      const form = document.getElementById('formEliminarObjetivo');
-      form.action = `/objetivos/${objetivoId}/eliminar/`;
+      
+      const formDesactivar = document.getElementById('formDesactivarObjetivo');
+      formDesactivar.action = `/objetivos/${objetivoId}/desactivar/`;
+
+      const formEliminar = document.getElementById('formEliminarObjetivo');
+      formEliminar.action = `/objetivos/${objetivoId}/eliminar/`;
+
       const titulo = button.closest('tr').querySelector('td').textContent.trim();
-      document.getElementById('textoConfirmacionEliminarObjetivo').textContent = `¿Estás seguro de eliminar el objetivo "${titulo}"?`;
+      document.getElementById('textoConfirmacionDesactivarObjetivo').textContent = `¿Estás seguro de desactivar o eliminar el objetivo "${titulo}"?`;
 
     });
 

@@ -20,6 +20,33 @@
       </form>
 
       <ul class="navbar-nav mb-2 mb-lg-0">
+
+        <li class="nav-item dropdown ms-3">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+            <i class="fas fa-exchange-alt me-1"></i> {{ rol_actual|title }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <form action="{% url 'cambiar_vista' %}" method="post" style="margin:0;">
+                {% csrf_token %}
+
+                {% if request.user.rol == 'admin' %}
+                  <button type="submit" name="rol" value="admin" class="dropdown-item {% if rol_actual == 'admin' %}active{% endif %}">Admin</button>
+                  <button type="submit" name="rol" value="gerente" class="dropdown-item {% if rol_actual == 'gerente' %}active{% endif %}">Gerente</button>
+                  <button type="submit" name="rol" value="jefe" class="dropdown-item {% if rol_actual == 'jefe' %}active{% endif %}">Jefe</button>
+                  <button type="submit" name="rol" value="empleado" class="dropdown-item {% if rol_actual == 'empleado' %}active{% endif %}">Empleado</button>
+                {% elif request.user.rol == 'gerente' %}
+                  <button type="submit" name="rol" value="gerente" class="dropdown-item {% if rol_actual == 'gerente' %}active{% endif %}">Gerente</button>
+                  <button type="submit" name="rol" value="empleado" class="dropdown-item {% if rol_actual == 'empleado' %}active{% endif %}">Empleado</button>
+                {% elif request.user.rol == 'jefe' %}
+                  <button type="submit" name="rol" value="jefe" class="dropdown-item {% if rol_actual == 'jefe' %}active{% endif %}">Jefe</button>
+                  <button type="submit" name="rol" value="empleado" class="dropdown-item {% if rol_actual == 'empleado' %}active{% endif %}">Empleado</button>
+                {% endif %}
+              </form>
+            </li>
+          </ul>
+        </li>
+
         <li class="nav-item dropdown">
           <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown">
             <i class="far fa-bell"></i>
@@ -41,6 +68,7 @@
           <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" href="{% url 'user_perfil' %}">Perfil</a></li>
             <li><a class="dropdown-item" href="#">Configuración</a></li>
+            
             <li><hr class="dropdown-divider"></li>
             <li>
               <form action="{% url 'logout' %}" method="post" style="display: block; margin: 0;">

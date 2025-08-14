@@ -7,7 +7,7 @@
     <div class="container-fluid mt-4"><hr>
         <h1 class="mb-4">Bienvenido al Sistema</h1>
 
-        {% if user.rol == 'admin' %}
+        {% if rol_actual == 'admin' %}
             <button class="admin-toggle btn btn-outline-primary mb-4" onclick="toggleAdminMode()">Modo Admin</button>
         {% endif %}
 
@@ -16,7 +16,7 @@
             <div class="col-md-4 mb-4">
                 <div class="card bg-soft-success bg-light text-dark border-start border-4 border-success shadow-sm h-100 rounded-4">
                     <div class="card-body">
-                        <h5 class="card-title">🎯 Objetivos y Metas</h5>
+                        <h5 class="card-title">🎯 Objetivos/Tareas</h5>
                         <hr>
                         {% if objetivos_con_estado %}
                             {% for item in objetivos_con_estado %}
@@ -24,13 +24,15 @@
                                     <input class="form-check-input objetivo-check" type="checkbox"
                                         data-id="{{ item.objetivo.id }}"
                                         {% if item.completado %}checked{% endif %}>
-                                    <label class="form-check-label">{{ item.objetivo.titulo }}</label>
+                                    <label class="form-check-label {% if item.completado %}objetivo-completado{% endif %}">
+                                        {{ item.objetivo.titulo }}
+                                    </label>
                                 </div>
                             {% endfor %}
                         {% else %}
                             <p>No tienes objetivos asignados.</p>
                         {% endif %}
-                        <div class="progress mt-3">
+                        <div class="progress mt-4">
                             <div id="barra-progreso" style="min-width: 30px;" class="progress-bar bg-success" role="progressbar"
                                 style="width: {{ progreso }}%;">
                                 {{ progreso }}%
@@ -123,7 +125,14 @@
 </div>
 
 {% endblock %}
-
+<style>
+    .objetivo-completado {
+        text-decoration: line-through;
+        color: gray;
+        opacity: 0.6;
+        transition: all 0.3s ease;
+    }
+</style>
 {% block extra_js %}
 <script>
     function toggleAdminMode() {
@@ -138,6 +147,13 @@
         let objetivoId = $(this).data("id");
         let completado = $(this).is(":checked");
 
+        let label = $(this).closest(".form-check").find("label");
+        if (completado) {
+            label.addClass("objetivo-completado");
+        } else {
+            label.removeClass("objetivo-completado");
+        }
+        
         $.ajax({
             url: "{% url 'marcar_objetivo' %}",
             type: "POST",

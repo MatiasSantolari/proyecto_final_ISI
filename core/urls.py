@@ -5,6 +5,8 @@ from core import views
 urlpatterns = [
     path('home/', views.home, name='home'),
     
+     path('cambiar_vista/', views.cambiar_vista, name='cambiar_vista'),
+     
     path('profile/create/', views.create_persona, name='create_profile'),
 
     # Perfil usuario
@@ -50,6 +52,7 @@ urlpatterns = [
     ## OBJETIVOS ##
     path('objetivos/', views.objetivos, name='objetivos'),
     path('objetivos/crear/', views.crear_objetivo, name='crear_objetivo'),
+    path('objetivos/<int:id_objetivo>/desactivar/', views.desactivar_objetivo, name='desactivar_objetivo'),
     path('objetivos/<int:id_objetivo>/eliminar/', views.eliminar_objetivo, name='eliminar_objetivo'),
     path('objetivos/<int:id_objetivo>/activar/', views.activar_objetivo, name='activar_objetivo'),
     path('objetivos/obtener_datos_asignacion/', views.obtener_datos_asignacion, name='obtener_datos_asignacion'),

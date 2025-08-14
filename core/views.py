@@ -51,14 +51,23 @@ def dashboard_normal(request):
     return render(request, 'core/dashboard_normal.html')
 """
 
+@login_required
+@require_POST
+def cambiar_vista(request):
+    if request.method == 'POST':
+        rol = request.POST.get('rol')
+        if rol in ['admin', 'empleado', 'jefe', 'gerente']:
+            request.session['rol_actual'] = rol
+            messages.success(request, f"Vista cambiada a {rol.capitalize()}.")
+    return redirect('home')
 
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .models import Objetivo, ObjetivoEmpleado
 
 @login_required
 def home(request):
     user = request.user
+    rol_actual = request.session.get('rol_actual', user.rol)
+
+    context = {'rol_actual': rol_actual, 'usuario': user}
 
     if not hasattr(user, 'persona'):
         return redirect('create_profile')
@@ -68,51 +77,47 @@ def home(request):
 
         if hasattr(persona, 'empleado'):
             empleado = persona.empleado
-
-            # Obtener objetivos directos y por cargo
-            objetivos_directos = Objetivo.objects.filter(objetivoempleado__empleado=empleado)
-            objetivos_por_cargo = Objetivo.objects.filter(
-                objetivocargo__cargo__empleadocargo__empleado=empleado
+            oe_queryset = ObjetivoEmpleado.objects.filter(
+                empleado=empleado,
+                objetivo__activo=True
+            ).filter(
+                objetivo__es_recurrente=False
+            ) | ObjetivoEmpleado.objects.filter(
+                empleado=empleado,
+                objetivo__activo=True,
+                objetivo__es_recurrente=True,
+                fecha_asignacion=date.today()
             )
 
-            objetivos = (objetivos_directos | objetivos_por_cargo).distinct()
+            oe_queryset = oe_queryset.select_related('objetivo').distinct()
 
-            total = objetivos.count()
-
-            # Calcular cuantos están completados para este empleado (usando completado booleano)
-            completados = ObjetivoEmpleado.objects.filter(
-                empleado=empleado,
-                completado=True
-            ).count()
-
+            total = oe_queryset.count()
+            completados = oe_queryset.filter(completado=True).count()
             progreso = int((completados / total) * 100) if total > 0 else 0
 
-            # Armar lista con estado booleano para cada objetivo
             objetivos_con_estado = []
-            for obj in objetivos:
-                oe = obj.objetivoempleado_set.filter(empleado=empleado).first()
-                completado = oe.completado if oe else False
+            for oe in oe_queryset:
                 objetivos_con_estado.append({
-                    'objetivo': obj,
-                    'completado': completado,
+                    'objetivo': oe.objetivo,
+                    'completado': oe.completado,
                 })
 
+            context.update({
+                'objetivos_con_estado': objetivos_con_estado,
+                'progreso': progreso,
+                'empleado': empleado,
+            })
+
         else:
-            objetivos_con_estado = []
-            progreso = 0
-            empleado = None
+            context.update({
+                'objetivos_con_estado': [],
+                'progreso': 0,
+                'empleado': None,
+            })
 
-        return render(request, 'index.html', {
-            'objetivos_con_estado': objetivos_con_estado,
-            'progreso': progreso,
-            'empleado': empleado,
-        })
+    return render(request, 'index.html', context)
 
-    elif user.rol in ['admin', 'gerente']:
-        return render(request, 'index.html')
 
-    # Otros roles
-    return render(request, 'index.html')
 
 
 
@@ -828,6 +833,27 @@ def habilitar_cargo_para_postulaciones(request):
 
 ############### CRUD OBJETIVOS ##################
 
+
+def generar_objetivos_recurrentes(departamento):
+    objetivos_recurrentes = Objetivo.objects.filter(
+        departamento=departamento,
+        activo=True,
+        es_recurrente=True
+    )
+
+    for objetivo in objetivos_recurrentes:
+        empleados_asignados = objetivo.objetivoempleado_set.values_list('empleado', flat=True).distinct()
+        
+        for emp_id in empleados_asignados:
+            ObjetivoEmpleado.objects.get_or_create(
+                objetivo=objetivo,
+                empleado_id=emp_id,
+                fecha_asignacion=date.today(),
+                defaults={'completado': False}
+            )
+
+
+
 @login_required
 def objetivos(request):
     user = request.user
@@ -842,6 +868,7 @@ def objetivos(request):
         messages.error(request, "No se pudo determinar el departamento del usuario.")
         return redirect("home")
     
+    generar_objetivos_recurrentes(departamento)
 
     objetivosList = Objetivo.objects.filter(
         departamento=departamento
@@ -979,12 +1006,11 @@ def asignar_objetivo(request):
                 objetivo=objetivo,
                 empleado=emp,
                 defaults={
-                    "estado": "en proceso",
+                    'completado': False,
                     "fecha_asignacion": date.today(),
                 }
             )
             if not created:
-                # Actualizo fecha_asignacion si ya existía
                 obj_emp.fecha_asignacion = date.today()
                 obj_emp.save()
 
@@ -998,9 +1024,8 @@ def asignar_objetivo(request):
             objetivo=objetivo,
             cargo=cargo,
             defaults={
-                "estado": "en proceso",
-                "fecha_asignacion": date.today(),
-                "activo": True
+                'completado': False,
+                "fecha_asignacion": date.today()
             }
         )
         if not created:
@@ -1020,12 +1045,24 @@ def asignar_objetivo(request):
 
 @login_required
 @require_POST
-def eliminar_objetivo(request, id_objetivo):
+def desactivar_objetivo(request, id_objetivo):
     try:
         objetivo = get_object_or_404(Objetivo, id=id_objetivo)
         objetivo.activo = False
         objetivo.save()
         messages.success(request, "Objetivo desactivado correctamente.")
+    except Objetivo.DoesNotExist:
+        messages.error(request, "El objetivo no existe.")
+    return redirect('objetivos')
+
+
+@login_required
+@require_POST
+def eliminar_objetivo(request, id_objetivo):
+    try:
+        objetivo = get_object_or_404(Objetivo, id=id_objetivo)
+        objetivo.delete()
+        messages.success(request, "Objetivo eliminado correctamente.")
     except Objetivo.DoesNotExist:
         messages.error(request, "El objetivo no existe.")
     return redirect('objetivos')
