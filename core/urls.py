@@ -57,7 +57,9 @@ urlpatterns = [
     path('objetivos/<int:id_objetivo>/activar/', views.activar_objetivo, name='activar_objetivo'),
     path('objetivos/obtener_datos_asignacion/', views.obtener_datos_asignacion, name='obtener_datos_asignacion'),
     path('objetivos/asignar/', views.asignar_objetivo, name='asignar_objetivo'),
-    path('marcar-objetivo/', views.marcar_objetivo, name='marcar_objetivo'),
+    path('objetivos/marcar-objetivo/', views.marcar_objetivo, name='marcar_objetivo'),
+#    path('objetivos/obtener_asignaciones_objetivo/', views.obtener_asignaciones_objetivo, name='obtener_asignaciones_objetivo'),
+
 
 
 ## CATEGORIA del CARGO ##

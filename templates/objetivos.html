@@ -63,7 +63,8 @@
                             data-bs-target="#modalAsignarObjetivo"
                             data-objetivo-id="{{ objetivo.id }}"
                             data-objetivo-titulo="{{ objetivo.titulo }}"
-                            data-bs-toggle="tooltip" title="Asignar">
+                            data-bs-toggle="tooltip" title="Asignar"
+                            onclick="abrirModalAsignar({{ objetivo.id }})">
                       <i class="bi bi-person-plus"></i>
                     </button>
                     <button class="btn btn-sm btn-outline-secondary" 
@@ -141,7 +142,6 @@
                 {{ form.fecha_fin }}
               </div>
               
-             
               
               <div class="modal-footer bg-light">
                 <button type="submit" class="btn btn-success w-50 fw-bold" name="accion" value="guardar">
@@ -329,6 +329,14 @@
                 }
             });
         });
+    
+      
+       const modalAsignar = document.getElementById('modalAsignarObjetivo');
+      modalAsignar.addEventListener('hidden.bs.modal', function () {
+          document.body.classList.remove('modal-open');
+          const backdrop = document.querySelector('.modal-backdrop');
+          if (backdrop) backdrop.remove();
+      });
     });
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -412,7 +420,7 @@
           }
       });
 
-      // Ejecutar al cargar la página si ya hay una opción preseleccionada
+
       const tipoInicial = tipoAsignacionSelect.value;
       if (tipoInicial === 'empleado' || tipoInicial === 'cargo') {
           cargarDatos(tipoInicial);
@@ -420,7 +428,7 @@
           contenedorCargo.style.display = (tipoInicial === 'cargo') ? 'block' : 'none';
       }
 
-  });
+    });
 
     function mostrarSelectorAsignacion(valor) {
       document.getElementById("selectorEmpleado").classList.add("d-none");
@@ -473,12 +481,17 @@
   });
     
 
-    const asignarId = "{{ objetivo_a_asignar|default:'' }}";
-    if (asignarId) {
-      document.getElementById("asignarObjetivoId").value = asignarId;
-      const modal = new bootstrap.Modal(document.getElementById('modalAsignarObjetivo'));
-      modal.show();
-    }
+  const urlParams = new URLSearchParams(window.location.search);
+  const asignarId = urlParams.get('asignar');
+
+  if (asignarId) {
+      abrirModalAsignar(asignarId);
+
+      urlParams.delete('asignar');
+      const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+      window.history.replaceState({}, '', newUrl);
+  }
+
 
     window.mostrarSelectorAsignacion = function(valor) {
       document.getElementById('selectorEmpleado').classList.toggle('d-none', valor !== 'empleado');
@@ -521,6 +534,40 @@
       document.getElementById('modalObjetivoLabel').textContent = "Crear Objetivo";
     }
   });
+
+
+
+
+  function abrirModalAsignar(objetivoId) {
+      const modal = new bootstrap.Modal(document.getElementById('modalAsignarObjetivo'));
+      modal.show();
+
+      document.getElementById('asignarObjetivoId').value = objetivoId;
+
+      // Limpiar seleccionados
+      document.querySelectorAll('#selectorEmpleado input[type="checkbox"]').forEach(cb => cb.checked = false);
+      document.querySelectorAll('#selectorCargo option').forEach(opt => opt.selected = false);
+
+      // Traer asignaciones del objetivo
+      fetch(`/objetivos/obtener_asignaciones_objetivo/?objetivo_id=${objetivoId}`)
+          .then(response => response.json())
+          .then(data => {
+              if (data.empleados) {
+                  data.empleados.forEach(id => {
+                      const checkbox = document.getElementById('empleado' + id);
+                      if (checkbox) checkbox.checked = true;
+                  });
+              }
+              if (data.cargos) {
+                  const select = document.getElementById('cargoSelect');
+                  data.cargos.forEach(id => {
+                      const option = select.querySelector(`option[value='${id}']`);
+                      if (option) option.selected = true;
+                  });
+              }
+          })
+          .catch(err => console.error("Error fetch asignaciones:", err));
+  }
 
 
   </script>

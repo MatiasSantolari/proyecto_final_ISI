@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from core.models import Objetivo, ObjetivoEmpleado, Empleado, ObjetivoCargo
 from datetime import date
 
+'''''
 class Command(BaseCommand):
     help = "Genera objetivos recurrentes para cada empleado asignado"
 
@@ -48,3 +49,4 @@ class Command(BaseCommand):
                         total_creados += 1
 
         self.stdout.write(self.style.SUCCESS(f"Objetivos recurrentes generados: {total_creados}"))
+'''''

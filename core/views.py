@@ -3,37 +3,21 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from .models import *
 from .forms import *
-from django.contrib.auth.tokens import default_token_generator
-from django.contrib.sites.shortcuts import get_current_site
-from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login
 from django.urls import reverse
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.template.loader import render_to_string
 from django.contrib import messages
 from django.conf import settings
-from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
-from django.utils.encoding import force_bytes
 from datetime import datetime, date
-from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.http import require_POST
 from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
-from .decorators import rol_requerido
 from django.utils.timezone import now
 from collections import defaultdict
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Min
-# test
-# def myview(request):
-#    data = {
-#        'name': 'pepe',
-#        'empleados': Empleado.objects.all()
-#    }
-#    return render(request, 'home.html', data)
+from django.db.models import Q
 
 """
 @login_required
@@ -62,6 +46,18 @@ def cambiar_vista(request):
     return redirect('home')
 
 
+#
+def crear_objetivos_recurrentes_hoy(empleado):
+    hoy = date.today()
+    recurrentes = Objetivo.objects.filter(es_recurrente=True, activo=True)
+    for obj in recurrentes:
+        ObjetivoEmpleado.objects.get_or_create(
+            objetivo=obj,
+            empleado=empleado,
+            fecha_asignacion=hoy,
+            defaults={'completado': False}
+        )
+
 @login_required
 def home(request):
     user = request.user
@@ -72,35 +68,64 @@ def home(request):
     if not hasattr(user, 'persona'):
         return redirect('create_profile')
 
-    if user.rol == 'empleado':
+    empleado = None
+    
+    if rol_actual == 'empleado':
         persona = user.persona
 
         if hasattr(persona, 'empleado'):
             empleado = persona.empleado
-            oe_queryset = ObjetivoEmpleado.objects.filter(
+            crear_objetivos_recurrentes_hoy(empleado)
+            hoy = date.today()
+           
+            # Objetivos no recurrentes: vigentes
+            no_recurrentes = ObjetivoEmpleado.objects.filter(
                 empleado=empleado,
-                objetivo__activo=True
-            ).filter(
+                objetivo__activo=True,
                 objetivo__es_recurrente=False
-            ) | ObjetivoEmpleado.objects.filter(
+            ).filter(
+                Q(objetivo__fecha_fin__isnull=True) | Q(objetivo__fecha_fin__gte=hoy)
+            )
+
+            
+            print ("no recurrentes1: ", no_recurrentes)
+
+            # Objetivos recurrentes: asignados hoy
+            recurrentes = ObjetivoEmpleado.objects.filter(
                 empleado=empleado,
                 objetivo__activo=True,
                 objetivo__es_recurrente=True,
-                fecha_asignacion=date.today()
+                fecha_asignacion=hoy
             )
+            print ("recurrentes1: ", recurrentes)
 
+
+            # Todos los objetivos a mostrar
+            oe_queryset = no_recurrentes | recurrentes
             oe_queryset = oe_queryset.select_related('objetivo').distinct()
 
-            total = oe_queryset.count()
-            completados = oe_queryset.filter(completado=True).count()
-            progreso = int((completados / total) * 100) if total > 0 else 0
+            print ("query: ", oe_queryset)
 
-            objetivos_con_estado = []
+
+            objetivos_con_estado = [{'objetivo': oe.objetivo, 'completado': oe.completado} for oe in oe_queryset]
+
+            print ("objs con estado: ", objetivos_con_estado)
+
+
+            # Calcular progreso solo con objetivos vigentes y pendientes
+            oe_para_progreso = []
             for oe in oe_queryset:
-                objetivos_con_estado.append({
-                    'objetivo': oe.objetivo,
-                    'completado': oe.completado,
-                })
+                if oe.objetivo.es_recurrente and oe.fecha_asignacion == hoy:
+                    oe_para_progreso.append(oe)
+                elif not oe.objetivo.es_recurrente and (oe.objetivo.fecha_fin is None or oe.objetivo.fecha_fin >= hoy):
+                    oe_para_progreso.append(oe)
+
+            print ("para progreso: ", oe_para_progreso)
+
+
+            total = len(objetivos_con_estado)
+            completados = sum(1 for o in objetivos_con_estado if o['completado'])
+            progreso = int((completados / total) * 100) if total > 0 else 0
 
             context.update({
                 'objetivos_con_estado': objetivos_con_estado,
@@ -108,18 +133,16 @@ def home(request):
                 'empleado': empleado,
             })
 
-        else:
+        if empleado is None:
             context.update({
                 'objetivos_con_estado': [],
                 'progreso': 0,
                 'empleado': None,
             })
 
+
     return render(request, 'index.html', context)
-
-
-
-
+#
 
 
 def registrar_usuario(request):
@@ -200,22 +223,18 @@ def personas(request):
         departamento_id = ""
         departamento_nombre = ""
 
-        # Si tiene usuario relacionado, extraemos el rol
         if hasattr(persona, 'usuario'):
             tipo_usuario = persona.usuario.rol
 
-            # Si el rol es de tipo empleado o superior y tiene relación con Empleado
             if tipo_usuario in ['empleado', 'jefe', 'gerente', 'admin'] and hasattr(persona, 'empleado'):
                 estado = persona.empleado.estado
 
-                # Obtenemos el último cargo
                 ultimo_cargo = persona.empleado.empleadocargo_set.order_by('fecha_inicio').last()
                 if ultimo_cargo:
                     cargo = ultimo_cargo.cargo
                     cargo_id = cargo.id
                     nombre_cargo = cargo.nombre
 
-                    # Buscar departamento asociado al cargo desde la tabla intermedia
                     cargo_departamento = CargoDepartamento.objects.filter(cargo=cargo).first()
                     if cargo_departamento:
                         departamento_id = cargo_departamento.departamento.id
@@ -350,7 +369,7 @@ def crear_persona(request):
                 # Si es rol admin, le asignamos automáticamente el cargo "Administrador"
                 if rol == 'admin':
                     try:
-                        cargo = Cargo.objects.get(nombre="Administrador")
+                        cargo = Cargo.objects.get(nombre="ADMIN")
                     except Cargo.DoesNotExist:
                         cargo = None  # Si no existe, lo dejamos sin cargo y no se crea como empleado
 
@@ -668,7 +687,7 @@ def eliminar_departamento(request, id_departamento):
 def listar_ofertas(request):
     persona = request.user.persona  
     cargos_departamento = CargoDepartamento.objects.select_related('cargo', 'departamento')\
-        .filter(visible=True)  # Mostramos todos los cargos visibles, sin importar vacantes
+        .filter(visible=True)
 
     solicitudes = Solicitud.objects.filter(persona=persona)
     postulaciones = {s.cargo.id: s.fecha for s in solicitudes}
@@ -832,6 +851,7 @@ def habilitar_cargo_para_postulaciones(request):
 
 
 ############### CRUD OBJETIVOS ##################
+###############                ##################
 
 
 def generar_objetivos_recurrentes(departamento):
@@ -875,7 +895,7 @@ def objetivos(request):
     ).prefetch_related(
         Prefetch('objetivoempleado_set', queryset=ObjetivoEmpleado.objects.select_related('empleado')),
         Prefetch('objetivocargo_set', queryset=ObjetivoCargo.objects.select_related('cargo'))
-    ).distinct()
+    ).order_by('-activo', '-fecha_creacion').distinct()
 
     objetivos_con_fechas = []
     for objetivo in objetivosList:
@@ -893,17 +913,8 @@ def objetivos(request):
 
         objetivos_con_fechas.append(objetivo)
 
-
     # Ordenar por activo (descendente, True primero) y luego fecha_asignacion_representativa (descendente)
-    objetivos_ordenados = sorted(
-        objetivos_con_fechas,
-        key=lambda o: (
-            not o.activo,
-            o.fecha_asignacion_representativa is None,
-            -(o.fecha_asignacion_representativa.toordinal() if o.fecha_asignacion_representativa else 0)
-        )
-    )
-
+    objetivos_ordenados = objetivos_con_fechas
 
     empleados = Empleado.objects.filter(
         empleadocargo__cargo__cargodepartamento__departamento=departamento,
@@ -1080,7 +1091,25 @@ def activar_objetivo(request, id_objetivo):
         messages.error(request, "El objetivo no existe.")
     return redirect('objetivos')
 
+#
 
+@login_required
+def obtener_asignaciones_objetivo(request):
+    objetivo_id = request.GET.get('objetivo_id')
+    if not objetivo_id:
+        return JsonResponse({'error': 'Falta el ID del objetivo'}, status=400)
+
+    objetivo = get_object_or_404(Objetivo, id=objetivo_id)
+
+    empleados_asignados = list(objetivo.objetivoempleado_set.values_list('empleado_id', flat=True))
+    cargos_asignados = list(objetivo.objetivocargo_set.values_list('cargo_id', flat=True))
+
+    return JsonResponse({
+        'empleados': empleados_asignados,
+        'cargos': cargos_asignados
+    })
+
+#
 
 @login_required
 def obtener_datos_asignacion(request):
@@ -1120,7 +1149,8 @@ def marcar_objetivo(request):
 
         empleado = persona.empleado
         objetivo_id = request.POST.get('objetivo_id')
-        completado = request.POST.get('completado') == 'true' 
+        completado = request.POST.get('completado') == 'true'
+        hoy = date.today()
 
         try:
             oe, created = ObjetivoEmpleado.objects.get_or_create(
@@ -1132,8 +1162,25 @@ def marcar_objetivo(request):
                 oe.completado = completado
                 oe.save()
 
-            total_objetivos = ObjetivoEmpleado.objects.filter(empleado=empleado).count()
-            completados = ObjetivoEmpleado.objects.filter(empleado=empleado, completado=True).count()
+            no_recurrentes = ObjetivoEmpleado.objects.filter(
+                empleado=empleado,
+                objetivo__activo=True,
+                objetivo__es_recurrente=False
+            ).filter(
+                Q(objetivo__fecha_fin__isnull=True) | Q(objetivo__fecha_fin__gte=hoy)
+            )
+
+            recurrentes = ObjetivoEmpleado.objects.filter(
+                empleado=empleado,
+                objetivo__activo=True,
+                objetivo__es_recurrente=True,
+                fecha_asignacion=hoy
+            )
+
+            objetivos_hoy = (no_recurrentes | recurrentes).distinct()
+
+            total_objetivos = objetivos_hoy.count()
+            completados = objetivos_hoy.filter(completado=True).count()
             progreso = int((completados / total_objetivos) * 100) if total_objetivos > 0 else 0
 
             return JsonResponse({'success': True, 'progreso': progreso})
