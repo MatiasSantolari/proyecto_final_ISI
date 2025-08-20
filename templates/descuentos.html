@@ -1,19 +1,19 @@
 {% extends "base.html"%}
 {% load widget_tweaks %}
 
-  {% block title %}Gestión de Beneficios{% endblock %}
+  {% block title %}Gestión de Descuentos{% endblock %}
   
   {% block content %}
 
   <div class="container my-5"><hv><hv>
-    <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Beneficios</h1>
+    <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Descuentos</h1>
 
     <!-- Botón para Crear -->
-    <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalBeneficio">
-      + Crear Nuevo Tipo de Beneficio
+    <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalDescuento">
+      + Crear Nuevo Tipo de Descuento
     </button>
 
-    <!-- Tabla de Beneficios -->
+    <!-- Tabla de Descuentos -->
     <div class="card shadow-sm border-0">
       <div class="card-body">
         <div class="table-responsive">
@@ -28,19 +28,19 @@
               </tr>
             </thead>
             <tbody>
-              {% for beneficio in beneficios %}
+              {% for descuento in descuentos %}
               <tr>
-                <td>{{ beneficio.descripcion }}</td>
-                <td>${{ beneficio.monto }}</td>
+                <td>{{ descuento.descripcion }}</td>
+                <td>${{ descuento.monto }}</td>
                 <td>
-                  {% if beneficio.porcentaje %}
-                    {{ beneficio.porcentaje }}%
+                  {% if descuento.porcentaje %}
+                    {{ descuento.porcentaje }}%
                   {% else %}
                     -
                   {% endif %}
                 </td>
-                <td class="text-center">
-                  {% if beneficio.activo %}
+                    <td class="text-center">
+                  {% if descuento.activo %}
                     <span class="badge bg-success">Sí</span>
                   {% else %}
                     <span class="badge bg-danger">No</span>
@@ -49,34 +49,34 @@
                 <td>
                   <div class="d-flex justify-content-center gap-2">
                     <button class="btn btn-sm btn-outline-secondary" 
-                            data-bs-toggle="modal" data-bs-target="#modalBeneficio"
-                            data-id="{{ beneficio.id }}"
-                            data-descripcion="{{ beneficio.descripcion }}"
-                            data-monto="{{ beneficio.monto }}"
-                            data-porcentaje="{{ beneficio.porcentaje }}"
-                            onclick="editarBeneficio(this)"
+                            data-bs-toggle="modal" data-bs-target="#modalDescuento"
+                            data-id="{{ descuento.id }}"
+                            data-descripcion="{{ descuento.descripcion }}"
+                            data-monto="{{ descuento.monto }}"
+                            data-porcentaje="{{ descuento.porcentaje }}"
+                            onclick="editarDescuento(this)"
                             data-bs-toggle="tooltip" title="Editar">
                       <i class="bi bi-pencil-square"></i>
                     </button>
                     <button class="btn btn-sm btn-outline-info" 
                             data-bs-toggle="modal" 
-                            data-bs-target="#modalVerBeneficio{{ beneficio.id }}"
+                            data-bs-target="#modalVerDescuento{{ descuento.id }}"
                             data-bs-toggle="tooltip" title="Ver">
                       <i class="bi bi-eye"></i>
                     </button>
-                    {% if beneficio.activo %}
+                    {% if descuento.activo %}
                       <button class="btn btn-sm btn-outline-danger" 
                               data-bs-toggle="modal" 
-                              data-bs-target="#modalDesactivarBeneficio"
-                              data-id="{{ beneficio.id }}"
+                              data-bs-target="#modalDesactivarDescuento"
+                              data-id="{{ descuento.id }}"
                               data-bs-toggle="tooltip" title="Desactivar">
                         <i class="bi bi-trash3"></i>
                       </button>
                     {% else %}
                       <button class="btn btn-sm btn-outline-success" 
                               data-bs-toggle="modal" 
-                              data-bs-target="#modalActivarBeneficio"
-                              data-id="{{ beneficio.id }}">
+                              data-bs-target="#modalActivarDescuento"
+                              data-id="{{ descuento.id }}">
                         <i class="bi bi-arrow-counterclockwise"></i>
                       </button>
                     {% endif %}
@@ -85,8 +85,8 @@
               </tr>
               {% empty %}
               <tr>
-                <td colspan="3" class="text-center text-muted">
-                  No hay beneficios registrados.
+                <td colspan="5" class="text-center text-muted">
+                  No hay descuentos registrados.
                 </td>
               </tr>
               {% endfor %}
@@ -97,16 +97,16 @@
     </div>
 
     <!-- Modal para Crear/Actualizar -->
-    <div class="modal fade" id="modalBeneficio" tabindex="-1" aria-labelledby="modalBeneficioLabel" aria-hidden="true">
+    <div class="modal fade" id="modalDescuento" tabindex="-1" aria-labelledby="modalDescuentoLabel" aria-hidden="true">
       <div class="modal-dialog" style="margin-top: 6rem;">
         <div class="modal-content">
-          <form method="post" action="{% url 'crear_beneficio' %}" id="formBeneficio">
+          <form method="post" action="{% url 'crear_descuento' %}" id="formDescuento">
             {% csrf_token %}
             <div class="modal-header" style="background-color: #3c8dbc;">
-              <h5 class="modal-title text-white" id="modalBeneficioLabel">Crear/Editar Beneficio</h5>
+              <h5 class="modal-title text-white" id="modalDescuentoLabel">Crear/Editar Desceunto</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <input type="hidden" name="id_beneficio" id="id_beneficio">
+            <input type="hidden" name="id_descuento" id="id_descuento">
             <div class="modal-body">
               <div class="mb-3">
                 <label for="id_descripcion" class="form-label">Descripción</label>
@@ -121,12 +121,12 @@
               </div>
               <div class="mb-3">
                 <label for="id_porcentaje" class="form-label">Porcentaje</label>
-                  <div class="input-group input-group-sm" style="max-width: 250px;">
-                    {{ form.porcentaje }}
-                    <span class="input-group-text">%</span>
-                  </div>
+                 <div class="input-group input-group-sm" style="max-width: 250px;">
+                  {{ form.porcentaje }}
+                  <span class="input-group-text">%</span>
+                </div>
               </div>
-              
+
               <div class="modal-footer bg-light">
                 <button type="submit" class="btn btn-success w-100 fw-bold">  
                   <i class="bi bi-save"></i> Guardar
@@ -139,17 +139,17 @@
     </div>
 
     <!-- Modal para Ver Detalles -->
-    {% for beneficio in beneficios %}  
-    <div class="modal fade" id="modalVerBeneficio{{ beneficio.id }}" tabindex="-1" aria-labelledby="modalVerBeneficio{{ beneficio.id }}Label" aria-hidden="true">
+    {% for descuento in descuentos %}  
+    <div class="modal fade" id="modalVerDescuento{{ descuento.id }}" tabindex="-1" aria-labelledby="modalVerDescuento{{ descuento.id }}Label" aria-hidden="true">
       <div class="modal-dialog" style="margin-top: 6rem;">
         <div class="modal-content">
           <div class="modal-header" style="background-color: #3c8dbc;">
-            <h5 class="modal-title text-white" id="modalVerBeneficio{{ beneficio.id }}Label">Detalles del Beneficio</h5>
+            <h5 class="modal-title text-white" id="modalVerDescuento{{ descuento.id }}Label">Detalles del descuento</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <p><strong>Descripcion:</strong> {{ beneficio.descripcion }}</p>
-            <p><strong>Monto:</strong> ${{ beneficio.monto }}</p>
+            <p><strong>Descripcion:</strong> {{ descuento.descripcion }}</p>
+            <p><strong>Monto:</strong> ${{ descuento.monto }}</p>
             <p><strong>Porcentaje:</strong> 
               {% if descuento.porcentaje %}
                 {{ descuento.porcentaje }}%
@@ -158,7 +158,7 @@
               {% endif %}
             </p>
             <p><strong>Activo:</strong> 
-              {% if beneficio.activo %}
+              {% if descuento.activo %}
                 Sí
               {% else %}
                 No
@@ -172,22 +172,22 @@
 
 
     <!-- Modal para Confirmar Desactivar -->
-    <div class="modal fade" id="modalDesactivarBeneficio" tabindex="-1" aria-labelledby="modalDesactivarBeneficioLabel" aria-hidden="true">
+    <div class="modal fade" id="modalDesactivarDescuento" tabindex="-1" aria-labelledby="modalDesactivarDescuentoLabel" aria-hidden="true">
       <div class="modal-dialog" style="margin-top: 12rem;">
         <div class="modal-content">
           <div class="modal-header" style="background-color: #3c8dbc;">
-            <h5 class="modal-title text-white" id="modalDesactivarBeneficioLabel">Confirmar Eliminación</h5>
+            <h5 class="modal-title text-white" id="modalDesactivarDescuentoLabel">Confirmar Eliminación</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <p><span id="textoConfirmacionDesactivarBeneficio"></span></p>
+            <p><span id="textoConfirmacionDesactivarDescuento"></span></p>
           </div>
           <div class="modal-footer">
-            <form id="formEliminarBeneficio" method="post">
+            <form id="formEliminarDescuento" method="post">
               {% csrf_token %}
               <button type="submit" class="btn btn-danger">Eliminar</button>
             </form>
-            <form id="formDesactivarBeneficio" method="post" action="">
+            <form id="formDesactivarDescuento" method="post" action="">
               {% csrf_token %}
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
               <button type="submit" name="accion" value="desactivar" class="btn btn-warning">Desactivar</button>
@@ -198,18 +198,18 @@
     </div>
 
     <!-- Modal para Confirmar Activación -->
-    <div class="modal fade" id="modalActivarBeneficio" tabindex="-1" aria-labelledby="modalActivarBeneficioLabel" aria-hidden="true">
+    <div class="modal fade" id="modalActivarDescuento" tabindex="-1" aria-labelledby="modalActivarDescuentoLabel" aria-hidden="true">
       <div class="modal-dialog" style="margin-top: 12rem;">
         <div class="modal-content">
           <div class="modal-header" style="background-color: #198754;">
-            <h5 class="modal-title text-white" id="modalActivarBeneficioLabel">Confirmar Activación</h5>
+            <h5 class="modal-title text-white" id="modalActivarDescuentoLabel">Confirmar Activación</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <p><span id="textoConfirmacionActivarBeneficio"></span></p>
+            <p><span id="textoConfirmacionActivarDescuento"></span></p>
           </div>
           <div class="modal-footer">
-            <form id="formActivarBeneficio" method="post">
+            <form id="formActivarDescuento" method="post">
               {% csrf_token %}
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
               <button type="submit" class="btn btn-success">Activar</button>
@@ -226,34 +226,34 @@
 
     document.addEventListener("DOMContentLoaded", function () {
 
-      const modalDesactivar = document.getElementById('modalDesactivarBeneficio');
+      const modalDesactivar = document.getElementById('modalDesactivarDescuento');
       modalDesactivar.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
-        const beneficioId = button.getAttribute('data-id');
+        const descuentoId = button.getAttribute('data-id');
         
-        const formDesactivar = document.getElementById('formDesactivarBeneficio');
-        formDesactivar.action = `/beneficios/${beneficioId}/desactivar/`;
+        const formDesactivar = document.getElementById('formDesactivarDescuento');
+        formDesactivar.action = `/descuentos/${descuentoId}/desactivar/`;
 
-        const formEliminar = document.getElementById('formEliminarBeneficio');
-        formEliminar.action = `/beneficios/${beneficioId}/eliminar/`;
+        const formEliminar = document.getElementById('formEliminarDescuento');
+        formEliminar.action = `/descuentos/${descuentoId}/eliminar/`;
 
         const descripcion = button.closest('tr').querySelector('td').textContent.trim();
-        document.getElementById('textoConfirmacionDesactivarBeneficio').textContent = `¿Estás seguro de desactivar o eliminar el beneficio "${descripcion}"?`;
+        document.getElementById('textoConfirmacionDesactivarDescuento').textContent = `¿Estás seguro de desactivar o eliminar el Descuento "${descripcion}"?`;
       });
 
-      const modalActivar = document.getElementById('modalActivarBeneficio');
+      const modalActivar = document.getElementById('modalActivarDescuento');
       modalActivar.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
-        const beneficioId = button.getAttribute('data-id');
+        const descuentoId = button.getAttribute('data-id');
         
-        const form = document.getElementById('formActivarBeneficio');
-        form.action = `/beneficios/${beneficioId}/activar/`;
+        const form = document.getElementById('formActivarDescuento');
+        form.action = `/descuentos/${descuentoId}/activar/`;
 
         const descripcion = button.closest('tr').querySelector('td').textContent.trim();
-        document.getElementById('textoConfirmacionActivarBeneficio').textContent = `¿Estás seguro de activar el beneficio "${descripcion}"?`;
+        document.getElementById('textoConfirmacionActivarDescuento').textContent = `¿Estás seguro de activar el Descuento "${descripcion}"?`;
       });
 
-      
+
       const montoInput = document.getElementById("id_monto");
       const porcentajeInput = document.getElementById("id_porcentaje");
 
@@ -279,25 +279,27 @@
 
 
     function limpiarFormulario() {
-      const form = document.getElementById('formBeneficio');
+      const form = document.getElementById('formDescuento');
       form.reset();
-      document.getElementById('id_beneficio').value = '';
-      document.getElementById('modalBeneficioLabel').textContent = 'Crear Nuevo Beneficio';
-      document.querySelector('#formBeneficio button[type="submit"]').textContent = 'Guardar';
+      document.getElementById('id_descuento').value = '';
+      document.getElementById('modalDescuentoLabel').textContent = 'Crear Nuevo Descuento';
+      document.querySelector('#formDescuento button[type="submit"]').textContent = 'Guardar';
     }
 
 
-    function editarBeneficio(button) {
-      const beneficioId = button.getAttribute('data-id');
+    function editarDescuento(button) {
+      const descuentoId = button.getAttribute('data-id');
       const descripcion = button.getAttribute('data-descripcion');
       const monto = parseFloat(button.getAttribute('data-monto'));
+      const porcentaje = parseFloat(button.getAttribute('data-porcentaje'));
       
-      document.getElementById('id_beneficio').value = beneficioId || '';
+      document.getElementById('id_descuento').value = descuentoId || '';
       document.getElementById('id_descripcion').value = descripcion || '';
       document.getElementById('id_monto').value = isNaN(monto) ? '' : monto.toFixed(2);
+      document.getElementById('id_porcentaje').value = isNaN(porcentaje) ? '' : monto.toFixed(2);
       
-      document.getElementById('modalBeneficioLabel').textContent = 'Editar Beneficio';
-      document.querySelector('#formBeneficio button[type="submit"]').textContent = 'Actualizar';
+      document.getElementById('modalDescuentoLabel').textContent = 'Editar Descuento';
+      document.querySelector('#formDescuento button[type="submit"]').textContent = 'Actualizar';
 
       const montoInput = document.getElementById("id_monto");
       const porcentajeInput = document.getElementById("id_porcentaje");
@@ -318,7 +320,7 @@
     }
 
 
-    const modalCrearEditar = document.getElementById('modalBeneficio');
+    const modalCrearEditar = document.getElementById('modalDescuento');
 
     modalCrearEditar.addEventListener('show.bs.modal', function (event) {
       const triggerButton = event.relatedTarget;

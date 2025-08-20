@@ -16,8 +16,8 @@
     {% if cargos_visibles_por_dpto %}
       <h4 class="mt-4 text-success">Cargos con búsqueda activa</h4>
       {% for departamento, relaciones in cargos_visibles_por_dpto.items %}
-        <h5 class="mt-4">{{ departamento }}</h5>
-        <div class="accordion mb-4" id="accordionVisibles-{{ forloop.counter }}">
+        <h5 class="mt-4 ps-2 border-start border-3 border-success">{{ departamento }}</h5>
+        <div class="accordion mb-4 shadow-sm border-start border-3 border-success" id="accordionVisibles-{{ forloop.counter }}">
           {% for rel in relaciones %}
             <div class="accordion-item mb-2 shadow-sm" id="accordion-cargo-{{ rel.cargo.id }}">
                 <h2 class="accordion-header" id="heading{{ rel.cargo.id }}">
@@ -123,10 +123,11 @@
 
      <!-- CARGOS CERRADOS -->
     {% if cargos_no_visibles_por_dpto %}
-      <h4 class="mt-5 text-muted">Cargos con búsqueda cerrada</h4>
+      <hr class="my-5 border-2 border">
+      <h4 class="mt-5 text-danger">Cargos con búsqueda cerrada</h4>
       {% for departamento, relaciones in cargos_no_visibles_por_dpto.items %}
-        <h5 class="mt-4">{{ departamento }}</h5>
-        <div class="accordion mb-4" id="accordionNoVisibles-{{ forloop.counter }}">
+        <h5 class="mt-4 ps-2 border-start border-3 border-danger">{{ departamento }}</h5>
+        <div class="accordion mb-4 shadow-sm border-start border-3 border-danger" id="accordionNoVisibles-{{ forloop.counter }}">
           {% for rel in relaciones %}
             <div class="accordion-item mb-2 shadow-sm" id="accordion-cargo-{{ rel.cargo.id }}">
                 <h2 class="accordion-header" id="heading{{ rel.cargo.id }}">

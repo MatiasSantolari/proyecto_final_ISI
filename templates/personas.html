@@ -114,9 +114,11 @@
                     </button>
                   </td>
                 </tr>
-              {% empty %}
+                {% empty %}
                 <tr>
-                  <td colspan="9">No hay personas registradas.</td>
+                  <td colspan="3" class="text-center text-muted">
+                    No hay personas registradas.
+                  </td>
                 </tr>
               {% endfor %}
             </tbody>

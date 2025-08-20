@@ -105,6 +105,12 @@
                   </div>
                 </td>
               </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6" class="text-center text-muted">
+                  No hay objetivos registrados.
+                </td>
+              </tr>
               {% endfor %}
             </tbody>
           </table>
@@ -271,7 +277,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <p>¿Estás seguro de que deseas Desactivar o Eliminar este Objetivo?</p>
+            <p><span id="textoConfirmacionDesactivarObjetivo"></span></p>
           </div>
           <div class="modal-footer">
             <form id="formEliminarObjetivo" method="post">
@@ -537,7 +543,6 @@
 
 
 
-
   function abrirModalAsignar(objetivoId) {
       const modal = new bootstrap.Modal(document.getElementById('modalAsignarObjetivo'));
       modal.show();
@@ -568,7 +573,6 @@
           })
           .catch(err => console.error("Error fetch asignaciones:", err));
   }
-
 
   </script>
 

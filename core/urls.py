@@ -58,19 +58,29 @@ urlpatterns = [
     path('objetivos/obtener_datos_asignacion/', views.obtener_datos_asignacion, name='obtener_datos_asignacion'),
     path('objetivos/asignar/', views.asignar_objetivo, name='asignar_objetivo'),
     path('objetivos/marcar-objetivo/', views.marcar_objetivo, name='marcar_objetivo'),
-#    path('objetivos/obtener_asignaciones_objetivo/', views.obtener_asignaciones_objetivo, name='obtener_asignaciones_objetivo'),
+##  path('objetivos/obtener_asignaciones_objetivo/', views.obtener_asignaciones_objetivo, name='obtener_asignaciones_objetivo'),
+
+
+    ## BENEFICIOS ##
+    path('beneficios/', views.beneficios, name='beneficios'),
+    path('beneficios/crear/', views.crear_beneficio, name='crear_beneficio'),
+    path('beneficios/<int:id_beneficio>/desactivar/', views.desactivar_beneficio, name='desactivar_beneficio'),
+    path('beneficios/<int:id_beneficio>/activar/', views.activar_beneficio, name='activar_beneficio'),
+    path('beneficios/<int:id_beneficio>/eliminar/', views.eliminar_beneficio, name='eliminar_beneficio'),
+
+
+    ## DESCUENTOS ##
+    path('descuentos/', views.descuentos, name='descuentos'),
+    path('descuentos/crear/', views.crear_descuento, name='crear_descuento'),
+    path('descuentos/<int:id_descuento>/desactivar/', views.desactivar_descuento, name='desactivar_descuento'),
+    path('descuentos/<int:id_descuento>/activar/', views.activar_descuento, name='activar_descuento'),
+    path('descuentos/<int:id_descuento>/eliminar/', views.eliminar_descuento, name='eliminar_descuento'),
 
 
 
-## CATEGORIA del CARGO ##
-  #  path('cargo_categoria/', views.cargos_categoria, name='cargo_categoria'),
-  #  path('cargo_categoria/crear/', views.crear_cargo_categoria, name='crear_cargo_categoria'), ## Sirve para editar tambien
-  #  path('cargo_categoria/<int:id_categoria>/eliminar/', views.eliminar_cargo_categoria, name='eliminar_cargo_categoria'),
-
-
+##############################################
 
     path('agregar_sueldo_base/', views.agregar_sueldo_base, name='agregar_sueldo_base'),
-    path('beneficios/', views.beneficios, name='beneficios'),
     path('calcular_bonificaciones/', views.calcular_bonificaciones, name='calcular_bonificaciones'),
     path('capacitaciones/', views.capacitaciones, name='capacitaciones'),
     
@@ -78,19 +88,14 @@ urlpatterns = [
     path('contratos/', views.contratos, name='contratos'),
     path('costos_de_personal/', views.costos_de_personal, name='costos_de_personal'),
     path('criterios_evaluacion/', views.criterios_evaluacion, name='criterios_evaluacion'),
-    path('departamentos/', views.departamentos, name='departamentos'),
-    path('empleados/', views.empleados, name='empleados'),
     path('evaluacion_desempeno/', views.evaluacion_desempeno, name='evaluacion_desempeno'),
     path('habilidades/', views.habilidades, name='habilidades'),
-
 
 
     path('instituciones/', views.instituciones, name='instituciones'),
     path('logros/', views.logros, name='logros'),
     path('nominas/', views.nominas, name='nominas'),
    
-    path('postulantes/', views.postulantes, name='postulantes'),
-    path('publicar_ofertas_de_empleo/', views.publicar_ofertas_de_empleo, name='publicar_ofertas_de_empleo'),
     path('registrar_asistencia/', views.registrar_asistencia, name='registrar_asistencia'),
     path('solicitudes_nuevos_empleados/', views.solicitudes_nuevos_empleados, name='solicitudes_nuevos_empleados'),
     path('tipo_criterio_evaluacion/', views.tipo_criterio_evaluacion, name='tipo_criterio_evaluacion'),

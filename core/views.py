@@ -3,16 +3,25 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from .models import *
 from .forms import *
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.shortcuts import get_current_site
+from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login
 from django.urls import reverse
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.template.loader import render_to_string
 from django.contrib import messages
 from django.conf import settings
 from django.utils import timezone
-from datetime import datetime, date
+from django.utils.encoding import force_bytes
+from datetime import date
+from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.http import require_POST
 from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
+from .decorators import rol_requerido
 from django.utils.timezone import now
 from collections import defaultdict
 from django.contrib.admin.views.decorators import staff_member_required
@@ -88,8 +97,6 @@ def home(request):
             )
 
             
-            print ("no recurrentes1: ", no_recurrentes)
-
             # Objetivos recurrentes: asignados hoy
             recurrentes = ObjetivoEmpleado.objects.filter(
                 empleado=empleado,
@@ -97,20 +104,12 @@ def home(request):
                 objetivo__es_recurrente=True,
                 fecha_asignacion=hoy
             )
-            print ("recurrentes1: ", recurrentes)
-
 
             # Todos los objetivos a mostrar
             oe_queryset = no_recurrentes | recurrentes
             oe_queryset = oe_queryset.select_related('objetivo').distinct()
 
-            print ("query: ", oe_queryset)
-
-
             objetivos_con_estado = [{'objetivo': oe.objetivo, 'completado': oe.completado} for oe in oe_queryset]
-
-            print ("objs con estado: ", objetivos_con_estado)
-
 
             # Calcular progreso solo con objetivos vigentes y pendientes
             oe_para_progreso = []
@@ -120,9 +119,7 @@ def home(request):
                 elif not oe.objetivo.es_recurrente and (oe.objetivo.fecha_fin is None or oe.objetivo.fecha_fin >= hoy):
                     oe_para_progreso.append(oe)
 
-            print ("para progreso: ", oe_para_progreso)
-
-
+            
             total = len(objetivos_con_estado)
             completados = sum(1 for o in objetivos_con_estado if o['completado'])
             progreso = int((completados / total) * 100) if total > 0 else 0
@@ -139,7 +136,6 @@ def home(request):
                 'progreso': 0,
                 'empleado': None,
             })
-
 
     return render(request, 'index.html', context)
 #
@@ -308,15 +304,13 @@ def crear_persona(request):
                     else:
                         cargo = Cargo.get_jefe_por_departamento(departamento_id)
 
-                 # Definir estado_empleado según si es creacion o edicion
                 if not id_persona:
-                    estado_empleado = "activo"  # Estado fijo para creacion
+                    estado_empleado = "activo"  
                 else:
                     estado_empleado = form.cleaned_data.get('estado')
 
                 persona = form.save()
 
-                # CREAR USUARIO SI ES NUEVA PERSONA
                 if not id_persona:
                     # Generar username único: nombre.apellido / nombre.apellido1 / etc.
                     base_username = f"{persona.nombre}.{persona.apellido}".replace(" ", "").lower()
@@ -328,7 +322,6 @@ def crear_persona(request):
 
                     password = persona.dni  # La contraseña es el DNI
 
-                    # Crear usuario
                     usuario = Usuario.objects.create_user(
                         username=username,
                         password=password,
@@ -357,7 +350,6 @@ def crear_persona(request):
                         print(f"Error al enviar el correo: {e}")
 
                 else:
-                    # Actualizar usuario si existe
                     try:
                         usuario = Usuario.objects.get(persona=persona)
                         usuario.email = form.cleaned_data.get('email')
@@ -366,18 +358,16 @@ def crear_persona(request):
                     except Usuario.DoesNotExist:
                         print(f"Usuario no encontrado para persona {persona.id}")
 
-                # Si es rol admin, le asignamos automáticamente el cargo "Administrador"
                 if rol == 'admin':
                     try:
                         cargo = Cargo.objects.get(nombre="ADMIN")
                     except Cargo.DoesNotExist:
-                        cargo = None  # Si no existe, lo dejamos sin cargo y no se crea como empleado
+                        cargo = None  
 
                 if rol in ['empleado', 'jefe', 'gerente', 'admin'] and cargo:
                     try:
                         empleado = Empleado.objects.get(id=persona.id)
                     except Empleado.DoesNotExist:
-                        # Clonar la persona y convertirla en empleado
                         empleado = Empleado.objects.create(
                             id=persona.id,
                             nombre=persona.nombre,
@@ -402,15 +392,12 @@ def crear_persona(request):
                             cantidad_dias_disponibles=0
                         )
                     else:
-                        # Actualizar si ya existía
                         empleado.estado = estado_empleado
                         if cargo:
                             empleado.cargo = cargo
                         empleado.save()
 
-                    # Crear o actualizar historial de cargo
                     if cargo:
-                        # Cerrar el último cargo activo, si existe
                         ultimo_cargo = EmpleadoCargo.objects.filter(
                             empleado=empleado,
                             fecha_fin__isnull=True
@@ -420,7 +407,6 @@ def crear_persona(request):
                             ultimo_cargo.fecha_fin = date.today()
                             ultimo_cargo.save()
                             try:
-                                # Buscar el departamento anterior desde la relación CargoDepartamento
                                 relacion_anterior = CargoDepartamento.objects.get(
                                     cargo=ultimo_cargo.cargo
                                 )
@@ -429,13 +415,11 @@ def crear_persona(request):
                             except CargoDepartamento.DoesNotExist:
                                 pass
 
-                        # Registrar el nuevo cargo
                         EmpleadoCargo.objects.create(
                             empleado=empleado,
                             cargo=cargo,
                             fecha_inicio=date.today()
                         )
-                        # Descontar vacante del nuevo cargo
                         try:
                             relacion_nueva = CargoDepartamento.objects.get(
                                 cargo=cargo,
@@ -447,7 +431,6 @@ def crear_persona(request):
                         except CargoDepartamento.DoesNotExist:
                             pass
                 else:
-                    # Si pasa a rol normal, marcar como inactivo
                     try:
                         empleado = Empleado.objects.get(id=persona.id)
                         empleado.estado = 'inactivo'
@@ -471,7 +454,6 @@ def cargos_por_departamento(request, dept_id):
     tipo_usuario = request.GET.get('tipo_usuario')
 
     relaciones = CargoDepartamento.objects.filter(departamento_id=dept_id).select_related('cargo')
-    # Si se especifica tipo_usuario y es "jefe", filtramos los cargos con es_jefe=True
     if tipo_usuario == 'jefe':
         relaciones = relaciones.filter(cargo__es_jefe=True)
     elif tipo_usuario == 'gerente':     # Excluir cargos que sean gerente, ya que se asignan automáticamente
@@ -497,8 +479,6 @@ def eliminar_persona(request, persona_id):
     persona = get_object_or_404(Persona, id_persona=persona_id)
     persona.delete()
     return redirect('personas')
-
-
 
 
 
@@ -551,14 +531,12 @@ def crear_cargo(request):
             departamento = form.cleaned_data['departamento']
             vacante = form.cleaned_data['vacante']
 
-            # Crear o actualizar la relación intermedia CargoDepartamento
             CargoDepartamento.objects.update_or_create(
                 cargo=cargo_guardado,
                 departamento=departamento,
                 defaults={'vacante': vacante}
             )
 
-            # Registrar sueldo si cambió
             ultimo_sueldo = HistorialSueldoBase.objects.filter(cargo=cargo_guardado).order_by('-fecha_sueldo').first()
             if not ultimo_sueldo or ultimo_sueldo.sueldo_base != sueldo_base:
                 HistorialSueldoBase.objects.create(
@@ -571,7 +549,6 @@ def crear_cargo(request):
     else:
         form = CargoForm(instance=cargo)
 
-    # Listado para mostrar en el HTML
     cargos_con_sueldo = []
     cargos = Cargo.objects.all()
 
@@ -603,8 +580,6 @@ def eliminar_cargo(request, id_cargo):
     return redirect('cargos')
 
 
-
-
 ################
 
 ######CRUD Departamentos #####################
@@ -633,7 +608,6 @@ def crear_departamento(request):
         if form.is_valid():
             nuevo_departamento = form.save()
 
-            # Solo si es un departamento nuevo creamos los cargos automáticamente
             if not id_departamento:
                 cargos_info = [
                     ('Jefe de ' + nuevo_departamento.nombre, True, False),
@@ -687,7 +661,9 @@ def eliminar_departamento(request, id_departamento):
 def listar_ofertas(request):
     persona = request.user.persona  
     cargos_departamento = CargoDepartamento.objects.select_related('cargo', 'departamento')\
-        .filter(visible=True)
+        .filter(visible=True)\
+        .exclude(cargo__nombre="ADMIN")\
+        .exclude(departamento__nombre="ADMIN")
 
     solicitudes = Solicitud.objects.filter(persona=persona)
     postulaciones = {s.cargo.id: s.fecha for s in solicitudes}
@@ -737,7 +713,6 @@ def actualizar_cv_ajax(request):
         archivo_cv = request.FILES.get('cv')
 
         if archivo_cv:
-            # Eliminar archivo anterior si existe
             if persona.cvitae:
                 ruta_anterior = persona.cvitae.path
                 if os.path.isfile(ruta_anterior):
@@ -768,13 +743,19 @@ def ver_postulaciones_admin(request):
 
     visibles = CargoDepartamento.objects.select_related('cargo', 'departamento') \
         .filter(visible=True) \
+        .exclude(cargo__nombre="ADMIN")\
+        .exclude(departamento__nombre="ADMIN")\
         .prefetch_related(solicitud_visible)
 
     no_visibles = CargoDepartamento.objects.select_related('cargo', 'departamento') \
         .filter(visible=False) \
+        .exclude(cargo__nombre="ADMIN")\
+        .exclude(departamento__nombre="ADMIN")\
         .prefetch_related(solicitud_visible)
 
     todas = CargoDepartamento.objects.select_related('cargo', 'departamento') \
+        .exclude(cargo__nombre="ADMIN")\
+        .exclude(departamento__nombre="ADMIN")\
         .prefetch_related(todas_solicitudes)
 
 
@@ -848,11 +829,8 @@ def habilitar_cargo_para_postulaciones(request):
     return JsonResponse({'exito': True})
 
 
-
-
 ############### CRUD OBJETIVOS ##################
 ###############                ##################
-
 
 def generar_objetivos_recurrentes(departamento):
     objetivos_recurrentes = Objetivo.objects.filter(
@@ -873,7 +851,6 @@ def generar_objetivos_recurrentes(departamento):
             )
 
 
-
 @login_required
 def objetivos(request):
     user = request.user
@@ -884,18 +861,27 @@ def objetivos(request):
         return redirect("home")
 
     departamento = rol.departamento_actual()
-    if departamento is None:
-        messages.error(request, "No se pudo determinar el departamento del usuario.")
-        return redirect("home")
-    
-    generar_objetivos_recurrentes(departamento)
 
-    objetivosList = Objetivo.objects.filter(
-        departamento=departamento
-    ).prefetch_related(
-        Prefetch('objetivoempleado_set', queryset=ObjetivoEmpleado.objects.select_related('empleado')),
-        Prefetch('objetivocargo_set', queryset=ObjetivoCargo.objects.select_related('cargo'))
-    ).order_by('-activo', '-fecha_creacion').distinct()
+    if user.rol == "admin":
+        objetivosList = Objetivo.objects.all().prefetch_related(
+            Prefetch('objetivoempleado_set', queryset=ObjetivoEmpleado.objects.select_related('empleado')),
+            Prefetch('objetivocargo_set', queryset=ObjetivoCargo.objects.select_related('cargo'))
+        ).order_by('-activo', '-fecha_creacion').distinct()
+    else:
+        if departamento is None:
+            messages.error(request, "No se pudo determinar el departamento del usuario.")
+            return redirect("home")
+            
+        generar_objetivos_recurrentes(departamento)
+
+        objetivosList = Objetivo.objects.filter(
+            departamento=departamento
+        ).prefetch_related(
+            Prefetch('objetivoempleado_set', queryset=ObjetivoEmpleado.objects.select_related('empleado')),
+            Prefetch('objetivocargo_set', queryset=ObjetivoCargo.objects.select_related('cargo'))
+        ).order_by('-activo', '-fecha_creacion').distinct()
+
+
 
     objetivos_con_fechas = []
     for objetivo in objetivosList:
@@ -1191,11 +1177,174 @@ def marcar_objetivo(request):
     return JsonResponse({'success': False, 'error': 'Método no permitido'})
 
 
+
+################ CRUD Beneficios #####################
+
+@login_required
+def beneficios(request):
+    form = BeneficioForm()
+    beneficiosList = Beneficio.objects.all()
+
+    for b in beneficiosList:
+        if b.descripcion:
+            b.descripcion = b.descripcion.capitalize()
+
+    return render(request, 'beneficios.html', {
+        'form': form,
+        'beneficios': beneficiosList
+    })
+
+
+@login_required
+@require_POST
+def crear_beneficio(request):
+    id_beneficio = request.POST.get('id_beneficio')
+
+    if request.method == 'POST':
+        if id_beneficio:
+            beneficio = get_object_or_404(Beneficio, pk=id_beneficio)
+            form = BeneficioForm(request.POST, instance=beneficio)
+        else:
+            form = BeneficioForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            return redirect('beneficios')
+
+    else:
+        form = BeneficioForm()
+
+    beneficiosList = Beneficio.objects.all()
+    return render(request, 'beneficios.html', {
+        'form': form,
+        'beneficios': beneficiosList
+    })
+
+
+@login_required
+@require_POST
+def activar_beneficio(request, id_beneficio):
+    try:
+        beneficio = get_object_or_404(Beneficio, id=id_beneficio)
+        beneficio.activo = True
+        beneficio.save()
+        messages.success(request, "Beneficio activado correctamente.")
+    except Beneficio.DoesNotExist:
+        messages.error(request, "El beneficio no existe.")
+    return redirect('beneficios')
+
+
+@login_required
+@require_POST
+def desactivar_beneficio(request, id_beneficio):
+    try:
+        beneficio = get_object_or_404(Beneficio, id=id_beneficio)
+        beneficio.activo = False
+        beneficio.save()
+        messages.success(request, "beneficio desactivado correctamente.")
+    except Beneficio.DoesNotExist:
+        messages.error(request, "El beneficio no existe.")
+    return redirect('beneficios')
+
+
+@login_required
+@require_POST
+def eliminar_beneficio(request, id_beneficio):
+    try:
+        beneficio = get_object_or_404(Beneficio, id=id_beneficio)
+        beneficio.delete()
+        messages.success(request, "Beneficio eliminado correctamente.")
+    except Beneficio.DoesNotExist:
+        messages.error(request, "El beneficio no existe.")
+    return redirect('beneficios')
+
+
+
+################ CRUD Descuentos #####################
+
+@login_required
+def descuentos(request):
+    form = DescuentoForm()
+    descuentosList = Descuento.objects.all()
+
+    for b in descuentosList:
+        if b.descripcion:
+            b.descripcion = b.descripcion.capitalize()
+
+    return render(request, 'descuentos.html', {
+        'form': form,
+        'descuentos': descuentosList
+    })
+
+
+@login_required
+@require_POST
+def crear_descuento(request):
+    id_descuento = request.POST.get('id_descuento')
+
+    if request.method == 'POST':
+        if id_descuento:
+            descuento = get_object_or_404(Descuento, pk=id_descuento)
+            form = DescuentoForm(request.POST, instance=descuento)
+        else:
+            form = DescuentoForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            return redirect('descuentos')
+
+    else:
+        form = DescuentoForm()
+
+    descuentosList = Descuento.objects.all()
+    return render(request, 'descuentos.html', {
+        'form': form,
+        'descuentos': descuentosList
+    })
+
+
+@login_required
+@require_POST
+def activar_descuento(request, id_descuento):
+    try:
+        descuento = get_object_or_404(Descuento, id=id_descuento)
+        descuento.activo = True
+        descuento.save()
+        messages.success(request, "descuento activado correctamente.")
+    except Descuento.DoesNotExist:
+        messages.error(request, "El descuento no existe.")
+    return redirect('descuentos')
+
+
+@login_required
+@require_POST
+def desactivar_descuento(request, id_descuento):
+    try:
+        descuento = get_object_or_404(Descuento, id=id_descuento)
+        descuento.activo = False
+        descuento.save()
+        messages.success(request, "descuento desactivado correctamente.")
+    except Descuento.DoesNotExist:
+        messages.error(request, "El descuento no existe.")
+    return redirect('descuentos')
+
+
+@login_required
+@require_POST
+def eliminar_descuento(request, id_descuento):
+    try:
+        descuento = get_object_or_404(Descuento, id=id_descuento)
+        descuento.delete()
+        messages.success(request, "descuento eliminado correctamente.")
+    except Descuento.DoesNotExist:
+        messages.error(request, "El descuento no existe.")
+    return redirect('descuentos')
+
+
 ##################################################
 
 
 def agregar_sueldo_base(request): return render(request, 'agregar_sueldo_base.html')
-def beneficios(request): return render(request, 'beneficios.html')
 def calcular_bonificaciones(request): return render(request, 'calcular_bonificaciones.html')
 def capacitaciones(request): return render(request, 'capacitaciones.html')
 def competencias(request): return render(request, 'competencias.html')

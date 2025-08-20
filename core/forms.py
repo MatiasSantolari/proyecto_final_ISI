@@ -258,6 +258,13 @@ class PersonaForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
+        departamentos_qs = Departamento.objects.all()
+        if tipo_usuario != "admin":
+            departamentos_qs = departamentos_qs.exclude(nombre__iexact="ADMIN")  # o el nombre que tenga en tu BD
+
+        self.fields['departamento'].queryset = departamentos_qs
+
+
         # Filtro inicial
         if tipo_usuario == 'admin':
             self.fields['cargo'].queryset = Cargo.objects.none()
@@ -270,10 +277,19 @@ class PersonaForm(forms.ModelForm):
 
             if tipo_usuario == 'empleado':
                 cargos_qs = cargos_qs.filter(es_jefe=False, es_gerente=False)
+            
+            if tipo_usuario != 'admin':
+                cargos_qs = cargos_qs.exclude(
+                    id__in=CargoDepartamento.objects.filter(
+                        departamento__nombre__iexact="ADMIN"
+                    ).values_list('cargo_id', flat=True)
+                )
 
             if departamento_id:
                 cargos_qs = cargos_qs.filter(
-                    id__in=CargoDepartamento.objects.filter(departamento_id=departamento_id).values_list('cargo_id', flat=True)
+                    id__in=CargoDepartamento.objects.filter(
+                        departamento_id=departamento_id
+                        ).values_list('cargo_id', flat=True)
             )
 
             self.fields['cargo'].queryset = cargos_qs
@@ -367,3 +383,84 @@ class ObjetivoForm(forms.ModelForm):
                 'class': 'form-check-input'
             }),
         }
+
+###################################
+class BeneficioForm(forms.ModelForm):
+    class Meta:
+        model = Beneficio
+        fields = ['descripcion', 'monto', 'porcentaje']
+        widgets = {
+            'descripcion': forms.TextInput(attrs={
+                'class': 'form-control',
+                'id': 'id_descripcion',
+                'placeholder': 'Ingrese la descripción'
+            }),
+            'monto': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'id': 'id_monto',
+                'placeholder': 'Ingrese el monto',
+                'step': '1'
+            }),
+            'porcentaje': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ingrese porcentaje (0 a 100)',
+                'step': '0.01',
+                'min': '0',
+                'max': '100'
+            }),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        monto = cleaned_data.get("monto")
+        porcentaje = cleaned_data.get("porcentaje")
+
+        if monto and porcentaje:
+            raise forms.ValidationError("Debe ingresar solo monto o porcentaje, no ambos.")
+        if not monto and not porcentaje:
+            raise forms.ValidationError("Debe ingresar al menos un tipo de beneficio.")
+
+        return cleaned_data
+    
+
+###################################
+from django import forms
+from django.core.validators import MinValueValidator, MaxValueValidator
+from .models import Descuento
+
+class DescuentoForm(forms.ModelForm):
+    class Meta:
+        model = Descuento
+        fields = ['descripcion', 'monto', 'porcentaje']
+        widgets = {
+            'descripcion': forms.TextInput(attrs={
+                'class': 'form-control',
+                'id': 'id_descripcion',
+                'placeholder': 'Ingrese la descripción'
+            }),
+            'monto': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'id': 'id_monto',
+                'placeholder': 'Ingrese el monto',
+                'step': '1'
+            }),
+            'porcentaje': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ingrese porcentaje (0 a 100)',
+                'step': '0.01',
+                'min': '0',
+                'max': '100'
+            }),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        monto = cleaned_data.get("monto")
+        porcentaje = cleaned_data.get("porcentaje")
+
+        if monto and porcentaje:
+            raise forms.ValidationError("Debe ingresar solo monto o porcentaje, no ambos.")
+        if not monto and not porcentaje:
+            raise forms.ValidationError("Debe ingresar al menos un tipo de descuento.")
+
+        return cleaned_data

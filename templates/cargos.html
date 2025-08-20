@@ -83,6 +83,12 @@
                   </div>
                 </td>
               </tr>
+              {% empty %}
+              <tr>
+                <td colspan="3" class="text-center text-muted">
+                  No hay cargos registrados.
+                </td>
+              </tr>
               {% endfor %}
             </tbody>
           </table>
