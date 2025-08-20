@@ -464,3 +464,7 @@ class DescuentoForm(forms.ModelForm):
             raise forms.ValidationError("Debe ingresar al menos un tipo de descuento.")
 
         return cleaned_data
+class HabilidadForm(forms.ModelForm):
+    class Meta:
+        model = Habilidad
+        fields = ['nombre', 'descripcion']
