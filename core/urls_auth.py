@@ -10,7 +10,9 @@ class CustomLoginView(auth_views.LoginView):
 
     def get(self, request, *args, **kwargs):
         # Limpiar todos los mensajes pendientes
-        list(messages.get_messages(request))
+        storage = messages.get_messages(request)
+        for _ in storage:
+            pass  # Esto vacía el storage
         return super().get(request, *args, **kwargs)
     
 

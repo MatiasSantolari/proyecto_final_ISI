@@ -3,31 +3,21 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from .models import *
 from .forms import *
-from django.contrib.auth.tokens import default_token_generator
-from django.contrib.sites.shortcuts import get_current_site
-from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login
 from django.urls import reverse
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.template.loader import render_to_string
 from django.contrib import messages
 from django.conf import settings
 from django.utils import timezone
-from django.utils.encoding import force_bytes
 from datetime import date
-from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.http import require_POST
 from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
-from .decorators import rol_requerido
 from django.utils.timezone import now
 from collections import defaultdict
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Min
 from django.db.models import Q
-from .decorators import asegurar_rol_actual
 
 """
 @login_required
@@ -71,7 +61,6 @@ def crear_objetivos_recurrentes_hoy(empleado):
         )
 
 @login_required
-@asegurar_rol_actual
 def home(request):
     user = request.user
     rol_actual = request.session.get('rol_actual', user.rol)
@@ -210,7 +199,6 @@ def perfil_usuario(request):
 
 ################## CRUD PERSONA ################
 @login_required
-@asegurar_rol_actual
 def personas(request):
     personas_qs = Persona.objects.select_related('empleado', 'usuario')
     
