@@ -22,29 +22,27 @@
       <ul class="navbar-nav mb-2 mb-lg-0">
 
         <li class="nav-item dropdown ms-3">
-          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-            <i class="fas fa-exchange-alt me-1"></i> {{ rol_actual|title }}
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-exchange-alt me-1"></i> {{ request.session.rol_actual|title }}
           </a>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li>
-              <form action="{% url 'cambiar_vista' %}" method="post" style="margin:0;">
-                {% csrf_token %}
-
-                {% if request.user.rol == 'admin' %}
-                  <button type="submit" name="rol" value="admin" class="dropdown-item {% if rol_actual == 'admin' %}active{% endif %}">Admin</button>
-                  <button type="submit" name="rol" value="gerente" class="dropdown-item {% if rol_actual == 'gerente' %}active{% endif %}">Gerente</button>
-                  <button type="submit" name="rol" value="jefe" class="dropdown-item {% if rol_actual == 'jefe' %}active{% endif %}">Jefe</button>
-                  <button type="submit" name="rol" value="empleado" class="dropdown-item {% if rol_actual == 'empleado' %}active{% endif %}">Empleado</button>
-                {% elif request.user.rol == 'gerente' %}
-                  <button type="submit" name="rol" value="gerente" class="dropdown-item {% if rol_actual == 'gerente' %}active{% endif %}">Gerente</button>
-                  <button type="submit" name="rol" value="empleado" class="dropdown-item {% if rol_actual == 'empleado' %}active{% endif %}">Empleado</button>
-                {% elif request.user.rol == 'jefe' %}
-                  <button type="submit" name="rol" value="jefe" class="dropdown-item {% if rol_actual == 'jefe' %}active{% endif %}">Jefe</button>
-                  <button type="submit" name="rol" value="empleado" class="dropdown-item {% if rol_actual == 'empleado' %}active{% endif %}">Empleado</button>
+          {% if user.rol == "admin" or user.rol == "gerente" or user.rol == "jefe" %}
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                {% if user.rol == 'admin' %}
+                  <button type="button" name="rol" data-rol="admin" class="dropdown-item {% if rol_actual == 'admin' %}active{% endif %}" data-bs-toggle="modal" data-bs-target="#confirmarCambioRol">Admin</button>
+                  <button type="button" name="rol" data-rol="empleado" class="dropdown-item {% if rol_actual == 'empleado' %}active{% endif %}" data-bs-toggle="modal" data-bs-target="#confirmarCambioRol">Empleado</button>
+                  <button type="button" name="rol" data-rol="gerente" class="dropdown-item {% if rol_actual == 'gerente' %}active{% endif %}" data-bs-toggle="modal" data-bs-target="#confirmarCambioRol">Gerente</button>
+                  <button type="button" name="rol" data-rol="jefe" class="dropdown-item {% if rol_actual == 'jefe' %}active{% endif %}" data-bs-toggle="modal" data-bs-target="#confirmarCambioRol">Jefe</button>
+                {% elif user.rol == 'gerente' %}
+                  <button type="button" name="rol" data-rol="gerente" class="dropdown-item {% if rol_actual == 'gerente' %}active{% endif %}" data-bs-toggle="modal" data-bs-target="#confirmarCambioRol">Gerente</button>
+                  <button type="button" name="rol" data-rol="empleado" class="dropdown-item {% if rol_actual == 'empleado' %}active{% endif %}" data-bs-toggle="modal" data-bs-target="#confirmarCambioRol">Empleado</button>
+                {% elif user.rol == 'jefe' %}
+                  <button type="button" name="rol" data-rol="jefe" class="dropdown-item {% if rol_actual == 'jefe' %}active{% endif %}" data-bs-toggle="modal" data-bs-target="#confirmarCambioRol">Jefe</button>
+                  <button type="button" name="rol" data-rol="empleado" class="dropdown-item {% if rol_actual == 'empleado' %}active{% endif %}" data-bs-toggle="modal" data-bs-target="#confirmarCambioRol">Empleado</button>
                 {% endif %}
-              </form>
-            </li>
-          </ul>
+              </li>
+            </ul>
+          {% endif %}
         </li>
 
         <li class="nav-item dropdown">
@@ -82,4 +80,50 @@
         </li>
       </ul>
     </div>
+    <div class="modal fade" id="confirmarCambioRol" tabindex="-1" aria-labelledby="confirmarCambioRolLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-warning text-dark">
+            <h5 class="modal-title" id="confirmarCambioRolLabel">Confirmar cambio de rol</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            ¿Seguro que deseas cambiar al rol de "<span id="rolSeleccionadoTexto"></span>"? Serás redirigido al inicio y podrías perder los cambios no guardados.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <form id="formCambiarRol" action="{% url 'cambiar_vista' %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="rol" id="inputRolSeleccionado">
+              <button type="submit" class="btn btn-warning">Sí, cambiar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+      const rolInput = document.getElementById("inputRolSeleccionado");
+      const rolTexto = document.getElementById("rolSeleccionadoTexto");
+      const modalElement = document.getElementById('confirmarCambioRol');
+      const modal = new bootstrap.Modal(modalElement);
+
+      document.querySelectorAll('.dropdown-toggle').forEach(dropdown => {
+        new bootstrap.Dropdown(dropdown);
+      });
+  
+      document.querySelectorAll("[data-rol]").forEach(item => {
+        item.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const rol = item.dataset.rol;
+          rolInput.value = rol;      
+          rolTexto.textContent = rol; 
+          modal.show();
+        });
+      });
+        
+    });
+    </script>
 </nav>

@@ -238,7 +238,7 @@ document.getElementById('formActualizarCV').addEventListener('submit', function 
   e.preventDefault();
   const form = e.target;
   const formData = new FormData(form);
-  const csrfToken = '{{ csrf_token }}';  // Podés pasarlo como variable JS si preferís
+  const csrfToken = '{{ csrf_token }}';  
 
   fetch("{% url 'actualizar_cv_ajax' %}", {
     method: 'POST',

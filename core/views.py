@@ -27,6 +27,7 @@ from collections import defaultdict
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Min
 from django.db.models import Q
+from .decorators import asegurar_rol_actual
 
 """
 @login_required
@@ -43,6 +44,8 @@ def dashboard_empleado(request):
 def dashboard_normal(request):
     return render(request, 'core/dashboard_normal.html')
 """
+
+
 
 @login_required
 @require_POST
@@ -68,6 +71,7 @@ def crear_objetivos_recurrentes_hoy(empleado):
         )
 
 @login_required
+@asegurar_rol_actual
 def home(request):
     user = request.user
     rol_actual = request.session.get('rol_actual', user.rol)
@@ -206,6 +210,7 @@ def perfil_usuario(request):
 
 ################## CRUD PERSONA ################
 @login_required
+@asegurar_rol_actual
 def personas(request):
     personas_qs = Persona.objects.select_related('empleado', 'usuario')
     

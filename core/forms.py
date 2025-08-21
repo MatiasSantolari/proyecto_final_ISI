@@ -250,7 +250,7 @@ class PersonaForm(forms.ModelForm):
         departamento_id = kwargs.pop('departamento_id', None)
         tipo_usuario = None
 
-        # Intentamos detectar el tipo_usuario desde los datos enviados
+
         if 'data' in kwargs:
             tipo_usuario = kwargs['data'].get('tipo_usuario')
         elif 'initial' in kwargs:
@@ -260,7 +260,7 @@ class PersonaForm(forms.ModelForm):
 
         departamentos_qs = Departamento.objects.all()
         if tipo_usuario != "admin":
-            departamentos_qs = departamentos_qs.exclude(nombre__iexact="ADMIN")  # o el nombre que tenga en tu BD
+            departamentos_qs = departamentos_qs.exclude(nombre__iexact="ADMIN")
 
         self.fields['departamento'].queryset = departamentos_qs
 
