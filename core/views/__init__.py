@@ -1,14 +1,14 @@
 from .login import *
 from .postulaciones import *
-from .personas import personas, crear_persona, cargos_por_departamento, eliminar_persona
-from .cargos import cargos, crear_cargo, eliminar_cargo
-from .habilidades import habilidades, crear_habilidad, eliminar_habilidad
-from .departamentos import departamentos, crear_departamento, eliminar_departamento
+from .personas import *
+from .cargos import *
+from .habilidades import *
+from .departamentos import *
+from .descuentos import *
+from .beneficios import *
+from .objetivos import *
 
-
-def cargo_categoria(request): return render(request, 'cargo_categoria.html')
 def agregar_sueldo_base(request): return render(request, 'agregar_sueldo_base.html')
-def beneficios(request): return render(request, 'beneficios.html')
 def calcular_bonificaciones(request): return render(request, 'calcular_bonificaciones.html')
 def capacitaciones(request): return render(request, 'capacitaciones.html')
 def competencias(request): return render(request, 'competencias.html')
@@ -20,7 +20,6 @@ def evaluacion_desempeno(request): return render(request, 'evaluacion_desempeno.
 def instituciones(request): return render(request, 'instituciones.html')
 def logros(request): return render(request, 'logros.html')
 def nominas(request): return render(request, 'nominas.html')
-def objetivos(request): return render(request, 'objetivos.html')
 
 def postulantes(request): return render(request, 'postulantes.html')
 def publicar_ofertas_de_empleo(request): return render(request, 'publicar_ofertas_de_empleo.html')
