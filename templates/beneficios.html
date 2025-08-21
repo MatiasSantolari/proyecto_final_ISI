@@ -31,7 +31,13 @@
               {% for beneficio in beneficios %}
               <tr>
                 <td>{{ beneficio.descripcion }}</td>
-                <td>${{ beneficio.monto }}</td>
+                <td>
+                  {% if beneficio.monto %}
+                    ${{ beneficio.monto }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
                 <td>
                   {% if beneficio.porcentaje %}
                     {{ beneficio.porcentaje }}%
@@ -149,10 +155,15 @@
           </div>
           <div class="modal-body">
             <p><strong>Descripcion:</strong> {{ beneficio.descripcion }}</p>
-            <p><strong>Monto:</strong> ${{ beneficio.monto }}</p>
-            <p><strong>Porcentaje:</strong> 
-              {% if descuento.porcentaje %}
-                {{ descuento.porcentaje }}%
+            <p><strong>Monto:</strong> 
+              {% if beneficio.monto %}
+                ${{ beneficio.monto }}</p>
+              {% else %}
+                -
+              {% endif %}
+                <p><strong>Porcentaje:</strong> 
+              {% if beneficio.porcentaje %}
+                {{ beneficio.porcentaje }}%
               {% else %}
                 -
               {% endif %}
@@ -283,6 +294,11 @@
       document.getElementById('id_beneficio').value = '';
       document.getElementById('modalBeneficioLabel').textContent = 'Crear Nuevo Beneficio';
       document.querySelector('#formBeneficio button[type="submit"]').textContent = 'Guardar';
+
+      const montoInput = document.getElementById("id_monto");
+      const porcentajeInput = document.getElementById("id_porcentaje");
+      montoInput.removeAttribute("disabled");
+      porcentajeInput.removeAttribute("disabled");
     }
 
 
@@ -290,10 +306,12 @@
       const beneficioId = button.getAttribute('data-id');
       const descripcion = button.getAttribute('data-descripcion');
       const monto = parseFloat(button.getAttribute('data-monto'));
+      const porcentaje = parseFloat(button.getAttribute('data-porcentaje'));
       
       document.getElementById('id_beneficio').value = beneficioId || '';
       document.getElementById('id_descripcion').value = descripcion || '';
       document.getElementById('id_monto').value = isNaN(monto) ? '' : monto.toFixed(2);
+      document.getElementById('id_porcentaje').value = isNaN(porcentaje) ? '' : porcentaje.toFixed(2);
       
       document.getElementById('modalBeneficioLabel').textContent = 'Editar Beneficio';
       document.querySelector('#formBeneficio button[type="submit"]').textContent = 'Actualizar';

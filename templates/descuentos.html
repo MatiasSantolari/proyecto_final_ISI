@@ -31,7 +31,13 @@
               {% for descuento in descuentos %}
               <tr>
                 <td>{{ descuento.descripcion }}</td>
-                <td>${{ descuento.monto }}</td>
+                <td>
+                  {% if descuento.monto %}
+                    ${{ descuento.monto }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
                 <td>
                   {% if descuento.porcentaje %}
                     {{ descuento.porcentaje }}%
@@ -149,7 +155,13 @@
           </div>
           <div class="modal-body">
             <p><strong>Descripcion:</strong> {{ descuento.descripcion }}</p>
-            <p><strong>Monto:</strong> ${{ descuento.monto }}</p>
+            <p><strong>Monto:</strong> 
+              {% if descuento.monto %}
+                ${{ descuento.monto }}
+              {% else %}
+                -
+              {% endif %}
+            </p>
             <p><strong>Porcentaje:</strong> 
               {% if descuento.porcentaje %}
                 {{ descuento.porcentaje }}%
@@ -283,6 +295,11 @@
       document.getElementById('id_descuento').value = '';
       document.getElementById('modalDescuentoLabel').textContent = 'Crear Nuevo Descuento';
       document.querySelector('#formDescuento button[type="submit"]').textContent = 'Guardar';
+
+      const montoInput = document.getElementById("id_monto");
+      const porcentajeInput = document.getElementById("id_porcentaje");
+      montoInput.removeAttribute("disabled");
+      porcentajeInput.removeAttribute("disabled");
     }
 
 
@@ -295,7 +312,7 @@
       document.getElementById('id_descuento').value = descuentoId || '';
       document.getElementById('id_descripcion').value = descripcion || '';
       document.getElementById('id_monto').value = isNaN(monto) ? '' : monto.toFixed(2);
-      document.getElementById('id_porcentaje').value = isNaN(porcentaje) ? '' : monto.toFixed(2);
+      document.getElementById('id_porcentaje').value = isNaN(porcentaje) ? '' : porcentaje.toFixed(2);
       
       document.getElementById('modalDescuentoLabel').textContent = 'Editar Descuento';
       document.querySelector('#formDescuento button[type="submit"]').textContent = 'Actualizar';

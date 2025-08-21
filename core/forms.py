@@ -3,7 +3,6 @@ from .models import *
 from django.contrib.auth.forms import UserCreationForm
 from django.forms.widgets import DateInput
 
-
 class LoginForm(forms.Form):
     nombre_usuario = forms.CharField(max_length=50)
     password = forms.CharField(widget=forms.PasswordInput)
@@ -416,17 +415,14 @@ class BeneficioForm(forms.ModelForm):
         porcentaje = cleaned_data.get("porcentaje")
 
         if monto and porcentaje:
-            raise forms.ValidationError("Debe ingresar solo monto o porcentaje, no ambos.")
+            raise forms.ValidationError('No puede ingresar ambos: monto y porcentaje.')
         if not monto and not porcentaje:
-            raise forms.ValidationError("Debe ingresar al menos un tipo de beneficio.")
-
+            raise forms.ValidationError('Debe ingresar monto o porcentaje.')
         return cleaned_data
     
 
 ###################################
-from django import forms
-from django.core.validators import MinValueValidator, MaxValueValidator
-from .models import Descuento
+
 
 class DescuentoForm(forms.ModelForm):
     class Meta:
@@ -459,10 +455,9 @@ class DescuentoForm(forms.ModelForm):
         porcentaje = cleaned_data.get("porcentaje")
 
         if monto and porcentaje:
-            raise forms.ValidationError("Debe ingresar solo monto o porcentaje, no ambos.")
+            raise forms.ValidationError('No puede ingresar ambos: monto y porcentaje.')
         if not monto and not porcentaje:
-            raise forms.ValidationError("Debe ingresar al menos un tipo de descuento.")
-
+            raise forms.ValidationError('Debe ingresar monto o porcentaje.')
         return cleaned_data
 
 ##########################
