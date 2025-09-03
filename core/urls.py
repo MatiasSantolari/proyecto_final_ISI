@@ -1,17 +1,19 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from core import views
+from core.views import *
+
+from core import views 
 
 urlpatterns = [
-    path('home/', views.home, name='home'),
+    path('home/', login_view.home, name='home'),
     
-     path('cambiar_vista/', views.cambiar_vista, name='cambiar_vista'),
+     path('cambiar_vista/', login_view.cambiar_vista, name='cambiar_vista'),
      
-    path('profile/create/', views.create_persona, name='create_profile'),
+    path('profile/create/', login_view.create_persona, name='create_profile'),
 
     # Perfil usuario
-    path('perfil/', views.perfil_usuario, name='user_perfil'),
-    path('actualizar-cv/', views.actualizar_cv_ajax, name='actualizar_cv_ajax'),
+    path('perfil/', login_view.perfil_usuario, name='user_perfil'),
+    path('actualizar-cv/', postulaciones_view.actualizar_cv_ajax, name='actualizar_cv_ajax'),
 
 
 # urlpatterns = [
@@ -21,68 +23,73 @@ urlpatterns = [
  #   ]
 
      ## PERSONA ##
-    path('personas/', views.personas, name='personas'),
-    path('personas/crear/', views.crear_persona, name='crear_persona'),
-    path('personas/<int:persona_id>/eliminar/', views.eliminar_persona, name='eliminar_persona'),
-    ##path('personas/<int:persona_id>/datos/', views.obtener_datos_persona, name='obtener_datos_persona'),
+    path('personas/', personas_view.personas, name='personas'),
+    path('personas/crear/', personas_view.crear_persona, name='crear_persona'),
+    path('personas/<int:persona_id>/eliminar/', personas_view.eliminar_persona, name='eliminar_persona'),
+    ##path('personas/<int:persona_id>/datos/', personas_view.obtener_datos_persona, name='obtener_datos_persona'),
 
-    path('personas/cargos_por_departamento/<int:dept_id>/', views.cargos_por_departamento, name='cargos_por_departamento'),
+    path('personas/cargos_por_departamento/<int:dept_id>/', personas_view.cargos_por_departamento, name='cargos_por_departamento'),
 
     ## CARGO ##
-    path('cargos/', views.cargos, name='cargos'),
-    path('cargos/crear/', views.crear_cargo, name='crear_cargo'), ## Sirve para editar tambien
-    path('cargos/<int:id_cargo>/eliminar/', views.eliminar_cargo, name='eliminar_cargo'),
+    path('cargos/', cargos_view.cargos, name='cargos'),
+    path('cargos/crear/', cargos_view.crear_cargo, name='crear_cargo'), ## Sirve para editar tambien
+    path('cargos/<int:id_cargo>/eliminar/', cargos_view.eliminar_cargo, name='eliminar_cargo'),
     
 
     ## DEPARTAMENTO ##
-    path('departamentos/', views.departamentos, name='departamentos'),
-    path('departamentos/crear/', views.crear_departamento, name='crear_departamento'),
-    path('departamentos/<int:id_departamento>/eliminar/', views.eliminar_departamento, name='eliminar_departamento'),
+    path('departamentos/', departamentos_view.departamentos, name='departamentos'),
+    path('departamentos/crear/', departamentos_view.crear_departamento, name='crear_departamento'),
+    path('departamentos/<int:id_departamento>/eliminar/', departamentos_view.eliminar_departamento, name='eliminar_departamento'),
 
       ## Habilidad ##
-    path('habilidades/', views.habilidades, name='habilidades'),
-    path('habilidades/crear/', views.crear_habilidad, name='crear_habilidad'),
-    path('habilidades/<int:id_habilidad>/eliminar/', views.eliminar_habilidad, name='eliminar_habilidad'),
+    path('habilidades/', habilidades_view.habilidades, name='habilidades'),
+    path('habilidades/crear/', habilidades_view.crear_habilidad, name='crear_habilidad'),
+    path('habilidades/<int:id_habilidad>/eliminar/', habilidades_view.eliminar_habilidad, name='eliminar_habilidad'),
 
 
-    ## SOLICITUDES ##
-    path('ofertas/', views.listar_ofertas, name='ofertas_empleo'),
-    path('postularse/<int:cargo_id>/', views.postularse_a_cargo, name='postularse'),
-    path('postulaciones/', views.ver_postulaciones_admin, name='admin_postulaciones'),
-    path('postulaciones/cambiar_estado/', views.cambiar_estado_solicitud, name='cambiar_estado_solicitud'),
-    path('postulaciones/finalizar/', views.finalizar_postulaciones_cargo, name='finalizar_postulaciones'),
-    path('habilitar_cargo/', views.habilitar_cargo_para_postulaciones, name='habilitar_cargo'),
-    path('limpiar_postulantes/', views.limpiar_postulantes_cargo, name='limpiar_postulantes'),
+    ## POSTULACIONES ##
+    path('ofertas/', postulaciones_view.listar_ofertas, name='ofertas_empleo'),
+    path('postularse/<int:cargo_id>/', postulaciones_view.postularse_a_cargo, name='postularse'),
+    path('postulaciones/', postulaciones_view.ver_postulaciones_admin, name='admin_postulaciones'),
+    path('postulaciones/cambiar_estado/', postulaciones_view.cambiar_estado_solicitud, name='cambiar_estado_solicitud'),
+    path('postulaciones/finalizar/', postulaciones_view.finalizar_postulaciones_cargo, name='finalizar_postulaciones'),
+    path('habilitar_cargo/', postulaciones_view.habilitar_cargo_para_postulaciones, name='habilitar_cargo'),
+    path('limpiar_postulantes/', postulaciones_view.limpiar_postulantes_cargo, name='limpiar_postulantes'),
 
 
     ## OBJETIVOS ##
-    path('objetivos/', views.objetivos, name='objetivos'),
-    path('objetivos/crear/', views.crear_objetivo, name='crear_objetivo'),
-    path('objetivos/<int:id_objetivo>/desactivar/', views.desactivar_objetivo, name='desactivar_objetivo'),
-    path('objetivos/<int:id_objetivo>/eliminar/', views.eliminar_objetivo, name='eliminar_objetivo'),
-    path('objetivos/<int:id_objetivo>/activar/', views.activar_objetivo, name='activar_objetivo'),
-    path('objetivos/obtener_datos_asignacion/', views.obtener_datos_asignacion, name='obtener_datos_asignacion'),
-    path('objetivos/asignar/', views.asignar_objetivo, name='asignar_objetivo'),
-    path('objetivos/marcar-objetivo/', views.marcar_objetivo, name='marcar_objetivo'),
-##  path('objetivos/obtener_asignaciones_objetivo/', views.obtener_asignaciones_objetivo, name='obtener_asignaciones_objetivo'),
+    path('objetivos/', objetivos_view.objetivos, name='objetivos'),
+    path('objetivos/crear/', objetivos_view.crear_objetivo, name='crear_objetivo'),
+    path('objetivos/<int:id_objetivo>/desactivar/', objetivos_view.desactivar_objetivo, name='desactivar_objetivo'),
+    path('objetivos/<int:id_objetivo>/eliminar/', objetivos_view.eliminar_objetivo, name='eliminar_objetivo'),
+    path('objetivos/<int:id_objetivo>/activar/', objetivos_view.activar_objetivo, name='activar_objetivo'),
+    path('objetivos/obtener_datos_asignacion/', objetivos_view.obtener_datos_asignacion, name='obtener_datos_asignacion'),
+    path('objetivos/asignar/', objetivos_view.asignar_objetivo, name='asignar_objetivo'),
+    path('objetivos/marcar-objetivo/', objetivos_view.marcar_objetivo, name='marcar_objetivo'),
+##  path('objetivos/obtener_asignaciones_objetivo/', objetivos_view.obtener_asignaciones_objetivo, name='obtener_asignaciones_objetivo'),
 
 
     ## BENEFICIOS ##
-    path('beneficios/', views.beneficios, name='beneficios'),
-    path('beneficios/crear/', views.crear_beneficio, name='crear_beneficio'),
-    path('beneficios/<int:id_beneficio>/desactivar/', views.desactivar_beneficio, name='desactivar_beneficio'),
-    path('beneficios/<int:id_beneficio>/activar/', views.activar_beneficio, name='activar_beneficio'),
-    path('beneficios/<int:id_beneficio>/eliminar/', views.eliminar_beneficio, name='eliminar_beneficio'),
+    path('beneficios/', beneficios_view.beneficios, name='beneficios'),
+    path('beneficios/crear/', beneficios_view.crear_beneficio, name='crear_beneficio'),
+    path('beneficios/<int:id_beneficio>/desactivar/', beneficios_view.desactivar_beneficio, name='desactivar_beneficio'),
+    path('beneficios/<int:id_beneficio>/activar/', beneficios_view.activar_beneficio, name='activar_beneficio'),
+    path('beneficios/<int:id_beneficio>/eliminar/', beneficios_view.eliminar_beneficio, name='eliminar_beneficio'),
 
 
     ## DESCUENTOS ##
-    path('descuentos/', views.descuentos, name='descuentos'),
-    path('descuentos/crear/', views.crear_descuento, name='crear_descuento'),
-    path('descuentos/<int:id_descuento>/desactivar/', views.desactivar_descuento, name='desactivar_descuento'),
-    path('descuentos/<int:id_descuento>/activar/', views.activar_descuento, name='activar_descuento'),
-    path('descuentos/<int:id_descuento>/eliminar/', views.eliminar_descuento, name='eliminar_descuento'),
+    path('descuentos/', descuentos_view.descuentos, name='descuentos'),
+    path('descuentos/crear/', descuentos_view.crear_descuento, name='crear_descuento'),
+    path('descuentos/<int:id_descuento>/desactivar/', descuentos_view.desactivar_descuento, name='desactivar_descuento'),
+    path('descuentos/<int:id_descuento>/activar/', descuentos_view.activar_descuento, name='activar_descuento'),
+    path('descuentos/<int:id_descuento>/eliminar/', descuentos_view.eliminar_descuento, name='eliminar_descuento'),
 
 
+    ## NOMINAS ##
+    path('nominas/', nominas_view.nominas, name='nominas'),
+   # path('nominas/editar/<int:id_nomina>/', nominas_view.editar_nomina, name='editar_nomina'),
+   # path('nominas/ver/<int:id_nomina>/', nominas_view.ver_nomina, name='ver_nomina'),
+    path('nominas/anular/<int:id_nomina>/', nominas_view.cambiar_estado_nomina, name='anular_nomina'),
 
 ##############################################
 
@@ -99,7 +106,7 @@ urlpatterns = [
 
     path('instituciones/', views.instituciones, name='instituciones'),
     path('logros/', views.logros, name='logros'),
-    path('nominas/', views.nominas, name='nominas'),
+    #path('nominas/', views.nominas, name='nominas'),
    
     path('registrar_asistencia/', views.registrar_asistencia, name='registrar_asistencia'),
     path('solicitudes_nuevos_empleados/', views.solicitudes_nuevos_empleados, name='solicitudes_nuevos_empleados'),

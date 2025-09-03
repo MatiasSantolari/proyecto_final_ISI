@@ -469,3 +469,9 @@ class HabilidadForm(forms.ModelForm):
     class Meta:
         model = Habilidad
         fields = ['nombre', 'descripcion']
+
+
+########################
+#class NominaForm(forms.ModelForm):
+#    class Meta:
+#        model = Nomina

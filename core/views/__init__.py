@@ -1,12 +1,13 @@
-from .login import *
-from .postulaciones import *
-from .personas import *
-from .cargos import *
-from .habilidades import *
-from .departamentos import *
-from .descuentos import *
-from .beneficios import *
-from .objetivos import *
+from .login_view import *
+from .postulaciones_view import *
+from .personas_view import *
+from .cargos_view import *
+from .habilidades_view import *
+from .departamentos_view import *
+from .descuentos_view import *
+from .beneficios_view import *
+from .objetivos_view import *
+from .nominas_view import *
 
 def agregar_sueldo_base(request): return render(request, 'agregar_sueldo_base.html')
 def calcular_bonificaciones(request): return render(request, 'calcular_bonificaciones.html')

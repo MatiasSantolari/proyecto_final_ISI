@@ -1,169 +1,160 @@
-<{% extends "base.html"%}
+{% extends "base.html" %}
+{% load widget_tweaks %}
 
-  {% block title %}Cálculo de Nóminas{% endblock %}
-  
-  {% block content %}
+{% block title %}Gestión de Nóminas{% endblock %}
 
-  <div class="container my-5">
-    <h1 class="mb-4" style="color: var(--color-primario);">Cálculo de Nóminas</h1>
+{% block content %}
+<div class="container mt-5"><hv><hv>
 
-    <!-- Filtros -->
-    <div class="row mb-4">
-      <div class="col-md-6">
-        <label for="filtroDepartamento" class="form-label">Filtrar por Departamento</label>
-        <select id="filtroDepartamento" class="form-select" onchange="generarNominas(false)">
-          <option value="" selected>Todos</option>
-          <option value="Recursos Humanos">Recursos Humanos</option>
-          <option value="Desarrollo">Desarrollo</option>
-          <option value="Ventas">Ventas</option>
-        </select>
-      </div>
+    <!-- Título y Filtros -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Gestión de Nóminas</h2>
     </div>
 
-    <!-- Botón para Generar Nóminas y Opciones de Informe -->
-    <div class="row mb-4">
-      <div class="col-md-6 d-flex align-items-end">
-        <button class="btn w-100" style="background-color: var(--color-primario); color: white;" onclick="generarNominas(true)">
-          Generar Nóminas
-        </button>
-      </div>
-    </div>
-
-    <!-- Tabla de Nóminas -->
-    <div id="resultadoNominas">
-      <!-- Aquí se generará dinámicamente el contenido de las nóminas -->
-    </div>
-  </div>
-
-  <!-- Modal para Generar Informe -->
-  <div class="modal fade" id="modalGenerarInforme" tabindex="-1" aria-labelledby="modalGenerarInformeLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalGenerarInformeLabel">Generar Informe</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- Formulario de filtros -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <label for="departamento" class="form-label">Departamento</label>
+            <input type="text" class="form-control" name="departamento" id="departamento" value="{{ request.GET.departamento }}">
         </div>
-        <div class="modal-body">
-          <p>Elige el formato para generar el informe:</p>
-          <button class="btn btn-primary w-100 mb-2" onclick="alert('Generando informe en PDF...')">Generar en PDF</button>
-          <button class="btn btn-success w-100 mb-3" onclick="alert('Generando informe en Excel...')">Generar en Excel</button>
-          <!-- Botón cerrar con estilo reducido y espacio -->
-          <button class="btn btn-secondary" data-bs-dismiss="modal" style="font-size: 0.8rem; padding: 0.3rem 1rem; width: auto; margin-top: 15px; margin-left: auto; margin-right: auto;">Cerrar</button>
+        <div class="col-md-3">
+            <label for="mes" class="form-label">Mes</label>
+            <select class="form-select" name="mes" id="mes">
+                <option value="">-- Seleccionar --</option>
+                {% for i in 1|to_int:12 %}
+                <option value="{{ i }}" {% if request.GET.mes == i|stringformat:"s" %}selected{% endif %}>{{ i }}</option>
+                {% endfor %}
+            </select>
         </div>
-      </div>
-    </div>
-  </div>
+        <div class="col-md-3">
+            <label for="anio" class="form-label">Año</label>
+            <input type="number" class="form-control" name="anio" id="anio" value="{{ request.GET.anio }}">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+        </div>
+    </form>
 
-  <script>
-    // Ejemplo de datos de empleados
-    const empleados = [
-      { id: 1, nombre: "Juan Pérez", departamento: "Recursos Humanos", cargo: "Analista", sueldoBase: 120000, bonificaciones: 20000, diasTrabajados: 28, diasLaborales: 30 },
-      { id: 2, nombre: "Ana López", departamento: "Desarrollo", cargo: "Desarrollador", sueldoBase: 150000, bonificaciones: 25000, diasTrabajados: 30, diasLaborales: 30 },
-      { id: 3, nombre: "Pedro Gómez", departamento: "Ventas", cargo: "Vendedor", sueldoBase: 100000, bonificaciones: 15000, diasTrabajados: 25, diasLaborales: 30 },
-    ];
-
-    // Impuestos y descuentos
-    const descuentosGenerales = {
-      jubilacion: 0.11,
-      obraSocial: 0.03,
-      sindicato: 0.02,
-    };
-
-    // Función para generar nóminas
-    function generarNominas(showAlert = false) {
-      const filtro = document.getElementById('filtroDepartamento').value;
-      const fechaActual = new Date();
-      const periodo = `${fechaActual.getMonth() + 1}/${fechaActual.getFullYear()}`;
-
-      const nominasPorDepto = {};
-
-      empleados
-        .filter(empleado => filtro === "" || empleado.departamento === filtro)
-        .forEach(empleado => {
-          const diasFaltantes = empleado.diasLaborales - empleado.diasTrabajados;
-          const descuentoPorFaltas = (empleado.sueldoBase / empleado.diasLaborales) * diasFaltantes;
-
-          const montoBruto = empleado.sueldoBase + empleado.bonificaciones;
-          const montoDescuentos = 
-            montoBruto * (descuentosGenerales.jubilacion + descuentosGenerales.obraSocial + descuentosGenerales.sindicato) + 
-            descuentoPorFaltas;
-          const montoNeto = montoBruto - montoDescuentos;
-
-          if (!nominasPorDepto[empleado.departamento]) {
-            nominasPorDepto[empleado.departamento] = [];
-          }
-
-          nominasPorDepto[empleado.departamento].push({
-            nombre: empleado.nombre,
-            cargo: empleado.cargo,
-            montoBruto,
-            montoNeto,
-            descuentos: {
-              jubilacion: montoBruto * descuentosGenerales.jubilacion,
-              obraSocial: montoBruto * descuentosGenerales.obraSocial,
-              sindicato: montoBruto * descuentosGenerales.sindicato,
-              faltas: descuentoPorFaltas,
-            },
-          });
-        });
-
-      mostrarNominas(nominasPorDepto, periodo);
-
-      // Mostrar alert solo si showAlert es true (al presionar el botón)
-      if (showAlert) {
-        alert("Las nóminas han sido generadas exitosamente.");
-        // Abrir modal para generar informe
-        new bootstrap.Modal(document.getElementById('modalGenerarInforme')).show();
-      }
-    }
-
-    // Mostrar nóminas con el periodo indicado
-    function mostrarNominas(nominasPorDepto, periodo) {
-      const resultado = document.getElementById('resultadoNominas');
-      resultado.innerHTML = `<h3>Periodo: ${periodo}</h3>`;
-
-      for (const [departamento, nominas] of Object.entries(nominasPorDepto)) {
-        const tabla = document.createElement('div');
-        tabla.classList.add('mb-4');
-        tabla.innerHTML = `
-          <h3>${departamento}</h3>
-          <table class="table table-bordered tabla-nominas">
-            <thead style="background-color: var(--color-suave);">
-              <tr>
-                <th>Empleado</th>
-                <th>Cargo</th>
-                <th>Monto Bruto</th>
-                <th>Descuentos</th>
-                <th>Monto Neto</th>
-              </tr>
+    <!-- Tabla de nóminas -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Empleado</th>
+                    <th>Departamento</th>
+                    <th>Fecha Generación</th>
+                    <th>Monto Total</th>
+                    <th>Acciones</th>
+                </tr>
             </thead>
             <tbody>
-              ${nominas.map(nomina => `
+                {% for nomina in nominas %}
                 <tr>
-                  <td>${nomina.nombre}</td>
-                  <td>${nomina.cargo}</td>
-                  <td>$${nomina.montoBruto.toFixed(2)}</td>
-                  <td>
-                    Jubilación: $${nomina.descuentos.jubilacion.toFixed(2)}<br>
-                    Obra Social: $${nomina.descuentos.obraSocial.toFixed(2)}<br>
-                    Sindicato: $${nomina.descuentos.sindicato.toFixed(2)}<br>
-                    Faltas: $${nomina.descuentos.faltas.toFixed(2)}
-                  </td>
-                  <td>$${nomina.montoNeto.toFixed(2)}</td>
+                    <td>{{ nomina.id }}</td>
+                    <td>{{ nomina.empleado.persona.nombre }} {{ nomina.empleado.persona.apellido }}</td>
+                    <td>
+                        {% for ec in nomina.empleado.empleadocargo_set.all %}
+                            {% for cd in ec.cargo.cargodepartamento_set.all %}
+                                {{ cd.departamento.nombre }}
+                            {% empty %}
+                                -
+                            {% endfor %}
+                        {% endfor %}
+                    </td>
+                    <td>{{ nomina.fecha_generacion|date:"d/m/Y" }}</td>
+                    <td>{{ nomina.monto_total }}</td>
+                    <td>
+                        <!-- Botones de acciones -->
+                        <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalVerNomina{{ nomina.id }}">
+                            Ver
+                        </button>
+                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditarNomina{{ nomina.id }}">
+                            Editar
+                        </button>
+                        <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalEliminarNomina{{ nomina.id }}">
+                            Eliminar
+                        </button>
+                    </td>
                 </tr>
-              `).join("")}
+
+                <!-- Modal Ver -->
+                <div class="modal fade" id="modalVerNomina{{ nomina.id }}" tabindex="-1" aria-labelledby="modalVerNominaLabel{{ nomina.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-info text-white">
+                                <h5 class="modal-title" id="modalVerNominaLabel{{ nomina.id }}">Detalles de Nómina</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p><strong>ID:</strong> {{ nomina.id }}</p>
+                                <p><strong>Empleado:</strong> {{ nomina.empleado.persona.nombre }} {{ nomina.empleado.persona.apellido }}</p>
+                                <p><strong>Fecha:</strong> {{ nomina.fecha_generacion|date:"d/m/Y" }}</p>
+                                <p><strong>Monto Total:</strong> {{ nomina.monto_total }}</p>
+                                <p><strong>Departamento:</strong> 
+                                    {% for ec in nomina.empleado.empleadocargo_set.all %}
+                                        {% for cd in ec.cargo.cargodepartamento_set.all %}
+                                            {{ cd.departamento.nombre }}
+                                        {% empty %}
+                                            -
+                                        {% endfor %}
+                                    {% endfor %}
+                                </p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Editar (similar al de descuentos, con form) -->
+                <div class="modal fade" id="modalEditarNomina{{ nomina.id }}" tabindex="-1" aria-labelledby="modalEditarNominaLabel{{ nomina.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <form method="post" action="{% url 'editar_nomina' nomina.id %}">
+                                {% csrf_token %}
+                                <div class="modal-header bg-warning">
+                                    <h5 class="modal-title">Editar Nómina</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    {{ form.as_p }}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-success">Guardar cambios</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Eliminar -->
+                <div class="modal fade" id="modalEliminarNomina{{ nomina.id }}" tabindex="-1" aria-labelledby="modalEliminarNominaLabel{{ nomina.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="post" action="{% url 'eliminar_nomina' nomina.id %}">
+                                {% csrf_token %}
+                                <div class="modal-header bg-danger text-white">
+                                    <h5 class="modal-title">Eliminar Nómina</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    ¿Estás seguro de que deseas eliminar la nómina de <strong>{{ nomina.empleado.persona.nombre }} {{ nomina.empleado.persona.apellido }}</strong>?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                {% endfor %}
             </tbody>
-          </table>
-        `;
-        resultado.appendChild(tabla);
-      }
-    }
-
-    // Ejecutar filtro "Todos" al cargar la página
-    document.addEventListener("DOMContentLoaded", () => generarNominas(false));
-  </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  {% endblock %}
-</body>
-</html>
+        </table>
+    </div>
+</div>
+{% endblock %}
