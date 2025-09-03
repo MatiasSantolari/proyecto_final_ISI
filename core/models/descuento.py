@@ -5,6 +5,7 @@ class Descuento(models.Model):
     descripcion = models.CharField(max_length=100, verbose_name='Descripcion del descuento')
     monto = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name='Monto del descuento')
     activo = models.BooleanField(default=True, verbose_name='estado de actividad')
+    fijo = models.BooleanField(default=False, verbose_name='se asigna siempre a todos')
     porcentaje = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name='Porcentaje de descuento (%)', help_text='Ingrese el porcentaje entre 0 y 100')
 
     class Meta:
