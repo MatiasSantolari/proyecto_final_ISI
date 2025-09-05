@@ -13,7 +13,7 @@ class Empleado(Persona):
         ('jubilado', 'Jubilado'),
     ]
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, verbose_name='Estado Empleado')
-    cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE)
+    cargo = models.ForeignKey(Cargo, on_delete=models.SET_NULL, null=True, blank=True)
     cantidad_dias_disponibles = models.IntegerField(verbose_name='Cantidad dias disponibles de vacaciones')
 
     class Meta:
@@ -33,4 +33,19 @@ class Empleado(Persona):
 
 
 
+    def departamento_actual_nombre(self):
+        cargo_activo = self.empleadocargo_set.filter(fecha_fin__isnull=True).order_by('-fecha_inicio').first()
+        if cargo_activo:
+            cargo = cargo_activo.cargo
+            cargo_departamento = cargo.cargodepartamento_set.first() 
+            if cargo_departamento:
+                return cargo_departamento.departamento.nombre
+        return "-"
 
+
+    def cargo_actual_nombre(self):
+        cargo_activo = self.empleadocargo_set.filter(fecha_fin__isnull=True).order_by('-fecha_inicio').first()
+        if cargo_activo and cargo_activo.cargo:
+            return cargo_activo.cargo.nombre
+        return "-"
+    

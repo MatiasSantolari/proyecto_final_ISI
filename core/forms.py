@@ -472,6 +472,26 @@ class HabilidadForm(forms.ModelForm):
 
 
 ########################
-#class NominaForm(forms.ModelForm):
-#    class Meta:
-#        model = Nomina
+
+class NominaForm(forms.ModelForm):
+    class Meta:
+        model = Nomina
+        fields = [
+            'empleado',
+            'fecha_generacion',
+            'monto_bruto',
+            'total_descuentos',
+            'monto_neto',
+            'estado',
+        ]
+        widgets = {
+            'empleado': forms.Select(attrs={'class': 'form-select'}),
+            'fecha_generacion': forms.DateInput(attrs={
+                'type': 'date', 
+                'class': 'form-control'
+            }),
+            'monto_bruto': forms.NumberInput(attrs={'class': 'form-control', 'readonly': True}),  # 👈 solo lectura
+            'total_descuentos': forms.NumberInput(attrs={'class': 'form-control', 'readonly': True}),
+            'monto_neto': forms.NumberInput(attrs={'class': 'form-control', 'readonly': True}),
+            'estado': forms.Select(attrs={'class': 'form-select'}),
+        }

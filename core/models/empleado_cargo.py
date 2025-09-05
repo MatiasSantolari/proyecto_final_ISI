@@ -5,7 +5,7 @@ from .empleado import Empleado
 
 class EmpleadoCargo(models.Model):
     empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
-    cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE)
+    cargo = models.ForeignKey(Cargo, on_delete=models.SET_NULL, null=True, blank=True)
     fecha_inicio = models.DateField(default=datetime.now, verbose_name='Fecha de asignacion')
     fecha_fin = models.DateField(null=True, blank=True, verbose_name='Fecha de desasignacion')
     

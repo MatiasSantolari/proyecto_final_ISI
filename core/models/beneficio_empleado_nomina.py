@@ -6,7 +6,7 @@ from .empleado import Empleado
 class BeneficioEmpleadoNomina(models.Model):
     empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
     beneficio = models.ForeignKey(Beneficio, on_delete=models.CASCADE)
-    nomina = models.ForeignKey(Nomina, on_delete=models.CASCADE)
+    nomina = models.ForeignKey(Nomina, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         verbose_name = 'BeneficioEmpleadoNomina'

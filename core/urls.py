@@ -87,9 +87,10 @@ urlpatterns = [
 
     ## NOMINAS ##
     path('nominas/', nominas_view.nominas, name='nominas'),
-   # path('nominas/editar/<int:id_nomina>/', nominas_view.editar_nomina, name='editar_nomina'),
-   # path('nominas/ver/<int:id_nomina>/', nominas_view.ver_nomina, name='ver_nomina'),
-    path('nominas/anular/<int:id_nomina>/', nominas_view.cambiar_estado_nomina, name='anular_nomina'),
+    path('nominas/editar/', nominas_view.editar_nomina, name='editar_nomina'),
+    path('nominas/ver/<int:id_nomina>/', nominas_view.ver_nomina, name='ver_nomina'),
+    path('nominas/anular/<int:id_nomina>/', nominas_view.anular_nomina, name='anular_nomina'),
+    path('nominas/generar/', nominas_view.generar_nominas, name='generar_nominas'),
 
 ##############################################
 
