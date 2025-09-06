@@ -174,7 +174,6 @@
 
             <div class="row mb-2">
               <div class="col-md-6"><strong>Monto Bruto:</strong> <span class="text-success fw-bold">$<span id="verBruto"></span></span></div>
-              <div class="col-md-6"><strong>Monto Neto:</strong> <span class="text-primary fw-bold">$<span id="verNeto"></span></span></div>
             </div>
 
             <div id="containerDescuentos" class="mb-3">
@@ -185,16 +184,21 @@
 
             <div id="containerBeneficios" class="mb-3">
               <p class="fw-bold text-success mb-1">Beneficios:</p>
-              <ul id="verBeneficiosDetalle" class="list-group list-group-flush"></ul>
+              <ul id="verBeneficiosDetalle" class="list-group list-group-flush mb-1"></ul>
+              <p><strong>Total Beneficios:</strong> <span class="text-success fw-bold">$<span id="verBeneficios"></span></span></p>
             </div>
             
-            <div class="col-md-12" id="fechaPagoContainer">
-              <strong>Fecha Pago:</strong> <span id="verFechaPago"></span>
+             <hr>
+             
+            <div class="row">
+              <div class="col-md-12" id="fechaPagoContainer"><strong>Fecha Pago:</strong> <span id="verFechaPago"></span></div>
             </div>
 
-            <div class="row">
-              <div class="col-md-12"><strong>Estado:</strong> <span id="verEstado"></span></div>
+            <div class="row mb-2">
+              <div class="col-md-6"><strong>Monto Neto:</strong> <span class="text-primary fw-bold">$<span id="verNeto"></span></span></div>
+              <div class="col-md-6"><strong>Estado:</strong> <span id="verEstado"></span></div>
             </div>
+
           </div>
 
           <div class="modal-footer">
@@ -420,6 +424,7 @@
               document.getElementById('verBruto').textContent = data.monto_bruto;
               document.getElementById('verNeto').textContent = data.monto_neto;
               document.getElementById('verDescuentos').textContent = data.total_descuentos;
+              document.getElementById('verBeneficios').textContent = data.total_beneficios;
               document.getElementById('verEstado').textContent = data.estado;
               document.getElementById('verFechaPago').textContent = data.fecha_pago;
               
@@ -438,8 +443,8 @@
                   document.getElementById("verEstado").innerHTML = `<span class="${estadoClass}">${data.estado}</span>`;
               }
 
-              if (data.fecha) {
-                document.getElementById("verFechaPago").innerText = data.fecha;
+              if (data.fecha_pago) {
+                document.getElementById("verFechaPago").innerText = data.fecha_pago;
                 document.getElementById("fechaPagoContainer").style.display = "block";
               } else {
                 document.getElementById("fechaPagoContainer").style.display = "none";

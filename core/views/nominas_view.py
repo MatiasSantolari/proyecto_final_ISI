@@ -297,7 +297,7 @@ def confirmar_nominas(request):
         messages.info(request, "No hay nóminas pendientes para confirmar.")
         return redirect("nominas")
 
-    nominas_pendientes.update(estado="pagado")
+    nominas_pendientes.update(estado="pagado", fecha_pago=hoy)
     messages.success(request, f"Se confirmaron {count} nómina(s) como pagadas.")
 
     return redirect("nominas")
@@ -412,3 +412,26 @@ def ver_nomina(request, id_nomina):
         "estado": nomina.estado,
     }
     return JsonResponse(data)
+
+############
+
+@login_required
+def mis_nominas(request):
+    empleado = request.user.persona
+
+    if not empleado:
+        return render(request, "mis_nominas.html", {
+            "nominas": [],
+            "error": "No hay un empleado asociado a este usuario."
+        })
+
+    nominas = (
+        Nomina.objects
+        .filter(empleado=empleado, estado="pagado")
+        .select_related("empleado")
+        .order_by("-fecha_generacion")  
+    )
+
+    return render(request, "mis_nominas.html", {
+        "nominas": nominas,
+    })

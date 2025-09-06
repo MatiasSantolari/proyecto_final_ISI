@@ -7,7 +7,7 @@ from core import views
 urlpatterns = [
     path('home/', login_view.home, name='home'),
     
-     path('cambiar_vista/', login_view.cambiar_vista, name='cambiar_vista'),
+    path('cambiar_vista/', login_view.cambiar_vista, name='cambiar_vista'),
      
     path('profile/create/', login_view.create_persona, name='create_profile'),
 
@@ -41,7 +41,8 @@ urlpatterns = [
     path('departamentos/crear/', departamentos_view.crear_departamento, name='crear_departamento'),
     path('departamentos/<int:id_departamento>/eliminar/', departamentos_view.eliminar_departamento, name='eliminar_departamento'),
 
-      ## Habilidad ##
+
+      ## HABILIDAD ##
     path('habilidades/', habilidades_view.habilidades, name='habilidades'),
     path('habilidades/crear/', habilidades_view.crear_habilidad, name='crear_habilidad'),
     path('habilidades/<int:id_habilidad>/eliminar/', habilidades_view.eliminar_habilidad, name='eliminar_habilidad'),
@@ -92,9 +93,10 @@ urlpatterns = [
     path('nominas/anular/<int:id_nomina>/', nominas_view.anular_nomina, name='anular_nomina'),
     path('nominas/eliminar/<int:id_nomina>/', nominas_view.eliminar_nomina, name='eliminar_nomina'),
     path('nominas/generar/', nominas_view.generar_nominas, name='generar_nominas'),
-    path('nominas/confirmar/', views.confirmar_nominas, name='confirmar_nominas'),
+    path('nominas/confirmar/', nominas_view.confirmar_nominas, name='confirmar_nominas'),
+    path("mis-nominas/", views.mis_nominas, name="mis_nominas"), # Empleado
 
-
+##############################################
 ##############################################
 
     path('agregar_sueldo_base/', views.agregar_sueldo_base, name='agregar_sueldo_base'),
@@ -110,7 +112,6 @@ urlpatterns = [
 
     path('instituciones/', views.instituciones, name='instituciones'),
     path('logros/', views.logros, name='logros'),
-    #path('nominas/', views.nominas, name='nominas'),
    
     path('registrar_asistencia/', views.registrar_asistencia, name='registrar_asistencia'),
     path('solicitudes_nuevos_empleados/', views.solicitudes_nuevos_empleados, name='solicitudes_nuevos_empleados'),

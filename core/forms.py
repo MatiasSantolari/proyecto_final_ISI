@@ -387,7 +387,7 @@ class ObjetivoForm(forms.ModelForm):
 class BeneficioForm(forms.ModelForm):
     class Meta:
         model = Beneficio
-        fields = ['descripcion', 'monto', 'porcentaje']
+        fields = ['descripcion', 'monto', 'porcentaje', 'fijo']
         widgets = {
             'descripcion': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -406,6 +406,9 @@ class BeneficioForm(forms.ModelForm):
                 'step': '0.01',
                 'min': '0',
                 'max': '100'
+            }),
+            'fijo': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
             }),
         }
 

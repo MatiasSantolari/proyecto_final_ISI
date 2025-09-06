@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Mis Nóminas{% endblock %}
+
+{% block content %}
+<div class="container my-5"><hv><hv>
+  <h2 class="mb-4">Historial de Nóminas</h2>
+
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+
+  {% if nominas %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Fecha Pagado</th>
+          <th>Periodo</th>
+          <th>Estado</th>
+          <th>Recibido</th>
+          <th style="width:10%">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for nomina in nominas %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ nomina.fecha_pago|date:"d/m/Y" }}</td>
+            <td>{{ nomina.fecha_pago|date:"m/Y" }}</td>
+            <td>
+              {% if nomina.estado == "pendiente" %}
+                <span class="badge bg-warning">Pendiente</span>
+              {% elif nomina.estado == "pagado" %}
+                <span class="badge bg-success">Pagado</span>
+              {% elif nomina.estado == "anulado" %}
+                <span class="badge bg-danger">Anulado</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ nomina.estado }}</span>
+              {% endif %}
+            </td>
+            <td>${{ nomina.monto_neto }}</td>
+            <td>
+              <!-- Botón ver con modal -->
+              <button class="btn btn-sm btn-info" 
+                      data-bs-toggle="modal" 
+                      data-bs-target="#modalVerNomina{{ nomina.id }}">
+                <i class="bi bi-eye"></i> Ver
+              </button>
+            </td>
+          </tr>
+
+            <!-- Modal Ver Nómina -->
+            <div class="modal fade" id="modalVerNomina{{ nomina.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-ls">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title">Detalle Nómina - Período {{ nomina.fecha_generacion|date:"m/Y" }}</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row mb-2">
+                                <div class="col-md-6"><strong>Número Nómina:</strong> {{ nomina.numero }}</div>
+                                <div class="col-md-6"><strong>Fecha Pagado:</strong> {{ nomina.fecha_pago|date:"d/m/Y" }}</div>
+                            </div>
+
+                            <hr>
+                            <div class="row mb-2">
+                                <div class="col-md-6"><strong>Monto Bruto:</strong> <span class="text-success fw-bold">${{ nomina.monto_bruto|floatformat:2 }}</span></div>
+                            </div>
+
+                            <div id="containerDescuentos" class="mb-3">
+                                <ul id="verDescuentosDetalle" class="list-group list-group-flush mb-1"></ul>
+                                <p><strong>Total Descuentos:</strong> <span class="text-danger fw-bold">${{ nomina.total_descuentos }}</span></p>
+                            </div>
+
+                            <div id="containerBeneficios" class="mb-3">
+                                <ul id="verBeneficiosDetalle" class="list-group list-group-flush mb-1"></ul>
+                                <p><strong>Total Beneficios:</strong> <span class="text-success fw-bold">${{ nomina.total_beneficios }}</span></p>
+                            </div>
+                            <hr>
+                            <div class="row mb-2">
+                                <div class="col-md-6"><strong>Monto Neto:</strong> <span class="text-primary fw-bold">${{ nomina.monto_neto|floatformat:2 }}</span></div>
+                                <div class="col-md-6"><strong>Estado:</strong> 
+                                    {% if nomina.estado == "pendiente" %}
+                                    <span class="badge bg-warning">Pendiente</span>
+                                    {% elif nomina.estado == "pagado" %}
+                                    <span class="badge bg-success">Pagado</span>
+                                    {% elif nomina.estado == "anulado" %}
+                                    <span class="badge bg-danger">Anulado</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ nomina.estado }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <div class="alert alert-info">Todavía no tienes nóminas generadas.</div>
+    {% endif %}
+    </div>
+    {% endblock %}
