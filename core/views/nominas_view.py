@@ -13,6 +13,8 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Subquery, OuterRef
+from django.db.models import Case, When, IntegerField
 
 
 
@@ -36,32 +38,52 @@ def generar_nominas(request):
 
     # Separar por estado
     nominas_pendientes = nominas_existentes.filter(estado="pendiente")
-    nominas_pagadas = nominas_existentes.exclude(estado="pendiente")
+    nominas_pagadas = nominas_existentes.exclude(estado__in=["pendiente", "anulado"])
+    nominas_anuladas = nominas_existentes.filter(estado="anulado")
 
-    # Si existen nominas pendientes, eliminarlas para regenerar
-    pagadas_count = nominas_pagadas.count()
-    if accion == "regenerar":
-        pendientes_count = nominas_pendientes.count()
-        if pendientes_count > 0:
-            nominas_pendientes.delete()
-            messages.warning(request, f"Se regenerarán {pendientes_count} nómina(s) pendientes.")
-    elif accion == "generar":
-        if nominas_existentes.exists():
-            messages.info(request, "Ya existen nóminas generadas para este período.")
-            return redirect("nominas")
+    # Empleados con nómina pagada o pendiente (se excluyen del "generar")
+    empleados_con_nomina_valida = list(
+        nominas_pagadas.values_list("empleado_id", flat=True)
+    ) + list(
+        nominas_pendientes.values_list("empleado_id", flat=True)
+    )
 
     empleados = Empleado.objects.all()
-    empleados_con_nomina = nominas_pagadas.values_list("empleado_id", flat=True)
 
-    empleados_pendientes = []   # empleados a los que generar
-    empleados_sin_sueldo = []   # empleados sin sueldo
+    empleados_a_generar = []  # empleados a los que se generará nómina
+    empleados_sin_sueldo = []
 
+    if accion == "regenerar":
+        pendientes_count = nominas_pendientes.count()
+        if pendientes_count == 0:
+            messages.info(request, "No hay nóminas pendientes para regenerar.")
+            return redirect("nominas")
+
+        # Guardamos IDs de los pendientes en una lista antes de borrar
+        empleados_ids = list(nominas_pendientes.values_list("empleado_id", flat=True))
+
+        # Borramos solo las nóminas pendientes
+        nominas_pendientes.delete()
+        messages.warning(request, f"Se regenerarán {pendientes_count} nómina(s) pendientes.")
+
+        # Recorremos solo esos empleados
+        empleados = empleados.filter(id__in=empleados_ids)
+
+    elif accion == "generar":
+        # Solo los empleados que no tienen nómina en este periodo
+        # o cuya última fue cancelada
+        empleados_ids = [
+            e.id for e in empleados
+            if e.id not in empleados_con_nomina_valida
+        ]
+        empleados = empleados.filter(id__in=empleados_ids)
+
+        if not empleados.exists():
+            messages.info(request, "No hay empleados faltantes de nómina en este período.")
+            return redirect("nominas")
+
+    # Procesar empleados seleccionados
     for empleado in empleados:
-        # Si ya tiene una nómina NO pendiente en este período, no se regenera
-        if empleado.id in empleados_con_nomina:
-            continue
-
-        # Cargo vigente
         cargo_actual = empleado.empleadocargo_set.filter(
             fecha_inicio__lte=hoy,
             fecha_fin__isnull=True,
@@ -77,25 +99,18 @@ def generar_nominas(request):
                 departamento = cargo_departamento_actual.departamento.nombre
 
         if historial:
-            empleados_pendientes.append((empleado, historial.sueldo_base, departamento))
+            empleados_a_generar.append((empleado, historial.sueldo_base, departamento))
         else:
             empleados_sin_sueldo.append(empleado)
 
-    # Si no hay nada que regenerar
-    if not empleados_pendientes and not empleados_sin_sueldo and pagadas_count > 0:
-        messages.info(
-            request,
-            "Todas las nóminas del período actual ya fueron generadas y están en estado distinto a 'pendiente'."
-        )
-        return redirect("nominas")
-
-    # Generar las nóminas solo para los empleados pendientes
-    for empleado, sueldo_base, departamento in empleados_pendientes:
+    # Generar las nóminas
+    for empleado, sueldo_base, departamento in empleados_a_generar:
         bruto = sueldo_base
         total_descuentos = 0
+        total_beneficios = 0
 
         # Descuentos fijos
-        descuentos_fijos = Descuento.objects.filter(fijo=True)
+        descuentos_fijos = Descuento.objects.filter(fijo=True, activo=True)
         for descuento in descuentos_fijos:
             if descuento.monto:
                 total_descuentos += descuento.monto
@@ -105,7 +120,8 @@ def generar_nominas(request):
         # Descuentos específicos
         descuentos_asignados = DescuentoEmpleadoNomina.objects.filter(
             empleado=empleado,
-            nomina__isnull=True
+            nomina__isnull=True,
+            descuento__activo=True,
         )
         for de in descuentos_asignados:
             if de.descuento.monto:
@@ -113,18 +129,27 @@ def generar_nominas(request):
             elif de.descuento.porcentaje:
                 total_descuentos += (bruto * de.descuento.porcentaje) / 100
 
-        # Beneficios
+        # Beneficios fijos
+        beneficios_fijos = Beneficio.objects.filter(fijo=True, activo=True)
+        for beneficio in beneficios_fijos:
+            if beneficio.monto:
+                total_beneficios += beneficio.monto
+            elif beneficio.porcentaje:
+                total_beneficios += (bruto * beneficio.porcentaje) / 100
+
+        # Beneficios específicos
         beneficios_asignados = BeneficioEmpleadoNomina.objects.filter(
             empleado=empleado,
-            nomina__isnull=True
+            nomina__isnull=True,
+            beneficio__activo=True,
         )
         for be in beneficios_asignados:
             if be.beneficio.monto:
-                bruto += be.beneficio.monto
+                total_beneficios += be.beneficio.monto
             elif be.beneficio.porcentaje:
-                bruto += (bruto * be.beneficio.porcentaje) / 100
+                total_beneficios += (bruto * be.beneficio.porcentaje) / 100
 
-        monto_neto = bruto - total_descuentos
+        monto_neto = bruto - total_descuentos + total_beneficios
         numero = f"{empleado.id:06d}{hoy.month:02d}{str(hoy.year)[-2:]}"
 
         nomina = Nomina.objects.create(
@@ -134,6 +159,7 @@ def generar_nominas(request):
             monto_bruto=bruto,
             monto_neto=monto_neto,
             total_descuentos=total_descuentos,
+            total_beneficios=total_beneficios,
             numero=numero
         )
 
@@ -145,17 +171,17 @@ def generar_nominas(request):
             be.nomina = nomina
             be.save()
 
-
-    if empleados_pendientes:
+    # Mensajes finales
+    if empleados_a_generar:
         if accion == "generar":
             messages.success(
                 request,
-                f"Se generaron correctamente {len(empleados_pendientes)} nómina(s) nuevas."
+                f"Se generaron correctamente {len(empleados_a_generar)} nómina(s) nuevas."
             )
         elif accion == "regenerar":
             messages.success(
                 request,
-                f"Se regeneraron correctamente {len(empleados_pendientes)} nómina(s) pendientes."
+                f"Se regeneraron correctamente {len(empleados_a_generar)} nómina(s) pendientes."
             )
 
     if empleados_sin_sueldo:
@@ -166,6 +192,7 @@ def generar_nominas(request):
         )
 
     return redirect("nominas")
+
 
 
 
@@ -185,21 +212,56 @@ def nominas(request):
     )
 
     pendientes = nominas_list.filter(estado="pendiente").count()
-    pagadas = nominas_list.exclude(estado="pendiente").count()
+    pagadas = nominas_list.exclude(estado=["pendiente","anulado"]).count()
 
     if departamento_sel:
-        nominas_list = nominas_list.filter(
-            empleado__empleadocargo__cargo__cargodepartamento__departamento__nombre=departamento
+        ultimo_cargo = (
+            EmpleadoCargo.objects
+            .filter(empleado=OuterRef('empleado'), fecha_fin__isnull=True)
+            .order_by('-fecha_inicio')
+            .values('cargo__cargodepartamento__departamento__nombre')[:1]
         )
 
-    if mes and anio:
-        nominas_list = nominas_list.filter(
-            fecha_generacion__month=int(mes),
-            fecha_generacion__year=int(anio)
-        )
+        nominas_list = nominas_list.annotate(
+            departamento_actual=Subquery(ultimo_cargo)
+        ).filter(departamento_actual=departamento_sel)
 
-    nominas_list = nominas_list.order_by('-fecha_generacion')
+    if mes:
+        nominas_list = nominas_list.filter(fecha_generacion__month=int(mes))
+    if anio:
+        nominas_list = nominas_list.filter(fecha_generacion__year=int(anio))
 
+
+     # Ordenar por periodo y estado
+    estado_order = Case(
+        When(estado="pendiente", then=1),
+        When(estado="anulado", then=3),
+        default=2,  # pagadas u otros
+        output_field=IntegerField(),
+    )
+
+    nominas_list = nominas_list.annotate(
+        estado_order=estado_order
+    ).order_by(
+        '-fecha_generacion__year',
+        '-fecha_generacion__month',
+        'estado_order'
+    )
+
+
+    # Faltantes por generar en el período actual
+    hoy = now().date()
+    mes_actual = hoy.month
+    anio_actual = hoy.year
+
+    nominas_periodo = Nomina.objects.filter(
+        fecha_generacion__month=mes_actual,
+        fecha_generacion__year=anio_actual
+    )
+    empleados_con_nomina = nominas_periodo.values_list("empleado_id", flat=True)
+    faltantes = Empleado.objects.exclude(id__in=empleados_con_nomina).count()
+
+    
     departamentos = Departamento.objects.all().order_by('nombre')
 
     return render(request, 'nominas.html', {
@@ -209,7 +271,37 @@ def nominas(request):
         'departamento_sel': departamento_sel,
         'pendientes': pendientes,
         'pagadas': pagadas,
+        'faltantes': faltantes,
     })
+
+
+
+@login_required
+def confirmar_nominas(request):
+    if request.method != "POST":
+        messages.warning(request, "Acción inválida.")
+        return redirect("nominas")
+
+    hoy = now().date()
+    mes_actual = hoy.month
+    anio_actual = hoy.year
+
+    nominas_pendientes = Nomina.objects.filter(
+        fecha_generacion__month=mes_actual,
+        fecha_generacion__year=anio_actual,
+        estado="pendiente"
+    )
+
+    count = nominas_pendientes.count()
+    if count == 0:
+        messages.info(request, "No hay nóminas pendientes para confirmar.")
+        return redirect("nominas")
+
+    nominas_pendientes.update(estado="pagado")
+    messages.success(request, f"Se confirmaron {count} nómina(s) como pagadas.")
+
+    return redirect("nominas")
+
 
 
 @login_required
@@ -240,7 +332,7 @@ def editar_nomina(request):
 @require_POST
 def anular_nomina(request, id_nomina):
     nomina = get_object_or_404(Nomina, pk=id_nomina)
-    if nomina.estado == 'pendiente':
+    if nomina.estado == 'pendiente' or nomina.estado == 'pagado':
         nomina.estado = 'anulado'
         messages.success(request, "La nómina fue anulada correctamente.")
     else:
@@ -249,6 +341,18 @@ def anular_nomina(request, id_nomina):
     nomina.save()
     return redirect('nominas')
 
+
+
+@login_required
+@require_POST
+def eliminar_nomina(request, id_nomina):
+    try:
+        nomina = get_object_or_404(Nomina, id=id_nomina)
+        nomina.delete()
+        messages.success(request, "Nomina eliminada correctamente.")
+    except Nomina.DoesNotExist:
+        messages.error(request, "La nomina no existe.")
+    return redirect('nominas')
 
 
 
@@ -283,12 +387,22 @@ def ver_nomina(request, id_nomina):
         for b in beneficios
     ]
 
+    # Agregar beneficios fijos
+    beneficios_fijos = Beneficio.objects.filter(fijo=True)
+    for be in beneficios_fijos:
+        beneficios_detalle.append({
+            "descripcion": be.descripcion + " (fijo)",
+            "monto": float(be.monto) if be.monto else 0,
+            "porcentaje": float(be.porcentaje*nomina.monto_bruto/100) if be.porcentaje else 0
+        })
+
     data = {
         "empleado": f"{nomina.empleado.nombre} {nomina.empleado.apellido}",
         "dni": nomina.empleado.dni,
         "cargo": nomina.empleado.cargo_actual_nombre(),  
         "departamento": nomina.empleado.departamento_actual_nombre(),
         "fecha_generacion": nomina.fecha_generacion.strftime("%d/%m/%Y"),
+        "fecha_pago": nomina.fecha_pago.strftime("%d/%m/%Y") if nomina.fecha_pago else None,
         "monto_bruto": float(nomina.monto_bruto),
         "monto_neto": float(nomina.monto_neto),
         "total_descuentos": float(nomina.total_descuentos),

@@ -23,8 +23,18 @@
       <button class="btn btn-success" 
               data-bs-toggle="modal" 
               data-bs-target="#modalGenerarNominas">
-        <i class="bi bi-file-earmark-plus"></i> Generar Nóminas Período Actual
+        <i class="bi bi-file-earmark-plus"></i> Generar Nóminas Período Actual ({{ faltantes }})
       </button>
+
+      <!-- Botón para confirmar -->
+      {% if pendientes > 0 %}
+      <button class="btn btn-primary ms-auto"
+              data-bs-toggle="modal"
+              data-bs-target="#modalConfirmarNominas">
+        <i class="bi bi-check2-circle"></i> Confirmar Nóminas ({{ pendientes }})
+      </button>
+      {% endif %}
+
     </div>
 
     <!-- Formulario de filtros -->
@@ -54,7 +64,7 @@
             <input type="number" class="form-control" name="anio" id="anio" value="{{ request.GET.anio }}">
         </div>
         <div class="col-md-2 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            <button type="submit" class="btn btn-primary w-50">Filtrar</button>
         </div>
     </form>
 
@@ -95,7 +105,7 @@
                           data-bs-toggle="tooltip" title="Ver">
                           <i class="bi bi-eye"></i>
                   </button>
-                  {% if nomina.estado == "pendiente" %}
+                  {% if nomina.estado == "pendiente" or nomina.estado == "pagado" %}
                     <button class="btn btn-sm btn-outline-danger btn-anular" 
                             data-bs-toggle="modal" 
                             data-bs-target="#modalAnularNomina"
@@ -177,9 +187,13 @@
               <p class="fw-bold text-success mb-1">Beneficios:</p>
               <ul id="verBeneficiosDetalle" class="list-group list-group-flush"></ul>
             </div>
+            
+            <div class="col-md-12" id="fechaPagoContainer">
+              <strong>Fecha Pago:</strong> <span id="verFechaPago"></span>
+            </div>
 
             <div class="row">
-              <div class="col-md-12"><strong>Estado:</strong> <span id="verEstado" class="badge bg-warning"></span></div>
+              <div class="col-md-12"><strong>Estado:</strong> <span id="verEstado"></span></div>
             </div>
           </div>
 
@@ -219,17 +233,26 @@
       <div class="modal-dialog" style="margin-top: 12rem;">
         <div class="modal-content">
           <div class="modal-header bg-danger text-white">
-            <h5 class="modal-title text-white" id="modalAnularNominaLabel">Anular Nómina</h5>
+            <h5 class="modal-title text-white" id="modalAnularNominaLabel">Confirmar Eliminar o Anular Nómina</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
           </div>
-          <div class="modal-footer">
-            <form id="formAnularNomina" method="post" action="">
+          <div class="modal-footer d-flex justify-content-between">
+            <form id="formEliminarNomina" method="post">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger"
+                      onclick="return confirm('⚠️ ¿Seguro que deseas eliminar esta nómina? Esta acción no se puede deshacer.');">
+                Eliminar
+              </button>
+            </form>
+
+            <form id="formAnularNomina" method="post" action="" class="d-flex gap-2">
               {% csrf_token %}
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" name="accion" value="anular" class="btn btn-danger">Anular</button>
+              <button type="submit" name="accion" value="anular" class="btn btn-warning">Anular</button>
             </form>
+
           </div>
         </div>
       </div>
@@ -308,6 +331,32 @@
       </div>
     </div>
 
+    <!-- Modal Confirmar -->
+    <div class="modal fade" id="modalConfirmarNominas" tabindex="-1" aria-labelledby="modalConfirmarNominasLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <form method="post" action="{% url 'confirmar_nominas' %}">
+            {% csrf_token %}
+            <div class="modal-header bg-success">
+              <h5 class="modal-title" id="modalConfirmarNominasLabel">Confirmar Nóminas</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+              {% if pendientes > 1 %}
+                ¿Está seguro de confirmar <strong>{{ pendientes }}</strong> nóminas <em>pendientes</em> como <em>pagadas</em>?
+              {% else %}
+                ¿Está seguro de confirmar <strong>{{ pendientes }}</strong> nómina <em>pendiente</em> como <em>pagada</em>?
+              {% endif %}
+              </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-success">Sí, confirmar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
   </div>
     
   <script>
@@ -323,10 +372,14 @@
 
         // Actualizar el texto del modal
         const modalBody = modalAnular.querySelector('.modal-body');
-        modalBody.innerHTML = `¿Estás seguro de que deseas ANULAR la nómina de <strong>${nombre} ${apellido}</strong>?`;
+        modalBody.innerHTML = `¿Estás seguro de que deseas ELIMINAR o ANULAR la nómina de <strong>${nombre} ${apellido}</strong>?`;
 
         const formAnular = document.getElementById('formAnularNomina');
         formAnular.action = `/nominas/anular/${nominaId}/`;
+
+        const formEliminar = document.getElementById('formEliminarNomina');
+        formEliminar.action = `/nominas/eliminar/${nominaId}/`;
+
       });
 
       // Modal Restaurar
@@ -345,7 +398,6 @@
         formRestaurar.action = `/nominas/anular/${nominaId}/`;
       });
     });
-
 
 
 
@@ -369,6 +421,29 @@
               document.getElementById('verNeto').textContent = data.monto_neto;
               document.getElementById('verDescuentos').textContent = data.total_descuentos;
               document.getElementById('verEstado').textContent = data.estado;
+              document.getElementById('verFechaPago').textContent = data.fecha_pago;
+              
+              if (data.estado) {
+                  let estadoClass = "";
+
+                  if (data.estado === "pendiente") {
+                      estadoClass = "badge bg-warning";
+                  } else if (data.estado === "pagado") {
+                      estadoClass = "badge bg-success";
+                  } else if (data.estado === "anulado") {
+                      estadoClass = "badge bg-danger";
+                  } else {
+                      estadoClass = "badge bg-secondary";
+                  }
+                  document.getElementById("verEstado").innerHTML = `<span class="${estadoClass}">${data.estado}</span>`;
+              }
+
+              if (data.fecha) {
+                document.getElementById("verFechaPago").innerText = data.fecha;
+                document.getElementById("fechaPagoContainer").style.display = "block";
+              } else {
+                document.getElementById("fechaPagoContainer").style.display = "none";
+              }
 
               // Detalle descuentos
               const containerDescuentos = document.getElementById('containerDescuentos');
