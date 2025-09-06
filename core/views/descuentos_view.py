@@ -48,7 +48,13 @@ def crear_descuento(request):
 
         if form.is_valid():
             form.save()
+            if id_descuento:
+                messages.success(request, "El descuento se actualizó correctamente.")
+            else:
+                messages.success(request, "El descuento se creó correctamente.")
             return redirect('descuentos')
+        else:
+            messages.error(request, "Hubo un error al guardar el descuento. Verifique los datos ingresados.")
 
     else:
         form = DescuentoForm()

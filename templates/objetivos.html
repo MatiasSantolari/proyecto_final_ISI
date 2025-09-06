@@ -279,11 +279,15 @@
           <div class="modal-body">
             <p><span id="textoConfirmacionDesactivarObjetivo"></span></p>
           </div>
-          <div class="modal-footer">
+          <div class="modal-footer d-flex justify-content-between">
             <form id="formEliminarObjetivo" method="post">
               {% csrf_token %}
-              <button type="submit" class="btn btn-danger">Eliminar</button>
+              <button type="submit" class="btn btn-danger" 
+                      onclick="return confirm('⚠️ ¿Seguro que deseas eliminar este objetivo? Esta acción no se puede deshacer.');">
+                Eliminar
+              </button>
             </form>
+            
             <form id="formDesactivarObjetivo" method="post">
               {% csrf_token %}
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>

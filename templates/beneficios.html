@@ -24,6 +24,7 @@
                 <th>Monto</th>
                 <th>Porcentaje</th>
                 <th style="width: 10%">Activo</th>
+                <th style="width: 10%">Fijo</th>
                 <th style="width: 15%">Acciones</th>
               </tr>
             </thead>
@@ -52,6 +53,13 @@
                     <span class="badge bg-danger">No</span>
                   {% endif %}
                 </td>
+                <td class="text-center">
+                  {% if beneficio.fijo %}
+                    <span class="badge bg-success">Sí</span>
+                  {% else %}
+                    <span class="badge bg-danger">No</span>
+                  {% endif %}
+                </td>
                 <td>
                   <div class="d-flex justify-content-center gap-2">
                     <button class="btn btn-sm btn-outline-secondary" 
@@ -60,6 +68,7 @@
                             data-descripcion="{{ beneficio.descripcion }}"
                             data-monto="{{ beneficio.monto }}"
                             data-porcentaje="{{ beneficio.porcentaje }}"
+                            data-fijo="{{ beneficio.fijo }}"
                             onclick="editarBeneficio(this)"
                             data-bs-toggle="tooltip" title="Editar">
                       <i class="bi bi-pencil-square"></i>
@@ -132,6 +141,10 @@
                     <span class="input-group-text">%</span>
                   </div>
               </div>
+              <div class="mb-3 form-check">
+                {{ form.fijo }}
+                <label for="id_fijo" class="form-check-label">¿Es fijo?</label>
+              </div>
               
               <div class="modal-footer bg-light">
                 <button type="submit" class="btn btn-success w-100 fw-bold">  
@@ -170,6 +183,13 @@
             </p>
             <p><strong>Activo:</strong> 
               {% if beneficio.activo %}
+                Sí
+              {% else %}
+                No
+              {% endif %}
+            </p>
+            <p><strong>Fijo:</strong> 
+              {% if beneficio.fijo %}
                 Sí
               {% else %}
                 No
@@ -307,11 +327,13 @@
       const descripcion = button.getAttribute('data-descripcion');
       const monto = parseFloat(button.getAttribute('data-monto'));
       const porcentaje = parseFloat(button.getAttribute('data-porcentaje'));
+      const fijo = button.getAttribute('data-fijo') === 'True';
       
       document.getElementById('id_beneficio').value = beneficioId || '';
       document.getElementById('id_descripcion').value = descripcion || '';
       document.getElementById('id_monto').value = isNaN(monto) ? '' : monto.toFixed(2);
       document.getElementById('id_porcentaje').value = isNaN(porcentaje) ? '' : porcentaje.toFixed(2);
+      document.getElementById('id_fijo').checked = fijo;
       
       document.getElementById('modalBeneficioLabel').textContent = 'Editar Beneficio';
       document.querySelector('#formBeneficio button[type="submit"]').textContent = 'Actualizar';

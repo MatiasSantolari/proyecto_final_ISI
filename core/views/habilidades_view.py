@@ -38,8 +38,14 @@ def crear_habilidad(request):
             form = HabilidadForm(request.POST)
 
         if form.is_valid():
-            nueva_habilidad = form.save()
+            form.save()
+            if id_habilidad:
+                messages.success(request, "La habilidad se actualizó correctamente.")
+            else:
+                messages.success(request, "La habilidad se creó correctamente.")
             return redirect('habilidades')
+        else:
+            messages.error(request, "Hubo un error al guardar la habilidad. Verifique los datos ingresados.")
 
     else:
         form = HabilidadForm()
@@ -47,9 +53,14 @@ def crear_habilidad(request):
     habilidadesList = Habilidad.objects.all()
     return render(request, 'habilidades.html', {'form': form, 'habilidades': habilidadesList})
 
+
 @require_POST
 def eliminar_habilidad(request, id_habilidad):
-    habilidad = get_object_or_404(Habilidad, id=id_habilidad)
-    HabilidadEmpleado.objects.filter(habilidad=habilidad).delete() # Elimina todas las relaciones de empleados con esta habilidad
-    habilidad.delete()
+    try:
+        habilidad = get_object_or_404(Habilidad, id=id_habilidad)
+        HabilidadEmpleado.objects.filter(habilidad=habilidad).delete() # Elimina todas las relaciones de empleados con esta habilidad
+        habilidad.delete()
+        messages.success(request, "habilidad eliminada correctamente.")
+    except Habilidad.DoesNotExist:
+        messages.error(request, "La habilidad no existe.")
     return redirect('habilidades')

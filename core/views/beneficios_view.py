@@ -48,7 +48,13 @@ def crear_beneficio(request):
 
         if form.is_valid():
             form.save()
+            if id_beneficio:
+                messages.success(request, "El beneficio se actualizó correctamente.")
+            else:
+                messages.success(request, "El beneficio se creó correctamente.")
             return redirect('beneficios')
+        else:
+            messages.error(request, "Hubo un error al guardar el beneficio. Verifique los datos ingresados.")
 
     else:
         form = BeneficioForm()

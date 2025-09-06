@@ -3,7 +3,6 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from ..models import *
 from ..forms import *
-from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
@@ -16,8 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
 from collections import defaultdict
 from django.contrib.admin.views.decorators import staff_member_required
-from django.db.models import Min
-from django.db.models import Q
+
 
 @login_required
 def departamentos(request):
@@ -64,13 +62,18 @@ def crear_departamento(request):
                         vacante=1
                     )
 
-            return redirect('departamentos')
+                messages.success(request, f"Departamento '{nuevo_departamento.nombre}' creado correctamente.")
+            else:
+                messages.success(request, f"Departamento '{nuevo_departamento.nombre}' actualizado correctamente.")
 
+            return redirect('departamentos')
     else:
         form = DepartamentoForm()
 
+    messages.error(request, "Hubo un error al guardar el departamento. Verifica los datos.")
     departamentosList = Departamento.objects.all()
     return render(request, 'departamentos.html', {'form': form, 'departamentos': departamentosList})
+
 
 
 @login_required
@@ -78,7 +81,6 @@ def crear_departamento(request):
 def eliminar_departamento(request, id_departamento):
     departamento = get_object_or_404(Departamento, id=id_departamento)
     relaciones = CargoDepartamento.objects.filter(departamento=departamento)
-
     for relacion in relaciones:
         cargo = relacion.cargo
         relacion.delete()
@@ -87,5 +89,5 @@ def eliminar_departamento(request, id_departamento):
             cargo.delete()
 
     departamento.delete()
-
+    messages.success(request, "El departamento se eliminó correctamente.")
     return redirect('departamentos')
