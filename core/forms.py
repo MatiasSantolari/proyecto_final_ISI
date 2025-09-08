@@ -498,3 +498,14 @@ class NominaForm(forms.ModelForm):
             'monto_neto': forms.NumberInput(attrs={'class': 'form-control', 'readonly': True}),
             'estado': forms.Select(attrs={'class': 'form-select'}),
         }
+
+########################
+class LogroForm(forms.ModelForm):
+    class Meta:
+        model = Logro
+        fields = ['descripcion', 'fecha_inicio', 'fecha_fin']
+        widgets = {
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date'}),
+            'fecha_fin': forms.DateInput(attrs={'type': 'date'}),
+        }
+

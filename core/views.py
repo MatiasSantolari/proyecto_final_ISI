@@ -1348,7 +1348,7 @@ def empleados(request): return render(request, 'empleados.html')
 def evaluacion_desempeno(request): return render(request, 'evaluacion_desempeno.html')
 def habilidades(request): return render(request, 'habilidades.html')
 def instituciones(request): return render(request, 'instituciones.html')
-def logros(request): return render(request, 'logros.html')
+#def logros(request): return render(request, 'logros.html')
 def nominas(request): return render(request, 'nominas.html')
 
 def postulantes(request): return render(request, 'postulantes.html')

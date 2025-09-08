@@ -47,6 +47,10 @@ urlpatterns = [
     path('habilidades/crear/', habilidades_view.crear_habilidad, name='crear_habilidad'),
     path('habilidades/<int:id_habilidad>/eliminar/', habilidades_view.eliminar_habilidad, name='eliminar_habilidad'),
 
+    ## LOGRO ##
+    path('logros/', logros_view.logros, name='logros'),
+    path('logros/crear/', logros_view.crear_logro, name='crear_logro'),
+    path('logros/<int:id_logro>/eliminar/', logros_view.eliminar_logro, name='eliminar_logro'),
 
     ## POSTULACIONES ##
     path('ofertas/', postulaciones_view.listar_ofertas, name='ofertas_empleo'),
