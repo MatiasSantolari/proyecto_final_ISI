@@ -8,6 +8,7 @@ from .descuentos_view import *
 from .beneficios_view import *
 from .objetivos_view import *
 from .nominas_view import *
+from .logros_view import *
 
 def agregar_sueldo_base(request): return render(request, 'agregar_sueldo_base.html')
 def calcular_bonificaciones(request): return render(request, 'calcular_bonificaciones.html')
@@ -19,7 +20,7 @@ def criterios_evaluacion(request): return render(request, 'criterios_evaluacion.
 def empleados(request): return render(request, 'empleados.html')
 def evaluacion_desempeno(request): return render(request, 'evaluacion_desempeno.html')
 def instituciones(request): return render(request, 'instituciones.html')
-def logros(request): return render(request, 'logros.html')
+#def logros(request): return render(request, 'logros.html')
 def nominas(request): return render(request, 'nominas.html')
 
 def postulantes(request): return render(request, 'postulantes.html')
