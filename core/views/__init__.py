@@ -9,6 +9,7 @@ from .beneficios_view import *
 from .objetivos_view import *
 from .nominas_view import *
 from .logros_view import *
+from .asignar_beneficio_descuento_view import *
 
 def agregar_sueldo_base(request): return render(request, 'agregar_sueldo_base.html')
 def calcular_bonificaciones(request): return render(request, 'calcular_bonificaciones.html')

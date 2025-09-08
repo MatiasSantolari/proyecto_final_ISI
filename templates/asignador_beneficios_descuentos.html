@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Asignador Descuentos / Beneficios{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h1 class="mb-4" style="color: var(--color-primario);">Asignador - Descuentos y Beneficios</h1>
+
+{% if mostrar_filtro_departamentos %}
+<div class="card mb-4">
+  <div class="card-body">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label for="departamento" class="form-label">Departamento</label>
+        <select name="departamento" id="departamento" class="form-select">
+          <option value="">-- Todos --</option>
+          {% for d in departamentos %}
+            <option value="{{ d.nombre }}" {% if d.nombre == departamento_sel %}selected{% endif %}>{{ d.nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary">Filtrar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+  <form id="formAsignar" method="post" action="{% url 'asignar_beneficio_descuento_empleados' %}">
+    {% csrf_token %}
+    <div class="card mb-3">
+      <div class="card-body d-flex gap-3 align-items-center">
+        <div style="min-width:300px;">
+          <label class="form-label fw-bold">Descuentos</label>
+          <select id="selectDescuento" class="form-select" name="descuento_id">
+            <option value="">-- Ninguno --</option>
+            {% for d in descuentos_disponibles %}
+              <option value="{{ d.id }}">{{ d.descripcion }} {% if d.monto %}(${{ d.monto }}){% elif d.porcentaje %}({{ d.porcentaje }}%) {% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div style="min-width:300px;">
+          <label class="form-label fw-bold">Beneficios</label>
+          <select id="selectBeneficio" class="form-select" name="beneficio_id">
+            <option value="">-- Ninguno --</option>
+            {% for b in beneficios_disponibles %}
+              <option value="{{ b.id }}">{{ b.descripcion }} {% if b.monto %}(${{ b.monto }}){% elif b.porcentaje %}({{ b.porcentaje }}%) {% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="ms-auto d-flex gap-2 align-items-center">
+          <button type="button" id="btnAsignar" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalConfirmarAsignacion">Asignar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th style="width:40px"><input id="checkAll" type="checkbox"></th>
+                <th>Empleado</th>
+                <th>DNI</th>
+                <th>Departamento</th>
+                <th>Cargo</th>
+                <th>Asignaciones actuales</th>
+                <th style="width:140px">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for emp in empleados %}
+                <tr>
+                  <td><input class="chkEmpleado" type="checkbox" name="empleado_ids" value="{{ emp.id }}"></td>
+                  <td>{{ emp.nombre }} {{ emp.apellido }}</td>
+                  <td>{{ emp.dni }}</td>
+                  <td>
+                    {# obtener departamento actual (campo/prop en modelo) si lo tienes: departamento_actual_nombre #}
+                    {{ emp.departamento_actual_nombre|default:"-" }}
+                  </td>
+                  <td>{{ emp.cargo_actual_nombre|default:"-" }}</td>
+                  <td>
+                    <button type="button" class="btn btn-sm btn-outline-secondary btn-ver-asignaciones" data-id="{{ emp.id }}">
+                      Ver asignaciones
+                    </button>
+                  </td>
+                  <td>
+                    <!-- quick action: asignar sólo a este empleado -->
+                    <button type="button" class="btn btn-sm btn-primary btn-assign-one" 
+                                        data-id="{{ emp.id }}"
+                                        data-nombre="{{ emp.nombre }} {{ emp.apellido }}"
+                                        >Asignar a este</button>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="7" class="text-center">No hay empleados</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- hidden inputs para submit real -->
+    <input type="hidden" name="tipo" id="inputTipo" value="">
+    <input type="hidden" name="item_id" id="inputItemId" value="">
+  </form>
+</div>
+
+<!-- Modal Confirmar Asignación -->
+<div class="modal fade" id="modalConfirmarAsignacion" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="formConfirmarAsignacion" method="post" action="{% url 'asignar_beneficio_descuento_empleados' %}">
+        {% csrf_token %}
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">Confirmar asignación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p id="textoConfirmar">¿Seguro que desea asignar esto a los empleados seleccionados?</p>
+          <div id="listSeleccionados" class="small text-muted"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" id="confirmarAsignarBtn" class="btn btn-success">Sí, asignar</button>
+        </div>
+
+        <input type="hidden" name="tipo" id="modal_tipo" value="">
+        <input type="hidden" name="item_id" id="modal_item_id" value="">
+        <div id="modal_empleados_container"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Ver Asignaciones -->
+<div class="modal fade" id="modalVerAsignaciones" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title">Asignaciones</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h6 id="vaEmpleado" class="mb-3"></h6>
+        <div>
+          <p class="fw-bold text-danger mb-1">Descuentos pendientes</p>
+          <ul id="vaDescuentos" class="list-group mb-3"></ul>
+        </div>
+        <div>
+          <p class="fw-bold text-success mb-1">Beneficios pendientes</p>
+          <ul id="vaBeneficios" class="list-group"></ul>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+ 
+  const selectD = document.getElementById('selectDescuento');
+  const selectB = document.getElementById('selectBeneficio');
+
+  selectD.addEventListener('change', () => {
+    if (selectD.value) selectB.value = "";
+  });
+  selectB.addEventListener('change', () => {
+    if (selectB.value) selectD.value = "";
+  });
+
+  
+  const checkAll = document.getElementById('checkAll');
+  checkAll?.addEventListener('change', function() {
+    document.querySelectorAll('.chkEmpleado').forEach(ch => ch.checked = this.checked);
+  });
+
+ 
+  const btnAsignar = document.getElementById('btnAsignar');
+  btnAsignar.addEventListener('click', () => {
+    const descuentoId = selectD.value;
+    const beneficioId = selectB.value;
+    const selected = Array.from(document.querySelectorAll('.chkEmpleado:checked')).map(i => i.value);
+
+    if (!descuentoId && !beneficioId) {
+      alert('Seleccione un descuento o un beneficio antes de asignar.');
+      return;
+    }
+    if (selected.length === 0) {
+      alert('Seleccione al menos un empleado.');
+      return;
+    }
+
+    const tipo = descuentoId ? 'descuento' : 'beneficio';
+    const itemId = descuentoId || beneficioId;
+
+
+    document.getElementById('textoConfirmar').textContent = `Se asignará el ${tipo} seleccionado a ${selected.length} empleado(s). ¿Confirmar?`;
+    const listDiv = document.getElementById('listSeleccionados');
+    listDiv.textContent = selected.join(', ');
+
+    document.getElementById('modal_tipo').value = tipo;
+    document.getElementById('modal_item_id').value = itemId;
+
+    const cont = document.getElementById('modal_empleados_container');
+    cont.innerHTML = '';
+    selected.forEach(id => {
+      const inp = document.createElement('input');
+      inp.type = 'hidden';
+      inp.name = 'empleado_ids[]';
+      inp.value = id;
+      cont.appendChild(inp);
+    });
+
+  });
+
+
+  document.querySelectorAll('.btn-assign-one').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const empId = this.dataset.id;
+      const empNombre = this.dataset.nombre;
+
+      document.querySelectorAll('.chkEmpleado').forEach(ch=>ch.checked=false);
+      const cont = document.getElementById('modal_empleados_container');
+      cont.innerHTML = '';
+      const inp = document.createElement('input');
+      inp.type = 'hidden'; inp.name = 'empleado_ids[]'; inp.value = empId;
+      cont.appendChild(inp);
+
+      const descuentoId = selectD.value;
+      const beneficioId = selectB.value;
+      if (!descuentoId && !beneficioId) {
+        alert('Seleccione un descuento o un beneficio antes de asignar.');
+        return;
+      }
+      const tipo = descuentoId ? 'descuento' : 'beneficio';
+      const itemId = descuentoId || beneficioId;
+      document.getElementById('modal_tipo').value = tipo;
+      document.getElementById('modal_item_id').value = itemId;
+      
+      document.getElementById('textoConfirmar').textContent = `Se asignará el ${tipo} seleccionado al empleado ${empNombre}. ¿Confirmar?`;
+      document.getElementById('listSeleccionados').textContent = empNombre;
+
+      const modal = new bootstrap.Modal(document.getElementById('modalConfirmarAsignacion'));
+      modal.show();
+    });
+  });
+
+  // Botón "Ver asignaciones"
+  document.querySelectorAll('.btn-ver-asignaciones').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const empId = this.dataset.id;
+      fetch(`/asignador_beneficio_descuento/ver/${empId}/`)
+        .then(r => r.json())
+        .then(data => {
+          document.getElementById('vaEmpleado').textContent = data.empleado;
+          const ulD = document.getElementById('vaDescuentos');
+          const ulB = document.getElementById('vaBeneficios');
+          ulD.innerHTML = '';
+          ulB.innerHTML = '';
+
+          if (data.descuentos.length === 0) {
+            ulD.innerHTML = '<li class="list-group-item text-muted">Sin descuentos pendientes</li>';
+          } else {
+            data.descuentos.forEach(d => {
+              const li = document.createElement('li');
+              li.className = 'list-group-item';
+              li.textContent = `${d.descripcion} ${d.monto ? '($' + d.monto + ')' : (d.porcentaje ? '('+ d.porcentaje + '%)' : '')}`;
+              ulD.appendChild(li);
+            });
+          }
+
+          if (data.beneficios.length === 0) {
+            ulB.innerHTML = '<li class="list-group-item text-muted">Sin beneficios pendientes</li>';
+          } else {
+            data.beneficios.forEach(b => {
+              const li = document.createElement('li');
+              li.className = 'list-group-item';
+              li.textContent = `${b.descripcion} ${b.monto ? '($' + b.monto + ')' : (b.porcentaje ? '('+ b.porcentaje + '%)' : '')}`;
+              ulB.appendChild(li);
+            });
+          }
+
+          const modal = new bootstrap.Modal(document.getElementById('modalVerAsignaciones'));
+          modal.show();
+        });
+    });
+  });
+});
+</script>
+{% endblock %}

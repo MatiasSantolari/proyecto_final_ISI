@@ -90,6 +90,12 @@ urlpatterns = [
     path('descuentos/<int:id_descuento>/eliminar/', descuentos_view.eliminar_descuento, name='eliminar_descuento'),
 
 
+    # ASIGNACION DE BENEFICIOS Y DESCUENTOS ##
+    path('asignador_beneficio_descuento/', asignar_beneficio_descuento_view.asignador_view, name='asignador_beneficios_descuentos'),
+    path('asignador_beneficio_descuento/asignar/', asignar_beneficio_descuento_view.asignar_a_empleados, name='asignar_beneficio_descuento_empleados'),
+    path('asignador_beneficio_descuento/ver/<int:empleado_id>/', asignar_beneficio_descuento_view.ver_asignaciones_empleado, name='ver_benef_desc_empleado'),
+
+
     ## NOMINAS ##
     path('nominas/', nominas_view.nominas, name='nominas'),
     path('nominas/editar/', nominas_view.editar_nomina, name='editar_nomina'),

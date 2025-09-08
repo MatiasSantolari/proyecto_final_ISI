@@ -9,7 +9,6 @@
     <nav class="mt-2">
       <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
         
- 
         {% if request.session.rol_actual == 'admin' %}
           <li class="nav-header" style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #28a745;">
             <i class="fas fa-check-circle me-2"></i>
@@ -22,9 +21,12 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'objetivos' %}"><i class="nav-icon fas fa-bullseye"></i><p>Objetivos</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'beneficios' %}"><i class="nav-icon fas fa-gift"></i><p>Beneficios</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'descuentos' %}"><i class="nav-icon fas fa-minus-square"></i><p>Descuentos</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'logros' %}"><i class="nav-icon fas fa-award"></i><p>Logros</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'habilidades' %}"><i class="nav-icon fas fa-brain"></i><p>Habilidades</p></a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'nominas' %}"><i class="nav-icon fas fa-id-card"></i><p>Nóminas</p></a></li>
-          
+          <li class="nav-item"><a class="nav-link" href="{% url 'nominas' %}"><i class="nav-icon fas fa-dollar-sign"></i><p>Nóminas</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}"><i class="nav-icon fas fa-money-bill-wave"></i><p>Asignar Beneficio/Descuento (adm, jefe)</p></a></li>
+  
+
           <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="nav-icon fas fa-bullhorn"></i><p>Ofertas de Empleo(Emp)</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-id-card"></i><p>Mis Nóminas(Emp)</p></a></li>
           
@@ -34,6 +36,7 @@
             <i class="fas fa-tools me-4"></i>
             En Desarrollo
           </li>
+        
           <li class="nav-item"><a class="nav-link" href="{% url 'agregar_sueldo_base' %}"><i class="nav-icon fas fa-dollar-sign"></i><p>Agregar Sueldo Base</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'calcular_bonificaciones' %}"><i class="nav-icon fas fa-calculator"></i><p>Bonificaciones</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'capacitaciones' %}"><i class="nav-icon fas fa-chalkboard-teacher"></i><p>Capacitaciones</p></a></li>
@@ -45,7 +48,6 @@
           <!-- <li class="nav-item"><a class="nav-link" href=""><i class="nav-icon fas fa-users"></i><p></p></a></li> -->
           <li class="nav-item"><a class="nav-link" href="{% url 'evaluacion_desempeno' %}"><i class="nav-icon fas fa-chart-line"></i><p>Evaluación Desempeño</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'instituciones' %}"><i class="nav-icon fas fa-university"></i><p>Instituciones</p></a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'logros' %}"><i class="nav-icon fas fa-award"></i><p>Logros</p></a></li>
           <!-- <li class="nav-item"><a class="nav-link" href=""><i class="nav-icon fas fa-user-plus"></i><p></p></a></li> -->
           <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-calendar-check"></i><p>Asistencia</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'solicitudes_nuevos_empleados' %}"><i class="nav-icon fas fa-user-edit"></i><p>Solicitudes Nuevos Empleados</p></a></li>
