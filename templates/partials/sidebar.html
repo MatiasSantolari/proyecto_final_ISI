@@ -25,10 +25,11 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'habilidades' %}"><i class="nav-icon fas fa-brain"></i><p>Habilidades</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'nominas' %}"><i class="nav-icon fas fa-dollar-sign"></i><p>Nóminas</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}"><i class="nav-icon fas fa-money-bill-wave"></i><p>Asignar Beneficio/Descuento (adm, jefe)</p></a></li>
-  
+          <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="nav-icon fas fa-check-circle"></i><p>Confirmar Asistencia</p></a></li>
 
+          <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-sign-in-alt"></i><p>Registrar Asistencia(todos)</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="nav-icon fas fa-bullhorn"></i><p>Ofertas de Empleo(Emp)</p></a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-id-card"></i><p>Mis Nóminas(Emp)</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-id-card"></i><p>Mis Nóminas(todos)</p></a></li>
           
           
           <hr class="my-2 border-secondary">
@@ -36,7 +37,7 @@
             <i class="fas fa-tools me-4"></i>
             En Desarrollo
           </li>
-        
+   
           <li class="nav-item"><a class="nav-link" href="{% url 'agregar_sueldo_base' %}"><i class="nav-icon fas fa-dollar-sign"></i><p>Agregar Sueldo Base</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'calcular_bonificaciones' %}"><i class="nav-icon fas fa-calculator"></i><p>Bonificaciones</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'capacitaciones' %}"><i class="nav-icon fas fa-chalkboard-teacher"></i><p>Capacitaciones</p></a></li>
@@ -49,7 +50,6 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'evaluacion_desempeno' %}"><i class="nav-icon fas fa-chart-line"></i><p>Evaluación Desempeño</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'instituciones' %}"><i class="nav-icon fas fa-university"></i><p>Instituciones</p></a></li>
           <!-- <li class="nav-item"><a class="nav-link" href=""><i class="nav-icon fas fa-user-plus"></i><p></p></a></li> -->
-          <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-calendar-check"></i><p>Asistencia</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'solicitudes_nuevos_empleados' %}"><i class="nav-icon fas fa-user-edit"></i><p>Solicitudes Nuevos Empleados</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'tipo_criterio_evaluacion' %}"><i class="nav-icon fas fa-list-alt"></i><p>Tipo de Criterio</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'tipos_contrato' %}"><i class="nav-icon fas fa-file-signature"></i><p>Tipos de Contrato</p></a></li>

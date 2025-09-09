@@ -1,0 +1,154 @@
+from django.http import HttpResponse, JsonResponse
+from ..models import *
+from ..forms import *
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.conf import settings
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from django.utils.timezone import now
+from django.contrib.admin.views.decorators import staff_member_required
+from django.http import JsonResponse, HttpResponseBadRequest
+
+
+
+def _get_empleado_de_user(request):
+    empleado_id = request.session.get("empleado_id")
+    if empleado_id:
+        try:
+            return Empleado.objects.get(id=empleado_id)
+        except Empleado.DoesNotExist:
+            pass
+    try:
+        return Empleado.objects.get(usuario=request.user)
+    except Empleado.DoesNotExist:
+        return None
+
+
+
+def _user_es_admin(user, empleado=None):
+    empleado = empleado or _get_empleado_de_user(user)
+    
+    rol = getattr(user, 'rol', None)
+    if rol == 'admin':
+        return True
+    if getattr(user, 'is_superuser', False) or getattr(user, 'is_staff', False):
+        return True
+    if not empleado:
+        return False
+    
+    hoy = now().date()
+    cargo_act = empleado.empleadocargo_set.filter(
+        fecha_inicio__lte=hoy, fecha_fin__isnull=True
+    ).order_by('-fecha_inicio').first()
+
+    if cargo_act and cargo_act.cargo.es_jefe and cargo_act.cargo.es_gerente:
+        return True
+
+    return False
+
+
+
+
+@login_required
+def registrar_asistencia(request):
+    empleado = _get_empleado_de_user(request)
+    if not empleado:
+        messages.error(request, "No se encontró empleado vinculado a este usuario.")
+        return redirect("home")
+
+    hoy = now().date()
+    asistencia = HistorialAsistencia.objects.filter(empleado=empleado, fecha_asistencia=hoy).first()
+
+    if request.method == "POST":
+        accion = request.POST.get("accion")
+        if accion == "entrada":
+            if asistencia and asistencia.hora_entrada:
+                messages.warning(request, "Ya registraste tu entrada hoy.")
+            else:
+                if not asistencia:
+                    asistencia = HistorialAsistencia(
+                        empleado=empleado,
+                        fecha_asistencia=hoy,
+                        confirmado=False
+                    )
+                asistencia.hora_entrada = now().time()
+                asistencia.save()
+                messages.success(request, "Entrada registrada correctamente.")
+        elif accion == "salida":
+            if not asistencia or not asistencia.hora_entrada:
+                messages.error(request, "No puedes registrar salida sin entrada previa.")
+            elif asistencia.hora_salida:
+                messages.warning(request, "Ya registraste tu salida hoy.")
+            else:
+                asistencia.hora_salida = now().time()
+                asistencia.save()
+                messages.success(request, "Salida registrada correctamente.")
+        return redirect("registrar_asistencia")
+
+    return render(request, "registrar_asistencia.html", {"asistencia": asistencia, "hoy": hoy})
+
+
+
+
+@login_required
+def confirmar_asistencias(request):
+    hoy = now().date()
+    departamento_sel = request.GET.get("departamento", "")
+    user_empleado = _get_empleado_de_user(request)
+
+    if _user_es_admin(request.user, empleado=user_empleado):
+        asistencias_qs = HistorialAsistencia.objects.filter(fecha_asistencia=hoy)
+        mostrar_filtro = True
+        if departamento_sel:
+            asistencias_qs = asistencias_qs.filter(
+                empleado__empleadocargo__cargo__cargodepartamento__departamento__nombre=departamento_sel,
+                empleado__empleadocargo__fecha_fin__isnull=True
+            ).distinct()
+    else:
+        mostrar_filtro = False
+        if user_empleado:
+            cargo_act = user_empleado.empleadocargo_set.filter(
+                fecha_inicio__lte=hoy, fecha_fin__isnull=True
+            ).order_by("-fecha_inicio").first()
+            if cargo_act and cargo_act.cargo.es_jefe:
+                dept_ids = list(cargo_act.cargo.cargodepartamento_set.values_list("departamento_id", flat=True))
+                asistencias_qs = HistorialAsistencia.objects.filter(
+                    fecha_asistencia=hoy,
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento_id__in=dept_ids,
+                    empleado__empleadocargo__fecha_fin__isnull=True
+                ).distinct()
+            else:
+                asistencias_qs = HistorialAsistencia.objects.filter(empleado=user_empleado, fecha_asistencia=hoy)
+        else:
+            asistencias_qs = HistorialAsistencia.objects.none()
+
+    departamentos = Departamento.objects.all().order_by("nombre")
+
+    context = {
+        "asistencias": asistencias_qs,
+        "departamentos": departamentos,
+        "departamento_sel": departamento_sel,
+        "mostrar_filtro_departamentos": mostrar_filtro,
+    }
+    return render(request, "confirmar_asistencias.html", context)
+
+
+
+
+@login_required
+def confirmar_asistencias_accion(request):
+    if request.method != "POST":
+        return redirect("confirmar_asistencias")
+
+    ids = request.POST.getlist("asistencia_ids")
+    actualizados = 0
+    for aid in ids:
+        asistencia = HistorialAsistencia.objects.filter(id=aid).first()
+        if asistencia and not asistencia.confirmado:
+            asistencia.confirmado = True
+            asistencia.save()
+            actualizados += 1
+
+    messages.success(request, f"Se confirmaron {actualizados} asistencias.")
+    return redirect("confirmar_asistencias")

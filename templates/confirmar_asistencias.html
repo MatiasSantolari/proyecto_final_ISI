@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Confirmar Asistencias{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2>Confirmación de Asistencias ({{ hoy|date:"d/m/Y" }})</h2>
+
+  {% if mostrar_filtro_departamentos %}
+  <div class="card mb-3 p-3">
+    <form method="get" class="row align-items-end g-2">
+      <div class="col-md-4">
+        <label for="departamento" class="form-label">Departamento</label>
+        <select name="departamento" id="departamento" class="form-select">
+          <option value="">-- Todos --</option>
+          {% for d in departamentos %}
+            <option value="{{ d.nombre }}" {% if d.nombre == departamento_sel %}selected{% endif %}>{{ d.nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-85">Filtrar</button>
+      </div>
+
+      <div class="col-md-6 d-flex justify-content-end">
+        <form method="post" action="{% url 'confirmar_asistencias_accion' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success">Confirmar seleccionados</button>
+        </form>
+      </div>
+    </form>
+  </div>
+  {% endif %}
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Empleado</th>
+        <th>Entrada</th>
+        <th>Salida</th>
+        <th>Confirmado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in asistencias %}
+      <tr>
+        <td>
+          {% if not a.confirmado %}
+            <input type="checkbox" name="asistencia_ids" value="{{ a.id }}">
+          {% endif %}
+        </td>
+        <td>{{ a.empleado.nombre }} {{ a.empleado.apellido }}</td>
+        <td>{{ a.hora_entrada }}</td>
+        <td>{{ a.hora_salida|default:"-" }}</td>
+        <td>
+          {% if a.confirmado %}
+            ✅
+          {% else %}
+            ❌
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No hay registros de asistencia.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

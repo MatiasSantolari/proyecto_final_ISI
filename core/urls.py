@@ -106,6 +106,15 @@ urlpatterns = [
     path('nominas/confirmar/', nominas_view.confirmar_nominas, name='confirmar_nominas'),
     path("mis-nominas/", views.mis_nominas, name="mis_nominas"), # Empleado
 
+
+    ## ASISTENCIA ##
+    path('asistencia/registrar/', asistencia_view.registrar_asistencia, name='registrar_asistencia'),
+    path('asistencia/confirmar/', asistencia_view.confirmar_asistencias, name='confirmar_asistencias'),
+    path('asistencia/confirmar/accion/', asistencia_view.confirmar_asistencias_accion, name='confirmar_asistencias_accion'),
+
+
+
+
 ##############################################
 ##############################################
 
@@ -123,7 +132,6 @@ urlpatterns = [
     path('instituciones/', views.instituciones, name='instituciones'),
     path('logros/', views.logros, name='logros'),
    
-    path('registrar_asistencia/', views.registrar_asistencia, name='registrar_asistencia'),
     path('solicitudes_nuevos_empleados/', views.solicitudes_nuevos_empleados, name='solicitudes_nuevos_empleados'),
     path('tipo_criterio_evaluacion/', views.tipo_criterio_evaluacion, name='tipo_criterio_evaluacion'),
     path('tipos_contrato/', views.tipos_contrato, name='tipos_contrato'),

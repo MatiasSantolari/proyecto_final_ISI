@@ -1,12 +1,13 @@
-from datetime import datetime
+from django.utils.timezone import now
 from django.db import models
 from .empleado import Empleado
 
 class HistorialAsistencia(models.Model):
     empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
-    fecha_asistencia = models.DateField(default=datetime.now, verbose_name='Fecha de ingreso')
-    hora_entrada = models.TimeField(default=datetime.now, verbose_name='Hora de ingreso')
+    fecha_asistencia = models.DateField(default=now, verbose_name='Fecha de ingreso')
+    hora_entrada = models.TimeField(null=True, blank=True, verbose_name='Hora de ingreso')
     hora_salida = models.TimeField(null=True, blank=True, verbose_name='Hora de salida')
+    confirmado = models.BooleanField(default=False, verbose_name="Confirmado por jefe/admin")
 
     class Meta:
         verbose_name='HistorialAsistencia'

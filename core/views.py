@@ -1353,7 +1353,7 @@ def nominas(request): return render(request, 'nominas.html')
 
 def postulantes(request): return render(request, 'postulantes.html')
 def publicar_ofertas_de_empleo(request): return render(request, 'publicar_ofertas_de_empleo.html')
-def registrar_asistencia(request): return render(request, 'registrar_asistencia.html')
+#def registrar_asistencia(request): return render(request, 'registrar_asistencia.html')
 def solicitudes_nuevos_empleados(request): return render(request, 'solicitudes_nuevos_empleados.html')
 def tipo_criterio_evaluacion(request): return render(request, 'tipo_criterio_evaluacion.html')
 def tipos_contrato(request): return render(request, 'tipos_contrato.html')
