@@ -5,75 +5,117 @@
 
 {% block content %}
 
-<div class="container my-5 d-flex justify-content-center">
-  <div class="card shadow-sm" style="max-width: 500px; width: 100%;">
-    <div class="card-body text-center">
-      <h2 class="mb-4">Registro de Asistencia</h2>
+<div class="container my-5">
+  <div class="container d-flex justify-content-center">
+    <div class="card shadow-sm" style="max-width: 500px; width: 100%;">
+      <div class="card-body text-center">
+        <h2 class="mb-4">Registro de Asistencia de Hoy</h2>
 
-      {% if asistencia %}
-        <p><strong>Fecha:</strong> {{ asistencia.fecha_asistencia|date:"d/m/Y" }}</p>
-        <p><strong>Entrada:</strong> {{ asistencia.hora_entrada|default:"-" }}</p>
-        <p><strong>Salida:</strong> {{ asistencia.hora_salida|default:"-" }}</p>
-      {% else %}
-        <p>No has registrado asistencia hoy.</p>
-      {% endif %}
+        {% if asistencia %}
+          <p><strong>Fecha:</strong> {{ asistencia.fecha_asistencia|date:"d/m/Y" }}</p>
+          <p><strong>Entrada:</strong> {{ asistencia.hora_entrada|default:"-" }}</p>
+          <p><strong>Salida:</strong> {{ asistencia.hora_salida|default:"-" }}</p>
+        {% else %}
+          <p>No has registrado asistencia hoy.</p>
+        {% endif %}
 
-      <!-- Botones que disparan los modales -->
-      <div class="d-flex justify-content-center gap-3 mt-3">
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#confirmEntradaModal">
-          Registrar Entrada
-        </button>
-        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmSalidaModal">
-          Registrar Salida
-        </button>
-      </div>
+        <div class="d-flex justify-content-center gap-3 mt-3">
+          <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#confirmEntradaModal">
+            Registrar Entrada
+          </button>
+          <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmSalidaModal">
+            Registrar Salida
+          </button>
+        </div>
 
-      <!-- Modal de Confirmación Entrada -->
-      <div class="modal fade" id="confirmEntradaModal" tabindex="-1" aria-labelledby="confirmEntradaLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-              <h5 class="modal-title" id="confirmEntradaLabel">Confirmar Entrada</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        <!-- Modal de Confirmación Entrada -->
+        <div class="modal fade" id="confirmEntradaModal" tabindex="-1" aria-labelledby="confirmEntradaLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="confirmEntradaLabel">Confirmar Entrada</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+              </div>
+              <div class="modal-body text-center">
+                ¿Estás seguro que quieres registrar tu <strong>entrada</strong> para hoy <strong>{{ hoy|date:"d/m/Y" }}</strong>?
+              </div>
+              <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="post" action="{% url 'registrar_asistencia' %}">
+                  {% csrf_token %}
+                  <button type="submit" name="accion" value="entrada" class="btn btn-success">Sí, registrar</button>
+                </form>
+              </div>
             </div>
-            <div class="modal-body text-center">
-              ¿Estás seguro que quieres registrar tu <strong>entrada</strong> para hoy <strong>{{ hoy|date:"d/m/Y" }}</strong>?
-            </div>
-            <div class="modal-footer justify-content-center">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <form method="post" action="{% url 'registrar_asistencia' %}">
-                {% csrf_token %}
-                <button type="submit" name="accion" value="entrada" class="btn btn-success">Sí, registrar</button>
-              </form>
+          </div>
+        </div>
+
+        <!-- Modal de Confirmación Salida -->
+        <div class="modal fade" id="confirmSalidaModal" tabindex="-1" aria-labelledby="confirmSalidaLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmSalidaLabel">Confirmar Salida</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+              </div>
+              <div class="modal-body text-center">
+                ¿Estás seguro que quieres registrar tu <strong>salida</strong> para hoy <strong>{{ hoy|date:"d/m/Y" }}</strong>?
+              </div>
+              <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="post" action="{% url 'registrar_asistencia' %}">
+                  {% csrf_token %}
+                  <button type="submit" name="accion" value="salida" class="btn btn-danger">Sí, registrar</button>
+                </form>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Modal de Confirmación Salida -->
-      <div class="modal fade" id="confirmSalidaModal" tabindex="-1" aria-labelledby="confirmSalidaLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-              <h5 class="modal-title" id="confirmSalidaLabel">Confirmar Salida</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body text-center">
-              ¿Estás seguro que quieres registrar tu <strong>salida</strong> para hoy <strong>{{ hoy|date:"d/m/Y" }}</strong>?
-            </div>
-            <div class="modal-footer justify-content-center">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <form method="post" action="{% url 'registrar_asistencia' %}">
-                {% csrf_token %}
-                <button type="submit" name="accion" value="salida" class="btn btn-danger">Sí, registrar</button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
+
+
+  <div class="container my-2">
+    <h3>Historial de Asistencias</h3>
+    <table class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Entrada</th>
+          <th>Salida</th>
+          <th>Confirmado</th>
+          <th>Tardanza</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in historial_asistencias %}
+        <tr>
+          <td>{{ h.fecha_asistencia|date:"d/m/Y" }}</td>
+          <td>{{ h.hora_entrada|default:"-" }}</td>
+          <td>{{ h.hora_salida|default:"-" }}</td>
+          <td>{% if h.confirmado %}✅{% else %}❌{% endif %}</td>
+          <td>
+            {% if h.confirmado %}
+              {% if h.tardanza %}
+                ⏰ Tarde
+              {% else %}
+                🟢 A tiempo
+              {% endif %}
+            {% else %}
+              ⚪ Esperando confirmación
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center text-muted">No hay registros.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
 </div>
 
 {% endblock %}

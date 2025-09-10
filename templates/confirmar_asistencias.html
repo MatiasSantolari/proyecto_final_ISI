@@ -22,50 +22,100 @@
       <div class="col-md-2 d-flex align-items-end">
         <button type="submit" class="btn btn-primary w-85">Filtrar</button>
       </div>
-
-      <div class="col-md-6 d-flex justify-content-end">
-        <form method="post" action="{% url 'confirmar_asistencias_accion' %}">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-success">Confirmar seleccionados</button>
-        </form>
-      </div>
     </form>
   </div>
   {% endif %}
 
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th></th>
-        <th>Empleado</th>
-        <th>Entrada</th>
-        <th>Salida</th>
-        <th>Confirmado</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for a in asistencias %}
-      <tr>
-        <td>
-          {% if not a.confirmado %}
-            <input type="checkbox" name="asistencia_ids" value="{{ a.id }}">
+
+  <form method="post" action="{% url 'confirmar_asistencias_accion' %}">
+    {% csrf_token %}
+    
+    <div class="d-flex justify-content-end mb-2">
+      <button type="button" class="btn btn-success me-4" data-bs-toggle="modal" data-bs-target="#modalConfirmar">
+        Confirmar seleccionados
+      </button>
+
+      <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#modalTardanza">
+        Marcar tardanza
+      </button>
+    </div>
+
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Empleado</th>
+          {% if mostrar_filtro_departamentos %}
+            <th>Departamento</th>
           {% endif %}
-        </td>
-        <td>{{ a.empleado.nombre }} {{ a.empleado.apellido }}</td>
-        <td>{{ a.hora_entrada }}</td>
-        <td>{{ a.hora_salida|default:"-" }}</td>
-        <td>
-          {% if a.confirmado %}
-            ✅
-          {% else %}
-            ❌
+          <th>Cargo</th>
+          <th>Entrada</th>
+          <th>Salida</th>
+          <th>Confirmado</th>
+          <th>Tardanza</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in asistencias %}
+        <tr>
+          <td>
+            {% if not a.confirmado %}
+              <input type="checkbox" name="asistencia_ids" value="{{ a.id }}">
+            {% endif %}
+          </td>
+          <td>{{ a.empleado.nombre }} {{ a.empleado.apellido }}</td>
+          {% if mostrar_filtro_departamentos %}
+            <td>{{ a.empleado.departamento_actual_nombre }}</td>
           {% endif %}
-        </td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5">No hay registros de asistencia.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+          <td>{{ a.empleado.cargo_actual_nombre }}</td>
+          <td>{{ a.hora_entrada }}</td>
+          <td>{{ a.hora_salida|default:"-" }}</td>
+          <td>{% if a.confirmado %}✅{% else %}❌{% endif %}</td>
+          <td>{% if a.tardanza %}⏰ Sí{% else %}-{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">No hay registros de asistencia.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    
+      <!-- Modal de confirmación -->
+    <div class="modal fade" id="modalConfirmar" tabindex="-1" aria-labelledby="modalConfirmarLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-success">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title" id="modalConfirmarLabel">Confirmar asistencias</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            ¿Seguro que deseas confirmar las asistencias seleccionadas?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-success">Sí, confirmar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Modal tardanza -->
+    <div class="modal fade" id="modalTardanza" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-warning">
+          <div class="modal-header bg-warning">
+            <h5 class="modal-title">Marcar tardanza</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">¿Marcar como tardanza los seleccionados?</div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" name="accion" value="tardanza" class="btn btn-warning">Sí, marcar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </form>
 </div>
 {% endblock %}

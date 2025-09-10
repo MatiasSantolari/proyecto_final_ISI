@@ -9,6 +9,8 @@ from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse, HttpResponseBadRequest
+from django.utils import timezone
+import pytz
 
 
 
@@ -49,7 +51,6 @@ def _user_es_admin(user, empleado=None):
 
 
 
-
 @login_required
 def registrar_asistencia(request):
     empleado = _get_empleado_de_user(request)
@@ -57,8 +58,11 @@ def registrar_asistencia(request):
         messages.error(request, "No se encontró empleado vinculado a este usuario.")
         return redirect("home")
 
+    hora_actual = timezone.now().astimezone(pytz.timezone('America/Argentina/Buenos_Aires')).time()
     hoy = now().date()
     asistencia = HistorialAsistencia.objects.filter(empleado=empleado, fecha_asistencia=hoy).first()
+
+    historial_asistencias = HistorialAsistencia.objects.filter(empleado=empleado).order_by('-fecha_asistencia')
 
     if request.method == "POST":
         accion = request.POST.get("accion")
@@ -70,9 +74,10 @@ def registrar_asistencia(request):
                     asistencia = HistorialAsistencia(
                         empleado=empleado,
                         fecha_asistencia=hoy,
-                        confirmado=False
+                        confirmado=False,
+                        tardanza=False
                     )
-                asistencia.hora_entrada = now().time()
+                asistencia.hora_entrada = hora_actual
                 asistencia.save()
                 messages.success(request, "Entrada registrada correctamente.")
         elif accion == "salida":
@@ -81,13 +86,16 @@ def registrar_asistencia(request):
             elif asistencia.hora_salida:
                 messages.warning(request, "Ya registraste tu salida hoy.")
             else:
-                asistencia.hora_salida = now().time()
+                asistencia.hora_salida = hora_actual
                 asistencia.save()
                 messages.success(request, "Salida registrada correctamente.")
         return redirect("registrar_asistencia")
 
-    return render(request, "registrar_asistencia.html", {"asistencia": asistencia, "hoy": hoy})
-
+    return render(request, "registrar_asistencia.html", {
+        "asistencia": asistencia,
+        "hoy": hoy,
+        "historial_asistencias": historial_asistencias
+    })
 
 
 
@@ -142,13 +150,29 @@ def confirmar_asistencias_accion(request):
         return redirect("confirmar_asistencias")
 
     ids = request.POST.getlist("asistencia_ids")
+    accion = request.POST.get("accion")
     actualizados = 0
+
     for aid in ids:
         asistencia = HistorialAsistencia.objects.filter(id=aid).first()
-        if asistencia and not asistencia.confirmado:
-            asistencia.confirmado = True
-            asistencia.save()
-            actualizados += 1
+        if not asistencia:
+            continue
 
-    messages.success(request, f"Se confirmaron {actualizados} asistencias.")
+        if accion == "confirmar":
+            if not asistencia.confirmado:
+                asistencia.confirmado = True
+                asistencia.save()
+                actualizados += 1
+        elif accion == "tardanza":
+            if not asistencia.tardanza:
+                asistencia.tardanza = True
+                asistencia.confirmado = True
+                asistencia.save()
+                actualizados += 1
+
+    if accion == "confirmar":
+        messages.success(request, f"Se confirmaron {actualizados} asistencias.")
+    elif accion == "tardanza":
+        messages.warning(request, f"Se marcaron {actualizados} asistencias con tardanza.")
+
     return redirect("confirmar_asistencias")
