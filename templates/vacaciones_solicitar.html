@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Solicitar Vacaciones{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h2>Solicitar Vacaciones</h2>
+  <p><strong>Días disponibles:</strong> {{ dias_disponibles }}</p>
+
+    <div class="card p-3 mb-3">
+    <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+        <div class="col-md-4">
+            {{ form.fecha_inicio.label_tag }}
+            {{ form.fecha_inicio }}
+        </div>
+        <div class="col-md-4">
+            {{ form.fecha_fin.label_tag }}
+            {{ form.fecha_fin }}
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-success w-100">Solicitar</button>
+        </div>
+        </div>
+    </form>
+    </div>
+
+
+  <h3>Historial de Mis Solicitudes</h3>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Inicio</th>
+        <th>Fin</th>
+        <th>Días Laborables</th>
+        <th>Estado</th>
+        <th>Accion</th>
+    </tr>
+    </thead>
+    <tbody>
+      {% for s in solicitudes %}
+      <tr>
+        <td>{{ s.fecha_inicio }}</td>
+        <td>{{ s.fecha_fin }}</td>
+        <td>{{ s.cant_dias_solicitados }}</td>
+        <td>
+            {% if s.estado == "rechazado"%}
+                <span class="badge bg-danger">{{ s.estado }}</span>
+            {% elif s.estado == "cancelado" %}
+                <span class="badge bg-secondary">{{ s.estado }}</span>
+            {% elif s.estado == "pendiente" %}
+                <span class="badge bg-warning">{{ s.estado }}</span>
+            {% elif s.estado == "aprobado" %}
+                <span class="badge bg-success">{{ s.estado }}</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if s.estado == "pendiente" %}
+            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalCancelar{{ s.id }}">
+                Cancelar
+            </button>
+
+            <!-- Modal de confirmación -->
+            <div class="modal fade" id="modalCancelar{{ s.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Confirmar Cancelación</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                        ¿Seguro que deseas <strong>cancelar</strong> esta solicitud del
+                        <strong>{{ s.fecha_inicio }}</strong> al <strong>{{ s.fecha_fin }}</strong>?
+                        </div>
+                        <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, volver</button>
+
+                        <a href="{% url 'cancelar_vacacion' s.id %}" class="btn btn-danger">
+                            Sí, cancelar
+                        </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            -
+            {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="text-center text-muted">No tienes solicitudes previas.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -11,7 +11,7 @@ from .nominas_view import *
 from .logros_view import *
 from .asignar_beneficio_descuento_view import *
 from .asistencia_view import *
-
+from .vacaciones_view import *
 
 
 

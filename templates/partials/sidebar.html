@@ -9,6 +9,8 @@
     <nav class="mt-2">
       <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
         
+        
+
         {% if request.session.rol_actual == 'admin' %}
           <li class="nav-header" style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #28a745;">
             <i class="fas fa-check-circle me-2"></i>
@@ -30,14 +32,16 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-sign-in-alt"></i><p>Registrar Asistencia(todos)</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="nav-icon fas fa-bullhorn"></i><p>Ofertas de Empleo(Emp)</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-id-card"></i><p>Mis Nóminas(todos)</p></a></li>
-          
+          <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones(todos)</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="nav-icon fas fa-tasks"></i><p>Gestion de Vacaciones (adm, jefe)</p></a></li>
+
           
           <hr class="my-2 border-secondary">
           <li class="nav-header" style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107;">
             <i class="fas fa-tools me-4"></i>
             En Desarrollo
           </li>
-   
+         
           <li class="nav-item"><a class="nav-link" href="{% url 'agregar_sueldo_base' %}"><i class="nav-icon fas fa-dollar-sign"></i><p>Agregar Sueldo Base</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'calcular_bonificaciones' %}"><i class="nav-icon fas fa-calculator"></i><p>Bonificaciones</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'capacitaciones' %}"><i class="nav-icon fas fa-chalkboard-teacher"></i><p>Capacitaciones</p></a></li>

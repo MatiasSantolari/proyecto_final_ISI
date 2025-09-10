@@ -3,6 +3,10 @@ from .models import *
 from django.contrib.auth.forms import UserCreationForm
 from django.forms.widgets import DateInput
 
+import holidays
+from datetime import timedelta, date
+
+
 class LoginForm(forms.Form):
     nombre_usuario = forms.CharField(max_length=50)
     password = forms.CharField(widget=forms.PasswordInput)
@@ -509,3 +513,41 @@ class LogroForm(forms.ModelForm):
             'fecha_fin': forms.DateInput(attrs={'type': 'date'}),
         }
 
+
+########################
+# Feriados Argentina
+ar_holidays = holidays.country_holidays('AR')
+
+def contar_dias_habiles(fecha_inicio, fecha_fin):
+    dias = 0
+    actual = fecha_inicio
+    while actual <= fecha_fin:
+        if actual.weekday() < 5 and actual not in ar_holidays:  # Lunes-Viernes y no feriado
+            dias += 1
+        actual += timedelta(days=1)
+    return dias
+
+
+class VacacionesSolicitudForm(forms.ModelForm):
+    class Meta:
+        model = VacacionesSolicitud
+        fields = ["fecha_inicio", "fecha_fin"]
+        widgets = {
+            "fecha_inicio": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "fecha_fin": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        inicio = cleaned_data.get("fecha_inicio")
+        fin = cleaned_data.get("fecha_fin")
+
+        if not inicio or not fin:
+            raise forms.ValidationError("Debes seleccionar ambas fechas.")
+
+        if fin < inicio:
+            raise forms.ValidationError("La fecha de fin no puede ser anterior a la fecha de inicio.")
+
+        dias = contar_dias_habiles(inicio, fin)
+        cleaned_data["cant_dias_solicitados"] = dias
+        return cleaned_data

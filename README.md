@@ -7,6 +7,7 @@ pip install python-dotenv
 pip install python-decouple
 pip install Pillow
 pip install django-widget-tweaks
+pip install holidays
 
 
 Pasos para configurar la Base de datos con Django

@@ -110,8 +110,14 @@ urlpatterns = [
     ## ASISTENCIA ##
     path('asistencia/registrar/', asistencia_view.registrar_asistencia, name='registrar_asistencia'),
     path('asistencia/confirmar/', asistencia_view.confirmar_asistencias, name='confirmar_asistencias'),
-    path('asistencia/confirmar/accion/', asistencia_view.confirmar_asistencias_accion, name='confirmar_asistencias_accion'),
+    path('asistencia/confirmar_accion/', asistencia_view.confirmar_asistencias_accion, name='confirmar_asistencias_accion'),
 
+
+    ## VACACIONES ##
+    path("vacaciones/solicitar/", vacaciones_view.solicitar_vacaciones, name="solicitar_vacaciones"),
+    path("vacaciones/gestionar/", vacaciones_view.gestionar_vacaciones, name="gestionar_vacaciones"),
+    path("vacaciones/cambiar/<int:pk>/<str:accion>/", vacaciones_view.cambiar_estado_vacacion, name="cambiar_estado_vacacion"),
+    path("vacaciones/cancelar/<int:pk>/", vacaciones_view.cancelar_vacacion, name="cancelar_vacacion"),
 
 
 
@@ -128,9 +134,7 @@ urlpatterns = [
     path('criterios_evaluacion/', views.criterios_evaluacion, name='criterios_evaluacion'),
     path('evaluacion_desempeno/', views.evaluacion_desempeno, name='evaluacion_desempeno'),
 
-
     path('instituciones/', views.instituciones, name='instituciones'),
-    path('logros/', views.logros, name='logros'),
    
     path('solicitudes_nuevos_empleados/', views.solicitudes_nuevos_empleados, name='solicitudes_nuevos_empleados'),
     path('tipo_criterio_evaluacion/', views.tipo_criterio_evaluacion, name='tipo_criterio_evaluacion'),
