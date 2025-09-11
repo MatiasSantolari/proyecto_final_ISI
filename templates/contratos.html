@@ -7,19 +7,27 @@
 <div class="container my-5">
   <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Contratos</h1>
 
-  {% if departamentos %}
+  {% if rol_actual == "admin" %}
   <div class="mb-3">
     <label>Filtrar por Departamento:</label>
-    <select class="form-select">
-      <option value="">Todos</option>
-      {% for dep in departamentos %}
-      <option value="{{ dep.id }}">{{ dep.nombre }}</option>
-      {% endfor %}
-    </select>
+    <form method="get">
+      <select class="form-select" name="departamento" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        {% for dep in departamentos %}
+        <option value="{{ dep.id }}" {% if request.GET.departamento == dep.id|stringformat:"s" %}selected{% endif %}>
+          {{ dep.nombre }}
+        </option>
+        {% endfor %}
+      </select>
+    </form>
   </div>
   {% endif %}
 
-  <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalContrato">+ Nuevo Contrato</button>
+  <div class="mb-3 d-flex justify-content-between">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalContrato">+ Nuevo Contrato</button>
+    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modalHistorial">Historial de Contratos</button>
+  </div>
+
 
   <div class="card shadow-sm border-0">
     <div class="card-body">
@@ -33,18 +41,29 @@
               <th>Fecha Inicio</th>
               <th>Fecha Fin</th>
               <th>Estado</th>
-              <th style="width:15%;">Acciones</th>
+              <th style="width:5%;" class="small">Ver/Editar</th>
+              <th style="width:3%;" class="small">Renovar</th>       
+              <th style="width:3%; font-size: 0.8rem;">Finalizar</th>       
             </tr>
           </thead>
           <tbody>
             {% for contrato in contratos %}
             <tr>
-              <td>{{ contrato.empleado }}</td>
+              <td>{{ contrato.empleado.apellido }} {{ contrato.empleado.nombre }}</td>
               <td>{{ contrato.cargo }}</td>
-              <td>{{ contrato.tipo_contrato }}</td>
-              <td>{{ contrato.fecha_inicio }}</td>
-              <td>{{ contrato.fecha_fin }}</td>
-              <td>{{ contrato.estado }}</td>
+              <td>{{ contrato.contrato }}</td>
+              <td>{{ contrato.fecha_inicio|date:"d/m/Y" }}</td>
+              <td>{{ contrato.fecha_fin|date:"d/m/Y" }}</td>
+              <td>
+                {% if contrato.estado == "finalizado" %}
+                    <span class="badge bg-danger">{{ contrato.estado }}</span>
+                {% elif contrato.estado == "renovado" %}
+                    <span class="badge bg-info">{{ contrato.estado }}</span>
+                {% elif contrato.estado == "activo" %}
+                    <span class="badge bg-success">{{ contrato.estado }}</span>
+                {% endif %}
+              </td>
+
               <td>
                 <div class="d-flex justify-content-center gap-2">
                   <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalVerContrato{{ contrato.id }}">
@@ -55,21 +74,48 @@
                           data-bs-target="#modalContrato"
                           data-id="{{ contrato.id }}"
                           data-empleado="{{ contrato.empleado.id }}"
-                          data-tipo="{{ contrato.tipo_contrato.id }}"
-                          data-fecha_inicio="{{ contrato.fecha_inicio }}"
-                          data-fecha_fin="{{ contrato.fecha_fin }}"
+                          data-tipo="{{ contrato.contrato.id }}"
+                          data-fecha_inicio="{{ contrato.fecha_inicio|date:'Y-m-d' }}"
+                          data-fecha_fin="{{ contrato.fecha_fin|date:'Y-m-d' }}"
                           data-condiciones="{{ contrato.condiciones }}"
-                          data-monto="{{ contrato.monto_extra_pactado }}"
-                          data-estado="{{ contrato.estado }}"
+                          data-monto="{{ contrato.monto_extra_pactado|default_if_none:'' }}"
                           onclick="editarContrato(this)">
                     <i class="bi bi-pencil-square"></i>
+                  </button>
+                </div>
+              </td>
+              <td>
+                <div class="d-flex justify-content-center gap-2">
+                  <button class="btn btn-sm btn-outline-success"
+                          type="button"
+                          data-id="{{ contrato.id }}"
+                          data-empleado="{{ contrato.empleado.id }}"
+                          data-tipo="{{ contrato.contrato.id }}"
+                          data-fecha_inicio="{{ contrato.fecha_fin|date:'Y-m-d' }}"
+                          data-fecha_fin=""
+                          data-condiciones="{{ contrato.condiciones }}"
+                          data-monto="{{ contrato.monto_extra_pactado|default_if_none:'' }}"
+                          data-renovar="true"
+                          onclick="renovarContrato(this)">
+                    <i class="bi bi-arrow-repeat"></i>
+                  </button>                
+                </div>
+              </td>
+              <td>
+                <div class="d-flex justify-content-center">
+                  <button class="btn btn-sm btn-outline-danger"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalFinalizar"
+                          data-id="{{ contrato.id }}"
+                          data-empleado="{{ contrato.empleado.apellido }} {{ contrato.empleado.nombre }}">
+                    <i class="bi bi-x-circle"></i>
                   </button>
                 </div>
               </td>
             </tr>
             {% empty %}
             <tr>
-              <td colspan="7" class="text-center text-muted">No hay contratos activos.</td>
+              <td colspan="9" class="text-center text-muted">No hay contratos activos.</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -91,13 +137,26 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
+          <input type="hidden" name="renovar" id="id_renovar" value="">
           <div class="mb-3">
             <label>Empleado</label>
-            {{ form.empleado }}
+            <select id="id_empleado" class="form-select" disabled>
+              {% for emp in form.fields.empleado.queryset %}
+                <option value="{{ emp.id }}">{{ emp.apellido }} {{ emp.nombre }} - {{ emp.cargo }}</option>
+              {% endfor %}
+            </select>
+            <input type="hidden" name="empleado" id="id_empleado_hidden">
           </div>
           <div class="mb-3">
             <label>Tipo de Contrato</label>
-            {{ form.tipo_contrato }}
+            <select name="contrato" id="id_tipo_contrato" class="form-select">
+              <option value="">---------</option>
+              {% for tipo in form.fields.contrato.queryset %}
+                <option value="{{ tipo.id }}" data-meses="{{ tipo.duracion_meses }}">
+                  {{ tipo.descripcion }}
+                </option>
+              {% endfor %}
+            </select>
           </div>
           <div class="mb-3">
             <label>Fecha Inicio</label>
@@ -105,15 +164,18 @@
           </div>
           <div class="mb-3">
             <label>Fecha Fin</label>
-            {{ form.fecha_fin }}
+            {{ form.fecha_fin|add_class:"form-control" }}
           </div>
           <div class="mb-3">
             <label>Condiciones</label>
             {{ form.condiciones }}
           </div>
           <div class="mb-3">
-            <label>Monto Extra Pactado ($)</label>
-            {{ form.monto_extra_pactado }}
+            <label>Monto Extra Pactado</label>
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              {{ form.monto_extra_pactado|add_class:"form-control" }}
+            </div>
           </div>
           {{ form.estado }}
         </div>
@@ -135,27 +197,161 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <p><strong>Empleado:</strong> {{ contrato.empleado }}</p>
+        <p><strong>Empleado:</strong> {{ contrato.empleado.apellido }} {{ contrato.empleado.nombre }}</p>
         <p><strong>Cargo:</strong> {{ contrato.cargo }}</p>
-        <p><strong>Tipo de Contrato:</strong> {{ contrato.tipo_contrato }}</p>
+        <p><strong>Tipo de Contrato:</strong> {{ contrato.contrato }}</p>
         <p><strong>Fecha Inicio:</strong> {{ contrato.fecha_inicio }}</p>
         <p><strong>Fecha Fin:</strong> {{ contrato.fecha_fin }}</p>
         <p><strong>Condiciones:</strong> {{ contrato.condiciones }}</p>
         <p><strong>Monto Extra:</strong> ${{ contrato.monto_extra_pactado }}</p>
-        <p><strong>Estado:</strong> {{ contrato.estado }}</p>
+        <p><strong>Estado:</strong> 
+          {% if contrato.estado == "finalizado" %}
+              <span class="badge bg-danger">{{ contrato.estado }}</span>
+          {% elif contrato.estado == "renovado" %}
+              <span class="badge bg-info">{{ contrato.estado }}</span>
+          {% elif contrato.estado == "activo" %}
+              <span class="badge bg-success">{{ contrato.estado }}</span>
+          {% endif %}
       </div>
     </div>
   </div>
 </div>
 {% endfor %}
 
+
+<!-- Modal Confirmar Renovación -->
+<div class="modal fade" id="modalConfirmRenovar" tabindex="-1" aria-labelledby="modalConfirmRenovarLabel" aria-hidden="true">
+  <div class="modal-dialog" style="margin-top: 10rem;">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #28a745;">
+        <h5 class="modal-title text-white" id="modalConfirmRenovarLabel">Confirmar Renovación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="modalConfirmRenovarBody">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success" id="confirmRenovarBtn">Sí, renovar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal Confirmar Finalización -->
+<div class="modal fade" id="modalFinalizar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog" style="margin-top: 10rem;">
+    <div class="modal-content">
+      <form method="post" id="formFinalizar">
+        {% csrf_token %}
+        <div class="modal-header" style="background-color: #dc3545;">
+          <h5 class="modal-title text-white">Confirmar Finalización</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="modalFinalizarBody">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-danger">Sí, finalizar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- Modal Historial de Contratos -->
+<div class="modal fade" id="modalHistorial" tabindex="-1" aria-labelledby="modalHistorialLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl" style="margin-top: 4rem;">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #539bd9ff;">
+        <h5 class="modal-title text-white" id="modalHistorialLabel">Historial de Contratos</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-hover table-bordered align-middle mb-0">
+            <thead class="table-light text-center">
+              <tr>
+                <th>Empleado</th>
+                <th>Cargo</th>
+                <th>Tipo Contrato</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for contrato in historial_contratos %}
+              <tr>
+                <td>{{ contrato.empleado.apellido }} {{ contrato.empleado.nombre }}</td>
+                <td>{{ contrato.cargo }}</td>
+                <td>{{ contrato.contrato }}</td>
+                <td>{{ contrato.fecha_inicio|date:"d/m/Y" }}</td>
+                <td>{{ contrato.fecha_fin|date:"d/m/Y" }}</td>
+                <td class="text-center">
+                  {% if contrato.estado == "finalizado" %}
+                      <span class="badge bg-danger">{{ contrato.estado }}</span>
+                  {% elif contrato.estado == "renovado" %}
+                      <span class="badge bg-info">{{ contrato.estado }}</span>
+                  {% elif contrato.estado == "activo" %}
+                      <span class="badge bg-success">{{ contrato.estado }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6" class="text-center text-muted">No hay contratos en el historial.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
 <script>
+  function toggleFechaFin() {
+    const tipoSelect = document.getElementById('id_tipo_contrato');
+    const fechaInicioInput = document.getElementById('id_fecha_inicio');
+    const fechaFinInput = document.getElementById('id_fecha_fin');
+
+    if(tipoSelect.value) {
+      fechaFinInput.readOnly = true;
+      if(fechaInicioInput.value) {
+        let meses = tipoSelect.options[tipoSelect.selectedIndex].dataset.meses;
+        if(meses) {
+          let inicio = new Date(fechaInicioInput.value);
+          inicio.setMonth(inicio.getMonth() + parseInt(meses));
+          fechaFinInput.value = inicio.toISOString().split('T')[0];
+        }
+      }
+    } else {
+      fechaFinInput.readOnly = false;
+      fechaFinInput.value = "";
+    }
+  }
+
+
 document.addEventListener('DOMContentLoaded', function() {
   const modalCrearEditar = document.getElementById('modalContrato');
   modalCrearEditar.addEventListener('show.bs.modal', function(event) {
     const trigger = event.relatedTarget;
     if(!trigger.getAttribute('data-id')) limpiarFormularioContrato();
   });
+
+  const tipoSelect = document.getElementById('id_tipo_contrato');
+  const fechaFinInput = document.getElementById('id_fecha_fin');
+  const fechaInicioInput = document.getElementById('id_fecha_inicio');
+
+  tipoSelect.addEventListener('change', toggleFechaFin);
+  fechaInicioInput.addEventListener('change', toggleFechaFin);
 });
 
 function limpiarFormularioContrato(){
@@ -166,14 +362,86 @@ function limpiarFormularioContrato(){
 }
 
 function editarContrato(button){
-  document.getElementById('id_contrato').value = button.getAttribute('data-id');
-  document.getElementById('id_empleado').value = button.getAttribute('data-empleado');
-  document.getElementById('id_tipo_contrato').value = button.getAttribute('data-tipo');
-  document.getElementById('id_fecha_inicio').value = button.getAttribute('data-fecha_inicio');
-  document.getElementById('id_fecha_fin').value = button.getAttribute('data-fecha_fin');
-  document.getElementById('id_condiciones').value = button.getAttribute('data-condiciones');
-  document.getElementById('id_monto_extra_pactado').value = button.getAttribute('data-monto');
+  const contratoId = button.getAttribute('data-id');
+  const empleado = button.getAttribute('data-empleado');
+  const tipo = button.getAttribute('data-tipo');
+  const fecha_inicio = button.getAttribute('data-fecha_inicio');
+  const fecha_fin = button.getAttribute('data-fecha_fin');
+  const condiciones = button.getAttribute('data-condiciones');
+  let monto = button.getAttribute('data-monto');
+
+  monto = monto ? parseFloat(monto).toFixed(2) : '';
+
+  document.getElementById('id_contrato').value = contratoId || '';
+  document.getElementById('id_empleado').value = empleado || '';
+  document.getElementById('id_tipo_contrato').value = tipo || '';
+  document.getElementById('id_fecha_inicio').value = fecha_inicio || '';
+  document.getElementById('id_fecha_fin').value = fecha_fin || '';
+  document.getElementById('id_condiciones').value = condiciones || '';
+  document.getElementById('id_monto_extra_pactado').value = monto;
+
   document.getElementById('modalContratoLabel').textContent = 'Editar Contrato';
 }
+
+
+document.getElementById('formContrato').addEventListener('submit', function(e) {
+  const renovar = document.getElementById('modalContratoLabel').textContent.includes('Renovar Contrato');
+  if (renovar) {
+    e.preventDefault();
+    const empleadoText = document.getElementById('id_empleado').selectedOptions[0].text;
+    const fechaInicio = document.getElementById('id_fecha_inicio').value;
+    const fechaFin = document.getElementById('id_fecha_fin').value;
+    const modalConfirm = new bootstrap.Modal(document.getElementById('modalConfirmRenovar'));
+    document.getElementById('modalConfirmRenovarBody').innerHTML = `
+      ¿Está seguro de renovar el contrato de <strong>${empleadoText}</strong> 
+      desde <strong>${fechaInicio}</strong> 
+      hasta <strong>${fechaFin}</strong>?
+    `;
+    modalConfirm.show();
+
+    document.getElementById('confirmRenovarBtn').onclick = function() {
+      modalConfirm.hide();
+      e.target.submit();
+    }
+  }
+});
+
+
+function renovarContrato(button) {
+  document.getElementById('id_renovar').value = "true";
+  document.getElementById('id_contrato').value = button.getAttribute('data-id');  
+  document.getElementById('id_empleado_hidden').value = button.getAttribute('data-empleado');
+  document.getElementById('id_empleado').value = button.getAttribute('data-empleado');
+  document.getElementById('id_tipo_contrato').value = button.getAttribute('data-tipo') || '';
+  document.getElementById('id_fecha_inicio').value = button.getAttribute('data-fecha_inicio') || '';
+  document.getElementById('id_condiciones').value = button.getAttribute('data-condiciones') || '';
+  document.getElementById('id_monto_extra_pactado').value = button.getAttribute('data-monto') ? parseFloat(button.getAttribute('data-monto')).toFixed(2) : '';
+  document.getElementById('modalContratoLabel').textContent = 'Renovar Contrato';
+
+  setTimeout(toggleFechaFin, 10);
+
+  const modalContrato = new bootstrap.Modal(document.getElementById('modalContrato'));
+  modalContrato.show();
+}
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  const modalFinalizar = document.getElementById('modalFinalizar');
+  modalFinalizar.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    const contratoId = button.getAttribute('data-id');
+    const empleado = button.getAttribute('data-empleado');
+
+    document.getElementById('modalFinalizarBody').innerHTML =
+      `¿Está seguro de finalizar <strong>antes de tiempo</strong> el contrato de <strong>${empleado}</strong>?`;
+
+    const form = document.getElementById('formFinalizar');
+    form.action = `/contratos/finalizar/${contratoId}/`;
+  });
+});
+
+
+
 </script>
 {% endblock %}

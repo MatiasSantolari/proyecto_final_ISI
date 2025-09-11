@@ -498,7 +498,7 @@ class NominaForm(forms.ModelForm):
                 'type': 'date', 
                 'class': 'form-control'
             }),
-            'monto_bruto': forms.NumberInput(attrs={'class': 'form-control', 'readonly': True}),  # 👈 solo lectura
+            'monto_bruto': forms.NumberInput(attrs={'class': 'form-control', 'readonly': True}),
             'total_descuentos': forms.NumberInput(attrs={'class': 'form-control', 'readonly': True}),
             'monto_neto': forms.NumberInput(attrs={'class': 'form-control', 'readonly': True}),
             'estado': forms.Select(attrs={'class': 'form-select'}),
@@ -569,36 +569,51 @@ class TipoContratoForm(forms.ModelForm):
 
 
 
-
 class ContratoForm(forms.ModelForm):
-    empleado = forms.ModelChoiceField(
-        queryset=Empleado.objects.none(),
-        widget=forms.Select(attrs={"class": "form-select", "id": "id_empleado"})
-    )
-    tipo_contrato = forms.ModelChoiceField(
-        queryset=TipoContrato.objects.all(),
-        required=False,
-        widget=forms.Select(attrs={"class": "form-select", "id": "id_tipo_contrato"})
-    )
-    fecha_inicio = forms.DateField(
-        widget=forms.DateInput(attrs={"class": "form-control", "type": "date", "id": "id_fecha_inicio"})
-    )
-    fecha_fin = forms.DateField(
-        widget=forms.DateInput(attrs={"class": "form-control", "type": "date", "id": "id_fecha_fin"})
-    )
-    condiciones = forms.CharField(
-        widget=forms.Textarea(attrs={"class": "form-control", "rows": 3, "id": "id_condiciones"})
-    )
     monto_extra_pactado = forms.DecimalField(
-        initial=0,
-        widget=forms.NumberInput(attrs={"class": "form-control", "id": "id_monto_extra_pactado"})
-    )
-    estado = forms.CharField(
-        widget=forms.HiddenInput(),
-        initial="activo"
+        label='Monto Extra Pactado',
+        max_digits=10,
+        decimal_places=2,
+        required=True,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ingrese el Monto Extra (si fue pactado)',
+            'step': '0.01',
+            'id': 'id_monto_extra_pactado'
+        })
     )
 
     class Meta:
         model = HistorialContrato
-        fields = ["empleado", "tipo_contrato", "fecha_inicio", "fecha_fin", "condiciones", "monto_extra_pactado", "estado"]
+        fields = ['empleado', 'contrato', 'fecha_inicio', 'fecha_fin', 'condiciones', 'monto_extra_pactado', 'estado']
+        widgets = {
+            'empleado': forms.Select(attrs={"class": "form-select", "id": "id_empleado"}),
+            'fecha_inicio': forms.DateInput(attrs={"type": "date", "class": "form-control", "id": "id_fecha_inicio"}),
+            'fecha_fin': forms.DateInput(attrs={"type": "date", "class": "form-control", "id": "id_fecha_fin"}),
+            'condiciones': forms.Textarea(attrs={"class": "form-control", 'placeholder': 'Ingrese las Condiciones del Contrato', "rows": 3, "id": "id_condiciones"}),
+            'estado': forms.HiddenInput(attrs={"id": "id_estado"})
+        }
 
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['empleado'].queryset = Empleado.objects.all().order_by('apellido')
+        self.fields['empleado'].label_from_instance = (
+            lambda obj: f"{obj.apellido} {obj.nombre} - "
+                        f"{obj.empleadocargo_set.last().cargo if obj.empleadocargo_set.exists() else 'Sin cargo'}"
+        )
+        self.fields['contrato'].required = False
+        self.fields['fecha_fin'].required = False
+        self.fields['estado'].initial = "activo"
+        self.fields['monto_extra_pactado'].initial = 0
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo = cleaned_data.get("contrato")
+        fecha_inicio = cleaned_data.get("fecha_inicio")
+        fecha_fin = cleaned_data.get("fecha_fin")
+
+        if tipo and fecha_inicio and not fecha_fin:
+            cleaned_data["fecha_fin"] = fecha_inicio + timedelta(days=tipo.duracion_meses * 30)
+
+        return cleaned_data

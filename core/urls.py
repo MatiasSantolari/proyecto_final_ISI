@@ -121,9 +121,11 @@ urlpatterns = [
 
 
     ## CONTRATOS ##
-    path("contratos/", contratos_view.contratos, name="contratos"),
-    path("contratos/crear/", contratos_view.crear_contrato, name="crear_contrato"),
-    path("contratos/<int:id_contrato>/editar/", contratos_view.editar_contrato, name="editar_contrato"),
+    path("contratos/", views.contratos, name="contratos"),
+    path("contratos/crear/", views.crear_contrato, name="crear_contrato"),
+    path("contratos/renovar/<int:contrato_id>/", views.crear_contrato, name="renovar_contrato"),
+    path("contratos/finalizar/<int:contrato_id>/", views.finalizar_contrato, name="finalizar_contrato"),
+
 
     path("mis_contratos/", contratos_view.mis_contratos, name="mis_contratos"),
 

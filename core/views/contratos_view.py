@@ -9,90 +9,130 @@ from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
 
-
 @login_required
 def contratos(request):
-    user = request.user
-    form = ContratoForm()
-    # Filtro según rol
-    if user.rol == "admin":
-        contratos = HistorialContrato.objects.filter(estado="activo")
-        departamentos = Departamento.objects.all()
-    else:
-        contratos = HistorialContrato.objects.filter(estado="activo", empleado__departamento=user.empleado.departamento)
-        departamentos = None
-        form.fields['empleado'].queryset = Empleado.objects.filter(departamento=user.empleado.departamento)
+    rol_actual = request.session.get("rol_actual", None)
+    departamentos = None
+    contratos = HistorialContrato.objects.filter(
+        estado="activo"
+        ).select_related("empleado", "cargo", "contrato").order_by('fecha_fin')
 
+    historial_contratos = HistorialContrato.objects.all().select_related("empleado", "cargo", "contrato").order_by('-fecha_inicio')
+
+    if rol_actual == "admin":
+        departamentos = Departamento.objects.all()
+        dep_id = request.GET.get("departamento")
+        if dep_id:
+            contratos = contratos.filter(cargo__cargodepartamento__departamento__id=dep_id)
+            historial_contratos = historial_contratos.filter(cargo__cargodepartamento__departamento__id=dep_id)
+    elif rol_actual in ["jefe", "gerente"]:
+        empleado = request.user.empleado
+        dep_id = empleado.cargos.first().departamento.id
+        contratos = contratos.filter(cargo__cargodepartamento__departamento__id=dep_id)
+        historial_contratos = historial_contratos.filter(cargo__cargodepartamento__departamento__id=dep_id)
+
+    form = ContratoForm()
     return render(request, "contratos.html", {
         "contratos": contratos,
+        "historial_contratos": historial_contratos,
         "form": form,
-        "departamentos": departamentos
+        "departamentos": departamentos,
+        "rol_actual": rol_actual
     })
 
 
+
 @login_required
-@require_POST
 def crear_contrato(request):
-    user = request.user
-    form = ContratoForm(request.POST)
+    if request.method == "POST":
+        contrato_id = request.POST.get("id_contrato")
+        renovar_flag = request.POST.get("renovar") == "true" 
 
-    if user.rol == "admin":
-        form.fields['empleado'].queryset = Empleado.objects.all()
+        if contrato_id:
+            contrato_ant = get_object_or_404(HistorialContrato, id=contrato_id)
+
+            if renovar_flag:
+                contrato_ant.estado = "renovado"
+                contrato_ant.save()
+
+                empleado = contrato_ant.empleado
+                try:
+                    cargo_actual = empleado.empleadocargo_set.get(fecha_fin__isnull=True)
+                except EmpleadoCargo.DoesNotExist:
+                    cargo_actual = empleado.empleadocargo_set.order_by('-fecha_inicio').first()
+
+                tipo_id = request.POST.get("contrato")
+                condiciones = request.POST.get("condiciones")
+                monto = request.POST.get("monto_extra_pactado") or 0
+                fecha_inicio = request.POST.get("fecha_inicio")
+                fecha_fin = request.POST.get("fecha_fin")
+
+                nuevo = HistorialContrato.objects.create(
+                    empleado=empleado,
+                    cargo=cargo_actual.cargo if cargo_actual else None,
+                    contrato_id=tipo_id,
+                    condiciones=condiciones,
+                    monto_extra_pactado=monto,
+                    estado="activo",
+                    fecha_inicio=fecha_inicio,
+                    fecha_fin=fecha_fin
+                )
+
+                messages.success(request, f"Contrato renovado correctamente. Nuevo contrato #{nuevo.id} generado.")
+                return redirect("contratos")
+
+            else:
+                form = ContratoForm(request.POST, instance=contrato_ant)
+                if form.is_valid():
+                    contrato = form.save(commit=False)
+                    try:
+                        cargo_actual = contrato.empleado.empleadocargo_set.get(fecha_fin__isnull=True)
+                    except EmpleadoCargo.DoesNotExist:
+                        cargo_actual = contrato.empleado.empleadocargo_set.order_by('-fecha_inicio').first()
+                    contrato.cargo = cargo_actual.cargo if cargo_actual else None
+                    contrato.save()
+                    messages.success(request, "Contrato editado correctamente.")
+                    return redirect("contratos")
+                else:
+                    messages.error(request, "El formulario tiene errores.")
+                    print("ERRORES DEL FORM:", form.errors)
+
+        else:
+            form = ContratoForm(request.POST)
+            if form.is_valid():
+                contrato = form.save(commit=False)
+                try:
+                    cargo_actual = contrato.empleado.empleadocargo_set.get(fecha_fin__isnull=True)
+                except EmpleadoCargo.DoesNotExist:
+                    cargo_actual = contrato.empleado.empleadocargo_set.order_by('-fecha_inicio').first()
+                contrato.cargo = cargo_actual.cargo if cargo_actual else None
+                contrato.estado = "activo"
+                contrato.save()
+                messages.success(request, "Contrato creado correctamente.")
+                return redirect("contratos")
+            else:
+                messages.error(request, "El formulario tiene errores.")
+                print("ERRORES DEL FORM:", form.errors)
+
     else:
-        dep = user.empleado.empleadocargo_set.first().cargo.cargodepartamento_set.first().departamento
-        form.fields['empleado'].queryset = Empleado.objects.filter(
-            empleadocargo__cargo__cargodepartamento__departamento=dep
-        )
+        form = ContratoForm()
 
-    if form.is_valid():
-        contrato = form.save(commit=False)
-
-        cargo_actual = contrato.empleado.empleadocargo_set.order_by("-fecha_asignacion").first()
-        contrato.cargo = cargo_actual.cargo if cargo_actual else None
-
-        contrato.estado = "activo"
-        contrato.save()
-
-        messages.success(request, f"Contrato para {contrato.empleado} creado correctamente.")
-        return redirect("contratos")
-
-    messages.error(request, "Error al crear el contrato. Verifica los datos.")
-    return redirect("contratos")
+    return render(request, "contratos.html", {"form": form})
 
 
 
 @login_required
-@require_POST
-def editar_contrato(request, id_contrato):
-    contrato = get_object_or_404(HistorialContrato, pk=id_contrato)
-    form = ContratoForm(request.POST, instance=contrato)
-
-    if form.is_valid():
-        estado_anterior = contrato.estado
-        contrato = form.save(commit=False)
-        # si se renovó
-        if contrato.estado == "renovado" and estado_anterior != "renovado":
-            # crear nuevo registro
-            nuevo = HistorialContrato.objects.create(
-                empleado=contrato.empleado,
-                tipo_contrato=contrato.tipo_contrato,
-                fecha_inicio=contrato.fecha_fin,
-                fecha_fin=contrato.tipo_contrato and contrato.fecha_fin or contrato.fecha_fin,
-                condiciones=contrato.condiciones,
-                monto_extra_pactado=contrato.monto_extra_pactado,
-                estado="activo",
-                cargo=contrato.cargo
-            )
-            contrato.estado = "renovado"
-            contrato.save()
-        else:
-            contrato.save()
-
-        messages.success(request, f"Contrato de {contrato.empleado} actualizado.")
+def finalizar_contrato(request, contrato_id):
+    contrato = get_object_or_404(HistorialContrato, id=contrato_id, estado="activo")
+    if request.method == "POST":
+        contrato.estado = "finalizado"
+        contrato.save()
+        messages.success(request, f"El contrato de {contrato.empleado.apellido} {contrato.empleado.nombre} fue finalizado antes de tiempo.")
         return redirect("contratos")
-    
-    messages.error(request, "Error al actualizar el contrato.")
+
     return redirect("contratos")
+
+
 
 
 

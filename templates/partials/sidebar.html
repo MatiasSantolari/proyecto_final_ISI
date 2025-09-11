@@ -34,7 +34,8 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-id-card"></i><p>Mis Nóminas(todos)</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones(todos)</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="nav-icon fas fa-tasks"></i><p>Gestion de Vacaciones (adm, jefe)</p></a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'tipos_contrato' %}"><i class="nav-icon fas fa-file-signature"></i><p>Tipos de Contrato</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'tipos_contrato' %}"><i class="nav-icon fas fa-file-signature"></i><p>Tipos de Contrato(admin)</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'contratos' %}"><i class="nav-icon fas fa-file-contract"></i><p>Contratos(admin, jefe)</p></a></li>
          
           
           <hr class="my-2 border-secondary">
@@ -42,9 +43,6 @@
             <i class="fas fa-tools me-4"></i>
             En Desarrollo
           </li>
-         
-          <li class="nav-item"><a class="nav-link" href="{% url 'contratos' %}"><i class="nav-icon fas fa-file-contract"></i><p>Contratos</p></a></li>
-         
 
           <li class="nav-item"><a class="nav-link" href="{% url 'agregar_sueldo_base' %}"><i class="nav-icon fas fa-dollar-sign"></i><p>Agregar Sueldo Base</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'calcular_bonificaciones' %}"><i class="nav-icon fas fa-calculator"></i><p>Bonificaciones</p></a></li>
@@ -63,7 +61,7 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'costos_de_contratacion' %}"><i class="nav-icon fas fa-coins"></i><p>Costos de Contratación</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'reporte_evaluacion_desempeno' %}"><i class="nav-icon fas fa-file-alt"></i><p>Reporte Desempeño</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'contratar_nuevo_empleado' %}"><i class="nav-icon fas fa-user-check"></i><p>Contratar Nuevo</p></a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'ausencias_retardos' %}"><i class="nav-icon fas fa-clock"></i><p>Ausencias y Retardos</p></a></li>
+          <li class="nav-item"><a class="nav-link" href=""><i class="nav-icon fas fa-clock"></i><p>Ausencias y Retardos</p></a></li>
         {% endif %}
       </ul>
     </nav>
