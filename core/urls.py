@@ -120,6 +120,19 @@ urlpatterns = [
     path("vacaciones/cancelar/<int:pk>/", vacaciones_view.cancelar_vacacion, name="cancelar_vacacion"),
 
 
+    ## CONTRATOS ##
+    path("contratos/", contratos_view.contratos, name="contratos"),
+    path("contratos/crear/", contratos_view.crear_contrato, name="crear_contrato"),
+    path("contratos/<int:id_contrato>/editar/", contratos_view.editar_contrato, name="editar_contrato"),
+
+    path("mis_contratos/", contratos_view.mis_contratos, name="mis_contratos"),
+
+    ## TIPOS DE CONTRATO ##
+    path("tipos_contrato/", contratos_view.tipos_contrato, name="tipos_contrato"),
+    path("tipos_contrato/crear/", contratos_view.crear_tipo_contrato, name="crear_tipo_contrato"),
+    path("tipos_contrato/<int:id_tipo>/eliminar/", contratos_view.eliminar_tipo_contrato, name="eliminar_tipo_contrato"),
+
+
 
 ##############################################
 ##############################################

@@ -1,148 +1,179 @@
-{% extends "base.html"%}
+{% extends "base.html" %}
+{% load widget_tweaks %}
 
-  {% block title %}Gestión de Contratos{% endblock %}
-  
-  {% block content %}
-  <div class="container my-5">
-    <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Contratos</h1>
+{% block title %}Gestión de Contratos{% endblock %}
 
-    <!-- Botón para Crear -->
-    <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalContrato">
-      + Crear Nuevo Contrato
-    </button>
+{% block content %}
+<div class="container my-5">
+  <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Contratos</h1>
 
-    <!-- Tabla de Contratos -->
-    <div class="table-responsive">
-      <table class="table table-bordered text-center">
-        <thead style="background-color: var(--color-suave);">
-          <tr>
-            <th style="width: 12%;">Fecha de Inicio</th>
-            <th style="width: 10%;">Fecha de Fin</th>
-            <th style="width: 50%;">Describa las Condiciones</th>
-            <th style="width: 15%;">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>2025-01-01</td>
-            <td>2025-12-01</td>
-            <td style="text-align: justify;">Contrato de trabajo para el puesto de Analista de Datos en el área de Tecnología de la Información, con jornada laboral de lunes a viernes de 9:00 a 18:00 horas. El salario mensual bruto es de $2,500, incluye beneficios como seguro médico privado, vales de despensa y fondo de ahorro. El contrato es por tiempo indefinido, sujeto a un período de prueba de 3 meses. Se otorgan 20 días hábiles de vacaciones anuales tras el primer año y se exige confidencialidad sobre la información manejada. Ambas partes pueden finalizar el contrato con un preaviso de 30 días, conforme a la legislación vigente.</td>
-            <td>
-              <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#modalContrato">Editar</button>
-              <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalVerContrato1">Ver</button>
-              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarContrato">Eliminar</button>
-            </td>
-          </tr>
-          <!-- Ejemplo adicional -->
-          <tr>
-            <td>2025-02-01</td>
-            <td>2025-10-28</td>
-            <td style="text-align: justify;">Contrato de trabajo para el puesto de Asistente Administrativo en el área de Recursos Humanos. La jornada laboral es de lunes a viernes, de 8:00 a 16:00 horas, con un salario mensual bruto de $1,800. Se incluye acceso a prestaciones como seguro social, aguinaldo equivalente a 15 días de salario y vacaciones conforme a la ley. El contrato es por tiempo determinado, con una duración inicial de 6 meses, renovable según desempeño. Durante el empleo, el trabajador deberá manejar documentación confidencial de la empresa. La terminación anticipada requiere un preaviso de 15 días por cualquiera de las partes.</td>
-            <td>
-              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalContrato">Editar</button>
-              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerContrato2">Ver</button>
-              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarContrato">Eliminar</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  {% if departamentos %}
+  <div class="mb-3">
+    <label>Filtrar por Departamento:</label>
+    <select class="form-select">
+      <option value="">Todos</option>
+      {% for dep in departamentos %}
+      <option value="{{ dep.id }}">{{ dep.nombre }}</option>
+      {% endfor %}
+    </select>
   </div>
+  {% endif %}
 
-  <!-- Modal para Crear/Editar Contrato -->
-  <div class="modal fade" id="modalContrato" tabindex="-1" aria-labelledby="modalContratoLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalContratoLabel">Crear/Editar Contrato</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form>
-            <div class="mb-3">
-              <label for="fechaInicioContrato" class="form-label">Fecha de Inicio</label>
-              <input type="date" class="form-control" id="fechaInicioContrato" required>
-            </div>
-            <div class="mb-3">
-              <label for="fechaFinContrato" class="form-label">Fecha de Fin</label>
-              <input type="date" class="form-control" id="fechaFinContrato" required>
-            </div>
-            <div class="mb-3">
-              <label for="descripcionContrato" class="form-label">Descripción de las Condiciones</label>
-              <textarea class="form-control" id="descripcionContrato" rows="3" placeholder="Ingresa las Condiciones del Contrato" required></textarea>
-            </div>
-            <div class="mb-3">
-              <label for="tipoContrato" class="form-label">Tipo Contrato</label>
-              <select class="form-select" id="tipoContrato" required>
-                <option value="" disabled selected>Selecciona el Tipo de Contrato</option>
-                <option value="conDuracion">Contrato con duracion determinada</option>
-                <option value="sinLimite">Contrato sin límite de duración</option>
-              </select>
-            </div>
-            <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
-          </form>
-        </div>
+  <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalContrato">+ Nuevo Contrato</button>
+
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle mb-0">
+          <thead class="table-light text-center">
+            <tr>
+              <th>Empleado</th>
+              <th>Cargo</th>
+              <th>Tipo Contrato</th>
+              <th>Fecha Inicio</th>
+              <th>Fecha Fin</th>
+              <th>Estado</th>
+              <th style="width:15%;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for contrato in contratos %}
+            <tr>
+              <td>{{ contrato.empleado }}</td>
+              <td>{{ contrato.cargo }}</td>
+              <td>{{ contrato.tipo_contrato }}</td>
+              <td>{{ contrato.fecha_inicio }}</td>
+              <td>{{ contrato.fecha_fin }}</td>
+              <td>{{ contrato.estado }}</td>
+              <td>
+                <div class="d-flex justify-content-center gap-2">
+                  <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalVerContrato{{ contrato.id }}">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalContrato"
+                          data-id="{{ contrato.id }}"
+                          data-empleado="{{ contrato.empleado.id }}"
+                          data-tipo="{{ contrato.tipo_contrato.id }}"
+                          data-fecha_inicio="{{ contrato.fecha_inicio }}"
+                          data-fecha_fin="{{ contrato.fecha_fin }}"
+                          data-condiciones="{{ contrato.condiciones }}"
+                          data-monto="{{ contrato.monto_extra_pactado }}"
+                          data-estado="{{ contrato.estado }}"
+                          onclick="editarContrato(this)">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-center text-muted">No hay contratos activos.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Modal para Ver Detalles -->
-  <div class="modal fade" id="modalVerContrato1" tabindex="-1" aria-labelledby="modalVerContrato1Label" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalVerContrato1Label">Detalles del Contrato</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Modal Crear/Editar Contrato -->
+<div class="modal fade" id="modalContrato" tabindex="-1" aria-labelledby="modalContratoLabel" aria-hidden="true">
+  <div class="modal-dialog" style="margin-top: 3rem;">
+    <div class="modal-content">
+      <form method="post" action="{% url 'crear_contrato' %}" id="formContrato">
+        {% csrf_token %}
+        <input type="hidden" name="id_contrato" id="id_contrato">
+        <div class="modal-header" style="background-color: #3c8dbc;">
+          <h5 class="modal-title text-white" id="modalContratoLabel">Crear/Editar Contrato</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <p><strong>Fecha de Inicio:</strong> 01-01-2025</p>
-          <p><strong>Fecha de Fin:</strong> 01-12-2025</p>
-          <p><strong>Descripción de las Condiciones:</strong> Contrato de trabajo para el puesto de Analista de Datos en el área de Tecnología de la Información, con jornada laboral de lunes a viernes de 9:00 a 18:00 horas. El salario mensual bruto es de $2,500, incluye beneficios como seguro médico privado, vales de despensa y fondo de ahorro. El contrato es por tiempo indefinido, sujeto a un período de prueba de 3 meses. Se otorgan 20 días hábiles de vacaciones anuales tras el primer año y se exige confidencialidad sobre la información manejada. Ambas partes pueden finalizar el contrato con un preaviso de 30 días, conforme a la legislación vigente.</td>          </p>
-          <p><strong>Tipo Contrato:</strong> Contrato con duracion determinada</p>
-          <p><strong>Monto:</strong> $3000,00</p>
+          <div class="mb-3">
+            <label>Empleado</label>
+            {{ form.empleado }}
+          </div>
+          <div class="mb-3">
+            <label>Tipo de Contrato</label>
+            {{ form.tipo_contrato }}
+          </div>
+          <div class="mb-3">
+            <label>Fecha Inicio</label>
+            {{ form.fecha_inicio }}
+          </div>
+          <div class="mb-3">
+            <label>Fecha Fin</label>
+            {{ form.fecha_fin }}
+          </div>
+          <div class="mb-3">
+            <label>Condiciones</label>
+            {{ form.condiciones }}
+          </div>
+          <div class="mb-3">
+            <label>Monto Extra Pactado ($)</label>
+            {{ form.monto_extra_pactado }}
+          </div>
+          {{ form.estado }}
         </div>
+        <div class="modal-footer bg-light">
+          <button type="submit" class="btn btn-success w-100 fw-bold">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Ver Contrato -->
+{% for contrato in contratos %}
+<div class="modal fade" id="modalVerContrato{{ contrato.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog" style="margin-top: 6rem;">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #3c8dbc;">
+        <h5 class="modal-title text-white">Detalles del Contrato</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Empleado:</strong> {{ contrato.empleado }}</p>
+        <p><strong>Cargo:</strong> {{ contrato.cargo }}</p>
+        <p><strong>Tipo de Contrato:</strong> {{ contrato.tipo_contrato }}</p>
+        <p><strong>Fecha Inicio:</strong> {{ contrato.fecha_inicio }}</p>
+        <p><strong>Fecha Fin:</strong> {{ contrato.fecha_fin }}</p>
+        <p><strong>Condiciones:</strong> {{ contrato.condiciones }}</p>
+        <p><strong>Monto Extra:</strong> ${{ contrato.monto_extra_pactado }}</p>
+        <p><strong>Estado:</strong> {{ contrato.estado }}</p>
       </div>
     </div>
   </div>
-  
-  <div class="modal fade" id="modalVerContrato2" tabindex="-1" aria-labelledby="modalVerContrato2Label" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalVerContrato2Label">Detalles del Contrato</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p><strong>Fecha de Inicio:</strong> 01-02-2025</p>
-          <p><strong>Fecha de Fin:</strong> 28-10-2025</p>
-          <p><strong>Descripción de las Condiciones:</strong> Contrato de trabajo para el puesto de Asistente Administrativo en el área de Recursos Humanos. La jornada laboral es de lunes a viernes, de 8:00 a 16:00 horas, con un salario mensual bruto de $1,800. Se incluye acceso a prestaciones como seguro social, aguinaldo equivalente a 15 días de salario y vacaciones conforme a la ley. El contrato es por tiempo determinado, con una duración inicial de 6 meses, renovable según desempeño. Durante el empleo, el trabajador deberá manejar documentación confidencial de la empresa. La terminación anticipada requiere un preaviso de 15 días por cualquiera de las partes.</td></p>
-          <p><strong>Tipo Contrato:</strong> Contrato con duracion determinada</p>
-          <p><strong>Monto:</strong> $3000,00</p>
-        </div>
-      </div>
-    </div>
-  </div>
+</div>
+{% endfor %}
 
-  <!-- Modal para Confirmar Eliminación -->
-  <div class="modal fade" id="modalEliminarContrato" tabindex="-1" aria-labelledby="modalEliminarContratoLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-enfasis); color: white;">
-          <h5 class="modal-title" id="modalEliminarContratoLabel">Confirmar Eliminación</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>¿Estás seguro de que deseas eliminar este Contrato?</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger">Eliminar</button>
-        </div>
-      </div>
-    </div>
-  </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const modalCrearEditar = document.getElementById('modalContrato');
+  modalCrearEditar.addEventListener('show.bs.modal', function(event) {
+    const trigger = event.relatedTarget;
+    if(!trigger.getAttribute('data-id')) limpiarFormularioContrato();
+  });
+});
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  {% endblock %}
-</body>
-</html>
+function limpiarFormularioContrato(){
+  const form = document.getElementById('formContrato');
+  form.reset();
+  document.getElementById('id_contrato').value = '';
+  document.getElementById('modalContratoLabel').textContent = 'Crear Nuevo Contrato';
+}
+
+function editarContrato(button){
+  document.getElementById('id_contrato').value = button.getAttribute('data-id');
+  document.getElementById('id_empleado').value = button.getAttribute('data-empleado');
+  document.getElementById('id_tipo_contrato').value = button.getAttribute('data-tipo');
+  document.getElementById('id_fecha_inicio').value = button.getAttribute('data-fecha_inicio');
+  document.getElementById('id_fecha_fin').value = button.getAttribute('data-fecha_fin');
+  document.getElementById('id_condiciones').value = button.getAttribute('data-condiciones');
+  document.getElementById('id_monto_extra_pactado').value = button.getAttribute('data-monto');
+  document.getElementById('modalContratoLabel').textContent = 'Editar Contrato';
+}
+</script>
+{% endblock %}

@@ -34,7 +34,8 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-id-card"></i><p>Mis Nóminas(todos)</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones(todos)</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="nav-icon fas fa-tasks"></i><p>Gestion de Vacaciones (adm, jefe)</p></a></li>
-
+          <li class="nav-item"><a class="nav-link" href="{% url 'tipos_contrato' %}"><i class="nav-icon fas fa-file-signature"></i><p>Tipos de Contrato</p></a></li>
+         
           
           <hr class="my-2 border-secondary">
           <li class="nav-header" style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107;">
@@ -42,12 +43,14 @@
             En Desarrollo
           </li>
          
+          <li class="nav-item"><a class="nav-link" href="{% url 'contratos' %}"><i class="nav-icon fas fa-file-contract"></i><p>Contratos</p></a></li>
+         
+
           <li class="nav-item"><a class="nav-link" href="{% url 'agregar_sueldo_base' %}"><i class="nav-icon fas fa-dollar-sign"></i><p>Agregar Sueldo Base</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'calcular_bonificaciones' %}"><i class="nav-icon fas fa-calculator"></i><p>Bonificaciones</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'capacitaciones' %}"><i class="nav-icon fas fa-chalkboard-teacher"></i><p>Capacitaciones</p></a></li>
           <!-- <li class="nav-item"><a class="nav-link" href=" "><i class="nav-icon fas fa-layer-group"></i><p></p></a></li> -->
           <li class="nav-item"><a class="nav-link" href="{% url 'competencias' %}"><i class="nav-icon fas fa-tasks"></i><p>Competencias</p></a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'contratos' %}"><i class="nav-icon fas fa-file-contract"></i><p>Contratos</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'costos_de_personal' %}"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Costos de Personal</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'criterios_evaluacion' %}"><i class="nav-icon fas fa-check-double"></i><p>Criterios Evaluación</p></a></li>
           <!-- <li class="nav-item"><a class="nav-link" href=""><i class="nav-icon fas fa-users"></i><p></p></a></li> -->
@@ -56,7 +59,6 @@
           <!-- <li class="nav-item"><a class="nav-link" href=""><i class="nav-icon fas fa-user-plus"></i><p></p></a></li> -->
           <li class="nav-item"><a class="nav-link" href="{% url 'solicitudes_nuevos_empleados' %}"><i class="nav-icon fas fa-user-edit"></i><p>Solicitudes Nuevos Empleados</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'tipo_criterio_evaluacion' %}"><i class="nav-icon fas fa-list-alt"></i><p>Tipo de Criterio</p></a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'tipos_contrato' %}"><i class="nav-icon fas fa-file-signature"></i><p>Tipos de Contrato</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'competencias_faltantes' %}"><i class="nav-icon fas fa-exclamation-circle"></i><p>Competencias Faltantes</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'costos_de_contratacion' %}"><i class="nav-icon fas fa-coins"></i><p>Costos de Contratación</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'reporte_evaluacion_desempeno' %}"><i class="nav-icon fas fa-file-alt"></i><p>Reporte Desempeño</p></a></li>

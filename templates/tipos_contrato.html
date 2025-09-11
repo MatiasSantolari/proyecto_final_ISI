@@ -1,112 +1,184 @@
-{% extends "base.html"%}
+{% extends "base.html" %}
+{% load widget_tweaks %}
 
-  {% block title %}Gestión de Tipos de Contrato{% endblock %}
-  
-  {% block content %}
+{% block title %}Gestión de Tipos de Contrato{% endblock %}
 
-  <div class="container my-5">
-    <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Tipos de Contrato</h1>
+{% block content %}
+<div class="container my-5">
+  <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Tipos de Contrato</h1>
 
-    <!-- Botón para Crear -->
-    <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalContrato">
-      + Crear Nuevo Tipo de Contrato
-    </button>
+  <!-- Botón para Crear -->
+  <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalTipoContrato">
+    + Crear Nuevo Tipo
+  </button>
 
-    <!-- Tabla de Tipos de Contrato -->
-    <div class="table-responsive">
-      <table class="table table-bordered text-center">
-        <thead style="background-color: var(--color-suave);">
-          <tr>
-            <th>Descripción</th>
-            <th>Costo</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Contrato sin límite de duración</td>
-            <td>$5000,00</td>
-            <td>
-              <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#modalContrato">Editar</button>
-              <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalVerContrato">Ver</button>
-              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarContrato">Eliminar</button>
-            </td>
-          </tr>
-          <tr>
-            <td>Contrato con duración determinada</td>
-            <td>$3000,00</td>
-            <td>
-              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalContrato">Editar</button>
-              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerContrato">Ver</button>
-              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarContrato">Eliminar</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  <!-- Tabla -->
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle mb-0">
+          <thead style="table-light text-center">
+            <tr>
+              <th>Descripción</th>
+              <th style="width:25%;">Duración (meses)</th>
+              <th style="width:15%;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tipo in tipos %}
+            <tr>
+              <td>{{ tipo.descripcion }}</td>
+              <td>{{ tipo.duracion_meses }}</td>
+              <td>
+                <div class="d-flex justify-content-center gap-2">
+                  <button class="btn btn-sm btn-outline-secondary"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalTipoContrato"
+                          data-id="{{ tipo.id }}"
+                          data-descripcion="{{ tipo.descripcion }}"
+                          data-duracion="{{ tipo.duracion_meses }}"
+                          onclick="editarTipo(this)"
+                          data-bs-toggle="tooltip" title="Editar">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+
+                  <button class="btn btn-sm btn-outline-info"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalVerTipo{{ tipo.id }}"
+                          data-bs-toggle="tooltip" title="Ver">
+                    <i class="bi bi-eye"></i>
+                  </button>
+
+                  <button class="btn btn-sm btn-outline-danger"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalEliminarTipo"
+                          data-id="{{ tipo.id }}"
+                          data-bs-toggle="tooltip" title="Eliminar">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3" class="text-center text-muted">No hay tipos de contrato registrados.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <!-- Modal para Crear/Actualizar -->
-  <div class="modal fade" id="modalContrato" tabindex="-1" aria-labelledby="modalContratoLabel" aria-hidden="true">
-    <div class="modal-dialog">
+  <!-- Modal Crear/Editar -->
+  <div class="modal fade" id="modalTipoContrato" tabindex="-1" aria-labelledby="modalTipoContratoLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 6rem;">
       <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalContratoLabel">Crear/Editar Tipo de Contrato</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <form method="post" action="{% url 'crear_tipo_contrato' %}" id="formTipoContrato">
+          {% csrf_token %}
+          <input type="hidden" name="id_tipo" id="id_tipo">
+          <div class="modal-header" style="background-color: #3c8dbc;">
+            <h5 class="modal-title text-white" id="modalTipoContratoLabel">Crear/Editar Tipo de Contrato</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Descripción</label>
+              {{ form.descripcion }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Duración (meses)</label>
+              {{ form.duracion_meses }}
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="submit" class="btn btn-success w-100 fw-bold">
+              <i class="bi bi-save"></i> Guardar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Ver -->
+  {% for tipo in tipos %}
+  <div class="modal fade" id="modalVerTipo{{ tipo.id }}" tabindex="-1" aria-labelledby="modalVerTipo{{ tipo.id }}Label" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 6rem;">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: #3c8dbc;">
+          <h5 class="modal-title text-white">Detalles del Tipo de Contrato</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <form>
-            <div class="mb-3">
-              <label for="descripcionContrato" class="form-label">Descripción</label>
-              <textarea class="form-control" id="descripcionContrato" rows="3" placeholder="Ingresa una breve descripción" required></textarea>
-            </div>
-            <div class="mb-3">
-              <label for="costoContrato" class="form-label">Costo</label>
-              <input type="number" class="form-control" id="costoContrato" placeholder="Ej. 5000" required>
-            </div>
-            <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
+          <p><strong>Descripción:</strong> {{ tipo.descripcion }}</p>
+          <p><strong>Duración:</strong> {{ tipo.duracion_meses }} meses</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- Modal Eliminar -->
+  <div class="modal fade" id="modalEliminarTipo" tabindex="-1" aria-labelledby="modalEliminarTipoLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 12rem;">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: #3c8dbc;">
+          <h5 class="modal-title text-white">Confirmar Eliminación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas eliminar este tipo de contrato?</p>
+        </div>
+        <div class="modal-footer">
+          <form id="formEliminarTipo" method="post">
+            {% csrf_token %}
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-danger">Eliminar</button>
           </form>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal para Ver Detalles -->
-  <div class="modal fade" id="modalVerContrato" tabindex="-1" aria-labelledby="modalVerContratoLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalVerContratoLabel">Detalles del Tipo de Contrato</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p><strong>Descripción:</strong> Contrato sin límite de duración</p>
-          <p><strong>Costo:</strong> $5000,00</p>
-        </div>
-      </div>
-    </div>
-  </div>
+</div>
 
-  <!-- Modal para Confirmar Eliminación -->
-  <div class="modal fade" id="modalEliminarContrato" tabindex="-1" aria-labelledby="modalEliminarContratoLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-enfasis); color: white;">
-          <h5 class="modal-title" id="modalEliminarContratoLabel">Confirmar Eliminación</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>¿Estás seguro de que deseas eliminar este tipo de contrato?</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger">Eliminar</button>
-        </div>
-      </div>
-    </div>
-  </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const modalEliminar = document.getElementById('modalEliminarTipo');
+  modalEliminar.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    const tipoId = button.getAttribute('data-id');
+    const form = document.getElementById('formEliminarTipo');
+    form.action = `/tipos_contrato/${tipoId}/eliminar/`;
+  });
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  {% endblock %}
-</body>
-</html>
+  const modalCrearEditar = document.getElementById('modalTipoContrato');
+  modalCrearEditar.addEventListener('show.bs.modal', function (event) {
+    const triggerButton = event.relatedTarget;
+    if (!triggerButton.getAttribute('data-id')) limpiarFormulario();
+  });
+});
+
+function limpiarFormulario() {
+  const form = document.getElementById('formTipoContrato');
+  form.reset();
+  document.getElementById('id_tipo').value = '';
+  document.getElementById('modalTipoContratoLabel').textContent = 'Crear Nuevo Tipo de Contrato';
+  document.querySelector('#formTipoContrato button[type="submit"]').textContent = 'Guardar';
+}
+
+function editarTipo(button) {
+  const tipoId = button.getAttribute('data-id');
+  const descripcion = button.getAttribute('data-descripcion');
+  const duracion = button.getAttribute('data-duracion');
+
+  document.getElementById('id_tipo').value = tipoId || '';
+  document.getElementById('id_descripcion').value = descripcion || '';
+  document.getElementById('id_duracion_meses').value = duracion || '';
+
+  document.getElementById('modalTipoContratoLabel').textContent = 'Editar Tipo de Contrato';
+  document.querySelector('#formTipoContrato button[type="submit"]').textContent = 'Actualizar';
+}
+</script>
+{% endblock %}

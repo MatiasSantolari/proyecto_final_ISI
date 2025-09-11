@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Mis Contratos</h2>
+
+{% if contrato_activo %}
+<div class="card mb-3">
+  <div class="card-header bg-success text-white">Contrato Activo</div>
+  <div class="card-body">
+    <p><strong>Cargo:</strong> {{ contrato_activo.cargo }}</p>
+    <p><strong>Inicio:</strong> {{ contrato_activo.fecha_inicio }}</p>
+    <p><strong>Fin:</strong> {{ contrato_activo.fecha_fin }}</p>
+    <p><strong>Condiciones:</strong> {{ contrato_activo.condiciones }}</p>
+    <p><strong>Monto:</strong> {{ contrato_activo.monto_extra_pactado }}</p>
+  </div>
+</div>
+{% else %}
+<p>No tienes contrato activo actualmente.</p>
+{% endif %}
+
+<h4>Historial</h4>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Cargo</th>
+      <th>Inicio</th>
+      <th>Fin</th>
+      <th>Estado</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in historial %}
+    <tr>
+      <td>{{ c.cargo }}</td>
+      <td>{{ c.fecha_inicio }}</td>
+      <td>{{ c.fecha_fin }}</td>
+      <td>{{ c.estado }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4">No tienes contratos anteriores.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

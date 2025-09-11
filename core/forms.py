@@ -2,9 +2,10 @@ from django import forms
 from .models import *
 from django.contrib.auth.forms import UserCreationForm
 from django.forms.widgets import DateInput
-
 import holidays
 from datetime import timedelta, date
+from dateutil.relativedelta import relativedelta
+
 
 
 class LoginForm(forms.Form):
@@ -551,3 +552,53 @@ class VacacionesSolicitudForm(forms.ModelForm):
         dias = contar_dias_habiles(inicio, fin)
         cleaned_data["cant_dias_solicitados"] = dias
         return cleaned_data
+
+
+
+###########################
+
+
+class TipoContratoForm(forms.ModelForm):
+    class Meta:
+        model = TipoContrato
+        fields = ["descripcion", "duracion_meses"]
+        widgets = {
+            "descripcion": forms.TextInput(attrs={"class": "form-control", "id": "id_descripcion", "placeholder": "Descripción"}),
+            "duracion_meses": forms.NumberInput(attrs={"class": "form-control", "id": "id_duracion_meses", "placeholder": "Duración en meses"}),
+        }
+
+
+
+
+class ContratoForm(forms.ModelForm):
+    empleado = forms.ModelChoiceField(
+        queryset=Empleado.objects.none(),
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_empleado"})
+    )
+    tipo_contrato = forms.ModelChoiceField(
+        queryset=TipoContrato.objects.all(),
+        required=False,
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_tipo_contrato"})
+    )
+    fecha_inicio = forms.DateField(
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date", "id": "id_fecha_inicio"})
+    )
+    fecha_fin = forms.DateField(
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date", "id": "id_fecha_fin"})
+    )
+    condiciones = forms.CharField(
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 3, "id": "id_condiciones"})
+    )
+    monto_extra_pactado = forms.DecimalField(
+        initial=0,
+        widget=forms.NumberInput(attrs={"class": "form-control", "id": "id_monto_extra_pactado"})
+    )
+    estado = forms.CharField(
+        widget=forms.HiddenInput(),
+        initial="activo"
+    )
+
+    class Meta:
+        model = HistorialContrato
+        fields = ["empleado", "tipo_contrato", "fecha_inicio", "fecha_fin", "condiciones", "monto_extra_pactado", "estado"]
+
