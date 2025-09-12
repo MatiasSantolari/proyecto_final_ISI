@@ -175,7 +175,9 @@
             <div class="row mb-2">
               <div class="col-md-6"><strong>Monto Bruto:</strong> <span class="text-success fw-bold">$<span id="verBruto"></span></span></div>
             </div>
-
+            <div class="row mb-2" id="id_monto_extra_pactado">
+              <div class="col-md-10 small"><strong>(Monto bruto incluye el Monto Extra Pactado de</strong> <span class="text-success fw-bold">$<span id="verMontoExtraPactado"></span></span><strong>)</strong></div>
+            </div>
             <div id="containerDescuentos" class="mb-3">
               <p class="fw-bold text-danger mb-1">Descuentos:</p>
               <ul id="verDescuentosDetalle" class="list-group list-group-flush mb-1"></ul>
@@ -427,7 +429,15 @@
               document.getElementById('verBeneficios').textContent = data.total_beneficios;
               document.getElementById('verEstado').textContent = data.estado;
               document.getElementById('verFechaPago').textContent = data.fecha_pago;
+              document.getElementById('verMontoExtraPactado').textContent = data.monto_extra_pactado;
               
+
+              if (parseFloat(data.monto_extra_pactado) > 0) {
+                  document.getElementById('id_monto_extra_pactado').style.display = "block";
+              } else {
+                  document.getElementById('id_monto_extra_pactado').style.display = "none";
+              }
+
               if (data.estado) {
                   let estadoClass = "";
 

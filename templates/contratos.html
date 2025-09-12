@@ -41,8 +41,8 @@
               <th>Fecha Inicio</th>
               <th>Fecha Fin</th>
               <th>Estado</th>
-              <th style="width:5%;" class="small">Ver/Editar</th>
-              <th style="width:3%;" class="small">Renovar</th>       
+              <th style="width:5%; font-size: 0.8rem;">Ver/Editar</th>
+              <th style="width:3%; font-size: 0.8rem;">Renovar</th>       
               <th style="width:3%; font-size: 0.8rem;">Finalizar</th>       
             </tr>
           </thead>
@@ -280,6 +280,7 @@
                 <th>Tipo Contrato</th>
                 <th>Fecha Inicio</th>
                 <th>Fecha Fin</th>
+                <th>Monto Extra</th>
                 <th>Estado</th>
               </tr>
             </thead>
@@ -291,6 +292,7 @@
                 <td>{{ contrato.contrato }}</td>
                 <td>{{ contrato.fecha_inicio|date:"d/m/Y" }}</td>
                 <td>{{ contrato.fecha_fin|date:"d/m/Y" }}</td>
+                <td>${{ contrato.monto_extra_pactado }}</td>
                 <td class="text-center">
                   {% if contrato.estado == "finalizado" %}
                       <span class="badge bg-danger">{{ contrato.estado }}</span>

@@ -19,7 +19,8 @@ class Nomina(models.Model):
         ('Anulado', 'Anulado')
     }
     estado = models.CharField(max_length=50, default='pendiente', choices=ESTADO_CHOICES, verbose_name='Estado de la nomina')
-   
+    monto_extra_pactado = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name='Monto Extra Pactado Contrato')
+
     
     class Meta:
         verbose_name = 'Nomina'
