@@ -1,44 +1,129 @@
 {% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Mis Contratos{% endblock %}
 
 {% block content %}
-<h2>Mis Contratos</h2>
+<div class="container my-5">
+  <h2 class="mb-4" style="color: var(--color-primario);">Mis Contratos</h2>
 
-{% if contrato_activo %}
-<div class="card mb-3">
-  <div class="card-header bg-success text-white">Contrato Activo</div>
-  <div class="card-body">
-    <p><strong>Cargo:</strong> {{ contrato_activo.cargo }}</p>
-    <p><strong>Inicio:</strong> {{ contrato_activo.fecha_inicio }}</p>
-    <p><strong>Fin:</strong> {{ contrato_activo.fecha_fin }}</p>
-    <p><strong>Condiciones:</strong> {{ contrato_activo.condiciones }}</p>
-    <p><strong>Monto:</strong> {{ contrato_activo.monto_extra_pactado }}</p>
+  {% if contratos %}
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered align-middle text-center mb-0">
+          <thead class="table-light text-center">
+            <tr>
+              <th>Fecha Inicio</th>
+              <th>Fecha Fin</th>
+              <th>Monto Extra</th>
+              <th>Estado</th>
+              <th style="width:8%;">Ver</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for contrato in contratos %}
+            <tr>
+              <td>{{ contrato.fecha_inicio|date:"d/m/Y" }}</td>
+              <td>
+                {% if contrato.fecha_fin %}
+                  {{ contrato.fecha_fin|date:"d/m/Y" }}
+                {% else %}
+                  <span class="text-muted fst-italic">Indefinido</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if contrato.monto_extra_pactado and contrato.monto_extra_pactado > 0 %}
+                  <span class="fw-bold text-success">${{ contrato.monto_extra_pactado }}</span>
+                {% else %}
+                  <span class="text-muted">-</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if contrato.estado == "activo" %}
+                  <span class="badge bg-success">{{ contrato.estado|capfirst }}</span>
+                {% elif contrato.estado == "renovado" %}
+                  <span class="badge bg-info text-dark">{{ contrato.estado|capfirst }}</span>
+                {% elif contrato.estado == "finalizado" %}
+                  <span class="badge bg-danger">{{ contrato.estado|capfirst }}</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ contrato.estado|capfirst }}</span>
+                {% endif %}
+              </td>
+              <td>
+                <button 
+                  class="btn btn-sm btn-outline-primary btnVerContrato" 
+                  data-id="{{ contrato.id }}">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </td>
+            </tr>
+
+            <!-- Modal Ver Contrato -->
+            <div class="modal fade" id="modalVerContrato{{ contrato.id }}" tabindex="-1">
+              <div class="modal-dialog modal-ls modal-dialog-centered">
+                <div class="modal-content shadow-lg border-0">
+                  <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-file-text me-2"></i>Contrato</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">
+                    <ul class="list-group list-group-flush">
+                      <li class="list-group-item"><strong>Cargo:</strong> {{ contrato.cargo }}</li>
+                      <li class="list-group-item"><strong>Fecha Inicio:</strong> {{ contrato.fecha_inicio|date:"d/m/Y" }}</li>
+                      <li class="list-group-item"><strong>Fecha Fin:</strong> 
+                        {% if contrato.fecha_fin %}
+                          {{ contrato.fecha_fin|date:"d/m/Y" }}
+                        {% else %}
+                          <span class="text-muted fst-italic">Indefinido</span>
+                        {% endif %}
+                      </li>
+                      <li class="list-group-item"><strong>Monto Extra Pactado:</strong> 
+                        {% if contrato.monto_extra_pactado and contrato.monto_extra_pactado > 0 %}
+                          <span class="text-success fw-bold">${{ contrato.monto_extra_pactado }}</span>
+                        {% else %}
+                          <span class="text-muted">No aplica</span>
+                        {% endif %}
+                      </li>
+                      <li class="list-group-item"><strong>Estado:</strong> 
+                        {% if contrato.estado == "activo" %}
+                          <span class="badge bg-success">{{ contrato.estado|capfirst }}</span>
+                        {% elif contrato.estado == "renovado" %}
+                          <span class="badge bg-info text-dark">{{ contrato.estado|capfirst }}</span>
+                        {% elif contrato.estado == "finalizado" %}
+                          <span class="badge bg-danger">{{ contrato.estado|capfirst }}</span>
+                        {% else %}
+                          <span class="badge bg-secondary">{{ contrato.estado|capfirst }}</span>
+                        {% endif %}
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Cerrar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
+  {% else %}
+    <div class="alert alert-info text-center fw-bold">No tienes contratos registrados.</div>
+  {% endif %}
 </div>
-{% else %}
-<p>No tienes contrato activo actualmente.</p>
-{% endif %}
 
-<h4>Historial</h4>
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th>Cargo</th>
-      <th>Inicio</th>
-      <th>Fin</th>
-      <th>Estado</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for c in historial %}
-    <tr>
-      <td>{{ c.cargo }}</td>
-      <td>{{ c.fecha_inicio }}</td>
-      <td>{{ c.fecha_fin }}</td>
-      <td>{{ c.estado }}</td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="4">No tienes contratos anteriores.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+<script>
+  document.querySelectorAll('.btnVerContrato').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const contratoId = this.getAttribute("data-id");
+      const target = document.getElementById(`modalVerContrato${contratoId}`);
+      const modal = new bootstrap.Modal(target);
+      modal.show();
+    });
+  });
+</script>
 {% endblock %}

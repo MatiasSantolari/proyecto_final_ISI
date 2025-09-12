@@ -32,7 +32,7 @@
   <div class="card shadow-sm border-0">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-hover table-bordered align-middle mb-0">
+        <table class="table table-hover table-bordered align-middle text-center mb-0">
           <thead class="table-light text-center">
             <tr>
               <th>Empleado</th>
@@ -141,6 +141,7 @@
           <div class="mb-3">
             <label>Empleado</label>
             <select id="id_empleado" class="form-select" disabled>
+              <option value="">---------</option>
               {% for emp in form.fields.empleado.queryset %}
                 <option value="{{ emp.id }}">{{ emp.apellido }} {{ emp.nombre }} - {{ emp.cargo }}</option>
               {% endfor %}
@@ -360,6 +361,12 @@ function limpiarFormularioContrato(){
   const form = document.getElementById('formContrato');
   form.reset();
   document.getElementById('id_contrato').value = '';
+
+  const empleadoSelect = document.getElementById('id_empleado');
+  empleadoSelect.removeAttribute('disabled');
+  empleadoSelect.value = "";
+
+  document.getElementById('id_empleado_hidden').value = '';   
   document.getElementById('modalContratoLabel').textContent = 'Crear Nuevo Contrato';
 }
 
@@ -376,6 +383,9 @@ function editarContrato(button){
 
   document.getElementById('id_contrato').value = contratoId || '';
   document.getElementById('id_empleado').value = empleado || '';
+  document.getElementById('id_empleado_hidden').value = empleado || ''; 
+  document.getElementById('id_empleado').setAttribute('disabled', true); 
+
   document.getElementById('id_tipo_contrato').value = tipo || '';
   document.getElementById('id_fecha_inicio').value = fecha_inicio || '';
   document.getElementById('id_fecha_fin').value = fecha_fin || '';
@@ -414,6 +424,7 @@ function renovarContrato(button) {
   document.getElementById('id_contrato').value = button.getAttribute('data-id');  
   document.getElementById('id_empleado_hidden').value = button.getAttribute('data-empleado');
   document.getElementById('id_empleado').value = button.getAttribute('data-empleado');
+  document.getElementById('id_empleado').setAttribute('disabled', true);
   document.getElementById('id_tipo_contrato').value = button.getAttribute('data-tipo') || '';
   document.getElementById('id_fecha_inicio').value = button.getAttribute('data-fecha_inicio') || '';
   document.getElementById('id_condiciones').value = button.getAttribute('data-condiciones') || '';
@@ -443,6 +454,10 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
+
+document.getElementById('id_empleado').addEventListener('change', function() {
+  document.getElementById('id_empleado_hidden').value = this.value;
+});
 
 
 </script>

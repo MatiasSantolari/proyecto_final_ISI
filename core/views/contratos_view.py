@@ -135,21 +135,20 @@ def finalizar_contrato(request, contrato_id):
 
 
 
-
-
-
 @login_required
 def mis_contratos(request):
-    contratos = HistorialContrato.objects.filter(empleado=request.user.persona.empleado)
-    contrato_activo = contratos.filter(estado="activo").first()
-    historial = contratos.exclude(estado="activo")
+    try:
+        empleado = Empleado.objects.get(pk=request.user.persona.id)
+    except Empleado.DoesNotExist:
+        contratos = []
+    else:
+        contratos = HistorialContrato.objects.filter(
+            empleado=empleado
+        ).order_by("-fecha_inicio")
 
     return render(request, "mis_contratos.html", {
-        "contrato_activo": contrato_activo,
-        "historial": historial
+        "contratos": contratos,
     })
-
-
 
 
 
