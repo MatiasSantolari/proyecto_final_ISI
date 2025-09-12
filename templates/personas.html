@@ -19,6 +19,22 @@
         <input type="text" class="form-control" id="buscadorDNI" placeholder="Buscar por DNI" style="width: 200px;">
       </div>
 
+
+      <div class="mb-3">
+        <label>Filtrar por Departamento:</label>
+        <form method="get">
+          <select class="form-select" name="departamento" onchange="this.form.submit()">
+            <option value="" {% if not request.GET.departamento %}selected{% endif %}>Todos</option>
+            {% for dep in departamentos %}
+            <option value="{{ dep.id }}" {% if request.GET.departamento == dep.id|stringformat:"s" %}selected{% endif %}>
+              {{ dep.nombre }}
+            </option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
+
+
       <!-- Filtro de Tipo de Usuario -->
       <div class="mb-3">
         <label for="filtroTipoUsuario" class="form-label">Filtrar por Tipo de Usuario:</label>
@@ -116,7 +132,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                  <td colspan="3" class="text-center text-muted">
+                  <td colspan="9" class="text-center text-muted">
                     No hay personas registradas.
                   </td>
                 </tr>
@@ -285,6 +301,7 @@
     const departamentoSelect = document.getElementById('id_departamento');
     const cargoSelect = document.getElementById('id_cargo');
 
+
     function toggleCampos() {
       const tipoUsuario = tipoUsuarioSelect.value;
       const campoEstado = document.getElementById('campoEstado');
@@ -320,11 +337,23 @@
       fetch(`/personas/cargos_por_departamento/${deptId}/?tipo_usuario=${tipoUsuario}`)
         .then(response => response.json())
         .then(data => {
+          cargoSelect.innerHTML = '';
+
+          if (data.cargos.length === 0) {
+            const option = document.createElement('option');
+            option.value = "";
+            option.textContent = "No hay cargos disponibles";
+            option.disabled = true;
+            cargoSelect.appendChild(option);
+            return;
+          }
+
           cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
           data.cargos.forEach(c => {
             const option = document.createElement('option');
             option.value = c.id;
             option.textContent = c.nombre;
+          
             if (c.vacante === 0) {
               option.disabled = true;
               option.style.color = 'gray';

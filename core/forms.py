@@ -292,7 +292,8 @@ class PersonaForm(forms.ModelForm):
             if departamento_id:
                 cargos_qs = cargos_qs.filter(
                     id__in=CargoDepartamento.objects.filter(
-                        departamento_id=departamento_id
+                        departamento_id=departamento_id,
+                        vacante__gt=0
                         ).values_list('cargo_id', flat=True)
             )
 

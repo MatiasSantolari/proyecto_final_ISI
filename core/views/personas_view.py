@@ -23,6 +23,15 @@ from django.db.models import Q
 def personas(request):
     personas_qs = Persona.objects.select_related('empleado', 'usuario')
     
+    departamentos = Departamento.objects.all()
+    dep_id = request.GET.get("departamento")
+    
+    if dep_id:
+        personas_qs = personas_qs.filter(
+            empleado__empleadocargo__fecha_fin__isnull=True,
+            empleado__empleadocargo__cargo__cargodepartamento__departamento_id=dep_id
+        ).distinct()
+    
     personas_con_datos = []
 
     for persona in personas_qs:
@@ -39,7 +48,7 @@ def personas(request):
             if tipo_usuario in ['empleado', 'jefe', 'gerente', 'admin'] and hasattr(persona, 'empleado'):
                 estado = persona.empleado.estado
 
-                ultimo_cargo = persona.empleado.empleadocargo_set.order_by('fecha_inicio').last()
+                ultimo_cargo = persona.empleado.empleadocargo_set.filter(fecha_fin__isnull=True).first()
                 if ultimo_cargo:
                     cargo = ultimo_cargo.cargo
                     cargo_id = cargo.id
@@ -80,7 +89,12 @@ def personas(request):
         })
 
     form = PersonaForm()
-    return render(request, 'personas.html', {'personas': personas_con_datos, 'form': form})
+    return render(request, 'personas.html', {
+        'personas': personas_con_datos,
+        'form': form, 
+        "departamentos": departamentos,
+        'departamento_seleccionado': dep_id
+        })
 
 
 
