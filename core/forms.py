@@ -618,3 +618,40 @@ class ContratoForm(forms.ModelForm):
             cleaned_data["fecha_fin"] = fecha_inicio + timedelta(days=tipo.duracion_meses * 30)
 
         return cleaned_data
+
+
+###########################
+class InstitucionForm(forms.ModelForm):
+    telefono = forms.RegexField(
+        regex=r'^\+?\d{7,15}$',
+        error_messages={
+            'invalid': "Ingrese un número de teléfono válido (ej: +5491123456789 o 1123456789)"
+        },
+        widget=forms.TextInput(attrs={
+            'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+            'placeholder': 'Teléfono',
+            'type': 'tel'
+        })
+    )
+
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+            'placeholder': 'Correo electrónico',
+        })
+    )
+
+    class Meta:
+        model = Institucion
+        fields = ['nombre', 'direccion', 'telefono', 'email']
+        widgets = {
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+                'placeholder': 'Nombre de la institución'
+            }),
+            'direccion': forms.TextInput(attrs={
+                'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+                'placeholder': 'Dirección'
+            }),
+        }
