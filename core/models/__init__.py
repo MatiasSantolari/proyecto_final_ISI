@@ -30,3 +30,4 @@ from .tipo_contrato import TipoContrato
 from .tipo_criterio import TipoCriterio
 from .usuario import Usuario
 from .vacaciones_solicitud import VacacionesSolicitud
+from .institucion_capacitacion import InstitucionCapacitacion
