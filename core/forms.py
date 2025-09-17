@@ -628,7 +628,7 @@ class InstitucionForm(forms.ModelForm):
             'invalid': "Ingrese un número de teléfono válido (ej: +5491123456789 o 1123456789)"
         },
         widget=forms.TextInput(attrs={
-            'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+            'class': 'form-control',
             'placeholder': 'Teléfono',
             'type': 'tel'
         })
@@ -637,7 +637,7 @@ class InstitucionForm(forms.ModelForm):
     email = forms.EmailField(
         required=True,
         widget=forms.EmailInput(attrs={
-            'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+            'class': 'form-control',
             'placeholder': 'Correo electrónico',
         })
     )
@@ -647,11 +647,11 @@ class InstitucionForm(forms.ModelForm):
         fields = ['nombre', 'direccion', 'telefono', 'email']
         widgets = {
             'nombre': forms.TextInput(attrs={
-                'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+                'class': 'form-control',
                 'placeholder': 'Nombre de la institución'
             }),
             'direccion': forms.TextInput(attrs={
-                'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+                'class': 'form-control',
                 'placeholder': 'Dirección'
             }),
         }

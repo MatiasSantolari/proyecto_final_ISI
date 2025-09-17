@@ -47,6 +47,11 @@ urlpatterns = [
     path('habilidades/crear/', habilidades_view.crear_habilidad, name='crear_habilidad'),
     path('habilidades/<int:id_habilidad>/eliminar/', habilidades_view.eliminar_habilidad, name='eliminar_habilidad'),
 
+    ## INSTITUCION ##
+    path('instituciones/', instituciones_view.instituciones, name='instituciones'),
+    path('instituciones/crear/', instituciones_view.crear_institucion, name='crear_institucion'),
+    path('instituciones/<int:id_institucion>/eliminar/', instituciones_view.eliminar_institucion, name='eliminar_institucion'),
+
     ## LOGRO ##
     path('logros/', logros_view.logros, name='logros'),
     path('logros/crear/', logros_view.crear_logro, name='crear_logro'),
@@ -148,8 +153,6 @@ urlpatterns = [
     path('costos_de_personal/', views.costos_de_personal, name='costos_de_personal'),
     path('criterios_evaluacion/', views.criterios_evaluacion, name='criterios_evaluacion'),
     path('evaluacion_desempeno/', views.evaluacion_desempeno, name='evaluacion_desempeno'),
-
-    path('instituciones/', views.instituciones, name='instituciones'),
    
     path('solicitudes_nuevos_empleados/', views.solicitudes_nuevos_empleados, name='solicitudes_nuevos_empleados'),
     path('tipo_criterio_evaluacion/', views.tipo_criterio_evaluacion, name='tipo_criterio_evaluacion'),

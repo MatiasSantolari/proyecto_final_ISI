@@ -13,6 +13,7 @@ from .asignar_beneficio_descuento_view import *
 from .asistencia_view import *
 from .vacaciones_view import *
 from .contratos_view import *
+from .instituciones_view import *
 
 
 
@@ -25,7 +26,6 @@ def costos_de_personal(request): return render(request, 'costos_de_personal.html
 def criterios_evaluacion(request): return render(request, 'criterios_evaluacion.html')
 def empleados(request): return render(request, 'empleados.html')
 def evaluacion_desempeno(request): return render(request, 'evaluacion_desempeno.html')
-def instituciones(request): return render(request, 'instituciones.html')
 #def logros(request): return render(request, 'logros.html')
 def nominas(request): return render(request, 'nominas.html')
 
