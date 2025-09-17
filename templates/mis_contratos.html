@@ -9,9 +9,9 @@
 
   {% if contratos %}
   <div class="card shadow-sm border-0">
-    <div class="card-body">
+    <div class="card-body p-2">
       <div class="table-responsive">
-        <table class="table table-striped table-hover table-bordered align-middle text-center mb-0">
+        <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.9rem;">
           <thead class="table-light text-center">
             <tr>
               <th>Fecha Inicio</th>
@@ -21,9 +21,9 @@
               <th style="width:8%;">Ver</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="text-center">
             {% for contrato in contratos %}
-            <tr>
+            <tr style="height: 28px;">
               <td>{{ contrato.fecha_inicio|date:"d/m/Y" }}</td>
               <td>
                 {% if contrato.fecha_fin %}
@@ -108,6 +108,37 @@
             {% endfor %}
           </tbody>
         </table>
+
+        <nav aria-label="Paginación">
+          <ul class="pagination justify-content-center mt-4">
+            {% if contratos.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ contratos.previous_page_number }}">&laquo;</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+            {% endif %}
+
+            {% for num in contratos.paginator.page_range %}
+              {% if contratos.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+              {% else %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+
+            {% if contratos.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ contratos.next_page_number }}">&raquo;</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+            {% endif %}
+          </ul>
+        </nav>
+
       </div>
     </div>
   </div>

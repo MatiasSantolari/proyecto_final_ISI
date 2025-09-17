@@ -7,95 +7,132 @@
 <div class="container my-5">
   <h2>Solicitudes de Vacaciones</h2>
 
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Empleado</th>
-        <th>Departamento</th>
-        <th>Inicio</th>
-        <th>Fin</th>
-        <th>Días Solicitados</th>
-        <th>Días Disponibles</th>
-        <th>Estado</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for s in solicitudes %}
-      <tr>
-        <td>{{ s.empleado }}</td>
-        <td>{{ s.empleado.departamento_actual_nombre }}</td>
-        <td>{{ s.fecha_inicio|date:"d/m/Y" }}</td>
-        <td>{{ s.fecha_fin|date:"d/m/Y" }}</td>
-        <td>{{ s.cant_dias_solicitados }}</td>
-        <td>{{ s.empleado.cantidad_dias_disponibles }}</td>
-        <td>
-        {% if s.estado == "rechazado"%}
-                <span class="badge bg-danger">{{ s.estado }}</span>
-          {% elif s.estado == "pendiente" %}
-                <span class="badge bg-warning">{{ s.estado }}</span>
-          {% elif s.estado == "aprobado" %}
-                <span class="badge bg-success">{{ s.estado }}</span>
-          {% endif %}
-        </td>
-        <td>
-          {% if s.estado == "pendiente" %}
-          <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalAprobar{{ s.id }}">
-            Aprobar
-          </button>
-          <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalRechazar{{ s.id }}">
-            Rechazar
-          </button>
-          {% else %}
-            -
-          {% endif %}
-        </td>
-      </tr>
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
+          <thead class="table-light text-center">
+            <tr>
+              <th>Empleado</th>
+              <th>Departamento</th>
+              <th style="width:10%;">Inicio</th>
+              <th style="width:10%;">Fin</th>
+              <th style="width:12%;">Días Solicitados</th>
+              <th style="width:12%;">Días Disponibles</th>
+              <th style="width:8%;">Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="text-center">
+            {% for s in solicitudes %}
+            <tr>
+              <td>{{ s.empleado }}</td>
+              <td>{{ s.empleado.departamento_actual_nombre }}</td>
+              <td>{{ s.fecha_inicio|date:"d/m/Y" }}</td>
+              <td>{{ s.fecha_fin|date:"d/m/Y" }}</td>
+              <td>{{ s.cant_dias_solicitados }}</td>
+              <td>{{ s.empleado.cantidad_dias_disponibles }}</td>
+              <td>
+              {% if s.estado == "rechazado"%}
+                      <span class="badge bg-danger">{{ s.estado }}</span>
+                {% elif s.estado == "pendiente" %}
+                      <span class="badge bg-warning">{{ s.estado }}</span>
+                {% elif s.estado == "aprobado" %}
+                      <span class="badge bg-success">{{ s.estado }}</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if s.estado == "pendiente" %}
+                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalAprobar{{ s.id }}">
+                  Aprobar
+                </button>
+                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalRechazar{{ s.id }}">
+                  Rechazar
+                </button>
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+            </tr>
 
-      <!-- Modal Aprobar -->
-      <div class="modal fade" id="modalAprobar{{ s.id }}" tabindex="-1" aria-labelledby="modalAprobarLabel{{ s.id }}" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content text-center">
-            <div class="modal-header bg-success text-white">
-              <h5 class="modal-title" id="modalAprobarLabel{{ s.id }}">Confirmar Aprobación</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <!-- Modal Aprobar -->
+            <div class="modal fade" id="modalAprobar{{ s.id }}" tabindex="-1" aria-labelledby="modalAprobarLabel{{ s.id }}" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content text-center">
+                  <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="modalAprobarLabel{{ s.id }}">Confirmar Aprobación</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                  </div>
+                  <div class="modal-body">
+                    ¿Estás seguro de aprobar las vacaciones de <strong>{{ s.empleado }}</strong> del 
+                    <strong>{{ s.fecha_inicio|date:"d/m/Y" }}</strong> al <strong>{{ s.fecha_fin|date:"d/m/Y" }}</strong>?
+                  </div>
+                  <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <a href="{% url 'cambiar_estado_vacacion' s.id 'aprobar' %}" class="btn btn-success">Confirmar</a>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="modal-body">
-              ¿Estás seguro de aprobar las vacaciones de <strong>{{ s.empleado }}</strong> del 
-              <strong>{{ s.fecha_inicio|date:"d/m/Y" }}</strong> al <strong>{{ s.fecha_fin|date:"d/m/Y" }}</strong>?
+
+            <!-- Modal Rechazar -->
+            <div class="modal fade" id="modalRechazar{{ s.id }}" tabindex="-1" aria-labelledby="modalRechazarLabel{{ s.id }}" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content text-center">
+                  <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="modalRechazarLabel{{ s.id }}">Confirmar Rechazo</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                  </div>
+                  <div class="modal-body">
+                    ¿Estás seguro de rechazar la solicitud de vacaciones de <strong>{{ s.empleado }}</strong> del 
+                    <strong>{{ s.fecha_inicio|date:"d/m/Y" }}</strong> al <strong>{{ s.fecha_fin|date:"d/m/Y" }}</strong>?
+                  </div>
+                  <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <a href="{% url 'cambiar_estado_vacacion' s.id 'rechazar' %}" class="btn btn-danger">Confirmar</a>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="modal-footer justify-content-center">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <a href="{% url 'cambiar_estado_vacacion' s.id 'aprobar' %}" class="btn btn-success">Confirmar</a>
-            </div>
-          </div>
-        </div>
+
+            {% empty %}
+            <tr><td colspan="8" class="text-center text-muted">No hay solicitudes.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <nav aria-label="Paginación">
+          <ul class="pagination justify-content-center mt-4">
+            {% if solicitudes.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ solicitudes.previous_page_number }}">&laquo;</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+            {% endif %}
+
+            {% for num in solicitudes.paginator.page_range %}
+              {% if solicitudes.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+              {% else %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+
+            {% if solicitudes.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ solicitudes.next_page_number }}">&raquo;</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+            {% endif %}
+          </ul>
+        </nav>
       </div>
+    </div>
+  </div>
 
-      <!-- Modal Rechazar -->
-      <div class="modal fade" id="modalRechazar{{ s.id }}" tabindex="-1" aria-labelledby="modalRechazarLabel{{ s.id }}" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content text-center">
-            <div class="modal-header bg-danger text-white">
-              <h5 class="modal-title" id="modalRechazarLabel{{ s.id }}">Confirmar Rechazo</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-              ¿Estás seguro de rechazar la solicitud de vacaciones de <strong>{{ s.empleado }}</strong> del 
-              <strong>{{ s.fecha_inicio|date:"d/m/Y" }}</strong> al <strong>{{ s.fecha_fin|date:"d/m/Y" }}</strong>?
-            </div>
-            <div class="modal-footer justify-content-center">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <a href="{% url 'cambiar_estado_vacacion' s.id 'rechazar' %}" class="btn btn-danger">Confirmar</a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {% empty %}
-      <tr><td colspan="8" class="text-center text-muted">No hay solicitudes.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
 </div>
 {% endblock %}

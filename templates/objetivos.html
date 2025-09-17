@@ -8,27 +8,25 @@
   <div class="container my-5">
     <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Objetivos</h1>
 
-    <!-- Botón para Crear -->
     <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalObjetivo">
       + Crear Nuevo Objetivo
     </button>
 
-    <!-- Tabla de Objetivos -->
     <div class="card shadow-sm border-0">
       <div class="card-body">
         <div class="table-responsive">
-          <table class="table table-hover table-bordered align-middle mb-0">
-            <thead style="table-light text-center">
+          <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
+            <thead class="table-light text-center">
               <tr>
                 <th style="width: 50%;">Titulo</th>
                 <th style="width: 10%;">Fecha Creacion</th>
                 <th style="width: 10%;">Fecha Fin</th>
                 <th style="width: 10%;">Estado</th>
                 <th style="width: 10%;">Activo</th>
-                <th style="width: 10%;">Acciones</th>
+                <th style="width: 12%;">Acciones</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="text-center">
               {% for objetivo in objetivos %}
               <tr>
                 <td>{{ objetivo.titulo }}</td>
@@ -114,6 +112,37 @@
               {% endfor %}
             </tbody>
           </table>
+          
+          <nav aria-label="Paginación">
+            <ul class="pagination justify-content-center mt-4">
+              {% if objetivos.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ objetivos.previous_page_number }}">&laquo;</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+              {% endif %}
+
+              {% for num in objetivos.paginator.page_range %}
+                {% if objetivos.number == num %}
+                  <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% else %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+
+              {% if objetivos.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ objetivos.next_page_number }}">&raquo;</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+              {% endif %}
+            </ul>
+          </nav>
+
         </div>
       </div>
     </div>

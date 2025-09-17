@@ -17,18 +17,18 @@
     <div class="card shadow-sm border-0">
       <div class="card-body">
         <div class="table-responsive">
-          <table class="table table-hover table-bordered align-middle mb-0">
-            <thead style="table-light text-center">
+          <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
+            <thead class="table-light text-center">
               <tr>
                 <th>Descripción</th>
                 <th>Monto</th>
-                <th>Porcentaje</th>
+                <th style="width: 12%">Porcentaje</th>
                 <th style="width: 10%">Activo</th>
                 <th style="width: 10%">Fijo</th>
-                <th style="width: 15%">Acciones</th>
+                <th style="width: 12%">Acciones</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="text-center">
               {% for descuento in descuentos %}
               <tr>
                 <td>{{ descuento.descripcion }}</td>
@@ -107,6 +107,33 @@
               {% endfor %}
             </tbody>
           </table>
+
+          <nav aria-label="Paginación">
+            <ul class="pagination justify-content-center mt-4">
+              {% if descuentos.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ descuentos.previous_page_number }}">&laquo;</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+              {% endif %}
+
+              {% for num in descuentos.paginator.page_range %}
+                <li class="page-item {% if descuentos.number == num %}active{% endif %}">
+                  <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+              {% endfor %}
+
+              {% if descuentos.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ descuentos.next_page_number }}">&raquo;</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+              {% endif %}
+            </ul>
+          </nav>
+          
         </div>
       </div>
     </div>

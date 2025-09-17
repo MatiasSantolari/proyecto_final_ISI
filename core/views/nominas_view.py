@@ -1,21 +1,17 @@
-import os
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from ..models import *
 from ..forms import *
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
 from django.contrib import messages
 from django.conf import settings
-from django.utils import timezone
 from datetime import date
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
-from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Subquery, OuterRef
 from django.db.models import Case, When, IntegerField
-
+from django.core.paginator import Paginator
 
 
 @login_required
@@ -49,6 +45,7 @@ def generar_nominas(request):
 
     empleados_a_generar = [] 
     empleados_sin_sueldo = []
+    empleados_sin_contrato = []
 
     if accion == "regenerar":
         pendientes_count = nominas_pendientes.count()
@@ -89,10 +86,20 @@ def generar_nominas(request):
             if cargo_departamento_actual:
                 departamento = cargo_departamento_actual.departamento.nombre
 
-        if historial:
-            empleados_a_generar.append((empleado, historial.sueldo_base, departamento))
+        contrato_vigente = HistorialContrato.objects.filter(
+                empleado=empleado,
+                estado__in=["activo", "renovado"],
+                fecha_inicio__lte=hoy,
+                fecha_fin__gte=hoy
+            ).order_by('fecha_inicio').first()
+
+        if contrato_vigente:
+            if historial:
+                empleados_a_generar.append((empleado, historial.sueldo_base, departamento))
+            else:
+                empleados_sin_sueldo.append(empleado)
         else:
-            empleados_sin_sueldo.append(empleado)
+            empleados_sin_contrato.append(empleado)
 
     # Generar las nóminas
     for empleado, sueldo_base, departamento in empleados_a_generar:
@@ -171,7 +178,7 @@ def generar_nominas(request):
             total_descuentos=total_descuentos,
             total_beneficios=total_beneficios,
             numero=numero,
-            monto_extra_pactado=contrato_vigente.monto_extra_pactado        
+            monto_extra_pactado=contrato_vigente.monto_extra_pactado     
         )
 
         for de in descuentos_asignados:
@@ -199,6 +206,12 @@ def generar_nominas(request):
         messages.warning(
             request,
             f"Aún faltan {len(empleados_sin_sueldo)} empleado(s) sin sueldo cargado: {nombres}."
+        )
+    if empleados_sin_contrato:
+        nombres = ", ".join([f"{e.nombre} {e.apellido}" for e in empleados_sin_contrato])
+        messages.warning(
+            request,
+            f"{len(empleados_sin_contrato)} empleado(s) no tienen contrato vigente: {nombres}."
         )
 
     return redirect("nominas")
@@ -259,6 +272,10 @@ def nominas(request):
     )
 
 
+    paginator = Paginator(nominas_list, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     # Faltantes por generar en el período actual
     hoy = now().date()
     mes_actual = hoy.month
@@ -275,7 +292,7 @@ def nominas(request):
     departamentos = Departamento.objects.all().order_by('nombre')
 
     return render(request, 'nominas.html', {
-        'nominas': nominas_list,
+        'nominas': page_obj,
         'meses': range(1, 13),
         'departamentos': departamentos,
         'departamento_sel': departamento_sel,
@@ -437,13 +454,17 @@ def mis_nominas(request):
             "error": "No hay un empleado asociado a este usuario."
         })
 
-    nominas = (
+    nominas_list = (
         Nomina.objects
         .filter(empleado=empleado, estado="pagado")
         .select_related("empleado")
         .order_by("-fecha_generacion")  
     )
 
+    paginator = Paginator(nominas_list, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, "mis_nominas.html", {
-        "nominas": nominas,
+        "nominas": page_obj,
     })

@@ -6,7 +6,7 @@
   {% block content %}
 
   <div class="container my-5">
-    <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Departamentos</h1>
+    <h2 class="mb-4" style="color: var(--color-primario);">Gestión de Departamentos</h2>
 
     <!-- Botón para Crear -->
     <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalDepartamento">
@@ -17,7 +17,7 @@
     <div class="card shadow-sm border-0">
       <div class="card-body">
         <div class="table-responsive">
-          <table class="table table-hover table-bordered align-middle mb-0">
+          <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
             <thead style="table-light text-center">
               <tr>
                 <th>Nombre</th>
@@ -73,6 +73,37 @@
               {% endfor %}
             </tbody>
           </table>
+
+          <nav aria-label="Paginación departamentos">
+            <ul class="pagination justify-content-center mt-3">
+              {% if departamentos.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ departamentos.previous_page_number }}">&laquo;</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+              {% endif %}
+
+              {% for num in departamentos.paginator.page_range %}
+                {% if departamentos.number == num %}
+                  <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% else %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+
+              {% if departamentos.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ departamentos.next_page_number }}">&raquo;</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+              {% endif %}
+            </ul>
+          </nav>
+
         </div>
       </div>
     </div>

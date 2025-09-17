@@ -5,30 +5,44 @@
   
   {% block content %}
 
-  <div class="container my-5">
+  <div class="container-fluid my-5">
     <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Cargos</h1>
 
-    <!-- Botón para Crear -->
-    <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalCargo">
-      + Crear Nuevo Cargo
-    </button>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <!-- Botón para Crear -->
+      <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalCargo">
+        + Crear Nuevo Cargo
+      </button>
+
+      <form method="get" class="mb-3 d-flex align-items-center gap-2">
+        <label for="departamento" class="form-label mb-0">Filtrar por Departamento:</label>
+        <select name="departamento" id="departamento" class="form-select" style="width: auto;">
+          <option value="todos" {% if departamento_seleccionado == 'todos' %}selected{% endif %}>Todos</option>
+          {% for dept in departamentos %}
+            <option value="{{ dept.id }}" {% if dept.id|stringformat:"s" == departamento_seleccionado %}selected{% endif %}>
+              {{ dept.nombre }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
 
     <!-- Tabla de Cargos -->
     <div class="card shadow-sm border-0">
       <div class="card-body">
         <div class="table-responsive">
-          <table class="table table-hover table-bordered align-middle mb-0">
+          <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1300px; font-size: 0.95rem;">
             <thead class="table-light text-center">
               <tr>
                 <th>Nombre</th>
                 <th>Descripción</th>
                 <th>Sueldo</th>
                 <th>Departamento</th>
-                <th>Vacantes</th>
-                <th>Acciones</th>
+                <th style="width:7%;">Vacantes</th>
+                <th style="width:10%;">Acciones</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="text-center">
               {% for cargo in cargos %}
               <tr>
                 <td>{{ cargo.nombre }}</td>
@@ -92,6 +106,37 @@
               {% endfor %}
             </tbody>
           </table>
+
+          <nav aria-label="Paginación">
+            <ul class="pagination justify-content-center mt-4">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+              {% endif %}
+
+              {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                  <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% else %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+              {% endif %}
+            </ul>
+          </nav>
+
         </div>
       </div>
     </div>
@@ -109,6 +154,10 @@
             <input type="hidden" name="id_cargo" id="id_cargo">
             <div class="modal-body">
               <div class="mb-3">
+                <label for="id_departamento" class="form-label">Departamento</label>
+                {{ form.departamento }}
+              </div>
+              <div class="mb-3">
                 <label for="id_nombre" class="form-label">Nombre</label>
                 {{ form.nombre }}
               </div>
@@ -123,10 +172,6 @@
               <div class="mb-3">
                 <label for="id_vacante" class="form-label">Vacantes</label>
                 {{ form.vacante }}
-              </div>
-              <div class="mb-3">
-                <label for="id_departamento" class="form-label">Departamento</label>
-                {{ form.departamento }}
               </div>
             </div>
             <div class="modal-footer bg-light">
@@ -195,13 +240,19 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
         
-        const modalEliminar = document.getElementById('modalEliminarCargo');
-        modalEliminar.addEventListener('show.bs.modal', function (event) {
+      const modalEliminar = document.getElementById('modalEliminarCargo');
+      modalEliminar.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
         const cargoId = button.getAttribute('data-id');
         const form = document.getElementById('formEliminarCargo');
         form.action = `/cargos/${cargoId}/eliminar/`;
       });
+
+      const selectDept = document.getElementById('departamento');
+      selectDept.addEventListener('change', function() {
+        this.form.submit();  
+      });
+
     });
 
 

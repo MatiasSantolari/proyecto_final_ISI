@@ -1,36 +1,30 @@
-import os
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from ..models import *
 from ..forms import *
-from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
-from django.contrib import messages
 from django.conf import settings
 from django.utils import timezone
-from datetime import date
 from django.views.decorators.http import require_POST
-from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
-from django.utils.timezone import now
-from collections import defaultdict
-from django.contrib.admin.views.decorators import staff_member_required
-from django.db.models import Min
-from django.db.models import Q
+from django.core.paginator import Paginator
 
 
 @login_required
 def cargos(request):
     cargos_con_sueldo = []
 
-    relaciones = CargoDepartamento.objects.select_related('cargo', 'departamento')
+    departamento_seleccionado = request.GET.get('departamento', 'todos')
+
+    relaciones = CargoDepartamento.objects.select_related('cargo', 'departamento').order_by('departamento__nombre', 'cargo__nombre')
+
+    if departamento_seleccionado != 'todos':
+        relaciones = relaciones.filter(departamento_id=departamento_seleccionado)
 
     for relacion in relaciones:
         cargo = relacion.cargo
         departamento = relacion.departamento
 
-        # Sueldo base (último)
         ultimo_sueldo = HistorialSueldoBase.objects.filter(cargo=cargo).order_by('-fecha_sueldo').first()
         sueldo = ultimo_sueldo.sueldo_base if ultimo_sueldo else None
 
@@ -44,8 +38,20 @@ def cargos(request):
             'vacante': relacion.vacante
         })
 
+    paginator = Paginator(cargos_con_sueldo, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    departamentos = Departamento.objects.order_by('nombre')
+
     form = CargoForm()
-    return render(request, 'cargos.html', {'cargos': cargos_con_sueldo, 'form': form})
+    return render(request, 'cargos.html', {
+        'cargos': page_obj, 
+        'page_obj': page_obj,
+        'form': form,
+        'departamentos': departamentos,
+        'departamento_seleccionado': departamento_seleccionado
+        })
 
 
 

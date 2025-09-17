@@ -4,82 +4,122 @@
 {% block title %}Confirmar Asistencias{% endblock %}
 
 {% block content %}
-<div class="container">
-  <h2>Confirmación de Asistencias ({{ hoy|date:"d/m/Y" }})</h2>
+<div class="container-fluid my-5">
+  <h2 class="mb-3" style="color: var(--color-primario);">Confirmación de Asistencias de HOY ({{ hoy|date:"d/m/Y" }})</h2>
 
-  {% if mostrar_filtro_departamentos %}
-  <div class="card mb-3 p-3">
-    <form method="get" class="row align-items-end g-2">
-      <div class="col-md-4">
-        <label for="departamento" class="form-label">Departamento</label>
-        <select name="departamento" id="departamento" class="form-select">
-          <option value="">-- Todos --</option>
-          {% for d in departamentos %}
-            <option value="{{ d.nombre }}" {% if d.nombre == departamento_sel %}selected{% endif %}>{{ d.nombre }}</option>
-          {% endfor %}
-        </select>
+
+  <div class="row g-3 align-items-end">
+    {% if mostrar_filtro_departamentos %}
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <form method="get" id="formFiltroDept">
+              <label for="departamento" class="form-label">Departamento</label>
+              <select name="departamento" id="departamento" class="form-select">
+                <option value="" {% if departamento_sel == "" %}selected{% endif %}>-- Todos --</option>
+                {% for d in departamentos %}
+                  <option value="{{ d.nombre }}" {% if d.nombre == departamento_sel %}selected{% endif %}>{{ d.nombre }}</option>
+                {% endfor %}
+              </select>
+          </form>
+        </div>
       </div>
-      <div class="col-md-2 d-flex align-items-end">
-        <button type="submit" class="btn btn-primary w-85">Filtrar</button>
+    </div>
+    {% endif %}
+
+    <div class="col-md-8">
+    <form method="post" action="{% url 'confirmar_asistencias_accion' %}">
+      {% csrf_token %}
+      
+      <div class="d-flex justify-content-end mb-2">
+        <button type="button" class="btn btn-success me-4" data-bs-toggle="modal" data-bs-target="#modalConfirmar">
+          Confirmar seleccionados
+        </button>
+
+        <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#modalTardanza">
+          Marcar tardanza
+        </button>
       </div>
-    </form>
-  </div>
-  {% endif %}
-
-
-  <form method="post" action="{% url 'confirmar_asistencias_accion' %}">
-    {% csrf_token %}
-    
-    <div class="d-flex justify-content-end mb-2">
-      <button type="button" class="btn btn-success me-4" data-bs-toggle="modal" data-bs-target="#modalConfirmar">
-        Confirmar seleccionados
-      </button>
-
-      <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#modalTardanza">
-        Marcar tardanza
-      </button>
     </div>
 
+  </div>
 
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th></th>
-          <th>Empleado</th>
-          {% if mostrar_filtro_departamentos %}
-            <th>Departamento</th>
-          {% endif %}
-          <th>Cargo</th>
-          <th>Entrada</th>
-          <th>Salida</th>
-          <th>Confirmado</th>
-          <th>Tardanza</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for a in asistencias %}
-        <tr>
-          <td>
-            {% if not a.confirmado %}
-              <input type="checkbox" name="asistencia_ids" value="{{ a.id }}">
+  <div class="card shadow-sm border-2">
+    <div class="card-body p-2">
+      <table class="table table-sm table-striped table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
+        <thead class="table-light text-center">
+          <tr>
+            <th></th>
+            <th>Empleado</th>
+            {% if mostrar_filtro_departamentos %}
+              <th>Departamento</th>
             {% endif %}
-          </td>
-          <td>{{ a.empleado.nombre }} {{ a.empleado.apellido }}</td>
-          {% if mostrar_filtro_departamentos %}
-            <td>{{ a.empleado.departamento_actual_nombre }}</td>
+            <th>Cargo</th>
+            <th>Entrada</th>
+            <th>Salida</th>
+            <th style="width:10%;">Confirmado</th>
+            <th>Tardanza</th>
+          </tr>
+        </thead>
+        <tbody class="text-center"> 
+          {% for a in asistencias %}
+          <tr>
+            <td>
+              {% if not a.confirmado %}
+                <input type="checkbox" name="asistencia_ids" value="{{ a.id }}">
+              {% endif %}
+            </td>
+            <td>{{ a.empleado.nombre }} {{ a.empleado.apellido }}</td>
+            {% if mostrar_filtro_departamentos %}
+              <td>{{ a.empleado.departamento_actual_nombre }}</td>
+            {% endif %}
+            <td>{{ a.empleado.cargo_actual_nombre }}</td>
+            <td>{{ a.hora_entrada }}</td>
+            <td>{{ a.hora_salida|default:"-" }}</td>
+            <td>{% if a.confirmado %}✅{% else %}❌{% endif %}</td>
+            <td>{% if a.tardanza %}⏰ Sí{% else %}-{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8">No hay registros de asistencia.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center mb-0">
+          {% if asistencias.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if departamento_sel %}departamento={{ departamento_sel }}&{% endif %}page={{ asistencias.previous_page_number }}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
           {% endif %}
-          <td>{{ a.empleado.cargo_actual_nombre }}</td>
-          <td>{{ a.hora_entrada }}</td>
-          <td>{{ a.hora_salida|default:"-" }}</td>
-          <td>{% if a.confirmado %}✅{% else %}❌{% endif %}</td>
-          <td>{% if a.tardanza %}⏰ Sí{% else %}-{% endif %}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="7">No hay registros de asistencia.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    
+
+          {% for num in asistencias.paginator.page_range %}
+            {% if num == asistencias.number %}
+              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num >= asistencias.number|add:"-2" and num <= asistencias.number|add:"2" %}
+              <li class="page-item"><a class="page-link" href="?{% if departamento_sel %}departamento={{ departamento_sel }}&{% endif %}page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+          {% endfor %}
+
+          {% if asistencias.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if departamento_sel %}departamento={{ departamento_sel }}&{% endif %}page={{ asistencias.next_page_number }}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+
+    </div>
+  </div>
+
       <!-- Modal de confirmación -->
     <div class="modal fade" id="modalConfirmar" tabindex="-1" aria-labelledby="modalConfirmarLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
@@ -118,4 +158,14 @@
 
   </form>
 </div>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const selectDept = document.getElementById('departamento');
+    selectDept?.addEventListener('change', function() {
+      this.form.submit();
+    });
+  });
+</script>
 {% endblock %}

@@ -1,23 +1,14 @@
-import os
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from ..models import *
 from ..forms import *
-from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
 from django.contrib import messages
 from django.conf import settings
-from django.utils import timezone
-from datetime import date
 from django.views.decorators.http import require_POST
-from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
-from django.utils.timezone import now
-from collections import defaultdict
-from django.contrib.admin.views.decorators import staff_member_required
-from django.db.models import Min
-from django.db.models import Q
+from django.core.paginator import Paginator
+
 
 @login_required
 def descuentos(request):
@@ -28,9 +19,13 @@ def descuentos(request):
         if b.descripcion:
             b.descripcion = b.descripcion.capitalize()
 
+    paginator = Paginator(descuentosList, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'descuentos.html', {
         'form': form,
-        'descuentos': descuentosList
+        'descuentos': page_obj,
     })
 
 

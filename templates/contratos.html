@@ -4,13 +4,13 @@
 {% block title %}Gestión de Contratos{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-  <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Contratos</h1>
+<div class="container-fluid my-5">
+  <h2 class="mb-4" style="color: var(--color-primario);">Gestión de Contratos</h2>
 
   {% if rol_actual == "admin" %}
-  <div class="mb-3">
-    <label>Filtrar por Departamento:</label>
+  <div class="col-md-3 mb-3 ml-3">
     <form method="get">
+      <label class="form-label">Filtrar por Departamento:</label>
       <select class="form-select" name="departamento" onchange="this.form.submit()">
         <option value="">Todos</option>
         {% for dep in departamentos %}
@@ -24,15 +24,15 @@
   {% endif %}
 
   <div class="mb-3 d-flex justify-content-between">
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalContrato">+ Nuevo Contrato</button>
-    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modalHistorial">Historial de Contratos</button>
+    <button class="btn btn-primary ml-4" data-bs-toggle="modal" data-bs-target="#modalContrato">+ Nuevo Contrato</button>
+    <button class="btn btn-secondary mr-4" data-bs-toggle="modal" data-bs-target="#modalHistorial">Historial de Contratos</button>
   </div>
 
 
   <div class="card shadow-sm border-0">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-hover table-bordered align-middle text-center mb-0">
+        <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1300px; font-size: 0.95rem;">
           <thead class="table-light text-center">
             <tr>
               <th>Empleado</th>
@@ -46,7 +46,7 @@
               <th style="width:3%; font-size: 0.8rem;">Finalizar</th>       
             </tr>
           </thead>
-          <tbody>
+          <tbody class="text-center">
             {% for contrato in contratos %}
             <tr>
               <td>{{ contrato.empleado.apellido }} {{ contrato.empleado.nombre }}</td>
@@ -120,10 +120,42 @@
             {% endfor %}
           </tbody>
         </table>
+
+        <nav aria-label="Paginación contratos">
+          <ul class="pagination justify-content-center mt-3">
+            {% if contratos.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page_contratos={{ contratos.previous_page_number }}{% if request.GET.page_historial %}&page_historial={{ request.GET.page_historial }}{% endif %}">&laquo;</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+            {% endif %}
+
+            {% for num in contratos.paginator.page_range %}
+              {% if contratos.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+              {% else %}
+                <li class="page-item">
+                  <a class="page-link" href="?page_contratos={{ num }}{% if request.GET.page_historial %}&page_historial={{ request.GET.page_historial }}{% endif %}">{{ num }}</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+
+            {% if contratos.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page_contratos={{ contratos.next_page_number }}{% if request.GET.page_historial %}&page_historial={{ request.GET.page_historial }}{% endif %}">&raquo;</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+            {% endif %}
+          </ul>
+        </nav>
+
       </div>
     </div>
   </div>
 </div>
+
 
 <!-- Modal Crear/Editar Contrato -->
 <div class="modal fade" id="modalContrato" tabindex="-1" aria-labelledby="modalContratoLabel" aria-hidden="true">
@@ -180,9 +212,16 @@
           </div>
           {{ form.estado }}
         </div>
+        
         <div class="modal-footer bg-light">
-          <button type="submit" class="btn btn-success w-100 fw-bold">Guardar</button>
+          <button type="submit" name="action" value="guardar" class="btn btn-success fw-bold w-40">Guardar</button>
+          {% if crear_contrato and empleado_id %}
+          <button type="submit" name="action" value="guardar_volver" class="btn btn-primary fw-bold w-50">
+            Guardar y volver a Persona
+          </button>
+          {% endif %}
         </div>
+
       </form>
     </div>
   </div>
@@ -261,8 +300,6 @@
 </div>
 
 
-
-
 <!-- Modal Historial de Contratos -->
 <div class="modal fade" id="modalHistorial" tabindex="-1" aria-labelledby="modalHistorialLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl" style="margin-top: 4rem;">
@@ -273,7 +310,7 @@
       </div>
       <div class="modal-body">
         <div class="table-responsive">
-          <table class="table table-hover table-bordered align-middle mb-0">
+          <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.9rem;">
             <thead class="table-light text-center">
               <tr>
                 <th>Empleado</th>
@@ -311,12 +348,58 @@
               {% endfor %}
             </tbody>
           </table>
+
+          <nav aria-label="Paginación historial">
+            <ul class="pagination justify-content-center mt-3">
+              {% if historial_contratos.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page_historial={{ historial_contratos.previous_page_number }}{% if request.GET.page_contratos %}&page_contratos={{ request.GET.page_contratos }}{% endif %}">&laquo;</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+              {% endif %}
+
+              {% for num in historial_contratos.paginator.page_range %}
+                {% if historial_contratos.number == num %}
+                  <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% else %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page_historial={{ num }}{% if request.GET.page_contratos %}&page_contratos={{ request.GET.page_contratos }}{% endif %}">{{ num }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+
+              {% if historial_contratos.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page_historial={{ historial_contratos.next_page_number }}{% if request.GET.page_contratos %}&page_contratos={{ request.GET.page_contratos }}{% endif %}">&raquo;</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+              {% endif %}
+            </ul>
+          </nav>
+
+
         </div>
       </div>
     </div>
   </div>
 </div>
 
+
+
+{% if request.GET.page_historial %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    let modalHistorial = new bootstrap.Modal(document.getElementById('modalHistorial'));
+    modalHistorial.show();
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("page_historial");
+    window.history.replaceState({}, document.title, url);
+  });
+</script>
+{% endif %}
 
 
 <script>
@@ -347,6 +430,14 @@ document.addEventListener('DOMContentLoaded', function() {
   modalCrearEditar.addEventListener('show.bs.modal', function(event) {
     const trigger = event.relatedTarget;
     if(!trigger.getAttribute('data-id')) limpiarFormularioContrato();
+
+
+    const montoInput = document.getElementById('id_monto_extra_pactado');
+    if (montoInput) {
+      montoInput.addEventListener('focus', function() {
+        this.select();
+      });
+    }
   });
 
   const tipoSelect = document.getElementById('id_tipo_contrato');
@@ -461,4 +552,27 @@ document.getElementById('id_empleado').addEventListener('change', function() {
 
 
 </script>
+
+
+
+{% if crear_contrato and empleado_id %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    let selectEmpleado = document.getElementById("id_empleado");
+    let hiddenEmpleado = document.getElementById("id_empleado_hidden");
+
+    if (selectEmpleado && hiddenEmpleado) {
+      selectEmpleado.value = "{{ empleado_id }}";
+      hiddenEmpleado.value = "{{ empleado_id }}";
+    }
+
+    let modalContrato = new bootstrap.Modal(document.getElementById('modalContrato'));
+    modalContrato.show();
+  });
+</script>
+
+
+
+{% endif %}
+
 {% endblock %}

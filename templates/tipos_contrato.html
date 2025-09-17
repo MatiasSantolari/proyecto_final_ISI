@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="container my-5">
-  <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Tipos de Contrato</h1>
+  <h2 class="mb-4" style="color: var(--color-primario);">Gestión de Tipos de Contrato</h2>
 
   <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalTipoContrato">
     + Crear Nuevo Tipo
@@ -14,15 +14,15 @@
   <div class="card shadow-sm border-0">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-hover table-bordered align-middle text-center mb-0">
-          <thead style="table-light text-center">
+        <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 500px; font-size: 0.95rem;">
+          <thead class="table-light text-center">
             <tr>
               <th>Descripción</th>
               <th style="width:25%;">Duración (meses)</th>
               <th style="width:15%;">Acciones</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="text-center">
             {% for tipo in tipos %}
             <tr>
               <td>{{ tipo.descripcion }}</td>
@@ -64,6 +64,37 @@
             {% endfor %}
           </tbody>
         </table>
+
+        <nav aria-label="Paginación tipos de contrato">
+          <ul class="pagination justify-content-center mt-4">
+            {% if tipos.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ tipos.previous_page_number }}">&laquo;</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+            {% endif %}
+
+            {% for num in tipos.paginator.page_range %}
+              {% if tipos.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+              {% else %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+
+            {% if tipos.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ tipos.next_page_number }}">&raquo;</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+            {% endif %}
+          </ul>
+        </nav>
+
       </div>
     </div>
   </div>

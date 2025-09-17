@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="container mt-5">
-  <h1 class="text-center mb-4" style="color: var(--color-primario);">Ofertas de Empleo</h1>
+  <h2 class="text-center mb-4" style="color: var(--color-primario);">Ofertas de Empleo</h2>
   <div class="alert alert-info d-flex align-items-center justify-content-between px-4 py-3 rounded shadow-sm mb-4" role="alert">
     <div class="d-flex align-items-center">
       <i class="bi bi-info-circle-fill me-2 fs-5 text-primary"></i>
@@ -19,46 +19,81 @@
 
   
   {% if cargos_departamento %}
-    <div class="table-responsive">
-      <table class="table table-bordered table-hover align-middle">
-        <thead class="table-primary text-center">
-          <tr>
-            <th>Cargo</th>
-            <th>Descripción</th>
-            <th>Departamento</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for cd in cargos_departamento %}
+  <div class="card shadow-sm border-0">
+    <div class="card-body">  
+      <div class="table-responsive">
+        <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
+          <thead class="table-light text-center">
             <tr>
-              <td>{{ cd.cargo.nombre }}</td>
-              <td>
-                {% if cd.cargo.descripcion %}
-                  {{ cd.cargo.descripcion }}
-                {% else %}
-                  <em class="text-muted">Sin descripción</em>
-                {% endif %}
-              </td>
-              <td>{{ cd.departamento.nombre }}</td>
-              <td class="text-center">
-                {% if cd.cargo.id in postulaciones %}
-                  <span class="badge bg-info text-dark">
-                    Postulado el {{ postulaciones|get_item:cd.cargo.id|date:"d/m/Y" }}
-                  </span>
-                {% else %}
-                  <form method="POST" action="{% url 'postularse' cd.cargo.id %}" class="form-postulacion" data-cargo-id="{{ cd.cargo.id }}">
-                    {% csrf_token %}
-                    <input type="hidden" name="forzar_sin_cv" value="false" />
-                    <button type="button" class="btn btn-sm btn-primary btn-postularse">Postularme</button>
-                  </form>
-                {% endif %}
-              </td>
+              <th>Cargo</th>
+              <th>Descripción</th>
+              <th>Departamento</th>
+              <th style="width:10%;"></th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for cd in cargos_departamento %}
+              <tr>
+                <td>{{ cd.cargo.nombre }}</td>
+                <td>
+                  {% if cd.cargo.descripcion %}
+                    {{ cd.cargo.descripcion }}
+                  {% else %}
+                    <em class="text-muted">Sin descripción</em>
+                  {% endif %}
+                </td>
+                <td>{{ cd.departamento.nombre }}</td>
+                <td class="text-center">
+                  {% if cd.cargo.id in postulaciones %}
+                    <span class="badge bg-info text-dark">
+                      Postulado el {{ postulaciones|get_item:cd.cargo.id|date:"d/m/Y" }}
+                    </span>
+                  {% else %}
+                    <form method="POST" action="{% url 'postularse' cd.cargo.id %}" class="form-postulacion" data-cargo-id="{{ cd.cargo.id }}">
+                      {% csrf_token %}
+                      <input type="hidden" name="forzar_sin_cv" value="false" />
+                      <button type="button" class="btn btn-sm btn-success btn-postularse">
+                        <i class="bi bi-send-fill"></i> Postularme
+                      </button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <nav aria-label="Paginación de ofertas">
+          <ul class="pagination justify-content-center mt-4">
+              {% if cargos_departamento.has_previous %}
+              <li class="page-item">
+                  <a class="page-link" href="?page={{ cargos_departamento.previous_page_number }}" aria-label="Anterior">&laquo;</a>
+              </li>
+              {% else %}
+              <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+              {% endif %}
+
+              {% for num in cargos_departamento.paginator.page_range %}
+                  {% if cargos_departamento.number == num %}
+                      <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                  {% elif num >= cargos_departamento.number|add:-2 and num <= cargos_departamento.number|add:2 %}
+                      <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                  {% endif %}
+              {% endfor %}
+
+              {% if cargos_departamento.has_next %}
+              <li class="page-item">
+                  <a class="page-link" href="?page={{ cargos_departamento.next_page_number }}" aria-label="Siguiente">&raquo;</a>
+              </li>
+              {% else %}
+              <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+              {% endif %}
+          </ul>
+      </nav>
+
+      </div>
     </div>
+  </div>
   {% else %}
     <div class="alert alert-warning text-center">
       No hay ofertas disponibles en este momento.

@@ -15,15 +15,21 @@ from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
 from collections import defaultdict
 from django.contrib.admin.views.decorators import staff_member_required
+from django.core.paginator import Paginator
 
 
 @login_required
 def departamentos(request):
     form = DepartamentoForm()
-    departamentosList = Departamento.objects.all()
+    departamentosList = Departamento.objects.all().order_by('nombre')
+
+    paginator = Paginator(departamentosList, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'departamentos.html', {
         'form': form,
-        'departamentos': departamentosList
+        'departamentos': page_obj,
     })
 
 

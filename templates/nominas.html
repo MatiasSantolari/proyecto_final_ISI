@@ -6,7 +6,7 @@
   {% block content %}
 
   <div class="container my-5"><hv><hv>
-    <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Nóminas</h1>
+    <h2 class="mb-4" style="color: var(--color-primario);">Gestión de Nóminas</h2>
     
    
     <div class="mb-2 d-flex gap-2">
@@ -61,33 +61,32 @@
         </div>
         <div class="col-md-3">
             <label for="anio" class="form-label">Año</label>
-            <input type="number" class="form-control" name="anio" id="anio" value="{{ request.GET.anio }}">
+            <input type="number" class="form-control" name="anio" id="anio" value="{{ request.GET.anio }}" placeholder="Ingresar Año (AAAA)">
         </div>
         <div class="col-md-2 d-flex align-items-end">
             <button type="submit" class="btn btn-primary w-50">Filtrar</button>
         </div>
     </form>
 
-    <!-- Tabla de nominas -->
     <div class="card shadow-sm border-0">
       <div class="card-body">
         <div class="table-responsive">
-          <table class="table table-hover table-bordered align-middle mb-0">
+          <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
             <thead class="table-light text-center">
               <tr>
-                <th>Departamento</th>
                 <th>Empleado</th>
+                <th>Departamento</th>
                 <th style="width: 15%;">Fecha Generación</th>
                 <th style="width: 15%;">Monto Final</th>
                 <th style="width: 10%;">Estado</th>
                 <th style="width: 10%;">Acciones</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="text-center">
               {% for nomina in nominas %}
               <tr>
+                <td>{{ nomina.empleado.apellido }} {{ nomina.empleado.nombre }}</td>
                 <td>{{ nomina.empleado.departamento_actual_nombre}}</td>
-                <td>{{ nomina.empleado.nombre }} {{ nomina.empleado.apellido }}</td>
                 <td>{{ nomina.fecha_generacion|date:"d/m/Y" }}</td>
                 <td>${{ nomina.monto_neto }}</td>
                 <td>
@@ -142,6 +141,37 @@
               {% endfor %}
             </tbody>
           </table>
+
+          <nav aria-label="Paginación nominas">
+            <ul class="pagination justify-content-center mt-4">
+              {% if nominas.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ nominas.previous_page_number }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes %}&mes={{ mes }}{% endif %}{% if anio %}&anio={{ anio }}{% endif %}">&laquo;</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+              {% endif %}
+
+              {% for num in nominas.paginator.page_range %}
+                {% if nominas.number == num %}
+                  <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% else %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes %}&mes={{ mes }}{% endif %}{% if anio %}&anio={{ anio }}{% endif %}">{{ num }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+
+              {% if nominas.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ nominas.next_page_number }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes %}&mes={{ mes }}{% endif %}{% if anio %}&anio={{ anio }}{% endif %}">&raquo;</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+              {% endif %}
+            </ul>
+          </nav>
+
         </div>
       </div>
     </div>

@@ -11,7 +11,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.utils import timezone
 import pytz
-
+from django.core.paginator import Paginator
 
 
 def _get_empleado_de_user(request):
@@ -64,6 +64,10 @@ def registrar_asistencia(request):
 
     historial_asistencias = HistorialAsistencia.objects.filter(empleado=empleado).order_by('-fecha_asistencia')
 
+    paginator = Paginator(historial_asistencias, 10)
+    page_number = request.GET.get('page') 
+    page_obj = paginator.get_page(page_number)
+
     if request.method == "POST":
         accion = request.POST.get("accion")
         if accion == "entrada":
@@ -94,7 +98,7 @@ def registrar_asistencia(request):
     return render(request, "registrar_asistencia.html", {
         "asistencia": asistencia,
         "hoy": hoy,
-        "historial_asistencias": historial_asistencias
+        "page_obj": page_obj,
     })
 
 
@@ -103,6 +107,7 @@ def registrar_asistencia(request):
 def confirmar_asistencias(request):
     hoy = now().date()
     departamento_sel = request.GET.get("departamento", "")
+    page_number = request.GET.get("page", 1)
     user_empleado = _get_empleado_de_user(request)
 
     if _user_es_admin(request.user, empleado=user_empleado):
@@ -131,13 +136,18 @@ def confirmar_asistencias(request):
         else:
             asistencias_qs = HistorialAsistencia.objects.none()
 
+    paginator = Paginator(asistencias_qs.order_by('empleado__apellido'), 10)
+    asistencias_page = paginator.get_page(page_number)
+
     departamentos = Departamento.objects.all().order_by("nombre")
 
     context = {
-        "asistencias": asistencias_qs,
+        "asistencias": asistencias_page,
         "departamentos": departamentos,
         "departamento_sel": departamento_sel,
         "mostrar_filtro_departamentos": mostrar_filtro,
+        "paginator": paginator,
+        "hoy": hoy,
     }
     return render(request, "confirmar_asistencias.html", context)
 

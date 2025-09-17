@@ -3,29 +3,29 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from ..models import *
 from ..forms import *
-from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
-from django.contrib import messages
 from django.conf import settings
-from django.utils import timezone
-from datetime import date
 from django.views.decorators.http import require_POST
 from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
 from collections import defaultdict
 from django.contrib.admin.views.decorators import staff_member_required
-from django.db.models import Min
-from django.db.models import Q
+from django.core.paginator import Paginator
+
 
 @login_required
 def listar_ofertas(request):
     persona = request.user.persona  
-    cargos_departamento = CargoDepartamento.objects.select_related('cargo', 'departamento')\
+    cargos_departamento_list = CargoDepartamento.objects.select_related('cargo', 'departamento')\
         .filter(visible=True)\
         .exclude(cargo__nombre="ADMIN")\
-        .exclude(departamento__nombre="ADMIN")
+        .exclude(departamento__nombre="ADMIN")\
+        .order_by('departamento__nombre', 'cargo__nombre')
+
+    paginator = Paginator(cargos_departamento_list, 10)
+    page_number = request.GET.get('page')
+    cargos_departamento = paginator.get_page(page_number)
 
     solicitudes = Solicitud.objects.filter(persona=persona)
     postulaciones = {s.cargo.id: s.fecha for s in solicitudes}

@@ -53,11 +53,11 @@
     <div class="card shadow-sm border-0">
       <div class="card-body">
         <div class="table-responsive" style="overflow-x: auto;">
-          <table id="tablaPersonas" class="table table-hover table-bordered align-middle mb-0"style=" min-width: 1300px;">
+          <table id="tablaPersonas" class="table table-sm table-hover table-bordered align-middle mb-0" style=" min-width: 1300px; font-size: 0.95rem;">
             <thead style="table-light text-center">
               <tr>
-                <th>Nombre</th>
                 <th>Apellido</th>
+                <th>Nombre</th>
                 <th>DNI</th>
                 <th>Email</th>
                 <th>Telefono</th>
@@ -70,8 +70,8 @@
             <tbody>
               {% for persona in personas %}
                 <tr class="fila-persona" data-tipo="{{ persona.tipo_usuario }}" data-dni="{{ persona.dni }}">
-                  <td>{{ persona.nombre }}</td>
                   <td>{{ persona.apellido }}</td>
+                  <td>{{ persona.nombre }}</td>
                   <td>{{ persona.dni }}</td>
                   <td>{{ persona.email }}</td>
                   <td>{{ persona.telefono_completo }}</td>
@@ -139,6 +139,36 @@
               {% endfor %}
             </tbody>
           </table>
+          <nav aria-label="Paginación">
+            <ul class="pagination justify-content-center mt-3">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}">Anterior</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+              {% endif %}
+
+              {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                  <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% else %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}">{{ num }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}">Siguiente</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+              {% endif %}
+            </ul>
+          </nav>
+
         </div>
       </div>
     </div>
@@ -232,9 +262,16 @@
                 {{ form.cargo }}
               </div>
             
-              <button type="submit" class="btn btn-success w-100 fw-bold">  
-                <i class="bi bi-save"></i>Guardar
-              </button>
+              <input type="hidden" name="accion" id="accion_input" value="">
+
+              <div class="modal-footer bg-light">
+                <button type="submit" class="btn btn-success fw-bold" onclick="setAccion('guardar')">
+                  <i class="bi bi-save"></i> Guardar
+                </button>
+                <button type="submit" class="btn btn-primary fw-bold" onclick="setAccion('guardar_crear_contrato')">
+                  <i class="bi bi-file-earmark-text"></i> Guardar y Crear Contrato
+                </button>
+              </div>
           </form>
         </div>
       </div>
@@ -516,6 +553,14 @@ function aplicarFiltros() {
 // Eventos para aplicar filtros
 buscadorDNI.addEventListener("input", aplicarFiltros);
 filtroTipoUsuario.addEventListener("change", aplicarFiltros);
+
+
+
+
+
+function setAccion(valor) {
+    document.getElementById("accion_input").value = valor;
+  }
 
 
 </script>

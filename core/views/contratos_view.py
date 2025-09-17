@@ -7,37 +7,56 @@ from ..forms import *
 from django.views.decorators.http import require_POST
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
+from django.core.paginator import Paginator
 
 
 @login_required
 def contratos(request):
     rol_actual = request.session.get("rol_actual", None)
     departamentos = None
-    contratos = HistorialContrato.objects.filter(
+
+    contratos_qs = HistorialContrato.objects.filter(
         estado="activo"
         ).select_related("empleado", "cargo", "contrato").order_by('fecha_fin')
 
-    historial_contratos = HistorialContrato.objects.all().select_related("empleado", "cargo", "contrato").order_by('-fecha_inicio')
+    historial_qs = HistorialContrato.objects.all().select_related("empleado", "cargo", "contrato").order_by('-fecha_inicio')
 
     if rol_actual == "admin":
         departamentos = Departamento.objects.all()
         dep_id = request.GET.get("departamento")
         if dep_id:
-            contratos = contratos.filter(cargo__cargodepartamento__departamento__id=dep_id)
-            historial_contratos = historial_contratos.filter(cargo__cargodepartamento__departamento__id=dep_id)
+            contratos_qs = contratos_qs.filter(cargo__cargodepartamento__departamento__id=dep_id)
+            historial_qs = historial_qs.filter(cargo__cargodepartamento__departamento__id=dep_id)
     elif rol_actual in ["jefe", "gerente"]:
         empleado = request.user.empleado
         dep_id = empleado.cargos.first().departamento.id
-        contratos = contratos.filter(cargo__cargodepartamento__departamento__id=dep_id)
-        historial_contratos = historial_contratos.filter(cargo__cargodepartamento__departamento__id=dep_id)
+        contratos_qs = contratos_qs.filter(cargo__cargodepartamento__departamento__id=dep_id)
+        historial_qs = historial_qs.filter(cargo__cargodepartamento__departamento__id=dep_id)
+
+
+    contratos_paginator = Paginator(contratos_qs, 10)
+    historial_paginator = Paginator(historial_qs, 15) 
+
+    page_contratos = request.GET.get("page_contratos")
+    page_historial = request.GET.get("page_historial")
+
+    contratos = contratos_paginator.get_page(page_contratos)
+    historial_contratos = historial_paginator.get_page(page_historial)
 
     form = ContratoForm()
+
+    crear_contrato = request.GET.get("crear_contrato") == "1"
+    empleado_id = request.GET.get("empleado_id")
+
+
     return render(request, "contratos.html", {
         "contratos": contratos,
         "historial_contratos": historial_contratos,
         "form": form,
         "departamentos": departamentos,
-        "rol_actual": rol_actual
+        "rol_actual": rol_actual,
+        "crear_contrato": crear_contrato,
+        "empleado_id": empleado_id,
     })
 
 
@@ -45,6 +64,8 @@ def contratos(request):
 @login_required
 def crear_contrato(request):
     if request.method == "POST":
+        action = request.POST.get("action")
+
         contrato_id = request.POST.get("id_contrato")
         renovar_flag = request.POST.get("renovar") == "true" 
 
@@ -99,6 +120,8 @@ def crear_contrato(request):
 
         else:
             form = ContratoForm(request.POST)
+            
+
             if form.is_valid():
                 contrato = form.save(commit=False)
                 try:
@@ -108,8 +131,11 @@ def crear_contrato(request):
                 contrato.cargo = cargo_actual.cargo if cargo_actual else None
                 contrato.estado = "activo"
                 contrato.save()
-                messages.success(request, "Contrato creado correctamente.")
-                return redirect("contratos")
+                messages.success(request, "Contrato creado correctamente.")                
+                if action == "guardar_volver":
+                    return redirect("personas")
+                else:
+                    return redirect("contratos")
             else:
                 messages.error(request, "El formulario tiene errores.")
                 print("ERRORES DEL FORM:", form.errors)
@@ -140,14 +166,18 @@ def mis_contratos(request):
     try:
         empleado = Empleado.objects.get(pk=request.user.persona.id)
     except Empleado.DoesNotExist:
-        contratos = []
+        contratos = HistorialContrato.objects.none()
     else:
         contratos = HistorialContrato.objects.filter(
             empleado=empleado
         ).order_by("-fecha_inicio")
 
+    page_number = request.GET.get("page")
+    paginator = Paginator(contratos, 10)
+    page_obj = paginator.get_page(page_number)
+
     return render(request, "mis_contratos.html", {
-        "contratos": contratos,
+        "contratos": page_obj,
     })
 
 
@@ -156,8 +186,16 @@ def mis_contratos(request):
 @login_required
 def tipos_contrato(request):
     form = TipoContratoForm()
-    tipos = TipoContrato.objects.all()
-    return render(request, "tipos_contrato.html", {"form": form, "tipos": tipos})
+    tipos_list = TipoContrato.objects.all().order_by('descripcion')
+    
+    paginator = Paginator(tipos_list, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "tipos_contrato.html", {
+        "form": form, 
+        "tipos": page_obj,
+        })
 
 
 @login_required

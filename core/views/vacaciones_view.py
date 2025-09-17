@@ -6,13 +6,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Case, When, Value, IntegerField
-
+from django.core.paginator import Paginator
 
 
 @login_required
 def solicitar_vacaciones(request):
     empleado = get_object_or_404(Empleado, usuario=request.user)
-    solicitudes = (
+    solicitudes_list = (
         VacacionesSolicitud.objects
         .filter(empleado=empleado)
         .annotate(
@@ -26,6 +26,10 @@ def solicitar_vacaciones(request):
         )
         .order_by("-fecha_solicitud", "fecha_inicio", "estado_prioridad")
     )
+
+    paginator = Paginator(solicitudes_list, 10)
+    page_number = request.GET.get("page")
+    solicitudes = paginator.get_page(page_number)
 
     if request.method == "POST":
         form = VacacionesSolicitudForm(request.POST)
@@ -64,7 +68,7 @@ def gestionar_vacaciones(request):
     departamento = rol.departamento_actual()
 
     if user.rol == "admin":
-        solicitudes = (VacacionesSolicitud.objects
+        solicitudes_list = (VacacionesSolicitud.objects
             .exclude(estado="cancelado")
             .annotate(
                 estado_prioridad=Case(
@@ -79,11 +83,15 @@ def gestionar_vacaciones(request):
         )
     else:
         empleado = get_object_or_404(Empleado, usuario=user)
-        solicitudes = (VacacionesSolicitud.objects
+        solicitudes_list = (VacacionesSolicitud.objects
                         .filter(empleado__empleadocargo__cargo__cargodepartamento__departamento=departamento)
                         .exclude(estado="cancelado")
                         .order_by("-fecha_solicitud")
         )
+
+    paginator = Paginator(solicitudes_list, 10)
+    page_number = request.GET.get("page")
+    solicitudes = paginator.get_page(page_number)
 
     return render(request, "vacaciones_gestionar.html", {
         "solicitudes": solicitudes

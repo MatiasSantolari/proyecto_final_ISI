@@ -5,7 +5,7 @@
 
 {% block content %}
 
-<div class="container my-5">
+<div class="container-fluid my-5">
   <div class="container d-flex justify-content-center">
     <div class="card shadow-sm" style="max-width: 500px; width: 100%;">
       <div class="card-body text-center">
@@ -78,42 +78,75 @@
 
   <div class="container my-2">
     <h3>Historial de Asistencias</h3>
-    <table class="table table-striped table-bordered">
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Entrada</th>
-          <th>Salida</th>
-          <th>Confirmado</th>
-          <th>Tardanza</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for h in historial_asistencias %}
-        <tr>
-          <td>{{ h.fecha_asistencia|date:"d/m/Y" }}</td>
-          <td>{{ h.hora_entrada|default:"-" }}</td>
-          <td>{{ h.hora_salida|default:"-" }}</td>
-          <td>{% if h.confirmado %}✅{% else %}❌{% endif %}</td>
-          <td>
-            {% if h.confirmado %}
-              {% if h.tardanza %}
-                ⏰ Tarde
-              {% else %}
-                🟢 A tiempo
-              {% endif %}
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-2">
+        <table class="table table-sm table-striped table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
+          <thead class="table-light text-center">
+            <tr>
+              <th>Fecha</th>
+              <th>Entrada</th>
+              <th>Salida</th>
+              <th style="width:15%;">Confirmado</th>
+              <th>Tardanza</th>
+            </tr>
+          </thead>
+          <tbody class="text-center">
+            {% for h in page_obj %}
+            <tr>
+              <td>{{ h.fecha_asistencia|date:"d/m/Y" }}</td>
+              <td>{{ h.hora_entrada|default:"-" }}</td>
+              <td>{{ h.hora_salida|default:"-" }}</td>
+              <td>{% if h.confirmado %}✅{% else %}❌{% endif %}</td>
+              <td>
+                {% if h.confirmado %}
+                  {% if h.tardanza %}
+                    ⏰ Tarde
+                  {% else %}
+                    🟢 A tiempo
+                  {% endif %}
+                {% else %}
+                  ⚪ Esperando confirmación
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-muted">No hay registros.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <nav aria-label="Historial de Asistencias">
+          <ul class="pagination justify-content-center mt-4">
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+              </li>
             {% else %}
-              ⚪ Esperando confirmación
+              <li class="page-item disabled"><span class="page-link">Anterior</span></li>
             {% endif %}
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="5" class="text-center text-muted">No hay registros.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+
+            {% for num in page_obj.paginator.page_range %}
+              {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+              {% else %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+              {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+            {% endif %}
+          </ul>
+        </nav>
+ 
+      </div>
+    </div>
   </div>
 
 </div>

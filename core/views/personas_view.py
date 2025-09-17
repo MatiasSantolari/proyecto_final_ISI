@@ -5,23 +5,17 @@ from ..models import *
 from ..forms import *
 from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
 from django.contrib import messages
 from django.conf import settings
-from django.utils import timezone
 from datetime import date
 from django.views.decorators.http import require_POST
-from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
-from django.utils.timezone import now
-from collections import defaultdict
-from django.contrib.admin.views.decorators import staff_member_required
-from django.db.models import Min
-from django.db.models import Q
+from django.core.paginator import Paginator
+
 
 @login_required
 def personas(request):
-    personas_qs = Persona.objects.select_related('empleado', 'usuario')
+    personas_qs = Persona.objects.select_related('empleado', 'usuario').order_by('apellido', 'nombre')
     
     departamentos = Departamento.objects.all()
     dep_id = request.GET.get("departamento")
@@ -32,9 +26,14 @@ def personas(request):
             empleado__empleadocargo__cargo__cargodepartamento__departamento_id=dep_id
         ).distinct()
     
+    
+    paginator = Paginator(personas_qs, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     personas_con_datos = []
 
-    for persona in personas_qs:
+    for persona in page_obj:
         estado = ""
         cargo_id = ""
         nombre_cargo = ""
@@ -91,8 +90,9 @@ def personas(request):
     form = PersonaForm()
     return render(request, 'personas.html', {
         'personas': personas_con_datos,
+        'page_obj': page_obj,
         'form': form, 
-        "departamentos": departamentos,
+        'departamentos': departamentos,
         'departamento_seleccionado': dep_id
         })
 
@@ -110,15 +110,15 @@ def crear_persona(request):
 
         if form.is_valid():
             email = form.cleaned_data.get('email')
+            accion = request.POST.get("accion")
             
             if not id_persona and Usuario.objects.filter(email=email).exists():
                 form.add_error('email', 'Ya existe un usuario registrado con ese correo electrónico.')
             else:
                 persona = form.save()
                 rol = form.cleaned_data.get('tipo_usuario')
-               ## estado_empleado = form.cleaned_data.get('estado')
                 cargo = form.cleaned_data.get('cargo')
-                # Si es gerente, asignar automaticamente el cargo de gerente del departamento
+
                 if rol == 'gerente' and departamento_id:
                     cargo = Cargo.get_gerente_por_departamento(departamento_id)
                     if not cargo:
@@ -231,33 +231,53 @@ def crear_persona(request):
                             fecha_fin__isnull=True
                         ).order_by('-fecha_inicio').first()
 
-                        if ultimo_cargo and ultimo_cargo.cargo != cargo:
+                        if not ultimo_cargo:
+                            EmpleadoCargo.objects.create(
+                                empleado=empleado,
+                                cargo=cargo,
+                                fecha_inicio=date.today()
+                            )
+                            try:
+                                relacion_nueva = CargoDepartamento.objects.get(
+                                    cargo=cargo,
+                                    departamento=departamento_id
+                                )
+                                if relacion_nueva.vacante > 0:
+                                    relacion_nueva.vacante -= 1
+                                    relacion_nueva.save()
+                            except CargoDepartamento.DoesNotExist:
+                                pass
+                    
+
+                        elif ultimo_cargo.cargo != cargo:
                             ultimo_cargo.fecha_fin = date.today()
                             ultimo_cargo.save()
                             try:
-                                relacion_anterior = CargoDepartamento.objects.get(
-                                    cargo=ultimo_cargo.cargo
-                                )
+                                relacion_anterior = CargoDepartamento.objects.get(cargo=ultimo_cargo.cargo)
                                 relacion_anterior.vacante += 1
                                 relacion_anterior.save()
                             except CargoDepartamento.DoesNotExist:
                                 pass
 
-                        EmpleadoCargo.objects.create(
-                            empleado=empleado,
-                            cargo=cargo,
-                            fecha_inicio=date.today()
-                        )
-                        try:
-                            relacion_nueva = CargoDepartamento.objects.get(
+                            EmpleadoCargo.objects.create(
+                                empleado=empleado,
                                 cargo=cargo,
-                                departamento=departamento_id
+                                fecha_inicio=date.today()
                             )
-                            if relacion_nueva.vacante > 0:
-                                relacion_nueva.vacante -= 1
-                                relacion_nueva.save()
-                        except CargoDepartamento.DoesNotExist:
+                            try:
+                                relacion_nueva = CargoDepartamento.objects.get(
+                                    cargo=cargo,
+                                    departamento=departamento_id
+                                )
+                                if relacion_nueva.vacante > 0:
+                                    relacion_nueva.vacante -= 1
+                                    relacion_nueva.save()
+                            except CargoDepartamento.DoesNotExist:
+                                pass
+
+                        else:
                             pass
+
                 else:
                     try:
                         empleado = Empleado.objects.get(id=persona.id)
@@ -265,6 +285,19 @@ def crear_persona(request):
                         empleado.save()
                     except Empleado.DoesNotExist:
                         pass
+
+
+                if accion == "guardar_crear_contrato":
+                    tiene_activo = HistorialContrato.objects.filter(
+                        empleado=persona.id, estado="activo"
+                    ).exists()
+
+                    if tiene_activo:
+                        messages.warning(request, "La persona ya tiene un contrato activo.")
+                        return redirect("contratos")
+                    else:
+                        return redirect(f"/contratos/?crear_contrato=1&empleado_id={empleado.id}")
+
 
                 return redirect('personas')
         else:
