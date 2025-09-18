@@ -5,13 +5,16 @@ from .cargo_departamento import CargoDepartamento
 from .cargo import Cargo
 from .competencia_empleado import CompetenciaEmpleado
 from .competencia import Competencia
-from .criterio_evaluacion import CriterioEvaluacion
+from .criterio import Criterio
 from .departamento import Departamento
 from .descuento_empleado_nomina import DescuentoEmpleadoNomina
 from .descuento import Descuento
 from .empleado_cargo import EmpleadoCargo
 from .empleado import Empleado
 from .evaluacion import Evaluacion
+from .evaluacion_empleado import EvaluacionEmpleado
+from .evaluacion_criterio import EvaluacionCriterio
+from .evaluacion_empleado_criterio import EvaluacionEmpleadoCriterio
 from .habilidad_empleado import HabilidadEmpleado
 from .habilidad import Habilidad
 from .historial_asistencia import HistorialAsistencia
