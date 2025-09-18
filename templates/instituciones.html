@@ -62,6 +62,12 @@
                 </div>
               </td>
             </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-muted">
+                No hay instituciones registradas.
+              </td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>

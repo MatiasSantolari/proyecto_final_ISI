@@ -14,7 +14,7 @@ from .asistencia_view import *
 from .vacaciones_view import *
 from .contratos_view import *
 from .instituciones_view import *
-
+from .tipo_criterio_view import *
 
 
 def agregar_sueldo_base(request): return render(request, 'agregar_sueldo_base.html')
@@ -31,7 +31,6 @@ def postulantes(request): return render(request, 'postulantes.html')
 def publicar_ofertas_de_empleo(request): return render(request, 'publicar_ofertas_de_empleo.html')
 def registrar_asistencia(request): return render(request, 'registrar_asistencia.html')
 def solicitudes_nuevos_empleados(request): return render(request, 'solicitudes_nuevos_empleados.html')
-def tipo_criterio_evaluacion(request): return render(request, 'tipo_criterio_evaluacion.html')
 def competencias_faltantes(request): return render(request, 'competencias_faltantes.html')
 def costos_de_contratacion(request): return render(request, 'costos_de_contratacion.html')
 def reporte_evaluacion_desempeno(request): return render(request, 'reporte_evaluacion_desempeno.html')

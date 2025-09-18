@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Gestión de Tipos de Criterios de Evaluacion{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h2 class="mb-4" style="color: var(--color-primario);">Gestión de Tipos de Criterios de Evaluacion</h2>
+
+  <!-- Botón para Crear -->
+  <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalTipoCriterio">
+    + Crear Nuevo Tipo Criterio
+  </button>
+
+  <!-- Tabla de Tipos de Criterios de Evaluacion -->
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <div class="table-responsive">
+         <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
+          <thead class="table-light text-center">
+            <tr>
+              <th>Descripcion</th>
+              <th style="width:12%;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="text-center">
+            {% for tipoC in tiposCriterios %}
+            <tr>
+              <td>{{ tipoC.descripcion }}</td>
+              <td>
+                <div class="d-flex justify-content-center gap-2">
+                  <button class="btn btn-sm btn-outline-secondary"
+                          data-bs-toggle="modal" data-bs-target="#modalTipoCriterio"
+                          data-id="{{ tipoC.id }}"
+                          data-descripcion="{{ tipoC.descripcion }}"
+                          onclick="editarTipoCriterio(this)"
+                          data-bs-toggle="tooltip" title="Editar">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-info"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalVerTipoCriterio{{ tipoC.id }}"
+                          data-bs-toggle="tooltip" title="Ver">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalEliminarTipoCriterio"
+                          data-id="{{ tipoC.id }}"
+                          data-bs-toggle="tooltip" title="Eliminar">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Modal Eliminar -->
+            <div class="modal fade" id="modalEliminarTipoCriterio" tabindex="-1" aria-labelledby="modalEliminarTipoCriterioLabel" aria-hidden="true">
+              <div class="modal-dialog" style="margin-top: 12rem;">
+                <div class="modal-content">
+                  <div class="modal-header" style="background-color: #3c8dbc;">
+                    <h5 class="modal-title text-white">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p>¿Estás seguro de que deseas eliminar el Tipo de Criterio: <strong>{{ tipoC.descripcion }}</strong>?</p>
+                  </div>
+                  <div class="modal-footer">
+                    <form id="formEliminarTipoCriterio" method="post">
+                      {% csrf_token %}
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                      <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {% empty %}
+            <tr>
+              <td colspan="2" class="text-center text-muted">
+                No hay tipos de criterios registrados.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <nav aria-label="Paginación">
+          <ul class="pagination justify-content-center mt-4">
+            {% if tiposCriterios.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ tiposCriterios.previous_page_number }}">&laquo;</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+            {% endif %}
+
+            {% for num in tiposCriterios.paginator.page_range %}
+              {% if tiposCriterios.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+              {% else %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+
+            {% if tiposCriterios.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ tiposCriterios.next_page_number }}">&raquo;</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+            {% endif %}
+          </ul>
+        </nav>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Crear/Editar -->
+  <div class="modal fade" id="modalTipoCriterio" tabindex="-1" aria-labelledby="modalTipoCriterioLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 6rem;">
+      <div class="modal-content">
+        <form method="post" action="{% url 'crear_tipoCriterio' %}" id="formTipoCriterio" autocomplete="off">
+          {% csrf_token %}
+          <div class="modal-header" style="background-color: #3c8dbc;">
+            <h5 class="modal-title text-white" id="modalTipoCriterioLabel">Crear/Editar Tipo Criterio</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <input type="hidden" name="id_tipoCriterio" id="id_tipoCriterio">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="id_descripcion" class="form-label">Descripcion</label>
+              {{ form.descripcion|add_class:"form-control" }}
+            </div>
+            <div class="modal-footer bg-light">
+              <button type="submit" class="btn btn-success w-100 fw-bold">
+                <i class="bi bi-save"></i> Guardar
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modales Ver -->
+  {% for tipoC in tiposCriterios %}
+  <div class="modal fade" id="modalVerTipoCriterio{{ tipoC.id }}" tabindex="-1" aria-labelledby="modalVerTipoCriterio{{ tipoC.id }}Label" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 6rem;">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: #3c8dbc;">
+          <h5 class="modal-title text-white">Detalles del Tipo de Criterio</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Nombre:</strong> {{ tipoC.descripcion }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Modal de eliminación
+    const modalEliminar = document.getElementById('modalEliminarTipoCriterio');
+    if (modalEliminar) {
+      modalEliminar.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const tipoCriterioId = button.getAttribute('data-id');
+        const form = document.getElementById('formEliminarTipoCriterio');
+        form.action = `/tipos_criterios/${tipoCriterioId}/eliminar/`;
+      });
+    }
+
+    // Modal de creación/edición
+    const modalCrearEditar = document.getElementById('modalTipoCriterio');
+    if (modalCrearEditar) {
+      modalCrearEditar.addEventListener('show.bs.modal', function (event) {
+        const triggerButton = event.relatedTarget;
+
+        const esCreacion = !triggerButton.getAttribute('data-id');
+        if (esCreacion) {
+          limpiarFormulario();
+        }
+      });
+    }
+  });
+
+  function limpiarFormulario() {
+    const form = document.getElementById('formTipoCriterio');
+    if (!form) return;
+
+    form.reset();  // Limpia valores antiguos
+
+    const modal = document.getElementById('modalTipoCriterio');
+
+    modal.addEventListener('shown.bs.modal', function () {
+      const inputDescripcion = document.getElementById('id_descripcion');
+      const inputId = document.getElementById('id_tipoCriterio');
+
+      if (inputDescripcion) inputDescripcion.value = '';
+      if (inputId) inputId.value = '';
+
+      document.getElementById('modalTipoCriterioLabel').textContent = 'Crear Nuevo Tipo de Criterio';
+      document.querySelector('#formTipoCriterio button[type="submit"]').textContent = 'Guardar';
+    }, { once: true });
+  }
+
+  function editarTipoCriterio(button) {
+    const id = button.getAttribute('data-id');
+    const descripcion = button.getAttribute('data-descripcion');
+
+    const inputId = document.getElementById('id_tipoCriterio');
+    const inputDescripcion = document.getElementById('id_descripcion');
+
+    if (inputId) inputId.value = id || '';
+    if (inputDescripcion) inputDescripcion.value = descripcion || '';
+
+    document.getElementById('modalTipoCriterioLabel').textContent = 'Editar Tipo Criterio';
+    document.querySelector('#formTipoCriterio button[type="submit"]').textContent = 'Actualizar';
+  }
+</script>
+
+{% endblock %}

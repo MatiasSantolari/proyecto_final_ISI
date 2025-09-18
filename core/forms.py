@@ -655,3 +655,16 @@ class InstitucionForm(forms.ModelForm):
                 'placeholder': 'Dirección'
             }),
         }
+
+
+######################
+class TipoCriterioForm(forms.ModelForm):
+    class Meta:
+        model = TipoCriterio
+        fields = ['descripcion']
+        widgets = {
+            'descripcion': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descripcion del Tipo de Criterio'
+            }),
+        }
