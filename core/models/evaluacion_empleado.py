@@ -5,8 +5,8 @@ from .evaluacion import Evaluacion
 
 class EvaluacionEmpleado(models.Model):
     evaluacion = models.ForeignKey(Evaluacion, on_delete=models.CASCADE)
-    empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
-    evaluador = models.ForeignKey(Empleado, on_delete=models.SET_NULL, null=True, blank=True)
+    empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE, related_name="evaluaciones_recibidas")
+    evaluador = models.ForeignKey(Empleado, on_delete=models.SET_NULL, null=True, blank=True, related_name="evaluaciones_realizadas")
     fecha_registro = models.DateField(verbose_name='Fecha de registro')
     comentarios = models.CharField(max_length=255, null=True, blank=True, verbose_name='Comentarios de la evaluacion')
     calificacion_final = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='Calificacion final de la evaluacion')
