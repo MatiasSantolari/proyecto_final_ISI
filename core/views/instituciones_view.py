@@ -8,15 +8,21 @@ from django.contrib import messages
 from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 
 
 @login_required
 def instituciones(request):
     form = InstitucionForm()
-    institucionesList = Institucion.objects.all()
+    institucionesList = Institucion.objects.all().order_by('nombre')
+
+    paginator = Paginator(institucionesList, 15)
+    page_number = request.GET.get('page')
+    instituciones = paginator.get_page(page_number)
+
     return render(request, 'instituciones.html', {
         'form': form,
-        'instituciones': institucionesList
+        'instituciones': instituciones
     })
 
 
