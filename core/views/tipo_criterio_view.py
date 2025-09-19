@@ -26,35 +26,33 @@ def tiposCriterios(request):
     })
 
 
+@require_POST
 @login_required
 def crear_tipoCriterio(request):
     id_tipoCriterio = request.POST.get('id_tipoCriterio')
+    descripciones = request.POST.getlist('descripcion') 
 
-    if request.method == 'POST':
-        if id_tipoCriterio:
-            tipoCriterio = get_object_or_404(TipoCriterio, pk=id_tipoCriterio)
-            form = TipoCriterioForm(request.POST, instance=tipoCriterio)
-        else:
-            form = TipoCriterioForm(request.POST)
-
+    if id_tipoCriterio:
+        tipoCriterio = get_object_or_404(TipoCriterio, pk=id_tipoCriterio)
+        form = TipoCriterioForm(request.POST, instance=tipoCriterio)
         if form.is_valid():
             form.save()
-            if id_tipoCriterio:
-                messages.success(request, "El tipo de criterio se actualizó correctamente.")
-            else:
-                messages.success(request, "El tipo de criterio se creó correctamente.")
-            return redirect('tiposCriterios')
+            messages.success(request, "El tipo de criterio se actualizó correctamente.")
         else:
-            messages.error(request, "Hubo un error al guardar el tipo de criterio. Verifique los datos ingresados.")
-
+            messages.error(request, "Hubo un error al actualizar el tipo de criterio.")
     else:
-        form = TipoCriterioForm()
+        creados = 0
+        for desc in descripciones:
+            if desc.strip():
+                TipoCriterio.objects.create(descripcion=desc.strip())
+                creados += 1
 
-    tiposCriteriosList = TipoCriterio.objects.all()
-    return render(request, 'tipos_criterios.html', {
-        'form': form, 
-        'tiposCriterios': tiposCriteriosList
-    })
+        if creados > 0:
+            messages.success(request, f"Se crearon {creados} tipos de criterios correctamente.")
+        else:
+            messages.error(request, "Debe ingresar al menos una descripción válida.")
+
+    return redirect('tiposCriterios')
 
 
 @login_required
@@ -62,7 +60,6 @@ def crear_tipoCriterio(request):
 def eliminar_tipoCriterio(request, id_tipoCriterio):
     try:
         tipoCriterio = get_object_or_404(TipoCriterio, id=id_tipoCriterio)
-#        Criterio.objects.filter(tipoCriterio=tipoCriterio).delete() # Elimina todas las relaciones de Criterios con este tipoCriterio
         tipoCriterio.delete()
         messages.success(request, "Tipo de criterio eliminado correctamente.")
     except TipoCriterio.DoesNotExist:

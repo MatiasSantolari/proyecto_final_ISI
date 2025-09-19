@@ -63,7 +63,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                   </div>
                   <div class="modal-body">
-                    <p>¿Estás seguro de que deseas eliminar el Tipo de Criterio: <strong>{{ tipoC.descripcion }}</strong>?</p>
+                    <p>¿Estás seguro de que deseas eliminar el Tipo de Criterio: <strong>({{ tipoC.descripcion }})</strong>?</p>
                   </div>
                   <div class="modal-footer">
                     <form id="formEliminarTipoCriterio" method="post">
@@ -131,16 +131,26 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <input type="hidden" name="id_tipoCriterio" id="id_tipoCriterio">
+
           <div class="modal-body">
-            <div class="mb-3">
-              <label for="id_descripcion" class="form-label">Descripcion</label>
-              {{ form.descripcion|add_class:"form-control" }}
+            <div id="contenedor-descripciones">
+              <div class="mb-3 descripcion-field">
+                <label class="form-label">Descripcion</label>
+                <input type="text" name="descripcion" id="id_descripcion" class="form-control" placeholder="Ingrese una descripción" required>
+              </div>
             </div>
-            <div class="modal-footer bg-light">
-              <button type="submit" class="btn btn-success w-100 fw-bold">
-                <i class="bi bi-save"></i> Guardar
+
+            <div id="botonAgregarWrapper">
+              <button type="button" class="btn btn-sm btn-outline-primary" id="agregarDescripcion">
+                <i class="bi bi-plus-circle"></i> Crear otro Tipo
               </button>
             </div>
+          </div>
+
+          <div class="modal-footer bg-light">
+            <button type="submit" class="btn btn-success w-100 fw-bold">
+              <i class="bi bi-save"></i> Guardar
+            </button>
           </div>
         </form>
       </div>
@@ -169,7 +179,6 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    // Modal de eliminación
     const modalEliminar = document.getElementById('modalEliminarTipoCriterio');
     if (modalEliminar) {
       modalEliminar.addEventListener('show.bs.modal', function (event) {
@@ -180,7 +189,6 @@
       });
     }
 
-    // Modal de creación/edición
     const modalCrearEditar = document.getElementById('modalTipoCriterio');
     if (modalCrearEditar) {
       modalCrearEditar.addEventListener('show.bs.modal', function (event) {
@@ -198,7 +206,7 @@
     const form = document.getElementById('formTipoCriterio');
     if (!form) return;
 
-    form.reset();  // Limpia valores antiguos
+    form.reset(); 
 
     const modal = document.getElementById('modalTipoCriterio');
 
@@ -227,6 +235,61 @@
     document.getElementById('modalTipoCriterioLabel').textContent = 'Editar Tipo Criterio';
     document.querySelector('#formTipoCriterio button[type="submit"]').textContent = 'Actualizar';
   }
+
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const contenedor = document.getElementById("contenedor-descripciones");
+    const btnAgregar = document.getElementById("agregarDescripcion");
+    const botonAgregarWrapper = document.getElementById("botonAgregarWrapper");
+
+    if (btnAgregar) {
+      btnAgregar.addEventListener("click", function () {
+        const nuevoCampo = document.createElement("div");
+        nuevoCampo.classList.add("mb-3", "descripcion-field");
+        nuevoCampo.innerHTML = `
+          <input type="text" name="descripcion" class="form-control" placeholder="Ingrese una descripción" required>
+        `;
+        contenedor.appendChild(nuevoCampo);
+      });
+    }
+
+    const modalCrearEditar = document.getElementById("modalTipoCriterio");
+    modalCrearEditar.addEventListener("show.bs.modal", function (event) {
+      const triggerButton = event.relatedTarget;
+      const esCreacion = !triggerButton.getAttribute("data-id");
+
+      if (esCreacion) {
+        contenedor.innerHTML = `
+          <div class="mb-3 descripcion-field">
+            <label class="form-label">Descripcion</label>
+            <input type="text" name="descripcion" id="id_descripcion" class="form-control" placeholder="Ingrese una descripción" required>
+          </div>
+        `;
+        botonAgregarWrapper.style.display = "block";
+        document.getElementById("id_tipoCriterio").value = "";
+        document.getElementById("modalTipoCriterioLabel").textContent = "Crear Nuevo Tipo de Criterio";
+        document.querySelector("#formTipoCriterio button[type='submit']").textContent = "Guardar";
+
+      } else {
+        const id = triggerButton.getAttribute("data-id");
+        const descripcion = triggerButton.getAttribute("data-descripcion");
+
+        contenedor.innerHTML = `
+          <div class="mb-3 descripcion-field">
+            <label class="form-label">Descripcion</label>
+            <input type="text" name="descripcion" id="id_descripcion" class="form-control" required>
+          </div>
+        `;
+        document.getElementById("id_tipoCriterio").value = id;
+        document.getElementById("id_descripcion").value = descripcion;
+
+        botonAgregarWrapper.style.display = "none";
+        document.getElementById("modalTipoCriterioLabel").textContent = "Editar Tipo Criterio";
+        document.querySelector("#formTipoCriterio button[type='submit']").textContent = "Actualizar";
+      }
+    });
+  });
+
 </script>
 
 {% endblock %}

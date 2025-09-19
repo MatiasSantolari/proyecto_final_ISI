@@ -668,3 +668,14 @@ class TipoCriterioForm(forms.ModelForm):
                 'placeholder': 'Descripcion del Tipo de Criterio'
             }),
         }
+
+
+####################
+class CriterioForm(forms.ModelForm):
+    class Meta:
+        model = Criterio
+        fields = ['tipo_criterio', 'descripcion']
+        widgets = {
+            'tipo_criterio': forms.Select(attrs={'class': 'form-select'}),
+            'descripcion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ingrese el criterio'}),
+        }

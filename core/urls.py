@@ -146,6 +146,12 @@ urlpatterns = [
     path('tipos_criterios/<int:id_tipoCriterio>/eliminar/', tipo_criterio_view.eliminar_tipoCriterio, name='eliminar_tipoCriterio'),
     
 
+    ## CRITERIO ##
+    path('criterios/', views.criterios, name='criterios'),
+    path('criterios/crear/', views.crear_criterio, name='crear_criterio'),
+    path('criterios/<int:id>/eliminar/', views.eliminar_criterio, name='eliminar_criterio'),
+
+
 ##############################################
 ##############################################
 
@@ -156,7 +162,6 @@ urlpatterns = [
     path('competencias/', views.competencias, name='competencias'),
     path('contratos/', views.contratos, name='contratos'),
     path('costos_de_personal/', views.costos_de_personal, name='costos_de_personal'),
-    path('criterios_evaluacion/', views.criterios_evaluacion, name='criterios_evaluacion'),
     path('evaluacion_desempeno/', views.evaluacion_desempeno, name='evaluacion_desempeno'),
 
     path('solicitudes_nuevos_empleados/', views.solicitudes_nuevos_empleados, name='solicitudes_nuevos_empleados'),

@@ -15,6 +15,7 @@ from .vacaciones_view import *
 from .contratos_view import *
 from .instituciones_view import *
 from .tipo_criterio_view import *
+from .criterios_view import *
 
 
 def agregar_sueldo_base(request): return render(request, 'agregar_sueldo_base.html')
@@ -22,7 +23,6 @@ def calcular_bonificaciones(request): return render(request, 'calcular_bonificac
 def capacitaciones(request): return render(request, 'capacitaciones.html')
 def competencias(request): return render(request, 'competencias.html')
 def costos_de_personal(request): return render(request, 'costos_de_personal.html')
-def criterios_evaluacion(request): return render(request, 'criterios_evaluacion.html')
 def empleados(request): return render(request, 'empleados.html')
 def evaluacion_desempeno(request): return render(request, 'evaluacion_desempeno.html')
 def nominas(request): return render(request, 'nominas.html')
