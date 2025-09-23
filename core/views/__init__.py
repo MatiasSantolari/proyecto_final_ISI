@@ -16,6 +16,7 @@ from .contratos_view import *
 from .instituciones_view import *
 from .tipo_criterio_view import *
 from .criterios_view import *
+from .evaluaciones_view import *
 
 
 def agregar_sueldo_base(request): return render(request, 'agregar_sueldo_base.html')

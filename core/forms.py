@@ -679,3 +679,27 @@ class CriterioForm(forms.ModelForm):
             'tipo_criterio': forms.Select(attrs={'class': 'form-select'}),
             'descripcion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ingrese el criterio'}),
         }
+
+
+###################
+class EvaluacionForm(forms.ModelForm):
+    class Meta:
+        model = Evaluacion
+        fields = ['descripcion', 'fecha_evaluacion']
+        widgets = {
+            'descripcion': forms.TextInput(attrs={'id': 'id_descripcion', 'class': 'form-control'}),
+            'fecha_evaluacion': forms.DateInput(attrs={'id': 'id_fecha_evaluacion', 'class': 'form-control', 'type':'date'}),
+        }
+
+
+class CalificacionForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        criterios = kwargs.pop('criterios')
+        super().__init__(*args, **kwargs)
+        for c in criterios:
+            self.fields[f'criterio_{c.id}'] = forms.FloatField(
+                label=c.descripcion,
+                min_value=0,
+                max_value=10,
+                widget=forms.NumberInput(attrs={'class':'form-control', 'step':'0.1'})
+            )

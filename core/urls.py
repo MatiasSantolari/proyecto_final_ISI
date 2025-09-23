@@ -152,6 +152,17 @@ urlpatterns = [
     path('criterios/<int:id>/eliminar/', views.eliminar_criterio, name='eliminar_criterio'),
 
 
+    ## EVALUACION ##
+    path('evaluaciones/', evaluaciones_view.evaluaciones, name='evaluaciones'),
+    path('evaluaciones/crear/', evaluaciones_view.crear_evaluacion, name='crear_evaluacion'),
+    path('evaluaciones/<int:id_evaluacion>/activar/', evaluaciones_view.activar_evaluacion, name='activar_evaluacion'),
+    path('evaluaciones/<int:id_evaluacion>/desactivar/', evaluaciones_view.desactivar_evaluacion, name='desactivar_evaluacion'),
+    path('evaluaciones/<int:id_evaluacion>/eliminar/', evaluaciones_view.eliminar_evaluacion, name='eliminar_evaluacion'),
+    path('evaluaciones/ver/<int:id_evaluacion>/', evaluaciones_view.ver_evaluacion, name='ver_evaluacion'),
+
+
+
+
 ##############################################
 ##############################################
 

@@ -1,0 +1,454 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Gestión de Evaluaciones{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-5">
+  <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Evaluaciones</h1>
+
+  <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalEvaluacion">
+    + Crear Nueva Evaluación
+  </button>
+
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm table-hover table-bordered align-middle mb-0">
+          <thead class="table-light text-center">
+            <tr>
+              <th>Descripción</th>
+              <th>Fecha Evaluación</th>
+              <th>Activo</th>
+              <th>Criterios</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="text-center">
+            {% for eval in evaluaciones %}
+            <tr>
+              <td>{{ eval.descripcion }}</td>
+              <td>{{ eval.fecha_evaluacion }}</td>
+              <td>
+                {% if eval.activo %}
+                  <span class="badge bg-success">Sí</span>
+                {% else %}
+                  <span class="badge bg-danger">No</span>
+                {% endif %}
+              </td>
+              <td>
+                {% for ec in eval.evaluacioncriterio_set.all %}
+                  <span class="badge bg-info text-dark">{{ ec.criterio.descripcion }} ({{ ec.ponderacion }})</span>
+                {% empty %}-{% endfor %}
+              </td>
+              <td>
+                <div class="d-flex justify-content-center gap-2">
+                  <button class="btn btn-sm btn-outline-info btn-ver-evaluacion" data-id="{{ eval.id }}" title="Ver">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalEvaluacion"
+                          data-id="{{ eval.id }}" data-descripcion="{{ eval.descripcion }}" data-fecha="{{ eval.fecha_evaluacion }}"
+                          onclick="editarEvaluacion(this)" title="Editar">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+                  {% if eval.activo %}
+                  <form method="post" action="{% url 'desactivar_evaluacion' eval.id %}" style="display:inline">{% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Desactivar">
+                      <i class="bi bi-trash3"></i>
+                    </button>
+                  </form>
+                  {% else %}
+                  <form method="post" action="{% url 'activar_evaluacion' eval.id %}" style="display:inline">{% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-success" title="Activar">
+                      <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                  </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-muted">No hay evaluaciones registradas.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalEvaluacion" tabindex="-1" aria-labelledby="modalEvaluacionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" style="margin-top:3rem;">
+      <div class="modal-content">
+        <form method="post" action="{% url 'crear_evaluacion' %}" id="formEvaluacion">
+          {% csrf_token %}
+          <input type="hidden" name="id_evaluacion" id="id_evaluacion">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="modalEvaluacionLabel">Crear/Editar Evaluación</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Descripción</label>
+                  {{ form.descripcion|add_class:"form-control" }}
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Fecha Evaluación</label>
+                  {{ form.fecha_evaluacion|add_class:"form-control" }}
+                </div>
+                <hr>
+                <label class="form-label">Seleccionar Tipo de Criterio</label>
+                <select class="form-select mb-2" id="selectTipo">
+                  <option value="">-- Seleccione un tipo --</option>
+                  {% for tipo in tipos_criterio %}
+                    <option value="{{ tipo.id }}">{{ tipo.descripcion }}</option>
+                  {% endfor %}
+                </select>
+                <div id="criteriosContainer" class="mb-3 row g-2"></div>
+                <button type="button" class="btn btn-sm btn-primary" id="agregarTipoBtn">Agregar Criterios --></button>
+              </div>
+            
+
+              <div class="col-md-6 border-start ps-3">
+                <h6>Criterios Seleccionados</h6>
+                <div id="tiposSeleccionados"></div>
+              </div>
+            </div>
+          </div>
+            
+          <div class="modal-footer bg-light">
+            <button type="submit" class="btn btn-success w-100 fw-bold">Guardar Evaluación</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+<!-- Modal Ver Evaluación -->
+<div class="modal fade" id="modalVerEvaluacion" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg" style="margin-top: 3rem;">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title">Detalle de Evaluación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="verCriteriosContainer">
+        <!-- Se llenará dinámicamente con JS -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // ----- MODAL VER EVALUACIÓN -----
+  const modalVer = new bootstrap.Modal(document.getElementById('modalVerEvaluacion'));
+
+  document.querySelectorAll('.btn-ver-evaluacion').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const id = this.dataset.id;
+
+      fetch(`/evaluaciones/ver/${id}/`)
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('verCriteriosContainer');
+          container.innerHTML = `<p><strong>${data.descripcion}</strong> (${data.fecha_evaluacion})</p>`;
+
+          for (const [tipo, criterios] of Object.entries(data.tipos)) {
+            const tipoDiv = document.createElement('div');
+            tipoDiv.classList.add('mb-3', 'border', 'p-2');
+            tipoDiv.innerHTML = `<strong>${tipo}</strong>`;
+
+            criterios.forEach(c => {
+              const divC = document.createElement('div');
+              divC.classList.add('d-flex', 'justify-content-between', 'my-1');
+              divC.innerHTML = `<span>${c.descripcion}</span><span>(${c.ponderacion})</span>`;
+              tipoDiv.appendChild(divC);
+            });
+
+            container.appendChild(tipoDiv);
+          }
+
+          modalVer.show();
+        });
+    });
+  });
+
+  // ----- ELEMENTOS DEL FORMULARIO -----
+  const selectTipo = document.getElementById('selectTipo');
+  const criteriosContainer = document.getElementById('criteriosContainer');
+  const agregarTipoBtn = document.getElementById('agregarTipoBtn');
+  const tiposSeleccionados = document.getElementById('tiposSeleccionados');
+  const modalEvaluacion = document.getElementById('modalEvaluacion');
+
+  // Datos de criterios por tipo
+  const criteriosData = {
+    {% for tipo in tipos_criterio %}
+      "{{ tipo.id }}": [
+        {% for c in tipo.criterio_set.all %}
+          {"id":"{{ c.id }}","descripcion":"{{ c.descripcion }}"},
+        {% endfor %}
+      ],
+    {% endfor %}
+  };
+
+  // ----- EDITAR EVALUACIÓN -----
+  window.editarEvaluacion = function(btn) {
+    const id = btn.dataset.id;
+    document.getElementById('id_evaluacion').value = id;
+
+    fetch(`/evaluaciones/ver/${id}/`)
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('id_descripcion').value = data.descripcion;
+         const partes = data.fecha_evaluacion.split('/'); // ["dd","mm","yyyy"]
+         const fechaISO = `${partes[2]}-${partes[1]}-${partes[0]}`; // "yyyy-mm-dd"
+         document.getElementById('id_fecha_evaluacion').value = fechaISO;
+
+        // Limpiar contenedores
+        tiposSeleccionados.innerHTML = '';
+        criteriosContainer.innerHTML = '';
+        selectTipo.value = '';
+
+        // Cargar tipos y criterios
+        for (const [tipoDesc, criterios] of Object.entries(data.tipos)) {
+          const tipoOption = Array.from(selectTipo.options).find(opt => opt.text === tipoDesc);
+          if (!tipoOption) continue;
+          const tipoId = tipoOption.value;
+
+          const divTipo = document.createElement('div');
+          divTipo.classList.add('mb-3','border','p-2','tipo-block');
+          divTipo.dataset.tipo = tipoId;
+          divTipo.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+              <strong>${tipoDesc}</strong>
+              <button type="button" class="btn btn-sm btn-outline-danger eliminar-tipo-btn">&times;</button>
+            </div>
+            <div class="criterios-list"></div>
+          `;
+          tiposSeleccionados.appendChild(divTipo);
+          divTipo.querySelector('.eliminar-tipo-btn').addEventListener('click', ()=> divTipo.remove());
+
+          const lista = divTipo.querySelector('.criterios-list');
+
+          criterios.forEach(c => {
+            const divC = document.createElement('div');
+            divC.classList.add('d-flex','justify-content-between','align-items-center','criterio-item','my-1');
+            divC.dataset.id = c.id;
+            
+            const criterioId = parseInt(c.id) || 0;
+            const ponderacionVal = parseFloat(c.ponderacion) || 0;
+
+            divC.innerHTML = `
+              <span>${c.descripcion}</span>
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" min="0" max="1" step="0.01" class="form-control form-control-sm ponderacion-edit" value="${c.ponderacion}" style="width:80px;">
+                <input type="hidden" name="criterio" value="${c.id}">
+                <input type="hidden" name="ponderacion" value="${c.ponderacion}">
+                <button type="button" class="btn btn-sm btn-outline-danger eliminar-criterio-btn">&times;</button>
+              </div>
+            `;
+            lista.appendChild(divC);
+
+            // Eliminar criterio
+            divC.querySelector('.eliminar-criterio-btn').addEventListener('click', ()=> {
+              divC.remove();
+              if(lista.querySelectorAll('.criterio-item').length === 0) divTipo.remove();
+            });
+
+            // Actualizar hidden al cambiar ponderación
+            const inputEdit = divC.querySelector('.ponderacion-edit');
+            const hiddenP = divC.querySelector('input[name="ponderacion"]');
+            inputEdit.addEventListener('change', ()=> {
+              let v = parseFloat(inputEdit.value);
+              if(isNaN(v)) v = 0;
+              if(v<0) v=0;
+              if(v>1) v=1;
+              let vStr = (v % 0.01 === 0) ? v.toFixed(2) : v.toString();
+              inputEdit.value = vStr;
+              hiddenP.value = vStr;
+            });
+          });
+        }
+      });
+  }
+
+  // ----- SELECCIÓN DE CRITERIOS POR TIPO -----
+  selectTipo.addEventListener('change', function() {
+    const tipoId = this.value;
+    criteriosContainer.innerHTML = '';
+    if(!tipoId) return;
+
+     const criteriosUsados = Array.from(tiposSeleccionados.querySelectorAll('.criterio-item'))
+                                 .map(d => d.dataset.id.toString());
+
+    // Filtrar criterios que aún no fueron seleccionados
+    const criteriosDisponibles = criteriosData[tipoId].filter(c => !criteriosUsados.includes(c.id));
+
+    if (criteriosDisponibles.length === 0) {
+        criteriosContainer.innerHTML = `
+          <div class="alert alert-warning py-2 text-center">
+            Ya no hay más criterios de este tipo para elegir
+          </div>`;
+        return;
+    }
+
+
+    criteriosDisponibles.forEach(c => {
+        const div = document.createElement('div');
+        div.classList.add('d-flex','align-items-center','mb-2','criterio-row');
+        div.innerHTML = `
+          <div class="form-check me-2">
+            <input class="form-check-input criterio-check" type="checkbox" id="criterio${c.id}">
+            <label class="form-check-label" for="criterio${c.id}">${c.descripcion}</label>
+          </div>
+          <input type="number" min="0" max="1" step="0.01"
+                class="form-control form-control-sm ponderacion-input ms-auto"
+                placeholder="Ponderación" style="width:106px;" disabled>
+          <input type="hidden" class="criterio-id" value="${c.id}">
+        `;
+        criteriosContainer.appendChild(div);
+    });
+
+    criteriosContainer.querySelectorAll('.criterio-check').forEach(cb => {
+      cb.addEventListener('change', function(){
+        const input = this.closest('.criterio-row').querySelector('.ponderacion-input');
+        input.disabled = !this.checked;
+        if (!this.checked) input.value = '';
+      });
+    });
+  });
+
+  // ----- AGREGAR TIPO Y CRITERIOS -----
+  agregarTipoBtn.addEventListener('click', function(){
+    const tipoId = selectTipo.value;
+    if(!tipoId) return alert('Seleccione un tipo');
+    const tipoDescripcion = selectTipo.options[selectTipo.selectedIndex].text;
+
+    const criteriosChecked = [];
+    criteriosContainer.querySelectorAll('.criterio-row').forEach(row => {
+      const cb = row.querySelector('.criterio-check');
+      if (cb && cb.checked) {
+        const id = row.querySelector('.criterio-id').value;
+        const desc = row.querySelector('label').textContent.trim();
+        let ponder = parseFloat(row.querySelector('.ponderacion-input').value) || 0;
+        criteriosChecked.push({ id, desc, ponder });
+      }
+    });
+
+
+    // --- AJUSTAR PONDERACIONES PARA QUE SUMEN 1 ---
+    let totalPonder = criteriosChecked.reduce((acc,c)=>acc+c.ponder,0);
+    if(totalPonder !== 1){
+        const n = criteriosChecked.length;
+        const base = Math.floor((1/n)*100)/100; // redondeo a 2 decimales
+        let resto = 1 - (base * n);
+
+        criteriosChecked.forEach((c, i) => {
+            c.ponder = base;
+            if(i === n - 1) c.ponder += resto; // ajustar último criterio
+            c.ponder = Math.round(c.ponder * 100) / 100; // asegurar 2 decimales
+        });
+    }
+
+
+    if(criteriosChecked.length === 0) return alert('Seleccione al menos un criterio');
+
+    let divTipo = tiposSeleccionados.querySelector(`.tipo-block[data-tipo="${tipoId}"]`);
+    const sumaActual = divTipo ? Array.from(divTipo.querySelectorAll('.ponderacion-edit')).reduce((acc,input)=>acc+parseFloat(input.value),0) : 0;
+    const sumaNueva = criteriosChecked.reduce((acc,c)=>acc+c.ponder,0);
+    if(sumaActual + sumaNueva > 1) return alert('No puede exceder suma de ponderaciones 1 para este tipo');
+
+    if(!divTipo){
+      divTipo = document.createElement('div');
+      divTipo.classList.add('mb-3','border','p-2','tipo-block');
+      divTipo.dataset.tipo = tipoId;
+      divTipo.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <strong>${tipoDescripcion}</strong>
+          <button type="button" class="btn btn-sm btn-outline-danger eliminar-tipo-btn">&times;</button>
+        </div>
+        <div class="criterios-list"></div>
+      `;
+      tiposSeleccionados.appendChild(divTipo);
+      divTipo.querySelector('.eliminar-tipo-btn').addEventListener('click', ()=>divTipo.remove());
+    }
+
+    const lista = divTipo.querySelector('.criterios-list');
+
+    criteriosChecked.forEach(c => {
+      if(lista.querySelector(`.criterio-item[data-id="${c.id}"]`)) return;
+      const divC = document.createElement('div');
+      divC.classList.add('d-flex','justify-content-between','align-items-center','criterio-item','my-1');
+      divC.dataset.id = c.id.toString();
+      divC.innerHTML = `
+        <span>${c.desc}</span>
+        <div class="d-flex align-items-center gap-2">
+          <input type="number" min="0" max="1" step="0.01" class="form-control form-control-sm ponderacion-edit" value="${c.ponder}" style="width:80px;">
+          <input type="hidden" name="criterio" value="${c.id}">
+          <input type="hidden" name="ponderacion" value="${c.ponder}">
+          <button type="button" class="btn btn-sm btn-outline-danger eliminar-criterio-btn">&times;</button>
+        </div>
+      `;
+      lista.appendChild(divC);
+
+      divC.querySelector('.eliminar-criterio-btn').addEventListener('click', ()=> {
+        divC.remove();
+        if(lista.querySelectorAll('.criterio-item').length === 0) divTipo.remove();
+      });
+
+      const inputEdit = divC.querySelector('.ponderacion-edit');
+      const hiddenP = divC.querySelector('input[name="ponderacion"]');
+      inputEdit.addEventListener('input', ()=> {
+        let v = parseFloat(inputEdit.value);
+        if(v<0) v=0;
+        if(v>1) v=1;
+        inputEdit.value = v;
+        hiddenP.value = v;
+      });
+    });
+
+    selectTipo.value = '';
+    criteriosContainer.innerHTML = '';
+  });
+
+  // ----- VALIDAR AL GUARDAR -----
+  document.getElementById('formEvaluacion').addEventListener('submit', function(e){
+    const tipos = tiposSeleccionados.querySelectorAll('.tipo-block');
+    for(const tipo of tipos){
+      const suma = Array.from(tipo.querySelectorAll('.ponderacion-edit'))
+                      .reduce((acc,input)=>acc+parseFloat(input.value),0);
+      const sumaRedondeada = Math.round(suma * 100) / 100;  // <-- redondeo a 2 decimales
+      if(sumaRedondeada !== 1){
+        alert(`La suma de ponderaciones del tipo "${tipo.querySelector('strong').textContent}" debe ser 1`);
+        e.preventDefault();
+        return false;
+      }
+    }
+  });
+
+  // ----- LIMPIAR MODAL AL CERRAR -----
+  modalEvaluacion.addEventListener('hidden.bs.modal', function () {
+    document.getElementById('id_evaluacion').value = '';
+    document.getElementById('id_descripcion').value = '';
+    document.getElementById('id_fecha_evaluacion').value = '';
+    tiposSeleccionados.innerHTML = '';
+    criteriosContainer.innerHTML = '';
+    selectTipo.value = '';
+  });
+
+});
+</script>
+
+
+{% endblock %}

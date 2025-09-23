@@ -9,13 +9,21 @@ class EvaluacionEmpleado(models.Model):
     evaluador = models.ForeignKey(Empleado, on_delete=models.SET_NULL, null=True, blank=True, related_name="evaluaciones_realizadas")
     fecha_registro = models.DateField(verbose_name='Fecha de registro')
     comentarios = models.CharField(max_length=255, null=True, blank=True, verbose_name='Comentarios de la evaluacion')
-    calificacion_final = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='Calificacion final de la evaluacion')
+    calificacion_final = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name='Calificacion final de la evaluacion')
+
 
     class Meta:
         verbose_name = 'EvaluacionEmpleado'
         verbose_name_plural = 'EvaluacionesEmpleados'
         db_table = "evaluacion_empleado"
         ordering = ['id']
+        unique_together = ('evaluacion', 'empleado')
+
 
     def __str__(self):
-        return f"EvaluaciónEmpleado {self.fecha_registro}"
+        return f"EvalEmp: {self.empleado} - {self.evaluacion}"
+    
+
+    def get_calificacion(self, criterio):
+        calif = self.criterios_calificados.filter(criterio=criterio).first()
+        return calif.calificacionCriterio if calif else ""
