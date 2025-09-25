@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Gestionar empleados en {{ evaluacion.descripcion }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">  
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3">
+        <h3 class="mb-2 mb-md-0">Gestionar empleados para <strong>{{ evaluacion.descripcion }}</strong></h3>
+        <a href="{% url 'evaluaciones' %}" class="btn btn-outline-secondary mr-2">
+        <i class="bi bi-arrow-left"></i> Volver a Evaluaciones
+        </a>
+    </div>
+    <hr>
+
+    <form method="get" id="filtros-form" class="row g-3 mb-4">
+        <div class="col-md-3 mr-5">
+        <label class="form-label">Filtrar por Departamento</label>
+        <select name="departamento" class="form-select" onchange="this.form.submit()">
+            <option value="todos" {% if departamento_seleccionado == 'todos' %}selected{% endif %}>Todos</option>
+            {% for depto in departamentos %}
+            <option value="{{ depto.id }}" {% if departamento_seleccionado == depto.id|stringformat:"s" %}selected{% endif %}>
+                {{ depto.nombre }}
+            </option>
+            {% endfor %}
+        </select>
+        </div>
+
+        <div class="col-md-2 ml-5">
+        <label class="form-label">Buscar por DNI</label>
+        <input type="text" name="dni" value="{{ dni_busqueda }}" class="form-control" placeholder="Ingrese DNI">
+        </div>
+    </form>
+
+
+    
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                    <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.9rem;">
+                    <thead class="table-light text-center">
+                        <tr>
+                        <th>Apellido</th>
+                        <th>Nombre</th>
+                        <th style="width:6%;">DNI</th>
+                        <th>Departamento</th>
+                        <th>Cargo</th>
+                        <th style="width:8%;">Estado</th>
+                        <th style="width:7%;">Asignacion</th>
+                        <th style="width:9%;">Calificaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center">
+                        {% for empleado in empleados %}
+                        <tr>
+                        <td>{{ empleado.apellido }}</td>
+                        <td>{{ empleado.nombre }}</td>
+                        <td>{{ empleado.dni }}</td>
+                        <td>{{ empleado.departamento_actual_nombre }}</td>
+                        <td>{{ empleado.cargo_actual_nombre }}</td>
+                        <td>
+                            {% if empleado.id in asignados_ids %}
+                            <span class="badge bg-primary">Asignado</span>
+                            {% else %}
+                            <span class="badge bg-secondary">No asignado</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if empleado.id in asignados_ids %}
+                                <a href="{% url 'quitar_empleado' evaluacion.id empleado.id %}?departamento={{ departamento_seleccionado }}&dni={{ dni_busqueda }}" 
+                                    class="btn btn-sm btn-danger" title="Quitar asignación">
+                                    <i class="bi bi-person-x-fill"></i>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'asignar_empleado' evaluacion.id empleado.id %}?departamento={{ departamento_seleccionado }}&dni={{ dni_busqueda }}" 
+                                    class="btn btn-sm btn-success" title="Asignar empleado">
+                                    <i class="bi bi-person-check-fill"></i>
+                                </a>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if empleado.id in asignados_ids %}
+                            <a href="#" class="btn btn-sm btn-info">
+                                <i class="bi bi-pencil-square me-1"></i> Cargar
+                            </a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+                        </tr>
+                        {% empty %}
+                        <tr>
+                        <td colspan="6" class="text-center">No se encontraron empleados</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    </table>
+
+                    <nav aria-label="Paginación">
+                        <ul class="pagination justify-content-center mt-4">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                        {% endif %}
+                        </ul>
+                    </nav>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("filtros-form");
+    const inputDNI = form.querySelector("input[name='dni']");
+
+
+    inputDNI.focus();
+    inputDNI.setSelectionRange(inputDNI.value.length, inputDNI.value.length);
+
+    let searchTimeout;
+
+    function actualizarTabla() {
+        const params = new URLSearchParams(new FormData(form)).toString();
+        fetch(`${window.location.pathname}?${params}`, {
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.querySelector(".table-responsive").innerHTML = data.html;
+            inputDNI.focus();
+            inputDNI.setSelectionRange(inputDNI.value.length, inputDNI.value.length);
+        });
+    }
+
+
+    inputDNI.addEventListener("keyup", () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(actualizarTabla, 500);
+    });
+});
+</script>
+
+{% endblock %}

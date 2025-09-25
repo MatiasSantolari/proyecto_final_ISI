@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
+{% load custom_filters %}
 
 {% block title %}Gestión de Evaluaciones{% endblock %}
 
@@ -19,16 +20,17 @@
             <tr>
               <th>Descripción</th>
               <th>Fecha Evaluación</th>
-              <th>Activo</th>
+              <th style="width:4%;">Activo</th>
               <th>Criterios</th>
-              <th>Acciones</th>
+              <th style="width:8%;">Empleados</th>
+              <th style="width:10%;">Acciones</th>
             </tr>
           </thead>
           <tbody class="text-center">
             {% for eval in evaluaciones %}
             <tr>
               <td>{{ eval.descripcion }}</td>
-              <td>{{ eval.fecha_evaluacion }}</td>
+              <td>{{ eval.fecha_evaluacion|date:"d/m/Y" }}</td>
               <td>
                 {% if eval.activo %}
                   <span class="badge bg-success">Sí</span>
@@ -38,8 +40,13 @@
               </td>
               <td>
                 {% for ec in eval.evaluacioncriterio_set.all %}
-                  <span class="badge bg-info text-dark">{{ ec.criterio.descripcion }} ({{ ec.ponderacion }})</span>
+                  <span class="badge bg-info text-dark" style="font-size: 0.6rem;">{{ ec.criterio.descripcion }} ({{ ec.ponderacion|format_ponderacion }})</span>
                 {% empty %}-{% endfor %}
+              </td>
+              <td>
+                <a href="{% url 'evaluacion_empleados' eval.id %}" class="btn btn-sm btn-primary">
+                  Asignar
+                </a>
               </td>
               <td>
                 <div class="d-flex justify-content-center gap-2">
@@ -136,7 +143,6 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body" id="verCriteriosContainer">
-        <!-- Se llenará dinámicamente con JS -->
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Cerrar</button>
@@ -150,6 +156,24 @@
 
 
 <script>
+
+  function formatPonderacion(value) {
+    let num = parseFloat(value);
+    if (isNaN(num)) return value;
+    let text = num.toString();
+    if (text.includes('.')) {
+      let decimals = text.split('.')[1];
+      if (decimals.length === 1) {
+        return num.toFixed(2);
+      } else {
+        return text.replace(/(\.\d*?[1-9])0+$/, '$1').replace(/\.$/, '');
+      }
+    } else {
+      return num.toFixed(2);
+    }
+  }
+
+
 document.addEventListener("DOMContentLoaded", function () {
   // ----- MODAL VER EVALUACIÓN -----
   const modalVer = new bootstrap.Modal(document.getElementById('modalVerEvaluacion'));
@@ -172,7 +196,7 @@ document.addEventListener("DOMContentLoaded", function () {
             criterios.forEach(c => {
               const divC = document.createElement('div');
               divC.classList.add('d-flex', 'justify-content-between', 'my-1');
-              divC.innerHTML = `<span>${c.descripcion}</span><span>(${c.ponderacion})</span>`;
+              divC.innerHTML = `<span>${c.descripcion}</span><span>(${formatPonderacion(c.ponderacion)})</span>`;
               tipoDiv.appendChild(divC);
             });
 
@@ -247,14 +271,14 @@ document.addEventListener("DOMContentLoaded", function () {
             divC.dataset.id = c.id;
             
             const criterioId = parseInt(c.id) || 0;
-            const ponderacionVal = parseFloat(c.ponderacion) || 0;
+            const ponderacionVal = parseFloat(formatPonderacion(c.ponderacion)) || 0;
 
             divC.innerHTML = `
               <span>${c.descripcion}</span>
               <div class="d-flex align-items-center gap-2">
-                <input type="number" min="0" max="1" step="0.01" class="form-control form-control-sm ponderacion-edit" value="${c.ponderacion}" style="width:80px;">
+                <input type="number" min="0" max="1" step="0.01" class="form-control form-control-sm ponderacion-edit" value="${formatPonderacion(c.ponderacion)}" style="width:80px;">
                 <input type="hidden" name="criterio" value="${c.id}">
-                <input type="hidden" name="ponderacion" value="${c.ponderacion}">
+                <input type="hidden" name="ponderacion" value="${formatPonderacion(c.ponderacion)}">
                 <button type="button" class="btn btn-sm btn-outline-danger eliminar-criterio-btn">&times;</button>
               </div>
             `;

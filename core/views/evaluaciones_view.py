@@ -9,6 +9,7 @@ from django.db import transaction
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from collections import defaultdict
+from django.template.loader import render_to_string
 from django.core.paginator import Paginator
 
 
@@ -140,3 +141,80 @@ def evaluacion_json(request, evaluacion_id):
             'criterios': [{'id': c.criterio.id, 'descripcion': c.criterio.descripcion, 'ponderacion': c.ponderacion} for c in criterios]
         })
     return JsonResponse(tipos, safe=False)
+
+
+############
+
+
+def gestionar_empleados(request, id_evaluacion):
+    evaluacion = get_object_or_404(Evaluacion, id=id_evaluacion)
+    departamentos = Departamento.objects.order_by('nombre')
+    departamento_seleccionado = request.GET.get('departamento', 'todos')
+    dni = request.GET.get('dni', '').strip()
+    empleados = Empleado.objects.all().distinct().order_by('apellido','nombre')
+
+    if departamento_seleccionado != 'todos':
+        empleados = empleados.filter(
+            empleadocargo__fecha_fin__isnull=True,
+            empleadocargo__cargo__cargodepartamento__departamento__id=departamento_seleccionado
+        )
+    if dni:
+        empleados = empleados.filter(dni__icontains=dni)
+
+    empleados = empleados.distinct()
+
+    asignados_ids = EvaluacionEmpleado.objects.filter(
+        evaluacion=evaluacion
+    ).values_list('empleado_id', flat=True)
+
+    paginator = Paginator(empleados, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'evaluacion_empleados.html', {
+        'evaluacion': evaluacion,
+        'departamentos': departamentos,
+        'empleados': page_obj,
+        'page_obj': page_obj,
+        'asignados_ids': asignados_ids,
+        'departamento_seleccionado': str(departamento_seleccionado),
+        'dni_busqueda': dni,
+    })
+
+
+
+@login_required
+def asignar_empleado(request, id_evaluacion, id_empleado):
+    evaluacion = get_object_or_404(Evaluacion, pk=id_evaluacion)
+    empleado = get_object_or_404(Empleado, pk=id_empleado)
+
+    EvaluacionEmpleado.objects.get_or_create(
+        evaluacion=evaluacion,
+        empleado=empleado,
+        fecha_registro=date.today()
+    )
+    messages.success(request, f"Empleado {empleado} asignado a la evaluación.")
+
+    departamento = request.GET.get('departamento', 'todos')
+    dni = request.GET.get('dni', '')
+
+    return redirect(f'/evaluaciones/{id_evaluacion}/empleados/?departamento={departamento}&dni={dni}')
+
+
+
+@login_required
+def quitar_empleado(request, id_evaluacion, id_empleado):
+    evaluacion = get_object_or_404(Evaluacion, pk=id_evaluacion)
+    empleado = get_object_or_404(Empleado, pk=id_empleado)
+
+    EvaluacionEmpleado.objects.filter(
+        evaluacion=evaluacion,
+        empleado=empleado
+    ).delete()
+
+    messages.success(request, f"Empleado {empleado} quitado de la evaluación.")
+
+    departamento = request.GET.get('departamento', 'todos')
+    dni = request.GET.get('dni', '')
+
+    return redirect(f'/evaluaciones/{id_evaluacion}/empleados/?departamento={departamento}&dni={dni}')
