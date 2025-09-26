@@ -1,0 +1,65 @@
+{% load custom_filters %}
+
+<div class="modal-header bg-primary text-white">
+  <h5 class="modal-title fs-5">
+    <i class="bi bi-pencil-square me-1"></i>
+    Calificar a <strong>{{ empleado.apellido }}, {{ empleado.nombre }}</strong> sobre <strong>{{ evaluacion.descripcion }}</strong>
+  </h5>
+  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body p-2">
+  <form id="formCalificarEmpleado" method="post" action="{% url 'calificar_empleado' evaluacion.id empleado.id %}">
+    {% csrf_token %}
+
+    {% for tipo_info in tipos_dict.values %}
+    <div class="card shadow-sm mb-2 border-0">
+        <div class="card-header bg-light fw-bold py-2 px-2 fs-6">
+        {{ tipo_info.tipo.descripcion }}
+        </div>
+        <ul class="list-group list-group-flush">
+        {% for crit_eval in tipo_info.criterios %}
+            <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-1 fs-7">
+                <span class="me-1">
+                    <i class="bi bi-check-circle text-success me-1"></i>
+                    {{ crit_eval.criterio.descripcion }}
+                    <span class="badge bg-secondary ms-2 fs-7 py-0 px-1">{{ crit_eval.ponderacion|format_ponderacion }}</span>
+                </span>
+                <div class="input-group input-group-sm" style="width: 80px;">
+                <input type="number"
+                        name="criterio_{{ crit_eval.criterio.id }}"
+                        value="{{ calificaciones|dict_get:crit_eval.criterio.id|stringformat:'s'|default_if_none:'' }}"
+                        class="form-control form-control-sm text-end p-1"
+                        step="0.1" min="0" max="10">
+                <span class="input-group-text p-1">/10</span>
+                </div>
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+
+    <div class="mb-2 mt-4">
+      <hr>
+      <label class="form-label fw-bold fs-7">
+        <i class="bi bi-chat-dots me-1"></i> Comentarios
+      </label>
+      <textarea name="comentarios" class="form-control form-control-sm" rows="2">{{ eval_empleado.comentarios|default_if_none:"" }}</textarea>
+    </div>
+  </form>
+</div>
+
+<div class="modal-footer p-2">
+ <!-- <button type="button" class="btn btn-outline-secondary btn-sm mr-5" data-bs-dismiss="modal">
+    <i class="bi bi-x-circle me-1"></i> Cerrar
+  </button> -->
+  {% if eval_empleado.calificacion_final is not None %}
+    <button type="button" id="btnEditarCalificacion" class="btn btn-primary">
+      <i class="bi bi-save me-1"></i> Editar 
+    </button>
+  {%else%}
+    <button type="submit" form="formCalificarEmpleado" class="btn btn-success">
+      <i class="bi bi-save me-1"></i> Guardar
+    </button>
+  {% endif %}
+</div>

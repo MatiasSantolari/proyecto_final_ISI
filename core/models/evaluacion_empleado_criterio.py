@@ -17,4 +17,4 @@ class EvaluacionEmpleadoCriterio(models.Model):
 
 
     def __str__(self):
-        return f"{self.evaluacion_empleado} - {self.criterio}: {self.calificacion}"
+        return f"{self.evaluacion_empleado} - {self.criterio}: {self.calificacion_criterio}"

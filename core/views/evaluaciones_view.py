@@ -131,6 +131,27 @@ def eliminar_evaluacion(request, id_evaluacion):
 
 
 @login_required
+def duplicar_evaluacion(request, evaluacion_id):
+    evaluacion = get_object_or_404(Evaluacion, id=evaluacion_id)
+
+    nueva_evaluacion = Evaluacion.objects.create(
+        descripcion=evaluacion.descripcion,
+        fecha_evaluacion=date.today(),
+        activo=True
+    )
+    criterios = EvaluacionCriterio.objects.filter(evaluacion=evaluacion)
+    for crit in criterios:
+        EvaluacionCriterio.objects.create(
+            evaluacion=nueva_evaluacion,
+            criterio=crit.criterio,
+            ponderacion=crit.ponderacion
+        )
+    messages.success(request, f"Evaluación duplicada correctamente: {nueva_evaluacion.descripcion}")
+    return redirect('evaluaciones')
+
+
+
+@login_required
 def evaluacion_json(request, evaluacion_id):
     eval = get_object_or_404(Evaluacion, id=evaluacion_id)
     tipos = []
@@ -171,6 +192,25 @@ def gestionar_empleados(request, id_evaluacion):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+
+    tipos_criterios = TipoCriterio.objects.prefetch_related('criterio_set').all()
+    eval_empleados = {
+        e.id: EvaluacionEmpleado.objects.filter(evaluacion=evaluacion, empleado=e).first()
+        for e in empleados
+    }
+    calificaciones = {
+        e.id: {
+            c.criterio.id: c.calificacion_criterio
+            for c in EvaluacionEmpleadoCriterio.objects.filter(evaluacion_empleado=eval_empleados[e.id])
+        } if eval_empleados[e.id] else {}
+        for e in empleados
+    }
+
+    calificaciones_finales = {
+        ee.empleado_id: ee.calificacion_final
+        for ee in EvaluacionEmpleado.objects.filter(evaluacion=evaluacion)
+    }
+    
     return render(request, 'evaluacion_empleados.html', {
         'evaluacion': evaluacion,
         'departamentos': departamentos,
@@ -179,6 +219,9 @@ def gestionar_empleados(request, id_evaluacion):
         'asignados_ids': asignados_ids,
         'departamento_seleccionado': str(departamento_seleccionado),
         'dni_busqueda': dni,
+        'tipos_criterios': tipos_criterios,
+        'calificaciones': calificaciones,
+        "calificaciones_finales": calificaciones_finales,
     })
 
 
@@ -193,7 +236,7 @@ def asignar_empleado(request, id_evaluacion, id_empleado):
         empleado=empleado,
         fecha_registro=date.today()
     )
-    messages.success(request, f"Empleado {empleado} asignado a la evaluación.")
+    messages.success(request, f"Empleado {empleado.apellido}, {empleado.nombre} asignado a la evaluación.")
 
     departamento = request.GET.get('departamento', 'todos')
     dni = request.GET.get('dni', '')
@@ -207,14 +250,85 @@ def quitar_empleado(request, id_evaluacion, id_empleado):
     evaluacion = get_object_or_404(Evaluacion, pk=id_evaluacion)
     empleado = get_object_or_404(Empleado, pk=id_empleado)
 
-    EvaluacionEmpleado.objects.filter(
+    eval_empleado = EvaluacionEmpleado.objects.filter(
         evaluacion=evaluacion,
         empleado=empleado
-    ).delete()
+    ).first()
 
-    messages.success(request, f"Empleado {empleado} quitado de la evaluación.")
+    if eval_empleado and eval_empleado.calificacion_final is not None:
+        messages.error(request, f"No se puede quitar a {empleado.apellido}, {empleado.nombre}, ya tiene calificación final.")
+    else:
+        if eval_empleado:
+            eval_empleado.delete()
+            messages.success(request, f"Empleado {empleado.apellido}, {empleado.nombre} quitado de la evaluación.")
 
     departamento = request.GET.get('departamento', 'todos')
     dni = request.GET.get('dni', '')
 
     return redirect(f'/evaluaciones/{id_evaluacion}/empleados/?departamento={departamento}&dni={dni}')
+
+
+
+
+@login_required
+def calificar_empleado(request, id_evaluacion, id_empleado):
+    evaluacion = get_object_or_404(Evaluacion, id=id_evaluacion)
+    empleado = get_object_or_404(Empleado, id=id_empleado)
+
+    eval_empleado, created = EvaluacionEmpleado.objects.get_or_create(
+        evaluacion=evaluacion,
+        empleado=empleado
+    )
+
+    crit_evals = EvaluacionCriterio.objects.filter(evaluacion=evaluacion).select_related('criterio', 'criterio__tipo_criterio')
+    
+    tipos_dict = {}
+    for ce in crit_evals:
+        tipo = ce.criterio.tipo_criterio
+        if tipo.id not in tipos_dict:
+            tipos_dict[tipo.id] = {
+                "tipo": tipo,
+                "criterios": []
+            }
+        tipos_dict[tipo.id]["criterios"].append(ce)
+
+    if request.method == "POST":
+        sub_totales = {}
+
+        for tipo in tipos_dict.values():
+            sub_total = 0
+            for crit_eval in tipo["criterios"]:
+                criterio = crit_eval.criterio
+                key = f"criterio_{criterio.id}"
+                val = request.POST.get(key)
+                if val:
+                    val = Decimal(val)
+                    EvaluacionEmpleadoCriterio.objects.update_or_create(
+                        evaluacion_empleado=eval_empleado,
+                        criterio=criterio,
+                        defaults={"calificacion_criterio": val}
+                    )
+                    sub_total += val * crit_eval.ponderacion
+            sub_totales[tipo["tipo"].id] = sub_total  
+
+        if sub_totales:
+            eval_empleado.calificacion_final = sum(sub_totales.values()) / len(sub_totales)
+        eval_empleado.comentarios = request.POST.get("comentarios", "")
+        eval_empleado.save()
+
+        messages.success(request, f"Calificaciones de {empleado.apellido}, {empleado.nombre} guardadas correctamente.")
+
+        return redirect('evaluacion_empleados', id_evaluacion=evaluacion.id)
+    
+    calificaciones = {
+        int(eec.criterio.id): float(eec.calificacion_criterio)
+        for eec in EvaluacionEmpleadoCriterio.objects.filter(evaluacion_empleado=eval_empleado)
+    }
+
+    return render(request, "partials/_form_calificacion.html", {
+        "empleado": empleado,
+        "evaluacion": evaluacion,
+        "tipos_dict": tipos_dict,
+        "calificaciones": calificaciones,
+        "eval_empleado": eval_empleado,
+    })

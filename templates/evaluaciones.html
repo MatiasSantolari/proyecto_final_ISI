@@ -6,7 +6,7 @@
 
 {% block content %}
 <div class="container-fluid my-5">
-  <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Evaluaciones</h1>
+  <h2 class="mb-4" style="color: var(--color-primario);">Gestión de Evaluaciones</h2>
 
   <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalEvaluacion">
     + Crear Nueva Evaluación
@@ -15,15 +15,15 @@
   <div class="card shadow-sm border-0">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-sm table-hover table-bordered align-middle mb-0">
+        <table class="table table-sm table-hover table-bordered align-middle mb-5">
           <thead class="table-light text-center">
             <tr>
               <th>Descripción</th>
               <th>Fecha Evaluación</th>
               <th style="width:4%;">Activo</th>
               <th>Criterios</th>
-              <th style="width:8%;">Empleados</th>
-              <th style="width:10%;">Acciones</th>
+              <th style="width:9%;">Asignar Emp.</th>
+              <th style="width:8%;">Acciones</th>
             </tr>
           </thead>
           <tbody class="text-center">
@@ -38,41 +38,68 @@
                   <span class="badge bg-danger">No</span>
                 {% endif %}
               </td>
+
               <td>
                 {% for ec in eval.evaluacioncriterio_set.all %}
                   <span class="badge bg-info text-dark" style="font-size: 0.6rem;">{{ ec.criterio.descripcion }} ({{ ec.ponderacion|format_ponderacion }})</span>
                 {% empty %}-{% endfor %}
               </td>
               <td>
+                {% if eval.activo %}
                 <a href="{% url 'evaluacion_empleados' eval.id %}" class="btn btn-sm btn-primary">
-                  Asignar
+                  <i class="bi bi-pencil-square"></i> 
                 </a>
+                {%else%}
+                  -
+                {%endif%}
               </td>
               <td>
-                <div class="d-flex justify-content-center gap-2">
+                <div class="d-flex justify-content-center gap-2 align-items-center">
                   <button class="btn btn-sm btn-outline-info btn-ver-evaluacion" data-id="{{ eval.id }}" title="Ver">
                     <i class="bi bi-eye"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalEvaluacion"
-                          data-id="{{ eval.id }}" data-descripcion="{{ eval.descripcion }}" data-fecha="{{ eval.fecha_evaluacion }}"
-                          onclick="editarEvaluacion(this)" title="Editar">
-                    <i class="bi bi-pencil-square"></i>
-                  </button>
-                  {% if eval.activo %}
-                  <form method="post" action="{% url 'desactivar_evaluacion' eval.id %}" style="display:inline">{% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Desactivar">
-                      <i class="bi bi-trash3"></i>
+
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="accionesDropdown{{ eval.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="bi bi-three-dots"></i>
                     </button>
-                  </form>
-                  {% else %}
-                  <form method="post" action="{% url 'activar_evaluacion' eval.id %}" style="display:inline">{% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-success" title="Activar">
-                      <i class="bi bi-arrow-counterclockwise"></i>
-                    </button>
-                  </form>
-                  {% endif %}
+                    <ul class="dropdown-menu" aria-labelledby="accionesDropdown{{ eval.id }}">
+                      <li>
+                        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalEvaluacion"
+                                data-id="{{ eval.id }}" data-descripcion="{{ eval.descripcion }}" data-fecha="{{ eval.fecha_evaluacion }}"
+                                onclick="editarEvaluacion(this)">
+                          <i class="bi bi-pencil-square me-2"></i> Editar
+                        </button>
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="{% url 'duplicar_evaluacion' eval.id %}">
+                          <i class="bi bi-files me-2"></i> Duplicar
+                        </a>
+                      </li>
+                      {% if eval.activo %}
+                      <li>
+                        <form method="post" action="{% url 'desactivar_evaluacion' eval.id %}">
+                          {% csrf_token %}
+                          <button type="submit" class="dropdown-item">
+                            <i class="bi bi-trash3 me-2"></i> Desactivar
+                          </button>
+                        </form>
+                      </li>
+                      {% else %}
+                      <li>
+                        <form method="post" action="{% url 'activar_evaluacion' eval.id %}">
+                          {% csrf_token %}
+                          <button type="submit" class="dropdown-item">
+                            <i class="bi bi-arrow-counterclockwise me-2"></i> Activar
+                          </button>
+                        </form>
+                      </li>
+                      {% endif %}
+                    </ul>
+                  </div>
                 </div>
               </td>
+
             </tr>
             {% empty %}
             <tr>
@@ -127,7 +154,7 @@
           </div>
             
           <div class="modal-footer bg-light">
-            <button type="submit" class="btn btn-success w-100 fw-bold">Guardar Evaluación</button>
+            <button type="submit" class="btn btn-success fw-bold">Guardar Evaluación</button>
           </div>
         </form>
       </div>
@@ -136,7 +163,7 @@
 
 <!-- Modal Ver Evaluación -->
 <div class="modal fade" id="modalVerEvaluacion" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg" style="margin-top: 3rem;">
+  <div class="modal-dialog modal-lg" style="margin-top: 4rem;">
     <div class="modal-content">
       <div class="modal-header bg-info text-white">
         <h5 class="modal-title">Detalle de Evaluación</h5>
@@ -375,13 +402,13 @@ document.addEventListener("DOMContentLoaded", function () {
     let totalPonder = criteriosChecked.reduce((acc,c)=>acc+c.ponder,0);
     if(totalPonder !== 1){
         const n = criteriosChecked.length;
-        const base = Math.floor((1/n)*100)/100; // redondeo a 2 decimales
+        const base = Math.floor((1/n)*100)/100;
         let resto = 1 - (base * n);
 
         criteriosChecked.forEach((c, i) => {
             c.ponder = base;
-            if(i === n - 1) c.ponder += resto; // ajustar último criterio
-            c.ponder = Math.round(c.ponder * 100) / 100; // asegurar 2 decimales
+            if(i === n - 1) c.ponder += resto;
+            c.ponder = Math.round(c.ponder * 100) / 100;
         });
     }
 

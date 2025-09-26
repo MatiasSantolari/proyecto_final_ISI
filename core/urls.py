@@ -159,11 +159,13 @@ urlpatterns = [
     path('evaluaciones/<int:id_evaluacion>/desactivar/', evaluaciones_view.desactivar_evaluacion, name='desactivar_evaluacion'),
     path('evaluaciones/<int:id_evaluacion>/eliminar/', evaluaciones_view.eliminar_evaluacion, name='eliminar_evaluacion'),
     path('evaluaciones/ver/<int:id_evaluacion>/', evaluaciones_view.ver_evaluacion, name='ver_evaluacion'),
+    path('evaluaciones/<int:evaluacion_id>/duplicar/', views.duplicar_evaluacion, name='duplicar_evaluacion'),
 
     path("evaluaciones/<int:id_evaluacion>/empleados/", evaluaciones_view.gestionar_empleados, name="evaluacion_empleados"),
     path("evaluaciones/<int:id_evaluacion>/empleados/<int:id_empleado>/asignar/", evaluaciones_view.asignar_empleado, name="asignar_empleado"),
     path("evaluaciones/<int:id_evaluacion>/empleados/<int:id_empleado>/quitar/", evaluaciones_view.quitar_empleado, name="quitar_empleado"),
 
+    path('evaluaciones/<int:id_evaluacion>/empleados/<int:id_empleado>/calificar/', evaluaciones_view.calificar_empleado, name='calificar_empleado'),
 
 
 

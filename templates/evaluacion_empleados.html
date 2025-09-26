@@ -1,14 +1,14 @@
 {% extends "base.html" %}
-{% load static %}
+{% load custom_filters %}
 
 {% block title %}Gestionar empleados en {{ evaluacion.descripcion }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid mt-5">  
     <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3">
-        <h3 class="mb-2 mb-md-0">Gestionar empleados para <strong>{{ evaluacion.descripcion }}</strong></h3>
+        <h4 class="mb-2 mb-md-0">Gestionar empleados para <strong>{{ evaluacion.descripcion }} ({{evaluacion.fecha_evaluacion|date:"d/m/Y"}})</strong></h4>
         <a href="{% url 'evaluaciones' %}" class="btn btn-outline-secondary mr-2">
-        <i class="bi bi-arrow-left"></i> Volver a Evaluaciones
+        <i class="bi bi-arrow-left"></i> Volver a <strong>Evaluaciones</strong>
         </a>
     </div>
     <hr>
@@ -32,7 +32,6 @@
         </div>
     </form>
 
-
     
     <div class="card shadow-sm border-0">
         <div class="card-body">
@@ -40,54 +39,92 @@
                     <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.9rem;">
                     <thead class="table-light text-center">
                         <tr>
-                        <th>Apellido</th>
-                        <th>Nombre</th>
-                        <th style="width:6%;">DNI</th>
+                        <th>Nombre Completo</th>
+                        <th style="width:5%;">DNI</th>
                         <th>Departamento</th>
                         <th>Cargo</th>
-                        <th style="width:8%;">Estado</th>
+                        <th style="width:7%;">Estado</th>
                         <th style="width:7%;">Asignacion</th>
-                        <th style="width:9%;">Calificaciones</th>
+                        <th style="width:5%;">Calificar</th>
+                        <th style="width:7%;">Calificacion</th>
                         </tr>
                     </thead>
-                    <tbody class="text-center">
+                    <tbody class="text-center p-1 fs-7">
                         {% for empleado in empleados %}
                         <tr>
-                        <td>{{ empleado.apellido }}</td>
-                        <td>{{ empleado.nombre }}</td>
+                        <td>{{ empleado.apellido }}, {{ empleado.nombre }}</td>
                         <td>{{ empleado.dni }}</td>
                         <td>{{ empleado.departamento_actual_nombre }}</td>
                         <td>{{ empleado.cargo_actual_nombre }}</td>
                         <td>
-                            {% if empleado.id in asignados_ids %}
-                            <span class="badge bg-primary">Asignado</span>
+                            {% if empleado.id in asignados_ids %}            
+                                {% if calificaciones_finales|dict_get:empleado.id %}
+                                    <span class="badge bg-success">Calificado</span>
+                                {%else%}
+                                    <span class="badge bg-primary">Asignado</span>
+                                {%endif%}
                             {% else %}
                             <span class="badge bg-secondary">No asignado</span>
                             {% endif %}
                         </td>
                         <td class="text-center">
                             {% if empleado.id in asignados_ids %}
-                                <a href="{% url 'quitar_empleado' evaluacion.id empleado.id %}?departamento={{ departamento_seleccionado }}&dni={{ dni_busqueda }}" 
-                                    class="btn btn-sm btn-danger" title="Quitar asignación">
-                                    <i class="bi bi-person-x-fill"></i>
-                                </a>
+                                {% if calificaciones_finales|dict_get:empleado.id %}
+                                    <button class="btn btn-sm btn-secondary" style="font-size:0.9rem;" title="No se puede quitar (ya calificado)" disabled>
+                                        <i class="bi bi-person-x-fill"></i>
+                                    </button>
+                                {% else %}
+                                    <a href="{% url 'quitar_empleado' evaluacion.id empleado.id %}?departamento={{ departamento_seleccionado }}&dni={{ dni_busqueda }}" 
+                                        class="btn btn-sm btn-danger"  style="font-size:0.9rem;" title="Quitar asignación">
+                                        <i class="bi bi-person-x-fill"></i>
+                                    </a>
+                                {% endif %}
                             {% else %}
                                 <a href="{% url 'asignar_empleado' evaluacion.id empleado.id %}?departamento={{ departamento_seleccionado }}&dni={{ dni_busqueda }}" 
-                                    class="btn btn-sm btn-success" title="Asignar empleado">
+                                    class="btn btn-sm btn-success"  style="font-size:0.9rem;" title="Asignar empleado">
                                     <i class="bi bi-person-check-fill"></i>
                                 </a>
                             {% endif %}
                         </td>
+
                         <td class="text-center">
                             {% if empleado.id in asignados_ids %}
-                            <a href="#" class="btn btn-sm btn-info">
-                                <i class="bi bi-pencil-square me-1"></i> Cargar
-                            </a>
+                                {% if calificaciones_finales|dict_get:empleado.id %}
+                                    <button type="button"  style="font-size:0.9rem;" class="btn btn-sm btn-warning btn-sm btn-cargar-calificacion" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalCalificar"
+                                        data-url="{% url 'calificar_empleado' evaluacion.id empleado.id %}">
+                                        <i class="bi bi-eye-fill"></i> 
+                                    </button>
+                                {% else %}
+                                    <button type="button"  style="font-size:0.9rem;" class="btn btn-sm btn-info btn-cargar-calificacion" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalCalificar"
+                                        data-url="{% url 'calificar_empleado' evaluacion.id empleado.id %}">
+                                        <i class="bi bi-pencil-square"></i> 
+                                    </button>
+                                {% endif %}
                             {% else %}
                                 -
                             {% endif %}
                         </td>
-
+                        <td>
+                            {% if empleado.id in asignados_ids %}
+                            {% with cal=calificaciones_finales|dict_get:empleado.id %}
+                                {% if cal %}
+                                    <span class="badge {% if cal >= 6 %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ cal|floatformat:2 }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-primary">
+                                        Sin Calificar
+                                    </span>
+                                {% endif %}
+                            {% endwith %}
+                            {%else%}
+                               -
+                            {%endif%}
+                        </td>
                         </tr>
                         {% empty %}
                         <tr>
@@ -132,39 +169,78 @@
         </div>
     </div>
 
+<div class="modal fade" id="modalCalificar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable" style="margin-top: 3rem;">
+    <div class="modal-content"></div>
+  </div>
+</div>
+
+
 </div>
 
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("filtros-form");
-    const inputDNI = form.querySelector("input[name='dni']");
-
+    const formFiltros = document.getElementById("filtros-form");
+    const inputDNI = formFiltros.querySelector("input[name='dni']");
 
     inputDNI.focus();
     inputDNI.setSelectionRange(inputDNI.value.length, inputDNI.value.length);
 
     let searchTimeout;
 
-    function actualizarTabla() {
-        const params = new URLSearchParams(new FormData(form)).toString();
+    window.actualizarTabla = function() {
+        const params = new URLSearchParams(new FormData(formFiltros)).toString();
         fetch(`${window.location.pathname}?${params}`, {
             headers: { "X-Requested-With": "XMLHttpRequest" }
         })
         .then(response => response.json())
         .then(data => {
             document.querySelector(".table-responsive").innerHTML = data.html;
+
+            asignarBotonesCalificacion();
+
             inputDNI.focus();
             inputDNI.setSelectionRange(inputDNI.value.length, inputDNI.value.length);
         });
     }
 
-
     inputDNI.addEventListener("keyup", () => {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(actualizarTabla, 500);
     });
+
+    function asignarBotonesCalificacion() {
+        document.querySelectorAll(".btn-cargar-calificacion").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const url = btn.dataset.url;
+                const modalContent = document.querySelector("#modalCalificar .modal-content");
+
+                fetch(url)
+                    .then(res => res.text())
+                    .then(html => {
+                        modalContent.innerHTML = html;
+
+                        const form = modalContent.querySelector("#formCalificarEmpleado");
+                    });
+            });
+        });
+    }
+    asignarBotonesCalificacion();
 });
+
+
+
+document.addEventListener("click", function(e) {
+    if(e.target && e.target.id === "btnEditarCalificacion"){
+        const form = document.getElementById("formCalificarEmpleado");
+        const confirmar = confirm("Ya existe una calificación. ¿Está seguro que desea sobrescribir los datos anteriores?");
+        if(confirmar){
+            form.submit();
+        }
+    }
+});
+
 </script>
 
 {% endblock %}
