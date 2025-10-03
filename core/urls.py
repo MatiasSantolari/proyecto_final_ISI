@@ -189,4 +189,6 @@ urlpatterns = [
     path('contratar_nuevo_empleado/', views.contratar_nuevo_empleado, name='contratar_nuevo_empleado'),
     path('ausencias_retardos/', views.ausencias_retardos, name='ausencias_retardos'),
 
+    path("chatbot/get_response/", views.get_response_chatbot, name="chatbot_response"),
+
 ]

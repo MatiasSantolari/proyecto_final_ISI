@@ -1,0 +1,41 @@
+<div class="modal fade" id="modalChatbot" tabindex="-1" aria-labelledby="modalChatbotLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #3c8dbc;">
+        <h5 class="modal-title text-white" id="modalChatbotLabel">Chatbot RRHH</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+        <div id="chatbox" style="border: 1px solid #ccc; padding: 10px; height: 250px; overflow-y: scroll;"></div>
+        <div class="input-group mt-2">
+          <input type="text" id="inputChat" class="form-control" placeholder="Escribe un mensaje...">
+          <button class="btn btn-primary" onclick="sendMessage()">Enviar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function sendMessage() {
+    let input = document.getElementById("inputChat");
+    let message = input.value.trim();
+    if (!message) return;
+
+    let chatbox = document.getElementById("chatbox");
+    chatbox.innerHTML += "<b>Tú:</b> " + message + "<br>";
+
+    let response = await fetch("{% url 'chatbot_response' %}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: message })
+    });
+
+    let data = await response.json();
+    chatbox.innerHTML += "<b>Bot:</b> " + data.response + "<br>";
+    chatbox.scrollTop = chatbox.scrollHeight;
+    input.value = "";
+}
+</script>
+
+
