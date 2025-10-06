@@ -1,6 +1,6 @@
 from chatterbot import ChatBot
-from chatterbot.trainers import ChatterBotCorpusTrainer, ListTrainer
 
+# Definición del chatbot
 chatbot = ChatBot(
     "RRHH Bot",
     storage_adapter="chatterbot.storage.SQLStorageAdapter",
@@ -14,14 +14,3 @@ chatbot = ChatBot(
     ],
     read_only=False,
 )
-
-# 1) Entrenamiento con corpus en español
-corpus_trainer = ChatterBotCorpusTrainer(chatbot)
-corpus_trainer.train("chatterbot.corpus.spanish")
-
-# 2) Entrenamiento con frases personalizadas
-list_trainer = ListTrainer(chatbot)
-list_trainer.train([
-    "¿Qué beneficios tengo como empleado?",
-    "Contás con obra social, vacaciones pagas y capacitaciones.",
-])
