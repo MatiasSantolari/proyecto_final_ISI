@@ -65,6 +65,38 @@
           <!--<li class="nav-item"><a class="nav-link" href="{% url 'contratar_nuevo_empleado' %}"><i class="nav-icon fas fa-user-check"></i><p>Contratar Nuevo</p></a></li>-->
           <!--<li class="nav-item"><a class="nav-link" href=""><i class="nav-icon fas fa-check-circle"></i><p>Ausencias y Retardos</p></a></li>-->
         {% endif %}
+
+        {% if request.session.rol_actual == 'empleado' %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'objetivos' %}"><i class="nav-icon fas fa-bullseye"></i><p>Objetivos</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'descuentos' %}"><i class="nav-icon fas fa-minus-square"></i><p>Descuentos</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'logros' %}"><i class="nav-icon fas fa-award"></i><p>Logros</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'habilidades' %}"><i class="nav-icon fas fa-brain"></i><p>Habilidades</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'criterios' %}"><i class="nav-icon fas fa-check-double"></i><p>Criterios Evaluación</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-sign-in-alt"></i><p>Registrar Asistencia(todos)</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'capacitaciones' %}"><i class="nav-icon fas fa-chalkboard-teacher"></i><p>Capacitaciones</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'instituciones' %}"><i class="nav-icon fas fa-university"></i><p>Instituciones</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'beneficios' %}"><i class="nav-icon fas fa-gift"></i><p>Beneficios</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-id-card"></i><p>Mis Nóminas(todos)</p></a></li>
+          <!-- me falta el de capacitaciones -->
+        {% endif %}
+
+        {% if request.session.rol_actual == 'gerente' %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'criterios' %}"><i class="nav-icon fas fa-check-double"></i><p>Criterios Evaluación</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'instituciones' %}"><i class="nav-icon fas fa-university"></i><p>Instituciones</p></a></li>
+        {% endif %}
+
+        {% if request.session.rol_actual == 'jefe' %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'criterios' %}"><i class="nav-icon fas fa-check-double"></i><p>Criterios Evaluación</p></a></li>
+          <!--<li class="nav-item"><a class="nav-link" href="{% url 'solicitudes_nuevos_empleados' %}"><i class="nav-icon fas fa-user-edit"></i><p>Solicitudes Nuevos Empleados</p></a></li>-->
+          <li class="nav-item"><a class="nav-link" href="{% url 'instituciones' %}"><i class="nav-icon fas fa-university"></i><p>Instituciones</p></a></li>
+        {% endif %}
+
+        {% if request.session.rol_actual == 'normal' %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'criterios' %}"><i class="nav-icon fas fa-check-double"></i><p>Criterios Evaluación</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'instituciones' %}"><i class="nav-icon fas fa-university"></i><p>Instituciones</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="nav-icon fas fa-bullhorn"></i><p>Ofertas de Empleo(Emp)</p></a></li>
+          <!--<li class="nav-item"><a class="nav-link" href="{% url 'solicitudes_nuevos_empleados' %}"><i class="nav-icon fas fa-user-edit"></i><p>Solicitudes Nuevos Empleados</p></a></li>-->
+        {% endif %}
       </ul>
     </nav>
   </div>
