@@ -77,18 +77,21 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'instituciones' %}"><i class="nav-icon fas fa-university"></i><p>Instituciones</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'beneficios' %}"><i class="nav-icon fas fa-gift"></i><p>Beneficios</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-id-card"></i><p>Mis Nóminas(todos)</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones(todos)</p></a></li>
           <!-- me falta el de capacitaciones -->
         {% endif %}
 
         {% if request.session.rol_actual == 'gerente' %}
           <li class="nav-item"><a class="nav-link" href="{% url 'criterios' %}"><i class="nav-icon fas fa-check-double"></i><p>Criterios Evaluación</p></a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'instituciones' %}"><i class="nav-icon fas fa-university"></i><p>Instituciones</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones(todos)</p></a></li>
         {% endif %}
 
         {% if request.session.rol_actual == 'jefe' %}
           <li class="nav-item"><a class="nav-link" href="{% url 'criterios' %}"><i class="nav-icon fas fa-check-double"></i><p>Criterios Evaluación</p></a></li>
           <!--<li class="nav-item"><a class="nav-link" href="{% url 'solicitudes_nuevos_empleados' %}"><i class="nav-icon fas fa-user-edit"></i><p>Solicitudes Nuevos Empleados</p></a></li>-->
           <li class="nav-item"><a class="nav-link" href="{% url 'instituciones' %}"><i class="nav-icon fas fa-university"></i><p>Instituciones</p></a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones(todos)</p></a></li>
         {% endif %}
 
         {% if request.session.rol_actual == 'normal' %}
