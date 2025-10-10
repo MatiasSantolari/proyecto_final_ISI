@@ -157,8 +157,15 @@ def crear_persona(request):
                         persona=persona,
                         rol=rol
                     )
+                    
+                    if rol == 'admin':
+                        usuario.is_staff = True
+                        usuario.is_superuser = True
+                    else:
+                        usuario.is_staff = False
+                        usuario.is_superuser = False
+                    usuario.save()
 
-                    # Enviar email con credenciales
                     login_url = request.build_absolute_uri('/login/')
                     try:
                         send_mail(
@@ -182,7 +189,14 @@ def crear_persona(request):
                         usuario = Usuario.objects.get(persona=persona)
                         usuario.email = form.cleaned_data.get('email')
                         usuario.rol = rol
+                        if rol == 'admin':
+                            usuario.is_staff = True
+                            usuario.is_superuser = True
+                        else:
+                            usuario.is_staff = False
+                            usuario.is_superuser = False
                         usuario.save()
+                        
                     except Usuario.DoesNotExist:
                         print(f"Usuario no encontrado para persona {persona.id}")
 

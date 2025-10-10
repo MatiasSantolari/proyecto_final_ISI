@@ -9,6 +9,14 @@ pip install Pillow
 pip install django-widget-tweaks
 pip install holidays
 
+(para python 3.8)-->  pip install chatterbot==1.0.5
+(para python 3.10 o 3.11)--> pip install chatterbot==1.0.8
+(para python 3.12)--> pip install git+https://github.com/gunthercox/ChatterBot.git
+pip install chatterbot-corpus
+pip install spacy
+python -m spacy download es_core_news_sm
+python -m spacy download en_core_web_sm
+
 
 Pasos para configurar la Base de datos con Django
 crear usuario en mysql con los datos:
