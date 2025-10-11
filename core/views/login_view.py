@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.contrib import messages
 from django.conf import settings
 from django.utils import timezone
-from datetime import date
+from datetime import date, datetime
 from django.views.decorators.http import require_POST
 from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
@@ -70,7 +70,6 @@ def home(request):
             ).filter(
                 Q(objetivo__fecha_fin__isnull=True) | Q(objetivo__fecha_fin__gte=hoy)
             )
-
             
             # Objetivos recurrentes: asignados hoy
             recurrentes = ObjetivoEmpleado.objects.filter(
@@ -112,6 +111,10 @@ def home(request):
                 'empleado': None,
             })
 
+    departamentos = Departamento.objects.all()
+    context['departamentos'] = departamentos
+
+    
     return render(request, 'index.html', context)
 #
 

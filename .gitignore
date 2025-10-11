@@ -5,6 +5,9 @@ __pycache__/
 # Ignorar base de datos local
 *.sqlite3
 db.sqlite3
+# Ignorar SQLite temporales
+*.sqlite3-shm
+*.sqlite3-wal
 
 # Ignorar migraciones (opcional si no usás control de versiones sobre ellas)
 **/migrations/
@@ -27,3 +30,4 @@ env/
 
 # Caché de sistema
 .DS_Store
+

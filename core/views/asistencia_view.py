@@ -162,10 +162,45 @@ def confirmar_asistencias_accion(request):
     ids = request.POST.getlist("asistencia_ids")
     accion = request.POST.get("accion")
     actualizados = 0
+    hoy = now().date()
 
+    if accion == "registrar_ausentes":
+        user_empleado = _get_empleado_de_user(request)
+        if _user_es_admin(request.user, empleado=user_empleado):
+            empleados = Empleado.objects.all()
+        else:
+            cargo_act = user_empleado.empleadocargo_set.filter(
+                fecha_inicio__lte=hoy, fecha_fin__isnull=True
+            ).order_by("-fecha_inicio").first()
+            if cargo_act and cargo_act.cargo.es_jefe:
+                dept_ids = list(cargo_act.cargo.cargodepartamento_set.values_list("departamento_id", flat=True))
+                empleados = Empleado.objects.filter(
+                    empleadocargo__cargo__cargodepartamento__departamento_id__in=dept_ids,
+                    empleadocargo__fecha_fin__isnull=True
+                ).distinct()
+            else:
+                empleados = Empleado.objects.filter(id=user_empleado.id)
+
+        # Crear registros de ausencia para los que no tienen hoy
+        for e in empleados:
+            if not HistorialAsistencia.objects.filter(empleado=e, fecha_asistencia=hoy).exists():
+                HistorialAsistencia.objects.create(
+                    empleado=e,
+                    fecha_asistencia=hoy,
+                    hora_entrada=None,
+                    hora_salida=None,
+                    tardanza=False,
+                    confirmado=False
+                )
+                actualizados += 1
+
+        messages.success(request, f"Se registraron {actualizados} ausentes de hoy.")
+        return redirect("confirmar_asistencias")
+
+    
     for aid in ids:
-        asistencia = HistorialAsistencia.objects.filter(id=aid).first()
-        if not asistencia:
+        asistencia = HistorialAsistencia.objects.filter(id=aid, fecha_asistencia=hoy).first()
+        if not asistencia or asistencia.hora_entrada is None:
             continue
 
         if accion == "confirmar":
@@ -173,6 +208,7 @@ def confirmar_asistencias_accion(request):
                 asistencia.confirmado = True
                 asistencia.save()
                 actualizados += 1
+        
         elif accion == "tardanza":
             if not asistencia.tardanza:
                 asistencia.tardanza = True

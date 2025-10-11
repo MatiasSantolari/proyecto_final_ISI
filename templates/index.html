@@ -4,122 +4,115 @@
 
 {% block content %}
 <div class="content">
-    <div class="container-fluid mt-4"><hr>
-        <h1 class="mb-4">Bienvenido al Sistema</h1>
+    <div class="container-fluid ml-4 mt-4"><hr>
+        <h4 class="mb-4 mt-4">Bienvenido al Sistema</h4>
 
-        {% if rol_actual == 'admin' %}
-        {% endif %}
+        {% if request.session.rol_actual == 'admin' %}
+            <!-- INFORME ASISTENCIA -->
+            {% include "dashboard_asistencias.html" %}
 
-        <div class="row" id="user-content">
-            <!-- Objetivos y Metas -->
-            <div class="col-md-4 mb-4">
-                <div class="card bg-soft-success bg-light text-dark border-start border-4 border-success shadow-sm h-100 rounded-4">
-                    <div class="card-body">
-                        <h5 class="card-title">🎯 Objetivos/Tareas</h5>
-                        <hr>
-                        {% if objetivos_con_estado %}
-                            {% for item in objetivos_con_estado %}
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input objetivo-check" type="checkbox"
-                                        data-id="{{ item.objetivo.id }}"
-                                        {% if item.completado %}checked{% endif %}>
-                                    <label class="form-check-label {% if item.completado %}objetivo-completado{% endif %}">
-                                        {{ item.objetivo.titulo }}
-                                    </label>
+        {% else %}
+            <div class="row" id="user-content">
+                <!-- Objetivos y Metas -->
+                <div class="col-md-4 mb-4">
+                    <div class="card bg-soft-success bg-light text-dark border-start border-4 border-success shadow-sm h-100 rounded-4">
+                        <div class="card-body">
+                            <h5 class="card-title">🎯 Objetivos/Tareas</h5>
+                            <hr>
+                            {% if objetivos_con_estado %}
+                                {% for item in objetivos_con_estado %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input objetivo-check" type="checkbox"
+                                            data-id="{{ item.objetivo.id }}"
+                                            {% if item.completado %}checked{% endif %}>
+                                        <label class="form-check-label {% if item.completado %}objetivo-completado{% endif %}">
+                                            {{ item.objetivo.titulo }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p>No tienes objetivos asignados.</p>
+                            {% endif %}
+                            <div class="progress mt-4">
+                                <div id="barra-progreso" class="progress-bar bg-success" role="progressbar"
+                                    style="min-width: 30px; width: {{ progreso }}%;">
+                                    {{ progreso }}%
                                 </div>
-                            {% endfor %}
-                        {% else %}
-                            <p>No tienes objetivos asignados.</p>
-                        {% endif %}
-                        <div class="progress mt-4">
-                            <div id="barra-progreso" class="progress-bar bg-success" role="progressbar"
-                                style="min-width: 30px; width: {{ progreso }}%;">
-                                {{ progreso }}%
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-
-            <!-- Logros -->
-            <div class="col-md-4 mb-4">
-                <div class="card bg-soft-warning bg-light text-dark border-start border-4 border-warning shadow-sm h-100 rounded-4">
-                    <div class="card-body">
-                        <h5 class="card-title">🏆 Logros y Reconocimientos</h5><hr><hr>
-                        <p>Último logro: <strong>Empleado del mes</strong></p>
-                        <p>¡Sigue así! Próximo logro en 2 tareas.</p>
-                    </div>    
+                <!-- Logros -->
+                <div class="col-md-4 mb-4">
+                    <div class="card bg-soft-warning bg-light text-dark border-start border-4 border-warning shadow-sm h-100 rounded-4">
+                        <div class="card-body">
+                            <h5 class="card-title">🏆 Logros y Reconocimientos</h5><hr><hr>
+                            <p>Último logro: <strong>Empleado del mes</strong></p>
+                            <p>¡Sigue así! Próximo logro en 2 tareas.</p>
+                        </div>    
+                    </div>
                 </div>
-            </div>
 
-            <!-- Tareas Pendientes -->
-            <div class="col-md-4 mb-4">
-                <div class="card bg-soft-info bg-light text-dark border-start border-4 border-info shadow-sm h-100 rounded-4">
-                    <div class="card-body">
-                        <h5 class="card-title">📅 Tareas Pendientes</h5><hr><hr>
-                        <p>🟢 Evaluar desempeño de tu equipo</p>
-                        <p>🔴 Completar autoevaluación</p>
-                        <p>🟡 Asistir a la reunión mensual</p>
+                <!-- Tareas Pendientes -->
+                <div class="col-md-4 mb-4">
+                    <div class="card bg-soft-info bg-light text-dark border-start border-4 border-info shadow-sm h-100 rounded-4">
+                        <div class="card-body">
+                            <h5 class="card-title">📅 Tareas Pendientes</h5><hr><hr>
+                            <p>🟢 Evaluar desempeño de tu equipo</p>
+                            <p>🔴 Completar autoevaluación</p>
+                            <p>🟡 Asistir a la reunión mensual</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Beneficios Disponibles -->
+                <div class="col-md-4 mb-4">
+                    <div class="card bg-soft-mint bg-light text-dark border-start border-4 border-mint shadow-sm h-100 rounded-4">
+                        <div class="card-body">
+                            <h5 class="card-title">💰 Beneficios Disponibles</h5><hr><hr>
+                            <p><strong>3 días</strong> de home office acumulados.</p>
+                            <p>Crédito de bienestar: <strong>$500 en cursos</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informe Personalizado -->
+                <div class="col-md-4 mb-4">
+                    <div class="card bg-soft-primary bg-light text-dark border-start border-4 border-primary shadow-sm h-100 rounded-4">
+                        <div class="card-body">
+                            <h5 class="card-title">📊 Informe Personalizado</h5><hr><hr>
+                            <p><strong>Asistencia:</strong> 95% este mes</p>
+                            <p><strong>Evaluación de desempeño:</strong> 4.5/5 ⭐</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Anuncios Importantes -->
+                <div class="col-md-4 mb-4">
+                    <div class="card bg-soft-danger bg-light text-dark border-start border-4 border-danger shadow-sm h-100 rounded-4">
+                        <div class="card-body">
+                            <h5 class="card-title">📣 Anuncios Importantes</h5><hr><hr>
+                            <p>📢 Bono por desempeño aprobado 🏅</p>
+                            <p>📅 Próxima capacitación: Gestión de Proyectos - 10 Feb</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accesos rápidos -->
+                <div class="col-md-4 mb-4">
+                    <div class="card bg-soft-secondary bg-light text-dark border-start border-4 border-secondary shadow-sm h-100 rounded-4">
+                        <div class="card-body">
+                            <h5 class="card-title">📜 Accesos Rápidos</h5><hr><hr>
+                            <a href="#" class="d-block mb-2 text-decoration-none text-dark">📌 Solicitar Vacaciones</a>
+                            <a href="#" class="d-block mb-2 text-decoration-none text-dark">📌 Registrar Asistencia</a>
+                            <a href="#" class="d-block mb-2 text-decoration-none text-dark">📌 Postularse a una Oferta Interna</a>
+                        </div>
                     </div>
                 </div>
             </div>
+        {% endif %}
 
-            <!-- Beneficios Disponibles -->
-            <div class="col-md-4 mb-4">
-                <div class="card bg-soft-mint bg-light text-dark border-start border-4 border-mint shadow-sm h-100 rounded-4">
-                    <div class="card-body">
-                        <h5 class="card-title">💰 Beneficios Disponibles</h5><hr><hr>
-                        <p><strong>3 días</strong> de home office acumulados.</p>
-                        <p>Crédito de bienestar: <strong>$500 en cursos</strong></p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Informe Personalizado -->
-            <div class="col-md-4 mb-4">
-                <div class="card bg-soft-primary bg-light text-dark border-start border-4 border-primary shadow-sm h-100 rounded-4">
-                    <div class="card-body">
-                        <h5 class="card-title">📊 Informe Personalizado</h5><hr><hr>
-                        <p><strong>Asistencia:</strong> 95% este mes</p>
-                        <p><strong>Evaluación de desempeño:</strong> 4.5/5 ⭐</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Anuncios Importantes -->
-            <div class="col-md-4 mb-4">
-                <div class="card bg-soft-danger bg-light text-dark border-start border-4 border-danger shadow-sm h-100 rounded-4">
-                    <div class="card-body">
-                        <h5 class="card-title">📣 Anuncios Importantes</h5><hr><hr>
-                        <p>📢 Bono por desempeño aprobado 🏅</p>
-                        <p>📅 Próxima capacitación: Gestión de Proyectos - 10 Feb</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Accesos rápidos -->
-            <div class="col-md-4 mb-4">
-                <div class="card bg-soft-secondary bg-light text-dark border-start border-4 border-secondary shadow-sm h-100 rounded-4">
-                    <div class="card-body">
-                        <h5 class="card-title">📜 Accesos Rápidos</h5><hr><hr>
-                        <a href="#" class="d-block mb-2 text-decoration-none text-dark">📌 Solicitar Vacaciones</a>
-                        <a href="#" class="d-block mb-2 text-decoration-none text-dark">📌 Registrar Asistencia</a>
-                        <a href="#" class="d-block mb-2 text-decoration-none text-dark">📌 Postularse a una Oferta Interna</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Panel admin -->
-        <div class="admin-content d-none" id="admin-content">
-            <h2 class="mt-5">🛠️ Panel de Administración</h2>
-            <p>Aquí se gestionan todas las actividades del administrador.</p>
-            <button class="admin-toggle btn btn-outline-secondary mb-3" onclick="toggleAdminMode()">Modo Usuario</button>
-            <div class="dashboard-container row row-cols-1 row-cols-md-2 g-4">
-                <!-- Aquí irán las cards de administración -->
-            </div>
-        </div>
     </div>
 </div>
 
@@ -130,7 +123,9 @@
 
 {% include "chatbot_modal.html" %}
 
+
 {% endblock %}
+
 <style>
     .objetivo-completado {
         text-decoration: line-through;
@@ -139,6 +134,7 @@
         transition: all 0.3s ease;
     }
 </style>
+
 {% block extra_js %}
 <script>
     function toggleAdminMode() {

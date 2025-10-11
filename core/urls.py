@@ -168,6 +168,15 @@ urlpatterns = [
     path('evaluaciones/<int:id_evaluacion>/empleados/<int:id_empleado>/calificar/', evaluaciones_view.calificar_empleado, name='calificar_empleado'),
 
 
+    ## CHATBOT ##
+    path("chatbot/get_response/", views.get_response_chatbot, name="chatbot_response"),
+
+
+    #### INFORMES ####
+    path('dashboard/asistencias/data/', informes_view.dashboard_asistencias_data, name='dashboard_asistencias_data'),
+    path('informe/asistencias/', informes_view.informe_asistencias, name='informe_asistencias'),
+    path('informe/asistencias/data/', informes_view.informe_asistencias_data, name='informe_asistencias_data'),
+
 
 ##############################################
 ##############################################
@@ -189,5 +198,6 @@ urlpatterns = [
     path('contratar_nuevo_empleado/', views.contratar_nuevo_empleado, name='contratar_nuevo_empleado'),
     path('ausencias_retardos/', views.ausencias_retardos, name='ausencias_retardos'),
 
-     path("chatbot/get_response/", views.get_response_chatbot, name="chatbot_response"),
+
+
 ]
