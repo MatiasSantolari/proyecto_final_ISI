@@ -1,0 +1,139 @@
+<div class="card bg-gradient-success shadow-sm mb-3 dashboard-mini" style="max-width: 500px;">
+  <div class="card-header border-0 d-flex justify-content-between align-items-center">
+    <h6 class="card-title">
+      <i class="fas fa-suitcase-rolling mr-1"></i> Vacaciones
+    </h6>
+  </div>
+
+  <div class="card-body p-1">
+    <div class="d-flex gap-1 mb-1">
+      <select id="departamentoFiltroVacaciones" class="form-select form-select-sm flex-fill">
+        <option value="">Todos</option>
+        {% for dep in departamentos %}
+        <option value="{{ dep.id }}">{{ dep.nombre }}</option>
+        {% endfor %}
+      </select>
+      <select id="periodoFiltroVacaciones" class="form-select form-select-sm flex-fill">
+        <option value="semana">Última Semana</option>
+        <option value="mes">Último Mes</option>
+        <option value="año">Último Año</option>
+      </select>
+    </div>
+
+    <div class="d-flex justify-content-between text-center gap-2 mb-3 mt-3">
+      <div class="p-1 rounded-3 bg-light flex-fill shadow-sm">
+        <div class="text-muted small">Solicitudes</div>
+        <strong id="totalSolicitudes" class="text-info fs-5">0</strong>
+      </div>
+      <div class="p-1 rounded-3 bg-light flex-fill shadow-sm">
+        <div class="text-muted small">Aprobadas</div>
+        <strong id="aprobadas" class="text-success fs-5">0</strong>
+      </div>
+      <div class="p-1 rounded-3 bg-light flex-fill shadow-sm">
+        <div class="text-muted small">Pendientes</div>
+        <strong id="pendientes" class="text-warning fs-5">0</strong>
+      </div>
+      <div class="p-1 rounded-3 bg-light flex-fill shadow-sm">
+        <div class="text-muted small">Rechazadas</div>
+        <strong id="rechazadas" class="text-danger fs-5">0</strong>
+      </div>
+      <div class="p-1 rounded-3 bg-light flex-fill shadow-sm">
+        <div class="text-muted small">Canceladas</div>
+        <strong id="canceladas" class="text-gray fs-5">0</strong>
+      </div>
+    </div>
+
+    <canvas id="graficoVacaciones" class="mt-4" style="max-height: 350px; width: 100%; min-height: 325px;"></canvas>
+
+    <div class="mt-2 text-end">
+      <a href="{% url 'informe_vacaciones' %}" class="btn btn-warning btn-sm">Ver +</a>
+    </div>
+  </div>
+</div>
+
+
+<style>
+  .dashboard-mini .card-body .text-muted {
+    font-size: 0.95rem;
+  }
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const ctx = document.getElementById('graficoVacaciones').getContext('2d');
+  let grafico;
+
+  async function cargarDashboard() {
+    const dep = document.getElementById('departamentoFiltroVacaciones').value;
+    const periodo = document.getElementById('periodoFiltroVacaciones').value;
+
+    const resp = await fetch(`{% url 'dashboard_vacaciones_data' %}?departamento=${dep}&periodo=${periodo}`);
+    const data = await resp.json();
+
+    document.getElementById('totalSolicitudes').textContent = data.total_solicitudes;
+    document.getElementById('aprobadas').textContent = data.aprobadas;
+    document.getElementById('pendientes').textContent = data.pendientes;
+    document.getElementById('rechazadas').textContent = data.rechazadas;
+    document.getElementById('canceladas').textContent = data.canceladas;
+
+    if(grafico) grafico.destroy();
+
+    if (data.aprobadas + data.pendientes + data.rechazadas + data.canceladas === 0) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.font = "12px Arial";
+        ctx.fillStyle = "#ffffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("No hay datos para este periodo", ctx.canvas.width / 2, ctx.canvas.height / 2);
+        return;
+    }
+
+    grafico = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Aprobadas', 'Pendientes', 'Rechazadas', 'Canceladas'],
+        datasets: [{
+          data: [data.aprobadas, data.pendientes, data.rechazadas, data.canceladas],
+          backgroundColor: ['#198754','#ffc107','#dc3545','#7b7b7bff'],
+          hoverOffset: 10
+        }]
+      },
+      options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom', 
+                        labels: {
+                            color: '#ffffff',
+                            font: { size: 14 },
+                            boxWidth: 10,      
+                            boxHeight: 10,     
+                            padding: 20,
+                        },
+                        align: 'center',        
+                        maxWidth: 300,          
+                        display: true
+                    },
+                    tooltip: {
+                        enabled: true,
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.raw;
+                            }
+                        }
+                    }
+                },
+                animation: { animateRotate:true, animateScale:true }
+        }
+    });
+  }
+
+  document.getElementById('departamentoFiltroVacaciones').addEventListener('change', cargarDashboard);
+  document.getElementById('periodoFiltroVacaciones').addEventListener('change', cargarDashboard);
+
+  cargarDashboard();
+});
+</script>

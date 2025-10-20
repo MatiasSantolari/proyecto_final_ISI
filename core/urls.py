@@ -172,10 +172,15 @@ urlpatterns = [
     path("chatbot/get_response/", views.get_response_chatbot, name="chatbot_response"),
 
 
-    #### INFORMES ####
+    ###### INFORMES ######
+                    ## ASISTENCIAS ##
     path('dashboard/asistencias/data/', informes_view.dashboard_asistencias_data, name='dashboard_asistencias_data'),
     path('informe/asistencias/', informes_view.informe_asistencias, name='informe_asistencias'),
     path('informe/asistencias/data/', informes_view.informe_asistencias_data, name='informe_asistencias_data'),
+                    ## VACACIONES ##
+    path('dashboard/vacaciones/data/', informes_view.dashboard_vacaciones_data, name='dashboard_vacaciones_data'),
+    path('informe/vacaciones/', informes_view.informe_vacaciones, name='informe_vacaciones'),
+    path('informe/vacaciones/data/', informes_view.informe_vacaciones_data, name='informe_vacaciones_data'),
 
 
 ##############################################
