@@ -116,15 +116,44 @@
     </div>
 </div>
 
-<!-- Botón para abrir el chatbot -->
-<button type="button" class="btn btn-outline-info mb-3" data-bs-toggle="modal" data-bs-target="#modalChatbot">
-🤖 Consultar Chatbot
-</button>
 
+
+<button type="button" class="btn-chatbot" data-bs-toggle="modal" data-bs-target="#modalChatbot">
+  🤖
+</button>
 {% include "chatbot_modal.html" %}
 
+    
+
+<style>
+  .btn-chatbot {
+    position: fixed;
+    bottom: 40px;
+    right: 25px;
+    background-color: #0abcdfff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 55px;
+    height: 55px;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1050; 
+  }
+
+  .btn-chatbot:hover {
+    background-color: #0bb3d9;
+    transform: scale(1.1);
+  }
+</style>
 
 {% endblock %}
+
 
 <style>
     .objetivo-completado {

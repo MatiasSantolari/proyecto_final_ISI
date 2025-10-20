@@ -32,11 +32,11 @@
 
   <div class="d-flex justify-content-between text-center gap-2 mb-3 mt-3">
     <div class="p-1 rounded-3 bg-light flex-fill shadow-sm">
-      <div class="text-muted small">Empleados</div>
+      <div class="text-muted small">Total Empleados</div>
       <strong id="totalEmpleados" class="text-primary fs-5">0</strong>
     </div>
     <div class="p-1 rounded-3 bg-light flex-fill shadow-sm">
-      <div class="text-muted small">Registros</div>
+      <div class="text-muted small">Total Registros</div>
       <strong id="totalRegistros" class="text-info fs-5">0</strong>
     </div>
     <div class="p-1 rounded-3 bg-light flex-fill shadow-sm ml-3">
@@ -94,7 +94,7 @@
   </div>
 </div>
 
-<!-- Chart.js -->
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
 
 <script>
@@ -114,7 +114,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`{% url 'informe_asistencias_data' %}?departamento=${dep}&periodo=${periodo}&page=${pagina}`);
             const data = await response.json();
 
-            // Actualizar tabla
+            document.getElementById('totalEmpleados').textContent = data.total_empleados || 0;
+            document.getElementById('totalRegistros').textContent = data.total_registros || data.detalle.length || 0;
+            document.getElementById('asistenciasConfirmadas').textContent = data.asistencias || 0;
+            document.getElementById('tardanzas').textContent = data.tardanzas || 0;
+            document.getElementById('ausencias').textContent = data.ausencias || 0;
+
             const tbody = document.getElementById('tablaCuerpo');
             tbody.innerHTML = '';
 
@@ -170,10 +175,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     ]
                 },
                 options: {
-                    responsive:true,
-                    scales: { y:{ beginAtZero:true } },
-                    animation: { duration:800 }
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1, 
+                                precision: 0, 
+                                callback: function(value) {
+                                    return Number.isInteger(value) ? value : null; 
+                                }
+                            }
+                        }
+                    },
+                    animation: { duration: 800 }
                 }
+
             });
 
             // Paginación

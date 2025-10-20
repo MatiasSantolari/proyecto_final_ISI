@@ -1,4 +1,4 @@
-<div class="card bg-gradient-info shadow-sm mb-3" style="max-width: 450px;">
+<div class="card bg-gradient-info shadow-sm mb-3 dashboard-mini" style="max-width: 450px;">
   <div class="card-header border-0 d-flex justify-content-between align-items-center">
     <h6 class="card-title">
       <i class="fas fa-chart-pie mr-1"></i> Resumen Asistencias
@@ -46,13 +46,31 @@
     </div>
 
     <!-- Gráfico pequeño -->
-    <canvas id="graficoDashboard" style="max-height: 400px; max-width: 400px; margin: auto;"></canvas>
+    <canvas id="graficoDashboard" class="mt-4" style="max-height: 350px; width: 100%;"></canvas>
 
     <div class="mt-2 text-end">
       <a href="{% url 'informe_asistencias' %}" class="btn btn-warning btn-sm">Ver +</a>
     </div>
   </div>
 </div>
+
+
+
+<style>
+  .dashboard-mini {
+    transform: scale(0.9);
+    transform-origin: top left;
+  }
+
+  .dashboard-mini {
+    margin-top: -10px;
+  }
+
+  .dashboard-mini * {
+    font-size: 1em;
+  }
+</style>
+
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
 
@@ -92,9 +110,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     legend: {
                         position: 'bottom', 
                         labels: {
-                            color: '#ffffff', 
-                            font: { size: 14 } 
-                        }
+                            color: '#ffffff',
+                            font: { size: 12 },
+                            boxWidth: 10,      
+                            boxHeight: 10,     
+                            padding: 20,
+                        },
+                        align: 'center',        
+                        maxWidth: 300,          
+                        display: true
                     },
                     tooltip: {
                         enabled: true,
