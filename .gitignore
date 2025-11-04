@@ -31,3 +31,5 @@ env/
 # Caché de sistema
 .DS_Store
 
+
+app/media/

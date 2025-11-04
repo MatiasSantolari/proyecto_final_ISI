@@ -1,4 +1,4 @@
-<div class="card bg-gradient-success shadow-sm mb-3 dashboard-mini" style="max-width: 500px;">
+<div class="card bg-gradient-success shadow-sm mb-3 dashboard-mini rounded-4" style="max-width: 500px;">
   <div class="card-header border-0 d-flex justify-content-between align-items-center">
     <h6 class="card-title">
       <i class="fas fa-suitcase-rolling mr-1"></i> Vacaciones
@@ -6,7 +6,7 @@
   </div>
 
   <div class="card-body p-1">
-    <div class="d-flex gap-1 mb-1">
+    <div class="d-flex gap-1 mb-1 ml-2 mr-2">
       <select id="departamentoFiltroVacaciones" class="form-select form-select-sm flex-fill">
         <option value="">Todos</option>
         {% for dep in departamentos %}
@@ -20,7 +20,7 @@
       </select>
     </div>
 
-    <div class="d-flex justify-content-between text-center gap-2 mb-3 mt-3">
+    <div class="d-flex justify-content-between text-center gap-2 mb-3 mt-3 ml-2 mr-2">
       <div class="p-1 rounded-3 bg-light flex-fill shadow-sm">
         <div class="text-muted small">Solicitudes</div>
         <strong id="totalSolicitudes" class="text-info fs-5">0</strong>
@@ -45,7 +45,7 @@
 
     <canvas id="graficoVacaciones" class="mt-4" style="max-height: 350px; width: 100%; min-height: 325px;"></canvas>
 
-    <div class="mt-2 text-end">
+    <div class="mt-2 mr-2 mb-2 text-end rounded-5">
       <a href="{% url 'informe_vacaciones' %}" class="btn btn-warning btn-sm">Ver +</a>
     </div>
   </div>

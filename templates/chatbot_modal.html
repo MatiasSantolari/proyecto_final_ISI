@@ -1,40 +1,207 @@
-<div class="modal fade" id="modalChatbot" tabindex="-1" aria-labelledby="modalChatbotLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header" style="background-color: #3c8dbc;">
-        <h5 class="modal-title text-white" id="modalChatbotLabel">Chatbot RRHH</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
-        <div id="chatbox" style="border: 1px solid #ccc; padding: 10px; height: 250px; overflow-y: scroll;"></div>
-        <div class="input-group mt-2">
-          <input type="text" id="inputChat" class="form-control" placeholder="Escribe un mensaje...">
-          <button class="btn btn-primary" onclick="sendMessage()">Enviar</button>
-        </div>
-      </div>
+<div id="chatbot-button" class="chatbot-btn">
+  🤖
+  <span class="chatbot-tooltip">Chatbot</span>
+</div>
+
+<div id="chatbot-window" class="chatbot-window d-none">
+  <div class="chatbot-header">
+    <span>Chatbot RRHH</span>
+    <div>
+      <button id="minimize-chat" class="chatbot-icon">—</button>
+      <button id="close-chat" class="chatbot-icon">&times;</button>
     </div>
+  </div>
+  <div class="chatbot-body" id="chatbox"></div>
+  <div class="chatbot-input">
+    <input type="text" id="inputChat" placeholder="Escribe un mensaje...">
+    <button onclick="sendMessage()">Enviar</button>
   </div>
 </div>
 
-<script>
-async function sendMessage() {
-    let input = document.getElementById("inputChat");
-    let message = input.value.trim();
-    if (!message) return;
 
-    let chatbox = document.getElementById("chatbox");
-    chatbox.innerHTML += "<b>Tú:</b> " + message + "<br>";
-
-    let response = await fetch("{% url 'chatbot_response' %}", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: message })
-    });
-
-    let data = await response.json();
-    chatbox.innerHTML += "<b>Bot:</b> " + data.response + "<br>";
-    chatbox.scrollTop = chatbox.scrollHeight;
-    input.value = "";
+<style>
+.chatbot-btn {
+  position: fixed;
+  bottom: 50px;
+  right: 25px;
+  background-color: #3c8dbc;
+  color: white;
+  border-radius: 50%;
+  width: 55px;
+  height: 55px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 26px;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+  z-index: 1000;
+  transition: transform 0.2s ease;
 }
+.chatbot-btn:hover {
+  transform: scale(1.1);
+}
+.chatbot-btn:hover .chatbot-tooltip,
+.chatbot-btn:focus .chatbot-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.chatbot-tooltip {
+  position: absolute;
+  bottom: 70px;
+  right: 50%;
+  transform: translateX(50%);
+  background-color: #333;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.3s;
+  pointer-events: none;
+}
+
+.chatbot-window {
+  position: fixed;
+  bottom: 45px;
+  right: 20px;
+  width: 320px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 1001;
+}
+
+.chatbot-header {
+  background: #3c8dbc;
+  color: white;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chatbot-icon {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+.chatbot-body {
+  height: 400px;
+  overflow-y: auto;
+  padding: 10px;
+  font-size: 14px;
+}
+
+.chatbot-input {
+  display: flex;
+  border-top: 1px solid #ddd;
+}
+.chatbot-input input {
+  flex: 1;
+  border: none;
+  padding: 8px;
+  outline: none;
+}
+.chatbot-input button {
+  background: #3c8dbc;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.chatbot-input button:hover {
+  background: #367fa9;
+}
+</style>
+
+
+<script>
+  const chatWindow = document.getElementById("chatbot-window");
+  const chatButton = document.getElementById("chatbot-button");
+  const closeChat = document.getElementById("close-chat");
+  const minimizeChat = document.getElementById("minimize-chat");
+  let minimized = false;
+
+  chatButton.addEventListener("click", () => {
+    chatWindow.classList.toggle("d-none");
+  });
+
+  closeChat.addEventListener("click", () => {
+    chatWindow.classList.add("d-none");
+  });
+
+  minimizeChat.addEventListener("click", () => {
+    const body = chatWindow.querySelector(".chatbot-body");
+    const input = chatWindow.querySelector(".chatbot-input");
+    if (minimized) {
+      body.style.display = "block";
+      input.style.display = "flex";
+      minimized = false;
+    } else {
+      body.style.display = "none";
+      input.style.display = "none";
+      minimized = true;
+    }
+  });
+
+
+  async function sendMessage() {
+      let input = document.getElementById("inputChat");
+      let message = input.value.trim();
+      if (!message) return;
+
+      let chatbox = document.getElementById("chatbox");
+      chatbox.innerHTML += "<b>Tú:</b> " + message + "<br>";
+
+      let response = await fetch("{% url 'chatbot_response' %}", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie('csrftoken') },
+          body: JSON.stringify({ message: message })
+      });
+
+      let data = await response.json();
+      chatbox.innerHTML += "<b>Bot:</b> " + data.response + "<br>";
+      chatbox.scrollTop = chatbox.scrollHeight;
+      input.value = "";
+  }
+
+  const inputChat = document.getElementById("inputChat");
+  inputChat.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+          event.preventDefault(); 
+          sendMessage();
+      }
+  });
+
+
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";");
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.startsWith(name + "=")) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
 </script>
 

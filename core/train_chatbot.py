@@ -10,6 +10,10 @@ corpus_trainer.train("chatterbot.corpus.spanish")
 # Entrenamiento con frases personalizadas
 list_trainer = ListTrainer(chatbot)
 list_trainer.train([
+    ["Hola","Buenas","Buenos dias","Que tal"],
+    "Hola como estas? En que te puedo ayudar?",
+    ["Chau","Bye","Hasta luego","Nos vemos"],
+    "Chau, hasta la proxima",
     "¿Qué beneficios tengo como empleado?",
     "Contás con obra social, vacaciones pagas y capacitaciones.",
     "¿Cómo me postulo a una oferta de empleo?",
