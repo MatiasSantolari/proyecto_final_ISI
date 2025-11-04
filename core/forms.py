@@ -159,6 +159,79 @@ class PersonaFormCreate(forms.ModelForm):
             'calle', 'numero', 'genero', 'avatar', 'cvitae'
         ]
 
+############
+
+class PersonaFormEditar(forms.ModelForm):
+    prefijo_pais = forms.CharField(required=False, widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': '(Ej: +54)'
+    }))
+
+    telefono = forms.CharField(required=False, widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Ej: 1123456789'
+    }))
+
+    pais = forms.CharField(required=False, widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'País'
+    }))
+    
+    provincia = forms.CharField(required=False, widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Provincia'
+    }))
+    
+    ciudad = forms.CharField(required=False, widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Ciudad'
+    }))
+    
+    calle = forms.CharField(required=False, widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Calle'
+    }))
+    
+    numero = forms.CharField(required=False, widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Número'
+    }))
+
+    nombre = forms.CharField(widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Nombre',
+    }))
+    
+    apellido = forms.CharField(widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Apellido',
+    }))
+    
+    dni = forms.CharField(widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'DNI',
+    }))
+
+    avatar = forms.ImageField(required=False, widget=forms.ClearableFileInput(attrs={
+        'class': 'form-control'
+    }))
+
+    cvitae = forms.FileField(
+    required=False,
+    widget=forms.FileInput(attrs={
+        'class': 'form-control d-none', 
+        'accept': '.pdf,.zip',
+        'id': 'id_cvitae',
+    }))
+
+    class Meta:
+        model = Persona
+        fields = [
+            'nombre', 'apellido', 'dni',
+            'telefono', 'prefijo_pais',
+            'pais', 'provincia', 'ciudad',
+            'calle', 'numero', 'avatar', 'cvitae'
+        ]
 
 ############
 
@@ -300,6 +373,30 @@ class PersonaForm(forms.ModelForm):
             self.fields['cargo'].queryset = cargos_qs
 
     
+############################
+
+
+class DatoAcademicoForm(forms.ModelForm):
+    class Meta:
+        model = DatoAcademico
+        fields = ['carrera', 'institucion', 'situacion_academica', 'fecha_inicio', 'fecha_fin']
+        widgets = {
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date'}),
+            'fecha_fin': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+
+class CertificacionForm(forms.ModelForm):
+    class Meta:
+        model = Certificacion
+        fields = ['nombre', 'institucion', 'fecha_inicio', 'fecha_fin']
+
+
+class ExperienciaLaboralForm(forms.ModelForm):
+    class Meta:
+        model = ExperienciaLaboral
+        fields = ['cargo_exp', 'empresa', 'descripcion', 'fecha_inicio', 'fecha_fin', 'actualidad']
+
 
 #############################
 

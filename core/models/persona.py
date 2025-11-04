@@ -40,3 +40,47 @@ class Persona(models.Model):
         if self.cvitae:
             return os.path.basename(self.cvitae.name)
         return ""
+    
+
+
+class DatoAcademico(models.Model):
+    persona = models.ForeignKey(Persona, on_delete=models.CASCADE, related_name='datos_academicos')
+    carrera = models.CharField(max_length=200)
+    institucion = models.CharField(max_length=200)
+    SITUACION_CHOICES = [
+        ('cursando', 'Cursando'),
+        ('finalizado', 'Finalizado'),
+        ('abandonado', 'Abandonado'),
+    ]
+    situacion_academica = models.CharField(max_length=50, choices=SITUACION_CHOICES, verbose_name='Situacion Academica')
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.carrera} - {self.institucion}"
+    
+
+
+class Certificacion(models.Model):
+    persona = models.ForeignKey('Persona', on_delete=models.CASCADE, related_name='certificaciones')
+    nombre = models.CharField(max_length=255)
+    institucion = models.CharField(max_length=255)
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.nombre} - {self.institucion}"
+
+
+
+class ExperienciaLaboral(models.Model):
+    persona = models.ForeignKey(Persona, on_delete=models.CASCADE, related_name='experiencias')
+    cargo_exp = models.CharField(max_length=100)
+    empresa = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True, null=True)
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField(blank=True, null=True)
+    actualidad = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.cargo_exp} en {self.empresa}"

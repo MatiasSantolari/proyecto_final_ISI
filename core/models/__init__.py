@@ -27,7 +27,7 @@ from .nomina import Nomina
 from .objetivo_empleado import ObjetivoEmpleado
 from .objetivo_cargo import ObjetivoCargo
 from .objetivo import Objetivo
-from .persona import Persona
+from .persona import Persona, DatoAcademico, Certificacion, ExperienciaLaboral
 from .solicitud import Solicitud
 from .tipo_contrato import TipoContrato
 from .tipo_criterio import TipoCriterio

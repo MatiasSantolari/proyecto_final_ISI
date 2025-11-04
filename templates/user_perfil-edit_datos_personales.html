@@ -1,0 +1,152 @@
+{% load filename_filters %}
+<div class="tab-pane fade" id="datos-personales" role="tabpanel">
+  <form method="POST" enctype="multipart/form-data" id="perfilForm" class="text-start">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+          
+    <div class="bg-success text-white p-2 d-flex justify-content-between align-items-center rounded mb-4 shadow-sm">
+    <i class="bi bi-cloud-arrow-up-fill me-2 fs-5"></i>
+    <strong>Sube tu CV aquí</strong>
+    <span class="ms-2 text-light small d-block">Formatos permitidos: PDF o ZIP</span>
+
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="btn btn-light btn-sm btn-outline-secondary" id="seleccionarCVBtn">
+        <i class="bi bi-upload"></i> Seleccionar archivo
+      </button>
+
+      {% if form.instance.cvitae %}
+        <input type="text" id="cvitaeNombre" class="form-control bg-white" style="width: 220px;" value="{{ form.instance.cvitae.name|basename }}" readonly>
+      {% else %}
+        <input type="text" id="cvitaeNombre" class="form-control bg-white" style="width: 220px;" placeholder="Ningún archivo seleccionado" readonly>
+      {% endif %}
+
+      {% if request.user.persona.cvitae %}
+        <a href="{{ request.user.persona.cvitae.url }}" target="_blank" id="verCVBtn" class="btn btn-primary btn-sm">
+          <i class="bi bi-file-earmark-arrow-down"></i> Ver
+        </a>
+      {% endif %}
+      {% if request.user.persona.cvitae %}
+      <button type="button" id="eliminarCVBtn" class="btn btn-sm btn-danger">
+        <i class="bi bi-x-circle"></i> Eliminar
+      </button>
+    {% endif %}
+    </div>
+    {{ form.cvitae }}
+  </div>
+
+    <div class="row g-3">
+      <h5 class="section-title">Identificación</h5>
+    
+      <div class="col-md-5 align-items-center">
+        <label for="nombre" class="col-md-3 fw-semibold">Nombres</label>
+        <div class="col-md-8 input-group">
+          {{ form.nombre.errors }}
+          {{ form.nombre }}
+        <i class="bi bi-person-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+        </div>
+      </div>
+
+      <div class="col-md-5 align-items-center">
+        <label for="apellido" class="col-md-3 fw-semibold">Apellidos</label>
+        <div class="col-md-8 input-group">
+          {{ form.apellido.errors }}
+          {{ form.apellido }}
+          <i class="bi bi-person-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+        </div>
+      </div>
+
+      <div class="col-md-2 align-items-center">
+        <label for="dni" class="col-md-3 fw-semibold">DNI</label>
+        <div class="col-md-8 input-group">
+          {{ form.dni.errors }}
+          {{ form.dni }}
+          <i class="bi bi-credit-card-2-front-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+        </div>
+      </div>
+    </div>
+      
+    <div class="row g-3 mt-2">
+      <h5 class="section-title">Contacto</h5>
+      <div class="row mb-3">
+
+        <div class="col-md-2 position-relative">
+          <label for="prefijo" class="fw-semibold">Prefijo</label>
+          <div class="col-md-8 input-group">
+            {{ form.prefijo_pais.errors }}
+            {{ form.prefijo_pais }}
+            <i class="bi bi-globe position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+        </div>
+        
+        <div class="col-md-3 position-relative">
+          <label for="telefono" class="fw-semibold">Telefono</label>
+          <div class="col-md-8 input-group">
+            {{ form.telefono.errors }}
+            {{ form.telefono }}
+            <i class="bi bi-telephone-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+      
+    <div class="row g-3 mt-1">  
+      <h5 class="section-title">Lugar de Residencia</h5>
+      <div class="row mb-3">
+      
+        <div class="col-md-4 position-relative">
+          <label for="pais" class="fw-semibold">País</label>
+          <div class="col-md-8 input-group">
+            {{ form.pais.errors }}
+            {{ form.pais }}
+            <i class="bi bi-flag position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+        </div>
+
+        <div class="col-md-4 position-relative">
+          <label for="provincia" class="fw-semibold">Provincia</label>
+          <div class="col-md-8 input-group">
+            {{ form.provincia.errors }}
+            {{ form.provincia }}
+            <i class="bi bi-map-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+        </div>
+        
+        <div class="col-md-4 position-relative">
+          <label for="ciudad" class="fw-semibold">Ciudad</label>
+          <div class="col-md-8 input-group">
+            {{ form.ciudad.errors }}
+            {{ form.ciudad }}
+            <i class="bi bi-geo-alt-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+        </div>
+      
+        <div class="col-md-4 mt-2 position-relative">
+          <label for="calle" class="fw-semibold">Calle</label>
+          <div class="col-md-8 input-group">
+            {{ form.calle.errors }}
+            {{ form.calle }}
+            <i class="bi bi-signpost-2-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+        </div>
+        <div class="col-md-2 mt-2 position-relative">
+          <label for="numero" class="fw-semibold">N°</label>
+          <div class="col-md-8 input-group">
+            {{ form.numero.errors }}
+            {{ form.numero }}
+            <i class="bi bi-hash position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <hr>
+      <div class="d-flex justify-content-end gap-2 mt-4" id="editarAcciones">
+        <button type="submit" class="btn btn-success px-4"><i class="bi bi-check-circle"></i> Guardar</button>
+        <button type="button" class="btn btn-secondary px-4" id="cancelarBtn"><i class="bi bi-x-circle"></i> Cancelar</button>
+      </div>
+
+    </div>
+  </form>
+</div>

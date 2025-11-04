@@ -30,6 +30,19 @@ urlpatterns = [
 
     path('personas/cargos_por_departamento/<int:dept_id>/', personas_view.cargos_por_departamento, name='cargos_por_departamento'),
 
+    path('perfil/datos-academicos/list/', personas_view.datos_academicos_list, name='datos_academicos_list'),
+    path('perfil/datos-academicos/save/', personas_view.datos_academicos_save, name='datos_academicos_save'),
+    path('perfil/datos-academicos/delete/', personas_view.datos_academicos_delete, name='datos_academicos_delete'),
+
+    path('perfil/certificaciones/list/', personas_view.certificaciones_list, name='certificaciones_list'),
+    path('perfil/certificaciones/save/', personas_view.certificaciones_save, name='certificaciones_save'),
+    path('perfil/certificaciones/delete/', personas_view.certificaciones_delete, name='certificaciones_delete'),
+
+    path('perfil/experiencias/list/', personas_view.experiencias_list, name='experiencias_list'),
+    path('perfil/experiencias/save/', personas_view.experiencias_save, name='experiencias_save'),
+    path('perfil/experiencias/delete/', personas_view.experiencias_delete, name='experiencias_delete'),
+
+
     ## CARGO ##
     path('cargos/', cargos_view.cargos, name='cargos'),
     path('cargos/crear/', cargos_view.crear_cargo, name='crear_cargo'), ## Sirve para editar tambien

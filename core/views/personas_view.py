@@ -11,6 +11,7 @@ from datetime import date
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.views.decorators.csrf import csrf_exempt
 
 
 @login_required
@@ -354,3 +355,177 @@ def eliminar_persona(request, persona_id):
     persona = get_object_or_404(Persona, id_persona=persona_id)
     persona.delete()
     return redirect('personas')
+
+
+
+
+# PERFIL PERSONA #
+################################################################
+
+@login_required
+def datos_academicos_list(request):
+    persona = request.user.persona
+    datos = persona.datos_academicos.all()
+    data = [
+        {
+            'id': d.id,
+            'carrera': d.carrera,
+            'institucion': d.institucion,
+            'situacion_academica': d.situacion_academica,
+            'fecha_inicio': d.fecha_inicio.strftime('%Y-%m-%d'),
+            'fecha_fin': d.fecha_fin.strftime('%Y-%m-%d') if d.fecha_fin else ''
+        }
+        for d in datos
+    ]
+    return JsonResponse({'datos': data})
+
+
+@login_required
+@csrf_exempt  # o manejar el token CSRF desde JS
+def datos_academicos_save(request):
+    if request.method == 'POST':
+        data = request.POST
+        persona = request.user.persona
+        dato_id = data.get('id')
+
+        if dato_id:  # Editar
+            dato = DatoAcademico.objects.get(id=dato_id, persona=persona)
+            form = DatoAcademicoForm(data, instance=dato)
+        else:  # Nuevo
+            form = DatoAcademicoForm(data)
+        
+        if form.is_valid():
+            nuevo_dato = form.save(commit=False)
+            nuevo_dato.persona = persona
+            nuevo_dato.save()
+            return JsonResponse({'success': True, 'id': nuevo_dato.id})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
+        
+
+@login_required
+@csrf_exempt
+def datos_academicos_delete(request):
+    if request.method == 'POST':
+        dato_id = request.POST.get('id')
+        persona = request.user.persona
+        try:
+            dato = DatoAcademico.objects.get(id=dato_id, persona=persona)
+            dato.delete()
+            return JsonResponse({'success': True})
+        except DatoAcademico.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Dato no encontrado'})
+    
+
+#######
+
+@login_required
+def certificaciones_list(request):
+    persona = request.user.persona
+    datos = persona.certificaciones.all()
+    data = [
+        {
+            'id': d.id,
+            'nombre': d.nombre,
+            'institucion': d.institucion,
+            'fecha_inicio': d.fecha_inicio.strftime('%Y-%m-%d'),
+            'fecha_fin': d.fecha_fin.strftime('%Y-%m-%d') if d.fecha_fin else ''
+        }
+        for d in datos
+    ]
+    return JsonResponse({'datos': data})
+
+
+@login_required
+@csrf_exempt
+def certificaciones_save(request):
+    if request.method == 'POST':
+        data = request.POST
+        persona = request.user.persona
+        dato_id = data.get('id')
+
+        if dato_id:
+            dato = Certificacion.objects.get(id=dato_id, persona=persona)
+            form = CertificacionForm(data, instance=dato)
+        else:
+            form = CertificacionForm(data)
+
+        if form.is_valid():
+            nuevo_dato = form.save(commit=False)
+            nuevo_dato.persona = persona
+            nuevo_dato.save()
+            return JsonResponse({'success': True, 'id': nuevo_dato.id})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
+
+
+@login_required
+@csrf_exempt
+def certificaciones_delete(request):
+    if request.method == 'POST':
+        dato_id = request.POST.get('id')
+        persona = request.user.persona
+        try:
+            dato = Certificacion.objects.get(id=dato_id, persona=persona)
+            dato.delete()
+            return JsonResponse({'success': True})
+        except Certificacion.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Certificación no encontrada'})
+
+
+######################
+
+@login_required
+def experiencias_list(request):
+    persona = request.user.persona
+    datos = persona.experiencias.all().order_by('-fecha_inicio')
+    data = [
+        {
+            'id': e.id,
+            'cargo_exp': e.cargo_exp,
+            'empresa': e.empresa,
+            'descripcion': e.descripcion or '',
+            'fecha_inicio': e.fecha_inicio.strftime('%Y-%m-%d'),
+            'fecha_fin': e.fecha_fin.strftime('%Y-%m-%d') if e.fecha_fin else '',
+            'actualidad': e.actualidad,
+        }
+        for e in datos
+    ]
+    return JsonResponse({'datos': data})
+
+
+@login_required
+@csrf_exempt
+def experiencias_save(request):
+    if request.method == 'POST':
+        data = request.POST
+        persona = request.user.persona
+        exp_id = data.get('id')
+
+        if exp_id:
+            exp = ExperienciaLaboral.objects.get(id=exp_id, persona=persona)
+            form = ExperienciaLaboralForm(data, instance=exp)
+        else:
+            form = ExperienciaLaboralForm(data)
+
+        if form.is_valid():
+            nueva_exp = form.save(commit=False)
+            nueva_exp.persona = persona
+            nueva_exp.save()
+            return JsonResponse({'success': True, 'id': nueva_exp.id})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
+
+
+@login_required
+@csrf_exempt
+def experiencias_delete(request):
+    if request.method == 'POST':
+        exp_id = request.POST.get('id')
+        persona = request.user.persona
+        try:
+            exp = ExperienciaLaboral.objects.get(id=exp_id, persona=persona)
+            exp.delete()
+            return JsonResponse({'success': True})
+        except ExperienciaLaboral.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Experiencia no encontrada'})

@@ -1,0 +1,216 @@
+<div id="miPerfilContent" class="main-content d-flex justify-content-center align-items-start" style="padding-top: 1px;">  
+  <div class="form-wrapper p-4 rounded shadow-sm" 
+       style="max-width: 950px; width: 100%; background-color: #f3f3f3; border-radius: 12px; margin: 0 auto;">
+
+    <div class="p-3 mb-3 text-center text-white rounded" 
+        style="background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%);">
+      <h3 class="fw-bold mb-1">Mi Perfil</h3>
+      <p class="mb-0">Vista de Datos Personales</p>
+    </div>
+    
+    <div class="row g-4 justify-content-center">
+
+      <div class="col-md-6 d-flex justify-content-end">
+        <div class="card shadow-sm p-4" 
+             style="background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%); color: white; height: 250px; width: 100%; border: none; border-radius: 12px;">
+          <div class="d-flex align-items-center mb-3">
+            <i class="bi bi-person-fill fs-1 me-3"></i>
+            <div>
+              <h5 class="mb-1">{{ request.user.persona.nombre }}</h5>
+              <p class="mb-0">{{ request.user.persona.apellido }}</p>
+            </div>
+          </div>
+          <hr style="border-color: rgba(255,255,255,0.5);">
+          <div class="d-flex justify-content-between">
+            <strong>DNI:</strong>
+            <span>{{ request.user.persona.dni }}</span>
+          </div>
+          <div class="d-flex justify-content-between mt-2">
+            <strong>Cargo:</strong>
+            {% if cargo_actual %}
+              <span>{{ cargo_actual }}</span>
+            {% else %}
+              <span>No asignado</span>
+            {% endif %}
+          </div>
+            <div class="d-flex justify-content-between mt-2">
+            <strong>Departamento:</strong>
+            {% if departamento_actual %}
+              <span>{{ departamento_actual }}</span>
+            {% else %}
+              <span>No asignado</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 d-flex justify-content-start">
+        <div class="card shadow-sm p-4 d-flex flex-column justify-content-between" 
+             style="background: linear-gradient(135deg, #2ecc71, #27ae60);; color: white; height: 250px; width: 100%; border: none; border-radius: 12px;">
+          <div class="d-flex align-items-center mb-3">
+            <i class="bi bi-gift-fill fs-1 me-3"></i>
+            <div>
+              <h6 class="mb-1">Cumpleaños</h6>
+              {% if request.user.persona.fecha_nacimiento %}
+                <p class="mb-0 fw-bold">{{ request.user.persona.fecha_nacimiento|date:"d/m/Y" }}</p>
+              {% else %}
+                <p class="mb-0 text-white-50">No registrado</p>
+              {% endif %}
+            </div>
+          </div>
+          <hr style="border-color: rgba(255,255,255,0.5);">
+          {% if dias_cumple is not None %}
+            <div class="text-center mt-auto">
+              <p class="mb-1">Faltan solo:</p>
+              <p class="mb-1 fw-bold fs-4">{{ dias_cumple }}</p>
+              <p class="mb-0">días</p>
+            </div>
+          {% else %}
+            <p class="mb-0 text-white-50 text-center">Fecha de nacimiento no definida</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="row justify-content-center mt-4">
+      <div class="col-12">
+        <div class="card shadow-sm p-4" 
+             style="background: linear-gradient(135deg, #f1c40f, #d4a017); color: #f5f5f5ff; border: none; border-radius: 12px; width: 100%;">
+          <div class="d-flex align-items-center mb-3">
+            <i class="bi bi-geo-alt-fill fs-4 me-2"></i>
+            <h5 class="mb-0 fw-bold">Información de contacto</h5>
+          </div>
+          <hr>
+
+          <div class="row">
+            <div class="col-md-6 mb-2">
+              <strong>Dirección:</strong> 
+              <span>{{ request.user.persona.calle|default:"No registrada" }} {{request.user.persona.numero}}</span>
+            </div>
+            <div class="col-md-6 mb-2">
+              <strong>Localidad:</strong> 
+              <span>{{ request.user.persona.pais|default:"No registrada" }}, {{ request.user.persona.provincia}}, {{ request.user.persona.ciudad}}</span>
+            </div>
+            <div class="col-md-6 mb-2">
+              <strong>Teléfono:</strong> 
+              <span>{{ request.user.persona.prefijo_pais|default:"No registrado" }} {{ request.user.persona.telefono}}</span>
+            </div>
+            <div class="col-md-6 mb-2">
+              <strong>Email:</strong> 
+              <span>{{ request.user.email }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="card shadow-sm mt-4 p-4 text-center" 
+        style="background: linear-gradient(135deg, #2c3e50, #1a252f); color: white; border: none; border-radius: 12px;">
+        <h5 class="fw-bold mb-3">Gestionar mi Información</h5>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+
+          <button class="gradient-btn btn-personal" onclick="seleccionarTab('datos-personales')">
+            <i class="bi bi-person-fill me-1"></i> Datos Personales
+          </button>
+
+          <button class="gradient-btn btn-academico" onclick="seleccionarTab('datos-academicos')">
+            <i class="bi bi-mortarboard-fill me-1"></i> Datos Académicos
+          </button>
+
+          <button class="gradient-btn btn-certificaciones" onclick="seleccionarTab('certificaciones')">
+            <i class="bi bi-award-fill me-1"></i> Certificaciones
+          </button>
+
+          <button class="gradient-btn btn-experiencia" onclick="seleccionarTab('experiencia')">
+            <i class="bi bi-briefcase-fill me-1"></i> Experiencia Laboral
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<style>
+.btn-outline-primary:hover,
+.btn-outline-success:hover,
+.btn-outline-warning:hover {
+  color: #fff !important;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.gradient-btn {
+    color: white;
+    font-weight: 600;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    transition: all 0.25s ease-in-out;
+  }
+
+  .btn-personal {
+    background: linear-gradient(135deg, #0069d9, #004085);
+  }
+  .btn-personal:hover {
+    background: linear-gradient(135deg, #1a7cf0, #0056b3);
+    transform: scale(1.05);
+  }
+
+  .btn-academico {
+    background: linear-gradient(135deg, #17a2b8, #0d6678);
+  }
+  .btn-academico:hover {
+    background: linear-gradient(135deg, #20c0d3, #11889d);
+    transform: scale(1.05);
+  }
+
+  .btn-certificaciones {
+    background: linear-gradient(135deg, #28a745, #155d27);
+  }
+  .btn-certificaciones:hover {
+    background: linear-gradient(135deg, #34c759, #1c7a3a);
+    transform: scale(1.05);
+  }
+
+  .btn-experiencia {
+    background: linear-gradient(135deg, #ffc107, #b37f00);
+    color: #1a1a1a;
+  }
+  .btn-experiencia:hover {
+    background: linear-gradient(135deg, #ffd740, #c99700);
+    transform: scale(1.05);
+  }
+</style>
+
+<script>
+function seleccionarTab(tabId) {
+  const tabButton = document.querySelector(`[data-bs-target="#${tabId}"]`);
+  const tabContent = document.getElementById(tabId);
+
+  if (tabButton && tabContent) {
+    const tabInstance = new bootstrap.Tab(tabButton);
+    tabInstance.show();
+
+    const editarActivo = !document.getElementById('editarPerfilContent')?.classList.contains('d-none');
+    const newHash = editarActivo ? `#editar-tab-${tabId}` : `#editar-tab-${tabId}`;
+    history.replaceState(null, '', newHash);
+
+    tabContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    console.warn(`❗ No se encontró el tab con ID: ${tabId}`);
+  }
+
+  window.location.reload();
+}
+</script>
+

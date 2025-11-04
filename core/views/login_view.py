@@ -62,7 +62,6 @@ def home(request):
             crear_objetivos_recurrentes_hoy(empleado)
             hoy = date.today()
            
-            # Objetivos no recurrentes: vigentes
             no_recurrentes = ObjetivoEmpleado.objects.filter(
                 empleado=empleado,
                 objetivo__activo=True,
@@ -71,7 +70,6 @@ def home(request):
                 Q(objetivo__fecha_fin__isnull=True) | Q(objetivo__fecha_fin__gte=hoy)
             )
             
-            # Objetivos recurrentes: asignados hoy
             recurrentes = ObjetivoEmpleado.objects.filter(
                 empleado=empleado,
                 objetivo__activo=True,
@@ -79,13 +77,11 @@ def home(request):
                 fecha_asignacion=hoy
             )
 
-            # Todos los objetivos a mostrar
             oe_queryset = no_recurrentes | recurrentes
             oe_queryset = oe_queryset.select_related('objetivo').distinct()
 
             objetivos_con_estado = [{'objetivo': oe.objetivo, 'completado': oe.completado} for oe in oe_queryset]
 
-            # Calcular progreso solo con objetivos vigentes y pendientes
             oe_para_progreso = []
             for oe in oe_queryset:
                 if oe.objetivo.es_recurrente and oe.fecha_asignacion == hoy:
@@ -152,28 +148,56 @@ def create_persona(request):
     return render(request, 'auth/create_profile.html', {'form': form})
 
 
+
+
 @login_required
 def perfil_usuario(request):
     persona = request.user.persona
 
-    form = PersonaFormCreate(
+    form = PersonaFormEditar(
         request.POST or None,
         request.FILES or None,
-        instance=persona,
-        initial={
-            'fecha_nacimiento': persona.fecha_nacimiento.strftime('%Y-%m-%d') if persona.fecha_nacimiento else ''
-        }
+        instance=persona
     )
 
-    if request.method == 'POST' and form.is_valid():
-        # Si el usuario solicito eliminar el CV
-        if request.POST.get('eliminar_cvitae') == '1':
-            if persona.cvitae:
+    if request.method == 'POST':
+        if form.is_valid():
+            eliminar_cv = request.POST.get('eliminar_cvitae') == '1'
+            nuevo_cv = request.FILES.get('cvitae')
+
+            if eliminar_cv and persona.cvitae:
                 if persona.cvitae.storage.exists(persona.cvitae.name):
                     persona.cvitae.delete(save=False)
                 persona.cvitae = None
 
-        form.save()
-        return redirect('user_perfil')
+            if nuevo_cv:
+                persona.cvitae = nuevo_cv
 
-    return render(request, 'user_perfil.html', {'form': form})
+            persona.save()
+            return redirect('user_perfil')
+
+
+    cargo_actual = None
+    departamento_actual = None
+    empleado = getattr(persona, 'empleado', None)
+    if empleado:
+        cargo_actual = empleado.cargo_actual_nombre()
+        departamento_actual = empleado.departamento_actual_nombre()
+
+    dias_cumple = None
+    if persona.fecha_nacimiento:
+        hoy = date.today()
+        cumple = persona.fecha_nacimiento
+        siguiente_cumple = cumple.replace(year=hoy.year)
+        if siguiente_cumple < hoy:
+            siguiente_cumple = siguiente_cumple.replace(year=hoy.year + 1)
+        dias_cumple = (siguiente_cumple - hoy).days
+
+    context = {
+        'form': form,
+        'cargo_actual': cargo_actual,
+        'departamento_actual': departamento_actual,
+        'dias_cumple': dias_cumple,
+    }
+
+    return render(request, 'user_perfil.html', context)
