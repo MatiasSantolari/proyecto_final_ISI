@@ -3,6 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from .models import *
 from .forms import *
+from personas.forms import PersonaForm
 from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -150,7 +151,7 @@ def registrar_usuario(request):
 @require_POST
 def create_persona(request):
     if request.method == 'POST':
-        form = PersonaFormCreate(request.POST, request.FILES)
+        form = PersonaForm(request.POST, request.FILES, include_admin_fields=False)
         if form.is_valid():
             persona = form.save(commit=False)
 
@@ -162,7 +163,7 @@ def create_persona(request):
 
             return redirect('home')
     else:
-        form = PersonaFormCreate()
+        form = PersonaForm(include_admin_fields=False)
 
     return render(request, 'auth/create_profile.html', {'form': form})
 
@@ -171,9 +172,10 @@ def create_persona(request):
 def perfil_usuario(request):
     persona = request.user.persona
 
-    form = PersonaFormCreate(
+    form = PersonaForm(
         request.POST or None,
         request.FILES or None,
+        include_admin_fields=False,
         instance=persona,
         initial={
             'fecha_nacimiento': persona.fecha_nacimiento.strftime('%Y-%m-%d') if persona.fecha_nacimiento else ''
@@ -259,7 +261,7 @@ def personas(request):
         })
 
     form = PersonaForm()
-    return render(request, 'personas.html', {'personas': personas_con_datos, 'form': form})
+    return render(request, 'personas/personas_list.html', {'personas': personas_con_datos, 'form': form})
 
 
 
@@ -289,7 +291,7 @@ def crear_persona(request):
                     if not cargo:
                         form.add_error('departamento', 'No hay un cargo de gerente configurado para este departamento.')
                         personas = Persona.objects.all()
-                        return render(request, 'personas.html', {'form': form, 'personas': personas})
+                        return render(request, 'personas/personas_list.html', {'form': form, 'personas': personas})
                     
                 if (rol == 'gerente' or rol == 'jefe') and not cargo and departamento_id:
                     if rol == 'gerente':
@@ -438,7 +440,7 @@ def crear_persona(request):
         form = PersonaForm()
 
     personas = Persona.objects.all()
-    return render(request, 'personas.html', {'form': form, 'personas': personas})
+    return render(request, 'personas/personas_list.html', {'form': form, 'personas': personas})
 
 
 

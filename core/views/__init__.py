@@ -1,6 +1,5 @@
 from .login_view import *
 from .postulaciones_view import *
-from .personas_view import *
 from .cargos_view import *
 from .habilidades_view import *
 from .departamentos_view import *

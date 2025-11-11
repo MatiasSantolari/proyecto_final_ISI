@@ -1,0 +1,148 @@
+<div class="table-responsive" style="overflow-x: auto;">
+  <table
+    id="tablaPersonas"
+    class="table table-sm table-hover table-bordered align-middle mb-0"
+    style="min-width: 1300px; font-size: 0.95rem;"
+  >
+    <thead class="table-light text-center">
+      <tr>
+        <th>Apellido</th>
+        <th>Nombre</th>
+        <th>DNI</th>
+        <th>Email</th>
+        <th>Teléfono</th>
+        <th>Tipo Usuario</th>
+        <th>Estado</th>
+        <th>Cargo</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for persona in personas %}
+        <tr
+          class="fila-persona"
+          data-tipo="{{ persona.tipo_usuario }}"
+          data-dni="{{ persona.dni }}"
+        >
+          <td>{{ persona.apellido }}</td>
+          <td>{{ persona.nombre }}</td>
+          <td>{{ persona.dni }}</td>
+          <td>{{ persona.email }}</td>
+          <td>{{ persona.telefono_completo }}</td>
+          <td>{{ persona.tipo_usuario }}</td>
+          <td>{{ persona.estado }}</td>
+          <td>{{ persona.nombre_cargo }}</td>
+          <td class="text-center">
+            <button
+              class="btn btn-sm btn-editar btn-outline-secondary"
+              data-bs-toggle="modal"
+              data-bs-target="#modalPersona"
+              data-id="{{ persona.id }}"
+              data-nombre="{{ persona.nombre }}"
+              data-apellido="{{ persona.apellido }}"
+              data-dni="{{ persona.dni }}"
+              data-email="{{ persona.email }}"
+              data-prefijo="{{ persona.prefijo_pais }}"
+              data-telefono="{{ persona.telefono }}"
+              data-fecha-nacimiento="{{ persona.fecha_nacimiento|date:'Y-m-d' }}"
+              data-genero="{{ persona.genero }}"
+              data-pais="{{ persona.pais }}"
+              data-provincia="{{ persona.provincia }}"
+              data-ciudad="{{ persona.ciudad }}"
+              data-calle="{{ persona.calle }}"
+              data-numero="{{ persona.numero }}"
+              data-tipo-usuario="{{ persona.tipo_usuario }}"
+              {% if persona.tipo_persona != 'normal' %}
+                data-estado="{{ persona.estado }}"
+              {% else %}
+                data-estado=""
+              {% endif %}
+              {% if persona.cargo %}
+                data-departamento="{{ persona.departamento_id }}"
+                data-cargo="{{ persona.cargo }}"
+              {% else %}
+                data-departamento=""
+                data-cargo=""
+              {% endif %}
+              onclick="editarPersona(this)"
+              title="Editar"
+            >
+              <i class="bi bi-pencil-square"></i>
+            </button>
+
+            <button
+              class="btn btn-sm btn-outline-info"
+              data-bs-toggle="modal"
+              data-bs-target="#modalVerPersona{{ persona.id }}"
+              data-id="{{ persona.id }}"
+              title="Ver"
+            >
+              <i class="bi bi-eye"></i>
+            </button>
+
+            <button
+              class="btn btn-sm btn-outline-danger"
+              data-bs-toggle="modal"
+              data-bs-target="#modalEliminarPersona"
+              data-id="{{ persona.id }}"
+              title="Eliminar"
+            >
+              <i class="bi bi-trash3"></i>
+            </button>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="9" class="text-center text-muted">
+            No hay personas registradas.
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <nav aria-label="Paginación">
+    <ul class="pagination justify-content-center mt-3">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a
+            class="page-link"
+            href="?page={{ page_obj.previous_page_number }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}"
+          >
+            Anterior
+          </a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+        {% else %}
+          <li class="page-item">
+            <a
+              class="page-link"
+              href="?page={{ num }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}"
+            >
+              {{ num }}
+            </a>
+          </li>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a
+            class="page-link"
+            href="?page={{ page_obj.next_page_number }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}"
+          >
+            Siguiente
+          </a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>

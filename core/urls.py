@@ -16,33 +16,6 @@ urlpatterns = [
     path('actualizar-cv/', postulaciones_view.actualizar_cv_ajax, name='actualizar_cv_ajax'),
 
 
-# urlpatterns = [
-#    path('dashboard/admin/', views.dashboard_admin, name='dashboard_admin'),
- #   path('dashboard/empleado/', views.dashboard_empleado, name='dashboard_empleado'),
- #   path('dashboard/', views.dashboard_normal, name='dashboard_normal'),
- #   ]
-
-     ## PERSONA ##
-    path('personas/', personas_view.personas, name='personas'),
-    path('personas/crear/', personas_view.crear_persona, name='crear_persona'),
-    path('personas/<int:persona_id>/eliminar/', personas_view.eliminar_persona, name='eliminar_persona'),
-    ##path('personas/<int:persona_id>/datos/', personas_view.obtener_datos_persona, name='obtener_datos_persona'),
-
-    path('personas/cargos_por_departamento/<int:dept_id>/', personas_view.cargos_por_departamento, name='cargos_por_departamento'),
-
-    path('perfil/datos-academicos/list/', personas_view.datos_academicos_list, name='datos_academicos_list'),
-    path('perfil/datos-academicos/save/', personas_view.datos_academicos_save, name='datos_academicos_save'),
-    path('perfil/datos-academicos/delete/', personas_view.datos_academicos_delete, name='datos_academicos_delete'),
-
-    path('perfil/certificaciones/list/', personas_view.certificaciones_list, name='certificaciones_list'),
-    path('perfil/certificaciones/save/', personas_view.certificaciones_save, name='certificaciones_save'),
-    path('perfil/certificaciones/delete/', personas_view.certificaciones_delete, name='certificaciones_delete'),
-
-    path('perfil/experiencias/list/', personas_view.experiencias_list, name='experiencias_list'),
-    path('perfil/experiencias/save/', personas_view.experiencias_save, name='experiencias_save'),
-    path('perfil/experiencias/delete/', personas_view.experiencias_delete, name='experiencias_delete'),
-
-
     ## CARGO ##
     path('cargos/', cargos_view.cargos, name='cargos'),
     path('cargos/crear/', cargos_view.crear_cargo, name='crear_cargo'), ## Sirve para editar tambien

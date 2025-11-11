@@ -1,0 +1,41 @@
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <button type="button" class="btn btn-primary" id="btnCrearPersona" data-bs-toggle="modal" data-bs-target="#modalPersona">
+    Crear Nueva Persona
+  </button>
+
+  <div class="ms-lg-3 w-100" style="max-width: 220px;">
+    <label class="form-label mb-1" for="buscadorDNI">Buscar por DNI</label>
+    <input type="text" class="form-control" id="buscadorDNI" placeholder="Ej: 30123456"/>
+  </div>
+
+  <div class="w-100" style="max-width: 260px;">
+    <label class="form-label mb-1" for="filtroDepartamento">Filtrar por Departamento</label>
+    <form method="get" class="d-flex gap-2">
+      <select class="form-select" id="filtroDepartamento" name="departamento" onchange="this.form.submit()">
+        <option value="" {% if not request.GET.departamento %}selected{% endif %}>
+          Todos
+        </option>
+        {% for dep in departamentos %}
+          <option
+            value="{{ dep.id }}"
+            {% if request.GET.departamento == dep.id|stringformat:"s" %}selected{% endif %}
+          >
+            {{ dep.nombre }}
+          </option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+  <div class="w-100" style="max-width: 240px;">
+    <label class="form-label mb-1" for="filtroTipoUsuario">Filtrar por Tipo de Usuario</label>
+    <select class="form-select" id="filtroTipoUsuario">
+      <option value="todos" selected>Todos</option>
+      <option value="normal">Normal</option>
+      <option value="empleado">Empleado</option>
+      <option value="jefe">Jefe</option>
+      <option value="gerente">Gerente</option>
+      <option value="admin">Administrador</option>
+    </select>
+  </div>
+</div>

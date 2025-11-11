@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'social_django',
     'widget_tweaks',
+    'personas',
     'core',
 ]
 

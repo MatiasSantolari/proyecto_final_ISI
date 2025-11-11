@@ -3,6 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from ..models import *
 from ..forms import *
+from personas.forms import PersonaForm
 from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -131,7 +132,7 @@ def registrar_usuario(request):
 @require_POST
 def create_persona(request):
     if request.method == 'POST':
-        form = PersonaFormCreate(request.POST, request.FILES)
+        form = PersonaForm(request.POST, request.FILES, include_admin_fields=False)
         if form.is_valid():
             persona = form.save(commit=False)
 
@@ -143,7 +144,7 @@ def create_persona(request):
 
             return redirect('home')
     else:
-        form = PersonaFormCreate()
+        form = PersonaForm(include_admin_fields=False)
 
     return render(request, 'auth/create_profile.html', {'form': form})
 
@@ -154,9 +155,10 @@ def create_persona(request):
 def perfil_usuario(request):
     persona = request.user.persona
 
-    form = PersonaFormEditar(
+    form = PersonaForm(
         request.POST or None,
         request.FILES or None,
+        include_admin_fields=False,
         instance=persona
     )
 

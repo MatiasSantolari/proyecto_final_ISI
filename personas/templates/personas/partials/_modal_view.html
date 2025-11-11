@@ -1,0 +1,42 @@
+{% for persona in personas %}
+  <div
+    class="modal fade"
+    id="modalVerPersona{{ persona.id }}"
+    tabindex="-1"
+    aria-labelledby="modalVerPersonaLabel{{ persona.id }}"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog" style="margin-top: 6rem;">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: #3c8dbc;">
+          <h5 class="modal-title text-white" id="modalVerPersonaLabel{{ persona.id }}">
+            Detalles de la Persona
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Nombre:</strong> <span>{{ persona.nombre }}</span></p>
+          <p><strong>Apellido:</strong> <span>{{ persona.apellido }}</span></p>
+          <p><strong>DNI:</strong> <span>{{ persona.dni }}</span></p>
+          <p><strong>Email:</strong> <span>{{ persona.email }}</span></p>
+          <p><strong>Teléfono:</strong> <span>{{ persona.telefono_completo }}</span></p>
+          <p><strong>Fecha de Nacimiento:</strong> <span>{{ persona.fecha_nacimiento }}</span></p>
+          <p><strong>Género:</strong> <span>{{ persona.genero }}</span></p>
+          <p>
+            <strong>Lugar:</strong>
+            <span>{{ persona.pais|add:", "|add:persona.provincia|add:", "|add:persona.ciudad }}</span>
+          </p>
+          <p>
+            <strong>Dirección:</strong> <span>{{ persona.calle|add:" "|add:persona.numero }}</span>
+          </p>
+          <p><strong>Tipo de Usuario:</strong> <span>{{ persona.tipo_usuario }}</span></p>
+          {% if persona.tipo_persona != 'normal' %}
+            <p><strong>Estado del Empleado:</strong> <span>{{ persona.estado }}</span></p>
+            <p><strong>Departamento:</strong> <span>{{ persona.departamento_nombre }}</span></p>
+            <p><strong>Cargo:</strong> <span>{{ persona.nombre_cargo }}</span></p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endfor %}
