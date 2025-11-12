@@ -4,6 +4,7 @@ from personas import views
 
 urlpatterns = [
     path("", views.personas, name="personas"),
+    path("<str:departamento>/<str:tipo_usuario>/", views.personas, name="personas_param"),
     path("crear/", views.crear_persona, name="crear_persona"),
     path("<int:persona_id>/eliminar/", views.eliminar_persona, name="eliminar_persona"),
     path("cargos_por_departamento/<int:dept_id>/",views.cargos_por_departamento,name="cargos_por_departamento"),

@@ -3,53 +3,68 @@
     Crear Nueva Persona
   </button>
 
-  <div class="ms-lg-3 w-100" style="max-width: 220px;">
-    <label class="form-label mb-1" for="buscadorDNI">Buscar por DNI</label>
-    <input
-      type="text"
-      class="form-control"
-      id="buscadorDNI"
-      placeholder="Ej: 30123456"
-      data-datatable-filter="tablaPersonas"
-      data-column="2"
-    />
-  </div>
+  {% with filtro=datatable.filters.buscadorDNI %}
+    {% if filtro %}
+    <div class="ms-lg-3 w-100" style="max-width: 220px;">
+      <label class="form-label mb-1" for="{{ filtro.element_id }}">Buscar por DNI</label>
+      <input
+        type="text"
+        class="form-control"
+        id="{{ filtro.element_id }}"
+        placeholder="Ej: 30123456"
+        data-datatable-filter="{{ filtro.table_id }}"
+        data-column="{{ filtro.column }}"
+        data-filter-event="{{ filtro.event }}"
+      />
+    </div>
+    {% endif %}
+  {% endwith %}
 
   <div class="w-100" style="max-width: 260px;">
     <label class="form-label mb-1" for="filtroDepartamento">Filtrar por Departamento</label>
     <form method="get" class="d-flex gap-2">
       <select class="form-select" id="filtroDepartamento" name="departamento" onchange="this.form.submit()">
-        <option value="" {% if not request.GET.departamento %}selected{% endif %}>
+        <option value="" {% if not departamento_seleccionado %}selected{% endif %}>
           Todos
         </option>
         {% for dep in departamentos %}
           <option
             value="{{ dep.id }}"
-            {% if request.GET.departamento == dep.id|stringformat:"s" %}selected{% endif %}
+            {% if departamento_seleccionado|stringformat:"s" == dep.id|stringformat:"s" %}selected{% endif %}
           >
             {{ dep.nombre }}
           </option>
         {% endfor %}
       </select>
+      {% if tipo_usuario_seleccionado %}
+        <input type="hidden" name="tipo_usuario" value="{{ tipo_usuario_seleccionado }}">
+      {% endif %}
     </form>
   </div>
 
-  <div class="w-100" style="max-width: 240px;">
-    <label class="form-label mb-1" for="filtroTipoUsuario">Filtrar por Tipo de Usuario</label>
-    <select
-      class="form-select"
-      id="filtroTipoUsuario"
-      data-datatable-filter="tablaPersonas"
-      data-column="5"
-      data-empty-value="todos"
-      data-filter-event="change"
-    >
-      <option value="todos" selected>Todos</option>
-      <option value="normal">Normal</option>
-      <option value="empleado">Empleado</option>
-      <option value="jefe">Jefe</option>
-      <option value="gerente">Gerente</option>
-      <option value="admin">Administrador</option>
-    </select>
-  </div>
+  {% with filtro=datatable.filters.filtroTipoUsuario %}
+    {% if filtro %}
+    <div class="w-100" style="max-width: 240px;">
+      <label class="form-label mb-1" for="{{ filtro.element_id }}">Filtrar por Tipo de Usuario</label>
+      <form method="get" class="d-flex gap-2">
+        <select
+          class="form-select"
+          id="{{ filtro.element_id }}"
+          name="tipo_usuario"
+          onchange="this.form.submit()"
+        >
+          <option value="" {% if not tipo_usuario_seleccionado %}selected{% endif %}>Todos</option>
+          <option value="normal" {% if tipo_usuario_seleccionado == 'normal' %}selected{% endif %}>Normal</option>
+          <option value="empleado" {% if tipo_usuario_seleccionado == 'empleado' %}selected{% endif %}>Empleado</option>
+          <option value="jefe" {% if tipo_usuario_seleccionado == 'jefe' %}selected{% endif %}>Jefe</option>
+          <option value="gerente" {% if tipo_usuario_seleccionado == 'gerente' %}selected{% endif %}>Gerente</option>
+          <option value="admin" {% if tipo_usuario_seleccionado == 'admin' %}selected{% endif %}>Administrador</option>
+        </select>
+        {% if departamento_seleccionado %}
+          <input type="hidden" name="departamento" value="{{ departamento_seleccionado }}">
+        {% endif %}
+      </form>
+    </div>
+    {% endif %}
+  {% endwith %}
 </div>

@@ -8,6 +8,8 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from core.utils.datatables import get_datatable_definition
+from personas import datatables_registry
 
 from core.models import (
     Cargo,
@@ -31,22 +33,41 @@ from personas.forms import (
 
 
 @login_required
-def personas(request):
+def personas(request, departamento="todos", tipo_usuario="todos"):
     personas_qs = Persona.objects.select_related("empleado", "usuario").order_by(
         "apellido", "nombre"
     )
 
     departamentos = Departamento.objects.all()
-    dep_id = request.GET.get("departamento")
+    dep_value = request.GET.get("departamento")
+    if dep_value is None:
+        dep_value = departamento
+    if dep_value in (None, "", "todos", "Todos"):
+        dep_filter = None
+    else:
+        dep_filter = dep_value
 
-    if dep_id:
-        personas_qs = (
-            personas_qs.filter(
+    if dep_filter:
+        try:
+            dep_id_int = int(dep_filter)
+        except (ValueError, TypeError):
+            dep_id_int = None
+        if dep_id_int:
+            personas_qs = personas_qs.filter(
                 empleado__empleadocargo__fecha_fin__isnull=True,
-                empleado__empleadocargo__cargo__cargodepartamento__departamento_id=dep_id,
-            )
-            .distinct()
-        )
+                empleado__empleadocargo__cargo__cargodepartamento__departamento_id=dep_id_int,
+            ).distinct()
+
+    tipo_value = request.GET.get("tipo_usuario")
+    if tipo_value is None:
+        tipo_value = tipo_usuario
+    if tipo_value in (None, "", "todos", "Todos"):
+        tipo_usuario_filtro = None
+    else:
+        tipo_usuario_filtro = tipo_value
+
+    if tipo_usuario_filtro:
+        personas_qs = personas_qs.filter(usuario__rol=tipo_usuario_filtro)
 
     personas_con_datos = []
 
@@ -84,6 +105,11 @@ def personas(request):
                 estado = "Sin Estado"
                 nombre_cargo = "Sin Cargo"
 
+        if not estado:
+            estado = "Sin Estado"
+        if not tipo_usuario:
+            tipo_usuario = "sin rol"
+
         personas_con_datos.append(
             {
                 "id": persona.id,
@@ -111,6 +137,7 @@ def personas(request):
         )
 
     form = PersonaForm()
+    datatable_definition = get_datatable_definition("personas")
     return render(
         request,
         "personas/personas_list.html",
@@ -118,7 +145,9 @@ def personas(request):
             "personas": personas_con_datos,
             "form": form,
             "departamentos": departamentos,
-            "departamento_seleccionado": dep_id,
+            "departamento_seleccionado": dep_filter if dep_filter else "",
+            "tipo_usuario_seleccionado": tipo_usuario_filtro if tipo_usuario_filtro else "",
+            "datatable": datatable_definition,
         },
     )
 

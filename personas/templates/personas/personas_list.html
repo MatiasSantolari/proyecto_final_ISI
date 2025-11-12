@@ -6,11 +6,11 @@
 <div class="container-fluid my-5">
   <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Personas</h1>
 
-  {% include "personas/partials/_filters.html" %}
+  {% include "personas/partials/_filters.html" with datatable=datatable %}
 
   <div class="card shadow-sm border-0">
     <div class="card-body">
-      {% include "personas/partials/_table.html" %}
+      {% include "personas/partials/_table.html" with datatable=datatable %}
     </div>
   </div>
 </div>
