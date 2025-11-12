@@ -149,38 +149,32 @@
 
     document.getElementById('btnCrearPersona').addEventListener('click', limpiarFormulario);
 
-    const modalEliminar = document.getElementById('modalEliminarPersona');
-    modalEliminar.addEventListener('show.bs.modal', function (event) {
-      const button = event.relatedTarget;
-      const personaId = button.getAttribute('data-id');
-      const form = document.getElementById('formEliminarPersona');
-      form.action = `/personas/${personaId}/eliminar/`;
-    });
-
     window.editarPersona = editarPersona;
     toggleCampos();
 
-    const buscadorDNI = document.getElementById('buscadorDNI');
-    const filtroTipoUsuario = document.getElementById('filtroTipoUsuario');
-    const filas = document.querySelectorAll('#tablaPersonas tbody tr');
-
-    function aplicarFiltros() {
-      const dniBuscado = buscadorDNI.value.trim().toLowerCase();
-      const tipoSeleccionado = filtroTipoUsuario.value.toLowerCase();
-
-      filas.forEach(fila => {
-        const dni = (fila.getAttribute('data-dni') || '').toLowerCase();
-        const tipo = (fila.getAttribute('data-tipo') || '').toLowerCase();
-
-        const coincideDNI = dni.includes(dniBuscado);
-        const coincideTipo = tipoSeleccionado === 'todos' || tipo === tipoSeleccionado;
-
-        fila.style.display = coincideDNI && coincideTipo ? '' : 'none';
+    document.querySelectorAll('.btn-eliminar').forEach((btn) => {
+      btn.addEventListener('click', function () {
+        const personaId = this.getAttribute('data-id');
+        const personaNombre = this.getAttribute('data-nombre');
+        Swal.fire({
+          title: '¿Eliminar persona?',
+          text: personaNombre ? `Esta acción eliminará a ${personaNombre}.` : 'Esta acción no se puede deshacer.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const form = document.getElementById('formEliminarPersona');
+            form.action = `/personas/${personaId}/eliminar/`;
+            form.submit();
+          }
+        });
       });
-    }
+    });
 
-    buscadorDNI.addEventListener('input', aplicarFiltros);
-    filtroTipoUsuario.addEventListener('change', aplicarFiltros);
   });
 
   function setAccion(valor) {

@@ -4,7 +4,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
-from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
@@ -49,13 +48,9 @@ def personas(request):
             .distinct()
         )
 
-    paginator = Paginator(personas_qs, 10)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-
     personas_con_datos = []
 
-    for persona in page_obj:
+    for persona in personas_qs:
         estado = ""
         cargo_id = ""
         nombre_cargo = ""
@@ -121,7 +116,6 @@ def personas(request):
         "personas/personas_list.html",
         {
             "personas": personas_con_datos,
-            "page_obj": page_obj,
             "form": form,
             "departamentos": departamentos,
             "departamento_seleccionado": dep_id,

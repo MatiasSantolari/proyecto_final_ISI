@@ -5,7 +5,14 @@
 
   <div class="ms-lg-3 w-100" style="max-width: 220px;">
     <label class="form-label mb-1" for="buscadorDNI">Buscar por DNI</label>
-    <input type="text" class="form-control" id="buscadorDNI" placeholder="Ej: 30123456"/>
+    <input
+      type="text"
+      class="form-control"
+      id="buscadorDNI"
+      placeholder="Ej: 30123456"
+      data-datatable-filter="tablaPersonas"
+      data-column="2"
+    />
   </div>
 
   <div class="w-100" style="max-width: 260px;">
@@ -29,7 +36,14 @@
 
   <div class="w-100" style="max-width: 240px;">
     <label class="form-label mb-1" for="filtroTipoUsuario">Filtrar por Tipo de Usuario</label>
-    <select class="form-select" id="filtroTipoUsuario">
+    <select
+      class="form-select"
+      id="filtroTipoUsuario"
+      data-datatable-filter="tablaPersonas"
+      data-column="5"
+      data-empty-value="todos"
+      data-filter-event="change"
+    >
       <option value="todos" selected>Todos</option>
       <option value="normal">Normal</option>
       <option value="empleado">Empleado</option>

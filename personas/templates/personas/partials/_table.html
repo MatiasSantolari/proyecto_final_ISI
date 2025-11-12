@@ -3,6 +3,9 @@
     id="tablaPersonas"
     class="table table-sm table-hover table-bordered align-middle mb-0"
     style="min-width: 1300px; font-size: 0.95rem;"
+    data-datatable="true"
+    data-page-length="10"
+    data-datatable-options='{"order":[[0,"asc"]]}'
   >
     <thead class="table-light text-center">
       <tr>
@@ -81,10 +84,9 @@
             </button>
 
             <button
-              class="btn btn-sm btn-outline-danger"
-              data-bs-toggle="modal"
-              data-bs-target="#modalEliminarPersona"
+              class="btn btn-sm btn-outline-danger btn-eliminar"
               data-id="{{ persona.id }}"
+              data-nombre="{{ persona.apellido }}, {{ persona.nombre }}"
               title="Eliminar"
             >
               <i class="bi bi-trash3"></i>
@@ -101,48 +103,4 @@
     </tbody>
   </table>
 
-  <nav aria-label="Paginación">
-    <ul class="pagination justify-content-center mt-3">
-      {% if page_obj.has_previous %}
-        <li class="page-item">
-          <a
-            class="page-link"
-            href="?page={{ page_obj.previous_page_number }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}"
-          >
-            Anterior
-          </a>
-        </li>
-      {% else %}
-        <li class="page-item disabled"><span class="page-link">Anterior</span></li>
-      {% endif %}
-
-      {% for num in page_obj.paginator.page_range %}
-        {% if page_obj.number == num %}
-          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-        {% else %}
-          <li class="page-item">
-            <a
-              class="page-link"
-              href="?page={{ num }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}"
-            >
-              {{ num }}
-            </a>
-          </li>
-        {% endif %}
-      {% endfor %}
-
-      {% if page_obj.has_next %}
-        <li class="page-item">
-          <a
-            class="page-link"
-            href="?page={{ page_obj.next_page_number }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}"
-          >
-            Siguiente
-          </a>
-        </li>
-      {% else %}
-        <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
-      {% endif %}
-    </ul>
-  </nav>
 </div>
