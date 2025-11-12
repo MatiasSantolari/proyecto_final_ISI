@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from core.utils.datatables import get_datatable_definition
+from core.utils.datatables import get_datatable_context
 from personas import datatables_registry
 
 from core.models import (
@@ -137,7 +137,7 @@ def personas(request, departamento="todos", tipo_usuario="todos"):
         )
 
     form = PersonaForm()
-    datatable_definition = get_datatable_definition("personas")
+    datatable_definition = get_datatable_context("personas")
     return render(
         request,
         "personas/personas_list.html",

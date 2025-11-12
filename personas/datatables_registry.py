@@ -13,19 +13,14 @@ register_datatable(
             ],
             "dom": "Bfrtip",
             "buttons": ["excel", "pdf", "colvis"],
+            "searching": True,
+            "language": {"search": "Buscar: ","searchPlaceholder": "Ingrese DNI.."}
         },
         "filters": [
             {
-                "element_id": "buscadorDNI",
-                "table_id": "tablaPersonas",
-                "column": 2,
-                "event": "input",
-                "placeholder": "Ingrese DNI..."
-            },
-            {
                 "element_id": "filtroTipoUsuario",
                 "table_id": "tablaPersonas",
-                "column": 5,
+                "column": 2,
                 "event": "change",
                 "empty_value": "todos",
             },
