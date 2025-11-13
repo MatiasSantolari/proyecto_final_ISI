@@ -42,7 +42,7 @@
               {{ persona.estado|estado_badge_label }}
             </span>
           </td>
-          <td>{{ persona.nombre_cargo }}</td>
+          <td>{{ persona.cargo }}</td>
           <td class="text-center">
             <button
               class="btn btn-sm btn-editar btn-outline-secondary"
@@ -99,12 +99,6 @@
             >
               <i class="bi bi-trash3"></i>
             </button>
-          </td>
-        </tr>
-      {% empty %}
-        <tr>
-          <td colspan="9" class="text-center text-muted">
-            No hay personas registradas.
           </td>
         </tr>
       {% endfor %}

@@ -1,5 +1,6 @@
 from django import forms
 from django.forms.widgets import DateInput
+from core.constants import ROL_USUARIO_CHOICES, ESTADO_EMPLEADO_CHOICES
 
 from core.models import (
     Cargo,
@@ -15,24 +16,13 @@ from personas.models import (
 )
 
 
-ESTADO_EMPLEADO_CHOICES = [
-    ("activo", "Activo"),
-    ("inactivo", "Inactivo"),
-    ("suspendido", "Suspendido"),
-]
 
 ADMIN_FIELDS = ("tipo_usuario", "estado", "departamento", "cargo")
 
 
 class PersonaForm(forms.ModelForm):
     tipo_usuario = forms.ChoiceField(
-        choices=[
-            ("normal", "Normal"),
-            ("empleado", "Empleado"),
-            ("jefe", "Jefe"),
-            ("gerente", "Gerente"),
-            ("admin", "Administrador"),
-        ],
+        choices=ROL_USUARIO_CHOICES,
         widget=forms.Select(attrs={"class": "form-select", "id": "id_tipo_usuario"}),
         required=False,
     )

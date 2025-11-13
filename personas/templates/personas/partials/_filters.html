@@ -9,21 +9,15 @@
     <label class="form-label mb-1" for="filtroDepartamento">Filtrar por Departamento</label>
     <form method="get" class="d-flex gap-2">
       <select class="form-select" id="filtroDepartamento" name="departamento" onchange="this.form.submit()">
-        <option value="" {% if not departamento_seleccionado %}selected{% endif %}>
+        <option value="0" {% if departamento_seleccionado == "0" %}selected{% endif %}>
           Todos
         </option>
-        {% for dep in departamentos %}
-          <option
-            value="{{ dep.id }}"
-            {% if departamento_seleccionado|stringformat:"s" == dep.id|stringformat:"s" %}selected{% endif %}
-          >
-            {{ dep.nombre }}
+        {% for departamento in departamentos %}
+          <option value="{{ departamento.id }}" {% if departamento_seleccionado == departamento.id|stringformat:"s" %}selected{% endif %}>
+            {{ departamento.nombre }}
           </option>
         {% endfor %}
       </select>
-      {% if tipo_usuario_seleccionado %}
-        <input type="hidden" name="tipo_usuario" value="{{ tipo_usuario_seleccionado }}">
-      {% endif %}
     </form>
   </div>
 
@@ -31,12 +25,10 @@
       <label class="form-label mb-1" for="{{ filtro.element_id }}">Filtrar por Tipo de Usuario</label>
       <form method="get" class="d-flex gap-2">
         <select class="form-select" id="{{ filtro.element_id }}" name="tipo_usuario" onchange="this.form.submit()">
-          <option value="" {% if not tipo_usuario_seleccionado %}selected{% endif %}>Todos</option>
-          <option value="normal" {% if tipo_usuario_seleccionado == 'normal' %}selected{% endif %}>Normal</option>
-          <option value="empleado" {% if tipo_usuario_seleccionado == 'empleado' %}selected{% endif %}>Empleado</option>
-          <option value="jefe" {% if tipo_usuario_seleccionado == 'jefe' %}selected{% endif %}>Jefe</option>
-          <option value="gerente" {% if tipo_usuario_seleccionado == 'gerente' %}selected{% endif %}>Gerente</option>
-          <option value="admin" {% if tipo_usuario_seleccionado == 'admin' %}selected{% endif %}>Administrador</option>
+          <option value="0" {% if tipo_usuario_seleccionado == "0" %}selected{% endif %}>Todos</option>
+          {% for id, tipo in tipos_usuarios %}
+            <option value="{{ id }}" {% if tipo_usuario_seleccionado == id|stringformat:"s" %}selected{% endif %}>{{ tipo }}</option>
+          {% endfor %}
         </select>
         {% if departamento_seleccionado %}
           <input type="hidden" name="departamento" value="{{ departamento_seleccionado }}">

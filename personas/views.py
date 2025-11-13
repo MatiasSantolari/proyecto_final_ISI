@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from core.utils.datatables import get_datatable_context
 from personas import datatables_registry
+from core.constants import ROL_USUARIO_CHOICES
 
 from core.models import (
     Cargo,
@@ -33,108 +34,24 @@ from personas.forms import (
 
 
 @login_required
-def personas(request, departamento="todos", tipo_usuario="todos"):
-    personas_qs = Persona.objects.select_related("empleado", "usuario").order_by(
-        "apellido", "nombre"
-    )
+def personas(request):
 
     departamentos = Departamento.objects.all()
-    dep_value = request.GET.get("departamento")
-    if dep_value is None:
-        dep_value = departamento
-    if dep_value in (None, "", "todos", "Todos"):
-        dep_filter = None
-    else:
-        dep_filter = dep_value
+    departamento = request.GET.get("departamento")
+    #print(departamento , isinstance(departamento, str))
+    tipos_usuarios = ROL_USUARIO_CHOICES
+    tipo_usuario = request.GET.get("tipo_usuario")
+    #print(tipo_usuario, isinstance(tipo_usuario, str))
 
-    if dep_filter:
-        try:
-            dep_id_int = int(dep_filter)
-        except (ValueError, TypeError):
-            dep_id_int = None
-        if dep_id_int:
-            personas_qs = personas_qs.filter(
-                empleado__empleadocargo__fecha_fin__isnull=True,
-                empleado__empleadocargo__cargo__cargodepartamento__departamento_id=dep_id_int,
-            ).distinct()
-
-    tipo_value = request.GET.get("tipo_usuario")
-    if tipo_value is None:
-        tipo_value = tipo_usuario
-    if tipo_value in (None, "", "todos", "Todos"):
-        tipo_usuario_filtro = None
-    else:
-        tipo_usuario_filtro = tipo_value
-
-    if tipo_usuario_filtro:
-        personas_qs = personas_qs.filter(usuario__rol=tipo_usuario_filtro)
-
-    personas_con_datos = []
-
-    for persona in personas_qs:
-        estado = ""
-        cargo_id = ""
-        nombre_cargo = ""
-        tipo_usuario = ""
-        departamento_id = ""
-        departamento_nombre = ""
-
-        if hasattr(persona, "usuario"):
-            tipo_usuario = persona.usuario.rol
-
-            if tipo_usuario in ["empleado", "jefe", "gerente", "admin"] and hasattr(
-                persona, "empleado"
-            ):
-                estado = persona.empleado.estado
-
-                ultimo_cargo = (
-                    persona.empleado.empleadocargo_set.filter(fecha_fin__isnull=True).first()
-                )
-                if ultimo_cargo:
-                    cargo = ultimo_cargo.cargo
-                    cargo_id = cargo.id
-                    nombre_cargo = cargo.nombre
-
-                    cargo_departamento = CargoDepartamento.objects.filter(
-                        cargo=cargo
-                    ).first()
-                    if cargo_departamento:
-                        departamento_id = cargo_departamento.departamento.id
-                        departamento_nombre = cargo_departamento.departamento.nombre
-            else:
-                estado = "Sin Estado"
-                nombre_cargo = "Sin Cargo"
-
-        if not estado:
-            estado = "Sin Estado"
-        if not tipo_usuario:
-            tipo_usuario = "sin rol"
-
-        personas_con_datos.append(
-            {
-                "id": persona.id,
-                "nombre": persona.nombre,
-                "apellido": persona.apellido,
-                "dni": persona.dni,
-                "email": persona.usuario.email,
-                "prefijo_pais": persona.prefijo_pais,
-                "telefono": persona.telefono,
-                "fecha_nacimiento": persona.fecha_nacimiento,
-                "genero": persona.genero,
-                "pais": persona.pais,
-                "provincia": persona.provincia,
-                "ciudad": persona.ciudad,
-                "calle": persona.calle,
-                "numero": persona.numero,
-                "tipo_usuario": tipo_usuario,
-                "estado": estado,
-                "cargo": cargo_id,
-                "nombre_cargo": nombre_cargo,
-                "departamento_id": departamento_id,
-                "departamento_nombre": departamento_nombre,
-                "telefono_completo": persona.prefijo_pais + persona.telefono,
-            }
+    #BUSCO PERSONAS
+    personas = Persona.objects.all().order_by("apellido", "nombre")
+    if departamento not in ('0', None):
+        personas = personas.filter(
+            empleado__empleadocargo__fecha_fin__isnull=True,
+            empleado__empleadocargo__cargo__cargodepartamento__departamento_id=departamento,
         )
+    if tipo_usuario not in ('0', None):
+        personas = personas.filter(usuario__rol=tipo_usuario)
 
     form = PersonaForm()
     datatable_definition = get_datatable_context("personas")
@@ -142,11 +59,12 @@ def personas(request, departamento="todos", tipo_usuario="todos"):
         request,
         "personas/personas_list.html",
         {
-            "personas": personas_con_datos,
+            "personas": personas,
             "form": form,
             "departamentos": departamentos,
-            "departamento_seleccionado": dep_filter if dep_filter else "",
-            "tipo_usuario_seleccionado": tipo_usuario_filtro if tipo_usuario_filtro else "",
+            "departamento_seleccionado": departamento,
+            "tipos_usuarios": tipos_usuarios,
+            "tipo_usuario_seleccionado": tipo_usuario,
             "datatable": datatable_definition,
         },
     )

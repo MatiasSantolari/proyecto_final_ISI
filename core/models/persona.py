@@ -40,7 +40,32 @@ class Persona(models.Model):
         if self.cvitae:
             return os.path.basename(self.cvitae.name)
         return ""
+
+    @property
+    def telefono_completo(self):
+        prefijo = (self.prefijo_pais or "").strip()
+        numero = (self.telefono or "").strip()
+
+        if prefijo and numero:
+            return f"{prefijo}{numero}"
+        return prefijo or numero
     
+    @property
+    def email(self):
+        return self.usuario.email
+    
+    @property
+    def cargo(self):
+        if self.empleado:
+            return self.empleado.cargo
+    
+    @property
+    def tipo_usuario(self):
+        return self.usuario.rol
+    
+    @property
+    def estado(self):
+        return self.empleado.estado
 
 
 class DatoAcademico(models.Model):

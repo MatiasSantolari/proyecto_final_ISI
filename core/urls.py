@@ -6,6 +6,7 @@ from core import views
 
 urlpatterns = [
     path('home/', login_view.home, name='home'),
+    path('', login_view.home, name='home'),
     
     path('cambiar_vista/', login_view.cambiar_vista, name='cambiar_vista'),
      
