@@ -11,6 +11,7 @@ from django.views.decorators.http import require_POST
 from core.utils.datatables import get_datatable_context
 from personas import datatables_registry
 from core.constants import ROL_USUARIO_CHOICES
+from .services import generar_usuario
 
 from core.models import (
     Cargo,
@@ -33,15 +34,17 @@ from personas.forms import (
 )
 
 
-@login_required
-def personas(request):
-
+def _personas_context(request, form=None):
     departamentos = Departamento.objects.all()
     departamento = request.GET.get("departamento")
-    #print(departamento , isinstance(departamento, str))
+
     tipos_usuarios = ROL_USUARIO_CHOICES
     tipo_usuario = request.GET.get("tipo_usuario")
-    #print(tipo_usuario, isinstance(tipo_usuario, str))
+
+    if form is None:
+        form = PersonaForm()
+
+    datatable_definition = get_datatable_context("personas")
 
     #BUSCO PERSONAS
     personas = Persona.objects.all().order_by("apellido", "nombre")
@@ -53,250 +56,176 @@ def personas(request):
     if tipo_usuario not in ('0', None):
         personas = personas.filter(usuario__rol=tipo_usuario)
 
-    form = PersonaForm()
-    datatable_definition = get_datatable_context("personas")
-    return render(
-        request,
-        "personas/personas_list.html",
-        {
-            "personas": personas,
-            "form": form,
-            "departamentos": departamentos,
-            "departamento_seleccionado": departamento,
-            "tipos_usuarios": tipos_usuarios,
-            "tipo_usuario_seleccionado": tipo_usuario,
-            "datatable": datatable_definition,
-        },
-    )
+    return {
+        "personas": personas,
+        "form": form,
+        "departamentos": departamentos,
+        "departamento_seleccionado": departamento,
+        "tipos_usuarios": tipos_usuarios,
+        "tipo_usuario_seleccionado": tipo_usuario,
+        "datatable": datatable_definition,
+    }
+
+
+@login_required
+def personas(request):
+    context = _personas_context(request)
+    return render(request, "personas/personas_list.html", context)
 
 
 @login_required
 @require_POST
 def crear_persona(request):
-    if request.method == "POST":
-        id_persona = request.POST.get("id_persona")
-        persona = get_object_or_404(Persona, id=id_persona) if id_persona else None
-        departamento_id = request.POST.get("departamento")
+    form = PersonaForm(request.POST)
 
-        form = PersonaForm(
-            request.POST, request.FILES, instance=persona, departamento_id=departamento_id
-        )
-
-        if form.is_valid():
-            email = form.cleaned_data.get("email")
-            accion = request.POST.get("accion")
-
-            if not id_persona and Usuario.objects.filter(email=email).exists():
-                form.add_error(
-                    "email", "Ya existe un usuario registrado con ese correo electrónico."
-                )
-            else:
-                persona = form.save()
-                rol = form.cleaned_data.get("tipo_usuario")
-                cargo = form.cleaned_data.get("cargo")
-
-                if rol == "gerente" and departamento_id:
-                    cargo = Cargo.get_gerente_por_departamento(departamento_id)
-                    if not cargo:
-                        form.add_error(
-                            "departamento",
-                            "No hay un cargo de gerente configurado para este departamento.",
-                        )
-                        personas = Persona.objects.all()
-                        return render(request, "personas/personas_list.html", {"form": form, "personas": personas})
-
-                if (rol == "gerente" or rol == "jefe") and not cargo and departamento_id:
-                    if rol == "gerente":
-                        cargo = Cargo.get_gerente_por_departamento(departamento_id)
-                    else:
-                        cargo = Cargo.get_jefe_por_departamento(departamento_id)
-
-                if not id_persona:
-                    estado_empleado = "activo"
-                else:
-                    estado_empleado = form.cleaned_data.get("estado")
-
-                persona = form.save()
-
-                if not id_persona:
-                    base_username = f"{persona.nombre}.{persona.apellido}".replace(" ", "").lower()
-                    username = base_username
-                    contador = 1
-                    while Usuario.objects.filter(username=username).exists():
-                        username = f"{base_username}{contador}"
-                        contador += 1
-
-                    password = persona.dni
-
-                    usuario = Usuario.objects.create_user(
-                        username=username,
-                        password=password,
-                        email=email,
-                        persona=persona,
-                        rol=rol,
-                    )
-
-                    if rol == "admin":
-                        usuario.is_staff = True
-                        usuario.is_superuser = True
-                    else:
-                        usuario.is_staff = False
-                        usuario.is_superuser = False
-                    usuario.save()
-
-                    login_url = request.build_absolute_uri("/login/")
-                    try:
-                        send_mail(
-                            subject="Credenciales de acceso",
-                            message=(
-                                f"Hola {persona.nombre},\n\n"
-                                f"Tu cuenta ha sido creada.\n"
-                                f"Usuario: {username}\n"
-                                f"Contraseña: {password}\n\n"
-                                f"Podés ingresar al sistema desde: {login_url}\n\n"
-                                f"Por favor, cambie su contraseña luego de ingresar.\n\n"
-                                f"Saludos,\nEl equipo de RRHH"
-                            ),
-                            from_email=settings.DEFAULT_FROM_EMAIL,
-                            recipient_list=[email],
-                            fail_silently=False,
-                        )
-                    except Exception as e:  # pragma: no cover - logging side-effect
-                        print(f"Error al enviar el correo: {e}")
-
-                else:
-                    try:
-                        usuario = Usuario.objects.get(persona=persona)
-                        usuario.email = form.cleaned_data.get("email")
-                        usuario.rol = rol
-                        if rol == "admin":
-                            usuario.is_staff = True
-                            usuario.is_superuser = True
-                        else:
-                            usuario.is_staff = False
-                            usuario.is_superuser = False
-                        usuario.save()
-
-                    except Usuario.DoesNotExist:
-                        print(f"Usuario no encontrado para persona {persona.id}")
-
-                if rol == "admin":
-                    try:
-                        cargo = Cargo.objects.get(nombre="ADMIN")
-                    except Cargo.DoesNotExist:
-                        cargo = None
-
-                if rol in ["empleado", "jefe", "gerente", "admin"] and cargo:
-                    try:
-                        empleado = Empleado.objects.get(id=persona.id)
-                    except Empleado.DoesNotExist:
-                        empleado = Empleado.objects.create(
-                            id=persona.id,
-                            nombre=persona.nombre,
-                            apellido=persona.apellido,
-                            dni=persona.dni,
-                            telefono=persona.telefono,
-                            prefijo_pais=persona.prefijo_pais,
-                            fecha_nacimiento=persona.fecha_nacimiento,
-                            fecha_ingreso=persona.fecha_ingreso,
-                            pais=persona.pais,
-                            provincia=persona.provincia,
-                            ciudad=persona.ciudad,
-                            calle=persona.calle,
-                            numero=persona.numero,
-                            genero=persona.genero,
-                            avatar=persona.avatar,
-                            cvitae=persona.cvitae,
-                            fecha_creacion=persona.fecha_creacion,
-                            fecha_actualizacion=persona.fecha_actualizacion,
-                            estado=estado_empleado,
-                            cargo=cargo,
-                            cantidad_dias_disponibles=0,
-                        )
-                    else:
-                        empleado.estado = estado_empleado
-                        if cargo:
-                            empleado.cargo = cargo
-                        empleado.save()
-
-                    if cargo:
-                        ultimo_cargo = (
-                            EmpleadoCargo.objects.filter(
-                                empleado=empleado, fecha_fin__isnull=True
-                            )
-                            .order_by("-fecha_inicio")
-                            .first()
-                        )
-
-                        if not ultimo_cargo:
-                            EmpleadoCargo.objects.create(
-                                empleado=empleado, cargo=cargo, fecha_inicio=date.today()
-                            )
-                            try:
-                                relacion_nueva = CargoDepartamento.objects.get(
-                                    cargo=cargo, departamento=departamento_id
-                                )
-                                if relacion_nueva.vacante > 0:
-                                    relacion_nueva.vacante -= 1
-                                    relacion_nueva.save()
-                            except CargoDepartamento.DoesNotExist:
-                                pass
-
-                        elif ultimo_cargo.cargo != cargo:
-                            ultimo_cargo.fecha_fin = date.today()
-                            ultimo_cargo.save()
-                            try:
-                                relacion_anterior = CargoDepartamento.objects.get(
-                                    cargo=ultimo_cargo.cargo
-                                )
-                                relacion_anterior.vacante += 1
-                                relacion_anterior.save()
-                            except CargoDepartamento.DoesNotExist:
-                                pass
-
-                            EmpleadoCargo.objects.create(
-                                empleado=empleado, cargo=cargo, fecha_inicio=date.today()
-                            )
-                            try:
-                                relacion_nueva = CargoDepartamento.objects.get(
-                                    cargo=cargo, departamento=departamento_id
-                                )
-                                if relacion_nueva.vacante > 0:
-                                    relacion_nueva.vacante -= 1
-                                    relacion_nueva.save()
-                            except CargoDepartamento.DoesNotExist:
-                                pass
-
-                else:
-                    try:
-                        empleado = Empleado.objects.get(id=persona.id)
-                        empleado.estado = "inactivo"
-                        empleado.save()
-                    except Empleado.DoesNotExist:
-                        pass
-
-                if accion == "guardar_crear_contrato":
-                    tiene_activo = HistorialContrato.objects.filter(
-                        empleado=persona.id, estado="activo"
-                    ).exists()
-
-                    if tiene_activo:
-                        messages.warning(request, "La persona ya tiene un contrato activo.")
-                        return redirect("contratos")
-                    else:
-                        return redirect(
-                            f"/contratos/?crear_contrato=1&empleado_id={empleado.id}"
-                        )
-
-                return redirect("personas")
+    if not form.is_valid():
+        context = _personas_context(request, form=form)
+        context["mostrar_modal_persona"] = True
+        return render(request, "personas/personas_list.html", context, status=400)
+    
+    email = form.cleaned_data.get('email')
+    if Usuario.objects.filter(email=email).exists():
+        form.add_error('email', 'Ya existe un usuario registrado con ese correo electrónico.')
+        context = _personas_context(request, form=form)
+        context["mostrar_modal_persona"] = True
+        return render(request, "personas/personas_list.html", context, status=400)
+    
+    persona = form.save()
+    rol = form.cleaned_data.get('tipo_usuario')
+    login_url = request.build_absolute_uri('/login/')
+    #GENERAR USUARIO
+    generar_usuario(persona, email, rol, login_url)
+    #CARGO
+    cargo = form.cleaned_data.get('cargo')
+    departamento_id = form.cleaned_data.get('departamento')
+    # Ya ya lo valida en el front?
+    if rol == 'gerente' and departamento_id:
+        cargo = Cargo.get_gerente_por_departamento(departamento_id)
+        if not cargo:
+            form.add_error('departamento', 'No hay un cargo de gerente configurado para este departamento.')
+            personas = Persona.objects.all()
+            return render(request, 'personas.html', {'form': form, 'personas': personas})
+        
+    if (rol == 'gerente' or rol == 'jefe') and not cargo and departamento_id:
+        if rol == 'gerente':
+            cargo = Cargo.get_gerente_por_departamento(departamento_id)
         else:
-            print("Errores en el formulario:", form.errors)
+            cargo = Cargo.get_jefe_por_departamento(departamento_id)
+    ######
+    #Estado empleado
+    estado_empleado = form.cleaned_data.get('estado')
+    #ACCION
+    accion = request.POST.get("accion")
+    if rol in ['empleado', 'jefe', 'gerente', 'admin'] and cargo:
+        empleado = Empleado.objects.create(
+            id=persona.id,
+            nombre=persona.nombre,
+            apellido=persona.apellido,
+            dni=persona.dni,
+            telefono=persona.telefono,
+            prefijo_pais=persona.prefijo_pais,
+            fecha_nacimiento=persona.fecha_nacimiento,
+            fecha_ingreso=persona.fecha_ingreso,
+            pais=persona.pais,
+            provincia=persona.provincia,
+            ciudad=persona.ciudad,
+            calle=persona.calle,
+            numero=persona.numero,
+            genero=persona.genero,
+            avatar=persona.avatar,
+            cvitae=persona.cvitae,
+            fecha_creacion=persona.fecha_creacion,
+            fecha_actualizacion=persona.fecha_actualizacion,
+            estado=estado_empleado,
+            cargo=cargo,
+            cantidad_dias_disponibles=0
+        )
+    empleado.save()
+
+    if cargo:
+        ultimo_cargo = EmpleadoCargo.objects.filter(
+            empleado=empleado,
+            fecha_fin__isnull=True
+        ).order_by('-fecha_inicio').first()
+
+        if not ultimo_cargo:
+            EmpleadoCargo.objects.create(
+                empleado=empleado,
+                cargo=cargo,
+                fecha_inicio=date.today()
+            )
+            try:
+                relacion_nueva = CargoDepartamento.objects.get(
+                    cargo=cargo,
+                    departamento=departamento_id
+                )
+                if relacion_nueva.vacante > 0:
+                    relacion_nueva.vacante -= 1
+                    relacion_nueva.save()
+            except CargoDepartamento.DoesNotExist:
+                pass
+    
+
+        elif ultimo_cargo.cargo != cargo:
+            ultimo_cargo.fecha_fin = date.today()
+            ultimo_cargo.save()
+            try:
+                relacion_anterior = CargoDepartamento.objects.get(cargo=ultimo_cargo.cargo)
+                relacion_anterior.vacante += 1
+                relacion_anterior.save()
+            except CargoDepartamento.DoesNotExist:
+                pass
+
+            EmpleadoCargo.objects.create(
+                empleado=empleado,
+                cargo=cargo,
+                fecha_inicio=date.today()
+            )
+            try:
+                relacion_nueva = CargoDepartamento.objects.get(
+                    cargo=cargo,
+                    departamento=departamento_id
+                )
+                if relacion_nueva.vacante > 0:
+                    relacion_nueva.vacante -= 1
+                    relacion_nueva.save()
+            except CargoDepartamento.DoesNotExist:
+                pass
+
+        else:
+            pass
+
     else:
-        form = PersonaForm()
+        try:
+            empleado = Empleado.objects.get(id=persona.id)
+            empleado.estado = 'inactivo'
+            empleado.save()
+        except Empleado.DoesNotExist:
+            pass
 
-    personas = Persona.objects.all()
-    return render(request, "personas/personas_list.html", {"form": form, "personas": personas})
 
+    if accion == "guardar_crear_contrato":
+        tiene_activo = HistorialContrato.objects.filter(
+            empleado=persona.id, estado="activo"
+        ).exists()
+
+        if tiene_activo:
+            messages.warning(request, "La persona ya tiene un contrato activo.")
+            return redirect("contratos")
+        else:
+            return redirect(f"/contratos/?crear_contrato=1&empleado_id={empleado.id}")
+
+    form.save()
+    messages.success(request, "Persona creada correctamente.")
+    return redirect("personas")
+
+
+@login_required
+@require_POST
+def eliminar_persona(request, persona_id):
+    persona = get_object_or_404(Persona, id_persona=persona_id)
+    persona.delete()
+    return redirect("personas")
 
 @login_required
 def cargos_por_departamento(request, dept_id):
@@ -324,14 +253,6 @@ def cargos_por_departamento(request, dept_id):
             }
         )
     return JsonResponse({"cargos": cargos})
-
-
-@login_required
-@require_POST
-def eliminar_persona(request, persona_id):
-    persona = get_object_or_404(Persona, id_persona=persona_id)
-    persona.delete()
-    return redirect("personas")
 
 
 @login_required

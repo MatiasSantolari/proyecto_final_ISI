@@ -11,17 +11,17 @@
       const campoDepartamento = document.getElementById('campoDepartamento');
       const idPersona = document.getElementById('id_persona').value;
 
-      if (tipoUsuario === 'admin') {
+      if (tipoUsuario === '5') {
         campoDepartamento.style.display = 'none';
         campoCargo.style.display = 'none';
         campoEstado.style.display = 'none';
         return;
       }
-      const mostrar = ['empleado', 'jefe', 'gerente'].includes(tipoUsuario);
+      const mostrar = ['2', '3', '4'].includes(tipoUsuario);
 
       campoDepartamento.style.display = mostrar ? 'block' : 'none';
 
-      if (['gerente', 'jefe'].includes(tipoUsuario)) {
+      if (['3', '4'].includes(tipoUsuario)) {
         campoCargo.style.display = 'none';
       } else {
         campoCargo.style.display = mostrar ? 'block' : 'none';

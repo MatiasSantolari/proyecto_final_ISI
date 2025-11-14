@@ -19,4 +19,16 @@
 {% include "personas/partials/_modal_view.html" %}
 {% include "personas/partials/_modal_delete.html" %}
 {% include "personas/partials/_scripts.html" %}
+{% if mostrar_modal_persona %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const modalElement = document.getElementById('modalPersona');
+    if (!modalElement) {
+      return;
+    }
+    const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+    modalInstance.show();
+  });
+</script>
+{% endif %}
 {% endblock %}

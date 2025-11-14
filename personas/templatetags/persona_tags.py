@@ -3,17 +3,20 @@ from django import template
 register = template.Library()
 
 TIPO_BADGES = {
-    "normal": ("bg-secondary", "Normal"),
-    "empleado": ("bg-info text-dark", "Empleado"),
-    "jefe": ("bg-primary", "Jefe"),
-    "gerente": ("bg-warning text-dark", "Gerente"),
-    "admin": ("bg-danger", "Administrador"),
+    "1": ("bg-secondary", "Normal"),
+    "2": ("bg-info text-dark", "Empleado"),
+    "3": ("bg-primary", "Jefe"),
+    "4": ("bg-warning text-dark", "Gerente"),
+    "5": ("bg-danger", "Administrador"),
 }
 
 ESTADO_BADGES = {
-    "activo": ("bg-success", "Activo"),
-    "inactivo": ("bg-secondary", "Inactivo"),
-    "suspendido": ("bg-warning text-dark", "Suspendido"),
+    "1": ("bg-success", "Activo"),
+    "2": ("bg-secondary", "Inactivo"),
+    "3": ("bg-warning text-dark", "En licencia"),
+    "4": ("bg-warning text-dark", "Suspendido"),
+    "5": ("bg-warning text-dark", "Periodo de Prueba"),
+    "6": ("bg-warning text-dark", "Jubilado"),
 }
 
 
