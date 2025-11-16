@@ -50,3 +50,7 @@ Ejecutar el servidor de Django:
 
 Y acceder utilizando:
 http://127.0.0.1:8000
+
+Para poner en marcha al chatbot debe:
+    Entrenarlo ejecutando el archivo train_chatbot.py ubicado en "core"
+    Volver a ejecutar el servidor de Django

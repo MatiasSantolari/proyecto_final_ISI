@@ -4,7 +4,7 @@ from chatterbot import ChatBot
 chatbot = ChatBot(
     "RRHH Bot",
     storage_adapter="chatterbot.storage.SQLStorageAdapter",
-    database_uri="sqlite:///chatbot.sqlite3",
+    database_uri="sqlite:///core/chatbot.sqlite3",
     logic_adapters=[
         {
             "import_path": "chatterbot.logic.BestMatch",
