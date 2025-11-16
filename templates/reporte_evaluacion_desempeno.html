@@ -45,18 +45,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Ana Gómez</td>
-                        <td>IT</td>
-                        <td>85</td>
-                        <td>Mejorar habilidades en gestión ágil</td>
-                    </tr>
-                    <tr>
-                        <td>Juan Pérez</td>
-                        <td>Marketing</td>
-                        <td>78</td>
-                        <td>Capacitación en herramientas de análisis</td>
-                    </tr>
+                    {% for ev in evaluaciones %}
+                        <tr>
+                            <td> {{ ev.empleado.nombre }} {{ ev.empleado.apellido }} </td>
+                            <td> {{ ev.empleado.departamento_actual_nombre }} </td>
+                            <td> {{ ev.calificacion_final }} </td>
+                            <td> {{ ev.comentarios|default:"Sin recomendaciones" }} </td>
+                        </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -83,23 +79,57 @@
         </div>
     </div>
 
+    <div id="report-data"
+        data-labels='{{ labels_json|safe }}'
+        data-values='{{ data_json|safe }}'>
+    </div>
+
     <script>
+
         function generarReporte() {
-            // Mostrar el modal con el reporte
+            // Obtener datos del backend desde el HTML
+            const container = document.getElementById("report-data");
+            const labelsFromBackend = JSON.parse(container.dataset.labels);
+            const dataFromBackend = JSON.parse(container.dataset.values);
+
+            // Mostrar modal
             const modal = new bootstrap.Modal(document.getElementById('modalReporte'));
             modal.show();
 
-            // Generar el gráfico de desempeño
+            // Obtener canvas
             const ctx = document.getElementById('graficoDesempeno').getContext('2d');
-            new Chart(ctx, {
+
+            // Si ya existe un gráfico previo, destruirlo
+            if (window.graficoDesempenoInstance) {
+                window.graficoDesempenoInstance.destroy();
+            }
+
+            // Crear gráfico
+            window.graficoDesempenoInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['IT', 'Marketing', 'Ventas', 'Recursos Humanos'],
+                    labels: labelsFromBackend,
                     datasets: [{
                         label: 'Puntaje Promedio',
-                        data: [85, 78, 80, 88],
-                        backgroundColor: ['#4CAF50', '#FFC107', '#007BFF', '#DC3545']
+                        data: dataFromBackend,
+                        backgroundColor: [
+                            '#4CAF50', '#FFC107', '#007BFF', '#DC3545',
+                            '#17A2B8', '#6F42C1', '#20C997', '#E83E8C'
+                        ],
+                        borderWidth: 1
                     }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: "Desempeño Promedio por Departamento"
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
                 }
             });
         }
