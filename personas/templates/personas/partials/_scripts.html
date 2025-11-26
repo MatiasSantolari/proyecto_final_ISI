@@ -1,76 +1,95 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+    const formPersona = document.getElementById('formPersona');
     const tipoUsuarioSelect = document.getElementById('id_tipo_usuario');
     const departamentoSelect = document.getElementById('id_departamento');
     const cargoSelect = document.getElementById('id_cargo');
+    const campoEstado = document.getElementById('campoEstado');
+    const campoCargo = document.getElementById('campoCargo');
+    const campoDepartamento = document.getElementById('campoDepartamento');
+    const persona = document.getElementById('id_persona');
+    const urlCrearPersona = "{% url 'crear_persona' %}";
+    const urlEditarPersona = "{% url 'editar_persona' %}";
+
+    function setVisible(element, show) {
+      element.style.display = show ? 'block' : 'none';
+    }
 
     function toggleCampos() {
       const tipoUsuario = tipoUsuarioSelect.value;
-      const campoEstado = document.getElementById('campoEstado');
-      const campoCargo = document.getElementById('campoCargo');
-      const campoDepartamento = document.getElementById('campoDepartamento');
-      const idPersona = document.getElementById('id_persona').value;
+      const tienePersona = Boolean(persona.value);
 
       if (tipoUsuario === '5') {
-        campoDepartamento.style.display = 'none';
-        campoCargo.style.display = 'none';
-        campoEstado.style.display = 'none';
+        setVisible(campoDepartamento, false);
+        setVisible(campoCargo, false);
+        setVisible(campoEstado, false);
         return;
       }
-      const mostrar = ['2', '3', '4'].includes(tipoUsuario);
 
-      campoDepartamento.style.display = mostrar ? 'block' : 'none';
+      const mostrarDepartamento = ['2', '3', '4'].includes(tipoUsuario); // TIPOS DE USUARIOS
+      const mostrarCargo = tipoUsuario === '2';
+      const mostrarEstado = mostrarDepartamento && tienePersona;
 
-      if (['3', '4'].includes(tipoUsuario)) {
-        campoCargo.style.display = 'none';
-      } else {
-        campoCargo.style.display = mostrar ? 'block' : 'none';
-      }
-      campoEstado.style.display = mostrar && idPersona ? 'block' : 'none';
+      setVisible(campoDepartamento, mostrarDepartamento);
+      setVisible(campoCargo, mostrarCargo);
+      setVisible(campoEstado, mostrarEstado);
     }
 
-    function cargarCargos(deptId, tipoUsuario, cargoSeleccionado = null) {
-      if (!deptId) {
-        cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
-        return;
-      }
+    function cargarCargos(deptId) {
       cargoSelect.innerHTML = '<option value="">Cargando...</option>';
 
-      fetch(`/personas/cargos_por_departamento/${deptId}/?tipo_usuario=${tipoUsuario}`)
+      fetch(`/personas/cargos_por_departamento/${deptId}`)
         .then(response => response.json())
         .then(data => {
           cargoSelect.innerHTML = '';
 
           if (data.cargos.length === 0) {
-            const option = document.createElement('option');
-            option.value = '';
-            option.textContent = 'No hay cargos disponibles';
-            option.disabled = true;
-            cargoSelect.appendChild(option);
+            cargoSelect.innerHTML = '<option value="">No hay cargos disponibles</option>';
             return;
           }
 
           cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
-          data.cargos.forEach(c => {
+          data.cargos.forEach(cargo => {
             const option = document.createElement('option');
-            option.value = c.id;
-            option.textContent = c.nombre;
+            option.value = cargo.id;
+            option.textContent = cargo.nombre;
 
-            if (c.vacante === 0) {
+            if (cargo.vacante === 0) {
               option.disabled = true;
               option.style.color = 'gray';
-            }
-            if (cargoSeleccionado && c.id == cargoSeleccionado) {
-              option.selected = true;
             }
             cargoSelect.appendChild(option);
           });
         });
     }
 
+    function cargarDepartamentos(tipoUsuario) {
+      departamentoSelect.innerHTML = '<option value="">Cargando...</option>';
+
+      fetch(`/personas/departamentos_por_tipoUsuario/${tipoUsuario}`)
+        .then(response => response.json())
+        .then(data => {
+          departamentoSelect.innerHTML = '';
+
+          if (data.departamentos.length === 0) {
+            departamentoSelect.innerHTML = '<option value="">No hay departamentos disponibles</option>';
+            return;
+          }
+
+          departamentoSelect.innerHTML = '<option value="">Seleccione un departamento</option>';
+          data.departamentos.forEach(departamento => {
+            const option = document.createElement('option');
+            option.value = departamento.id;
+            option.textContent = departamento.nombre;
+
+            departamentoSelect.appendChild(option);
+          });
+        });
+    }
+
     function limpiarFormulario() {
-      const form = document.getElementById('formPersona');
-      form.reset();
+      formPersona.reset();
+      formPersona.action = urlCrearPersona;
       document.getElementById('id_persona').value = '';
       document.getElementById('modalPersonaLabel').textContent = 'Crear Nueva Persona';
       document.querySelector('#formPersona button[type="submit"]').textContent = 'Guardar';
@@ -87,6 +106,7 @@
       const tipoUsuario = button.getAttribute('data-tipo-usuario');
       const cargo = button.getAttribute('data-cargo');
 
+      formPersona.action = urlEditarPersona;
       document.getElementById('id_persona').value = id;
       document.getElementById('id_nombre').value = button.getAttribute('data-nombre');
       document.getElementById('id_apellido').value = button.getAttribute('data-apellido');
@@ -130,21 +150,19 @@
 
     tipoUsuarioSelect.addEventListener('change', function () {
       toggleCampos();
-
-      const deptId = departamentoSelect.value;
+      // Traigo los departamentos correspondientes
       const tipoUsuario = this.value;
-
-      if (deptId && ['empleado'].includes(tipoUsuario)) {
-        cargarCargos(deptId, tipoUsuario);
-      } else {
-        cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
+      if (['2','3', '4'].includes(tipoUsuario)) {
+        cargarDepartamentos(tipoUsuario)
       }
     });
 
     departamentoSelect.addEventListener('change', function () {
       const deptId = this.value;
       const tipoUsuario = tipoUsuarioSelect.value;
-      cargarCargos(deptId, tipoUsuario);
+      if (['2'].includes(tipoUsuario)) {
+        cargarCargos(deptId);
+      }
     });
 
     document.getElementById('btnCrearPersona').addEventListener('click', limpiarFormulario);
