@@ -74,30 +74,43 @@ def personas(request):
 
 
 @login_required
-@require_POST
 def crear_persona(request):
-    return _guardar_persona(request)
+    if request.method == "POST":
+        return _guardar_persona(request)
+
+    context = _personas_context(request, form=PersonaForm())
+    context["mostrar_modal_persona"] = True
+    return render(request, "personas/personas_list.html", context)
 
 
 @login_required
-@require_POST
 def editar_persona(request):
-    persona_id = request.POST.get("id_persona")
+    if request.method == "POST":
+        persona_id = request.POST.get("id_persona")
+        persona_instance = get_object_or_404(Persona, id=persona_id)
+        return _guardar_persona(request, persona_instance)
+
+    persona_id = request.GET.get("id_persona")
     persona_instance = get_object_or_404(Persona, id=persona_id)
-    return _guardar_persona(request, persona_instance)
+    form = PersonaForm(instance=persona_instance)
+    context = _personas_context(request, form=form)
+    context["mostrar_modal_persona"] = True
+    return render(request, "personas/personas_list.html", context)
 
 
 def _guardar_persona(request, persona_instance=None):
     form = PersonaForm(request.POST, instance=persona_instance)
 
+    #Valido el form
     if not form.is_valid():
         context = _personas_context(request, form=form)
         context["mostrar_modal_persona"] = True
         return render(request, "personas/personas_list.html", context, status=400)
     
+    #Valido el email
     email = form.cleaned_data.get('email')
     usuario_existente_qs = Usuario.objects.filter(email=email)
-    if persona_instance and getattr(persona_instance, "usuario", None):
+    if persona_instance:
         usuario_existente_qs = usuario_existente_qs.exclude(
             id_usuario=persona_instance.usuario.id_usuario
         )
@@ -107,43 +120,32 @@ def _guardar_persona(request, persona_instance=None):
         context["mostrar_modal_persona"] = True
         return render(request, "personas/personas_list.html", context, status=400)
     
-    persona = form.save()
+    persona = form.save() #Guardo Persona
+    
+    #Genero/Actualizo Usuario
     rol = form.cleaned_data.get('tipo_usuario')
-    login_url = request.build_absolute_uri('/login/')
-    #GENERAR/ACTUALIZAR USUARIO
-    usuario = getattr(persona, "usuario", None)
-    if usuario:
-        usuario.email = email
-        usuario.rol = rol
-        es_admin = rol == "5"
-        usuario.is_staff = es_admin
-        usuario.is_superuser = es_admin
-        usuario.save()
-    else:
-        generar_usuario(persona, email, rol, login_url)
-    #CARGO
-    cargo = form.cleaned_data.get('cargo')
-    departamento_id = form.cleaned_data.get('departamento')
-    # Ya ya lo valida en el front?
-    if rol == 'gerente' and departamento_id:
-        cargo = Cargo.get_gerente_por_departamento(departamento_id)
-        if not cargo:
-            form.add_error('departamento', 'No hay un cargo de gerente configurado para este departamento.')
-            personas = Persona.objects.all()
-            return render(request, 'personas.html', {'form': form, 'personas': personas})
-        
-    if (rol == '4' or rol == '3') and not cargo and departamento_id:
-        if rol == '4':
-            cargo = Cargo.get_gerente_por_departamento(departamento_id)
+    if persona_instance:
+        estado_empleado = form.cleaned_data.get('estado')
+        usuario = getattr(persona, "usuario")
+        if usuario:
+            usuario.email = email
+            usuario.rol = rol
+            es_admin = rol == "5"
+            usuario.is_staff = es_admin
+            usuario.is_superuser = es_admin
+            usuario.save()
         else:
-            cargo = Cargo.get_jefe_por_departamento(departamento_id)
-    ######
-    #Estado empleado
-    estado_empleado = form.cleaned_data.get('estado')
-    #ACCION
-    accion = request.POST.get("accion")
-    empleado = Empleado.objects.filter(id=persona.id).first() if persona_instance else None
-    if rol in ['5', '4', '3', '2'] and cargo:
+            generar_usuario(persona, email, rol, request.build_absolute_uri('/login/'))
+    else:
+        estado_empleado = 1
+    #CEPARTAMENTO Y CARGO -> PARA GENERAR EMPLEADO
+    departamento = form.cleaned_data.get('departamento')
+    cargo = form.cleaned_data.get('cargo')
+    if persona_instance:
+        empleado = Empleado.objects.filter(id=persona.id).first()
+    if rol in ['5', '4', '3', '2'] and departamento:
+        #if not cargo:
+            # Tengo que seleccionar el cargo con el departamento y el rol del usuario
         if not empleado:
             empleado = Empleado.objects.create(
                 id=persona.id,
@@ -175,10 +177,7 @@ def _guardar_persona(request, persona_instance=None):
             empleado.save()
 
     if cargo and empleado:
-        ultimo_cargo = EmpleadoCargo.objects.filter(
-            empleado=empleado,
-            fecha_fin__isnull=True
-        ).order_by('-fecha_inicio').first()
+        ultimo_cargo = EmpleadoCargo.objects.filter(empleado=empleado, fecha_fin__isnull=True).order_by('-fecha_inicio').first()
 
         if not ultimo_cargo:
             EmpleadoCargo.objects.create(
@@ -189,7 +188,7 @@ def _guardar_persona(request, persona_instance=None):
             try:
                 relacion_nueva = CargoDepartamento.objects.get(
                     cargo=cargo,
-                    departamento=departamento_id
+                    departamento=departamento
                 )
                 if relacion_nueva.vacante > 0:
                     relacion_nueva.vacante -= 1
@@ -216,7 +215,7 @@ def _guardar_persona(request, persona_instance=None):
             try:
                 relacion_nueva = CargoDepartamento.objects.get(
                     cargo=cargo,
-                    departamento=departamento_id
+                    departamento=departamento
                 )
                 if relacion_nueva.vacante > 0:
                     relacion_nueva.vacante -= 1
@@ -235,7 +234,8 @@ def _guardar_persona(request, persona_instance=None):
         except Empleado.DoesNotExist:
             pass
 
-
+    #ACCION
+    accion = request.POST.get("accion")
     if accion == "guardar_crear_contrato" and empleado:
         tiene_activo = HistorialContrato.objects.filter(
             empleado=persona.id, estado="activo"

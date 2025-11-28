@@ -3,7 +3,12 @@
 {% block title %}Gestión de Personas{% endblock %}
 
 {% block content %}
-<div class="container-fluid my-5">
+<div
+  class="container-fluid my-5"
+  data-controller="personas"
+  data-personas-create-url-value="{% url 'crear_persona' %}"
+  data-personas-edit-url-value="{% url 'editar_persona' %}"
+>
   <h1 class="text-center mb-4" style="color: var(--color-primario);">Gestión de Personas</h1>
 
   {% include "personas/partials/_filters.html" with datatable=datatable %}
@@ -13,12 +18,11 @@
       {% include "personas/partials/_table.html" with datatable=datatable %}
     </div>
   </div>
+  {% include "personas/partials/_modal_form.html" %}
+  {% include "personas/partials/_modal_view.html" %}
+  {% include "personas/partials/_modal_delete.html" %}
+  {% include "personas/partials/_scripts.html" %}
 </div>
-
-{% include "personas/partials/_modal_form.html" %}
-{% include "personas/partials/_modal_view.html" %}
-{% include "personas/partials/_modal_delete.html" %}
-{% include "personas/partials/_scripts.html" %}
 {% if mostrar_modal_persona %}
 <script>
   document.addEventListener('DOMContentLoaded', function () {

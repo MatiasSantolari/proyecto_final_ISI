@@ -75,7 +75,7 @@
                 data-departamento=""
                 data-cargo=""
               {% endif %}
-              onclick="editarPersona(this)"
+              data-action="click->personas#startEdit"
               title="Editar"
             >
               <i class="bi bi-pencil-square"></i>
@@ -95,6 +95,7 @@
               class="btn btn-sm btn-outline-danger btn-eliminar"
               data-id="{{ persona.id }}"
               data-nombre="{{ persona.apellido }}, {{ persona.nombre }}"
+              data-action="click->personas#confirmDelete"
               title="Eliminar"
             >
               <i class="bi bi-trash3"></i>
