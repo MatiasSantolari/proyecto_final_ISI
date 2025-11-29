@@ -26,31 +26,61 @@
           </tr>
         </thead>
         <tbody>
+          {% for capacitacion in capacitaciones %}
           <tr>
-            <td>Comunicación Efectiva en el Trabajo</td>
-            <td>Taller práctico para mejorar habilidades de comunicación interpersonal y manejo de conflictos en entornos laborales.</td>
-            <td>01-02-2025</td>
-            <td>01-04-2025</td>
-            <td>Centro de Desarrollo Profesional y Liderazgo (CDPL)</td>
+            <td>{{ capacitacion.nombre }}</td>
             <td>
-              <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#modalCapacitacion">Editar</button>
-              <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalVerCapacitacion">Ver</button>
-              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarCapacitacion">Eliminar</button>
+              {% if capacitacion.descripcion %}
+                {{ capacitacion.descripcion }}
+              {% else %}
+                -
+              {% endif %}
+              </td>
+            <td>{{ capacitacion.fecha_inicio }}</td>
+            <td>{{ capacitacion.fecha_fin }}</td>
+            <td>{{ capacitacion.institucion }}</td>
+            <td>
+              <div class="d-flex justify-content-center gap-2">
+                <!-- Botón Editar -->
+                <button class="btn btn-sm btn-outline-secondary"
+                        data-bs-toggle="modal" data-bs-target="#modalCapacitacion"
+                        data-id="{{ capacitacion.id }}"
+                        data-nombre="{{ capacitacion.nombre }}"
+                        data-descripcion="{{ capacitacion.descripcion }}"
+                        data-fecha_inicio="{{ capacitacion.fecha_inicio }}"
+                        data-fecha_fin="{{ capacitacion.fecha_fin }}"
+                        data-institucion="{{ capacitacion.institucion_id }}"
+                        onclick="editarCapacitacion(this)"
+                        data-bs-toggle="tooltip" title="Editar">
+                  <i class="bi bi-pencil-square"></i>
+                </button>
+
+                <!-- Botón Ver -->
+                <button class="btn btn-sm btn-outline-info"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalVerCapacitacion{{ capacitacion.id }}"
+                        data-bs-toggle="tooltip" title="Ver">
+                  <i class="bi bi-eye"></i>
+                </button>
+
+                <!-- Botón Eliminar -->
+                <button class="btn btn-sm btn-outline-danger"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalEliminarCapacitacion"
+                        data-id="{{ capacitacion.id }}"
+                        data-bs-toggle="tooltip" title="Eliminar">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </div>
             </td>
           </tr>
-          <!-- Ejemplo adicional -->
+          {% empty %}
           <tr>
-            <td>Certificación en Gestión de Proyectos Ágiles</td>
-            <td>Curso avanzado sobre principios y prácticas de metodologías ágiles, incluyendo Scrum y Kanban, orientado a la gestión de proyectos.</td>
-            <td>10-03-2025</td>
-            <td>30-07-2025</td>
-            <td>Academia Internacional de Gestión Ágil (AIGA)</td>
-            <td>
-              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCapacitacion">Editar</button>
-              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerCapacitacion">Ver</button>
-              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarCapacitacion">Eliminar</button>
+            <td colspan="3" class="text-center text-muted">
+              No hay capacitaciones registrados.
             </td>
           </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
@@ -67,28 +97,24 @@
         <div class="modal-body">
           <form>
             <div class="mb-3">
-              <label for="nombreCapacitacion" class="form-label">Nombre de la Capacitacion</label>
+              <label for="id_nombre" class="form-label">Nombre de la Capacitacion</label>
               <input type="text" class="form-control" id="nombreCapacitacion"  placeholder="Ingresa el nombre de la Capacitacion" required></input>
             </div>
             <div class="mb-3">
-              <label for="descripcionCapacitacion" class="form-label">Descripción de la Capacitacion</label>
+              <label for="id_descripcion" class="form-label">Descripción de la Capacitacion</label>
               <textarea class="form-control" id="descripcionCapacitacion" rows="3" placeholder="Ingresa la descripcion de la Capacitacion" required></textarea>
             </div>
             <div class="mb-3">
-              <label for="fechaInicioCapacitacion" class="form-label">Fecha de Inicio</label>
+              <label for="id_fecha_inicio" class="form-label">Fecha de Inicio</label>
               <input type="date" class="form-control" id="fechaInicioCapacitacion" required>
             </div>
             <div class="mb-3">
-              <label for="fechaFinCapacitacion" class="form-label">Fecha de Fin</label>
+              <label for="id_fecha_fin" class="form-label">Fecha de Fin</label>
               <input type="date" class="form-control" id="fechaFinCapacitacion" required>
             </div>
             <div class="mb-3">
-              <label for="institucionCapacitacion" class="form-label">Institucion</label>
-              <select class="form-select" id="institucionCapacitacion" required>
-                <option value="" disabled selected>Selecciona la institucion</option>
-                <option value="1">Centro de Desarrollo Profesional y Liderazgo (CDPL)</option>
-                <option value="2">Academia Internacional de Gestión Ágil (AIGA)</option>
-              </select>
+              <label for="id_institucion" class="form-label">Institucion</label>
+                {{ form.institucion }}
             </div>
             <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
           </form>
@@ -127,14 +153,68 @@
           <p>¿Estás seguro de que deseas eliminar esta Capacitacion?</p>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger">Eliminar</button>
+          <form id="formEliminarCapacitacion" method="post">
+              {% csrf_token %}
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-danger">Eliminar</button>
+            </form>
         </div>
       </div>
     </div>
   </div>
  
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        
+      const modalEliminar = document.getElementById('modalEliminarCapacitacion');
+      modalEliminar.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const capacitacionId = button.getAttribute('data-id');
+        const form = document.getElementById('formEliminarCapacitacion');
+        form.action = `/capacitaciones/${capacitacionId}/eliminar/`;
+      });
+    });
+
+
+    const modalCrearEditar = document.getElementById('modalCapacitacion');
+
+    modalCrearEditar.addEventListener('show.bs.modal', function (event) {
+      const triggerButton = event.relatedTarget;
+
+      if (!triggerButton.getAttribute('data-id')) {
+        limpiarFormulario();
+      }
+    });
+
+    function limpiarFormulario() {
+      const form = document.getElementById('formCapacitacion');
+      form.reset();
+      document.getElementById('id_capacitacion').value = '';
+      document.getElementById('modalCapacitacionLabel').textContent = 'Crear Nueva Capacitacion';
+      document.querySelector('#formCapacitacion button[type="submit"]').textContent = 'Guardar';
+    }
+
+
+    function editarCapacitacion(button) {
+      const capacitacionId = button.getAttribute('data-id');
+      const nombre = button.getAttribute('data-nombre');
+      const descripcion = button.getAttribute('data-descripcion');
+      const fecha_inicio = parseFloat(button.getAttribute('data-fecha_inicio'));
+      const fecha_fin = parseFloat(button.getAttribute('data-fecha_fin'));
+      const institucion = button.getAttribute('data-institucion');
+
+      document.getElementById('id_capacitacion').value = capacitacionId || '';
+      document.getElementById('id_nombre').value = nombre || '';
+      document.getElementById('id_descripcion').value = descripcion || '';
+      document.getElementById('id_fecha_inicio').value = isNaN(fecha_inicio) ? '' : fecha_inicio;
+      document.getElementById('id_fecha_fin').value = isNaN(fecha_fin) ? '' : fecha_fin;
+      document.getElementById('id_institucion').value = institucion || '';
+
+      document.getElementById('modalCapacitacionLabel').textContent = 'Editar Capacitacion';
+      document.querySelector('#formCapacitacion button[type="submit"]').textContent = 'Actualizar';
+    }
+
+    </script>
   {% endblock %}
 </body>
 </html>

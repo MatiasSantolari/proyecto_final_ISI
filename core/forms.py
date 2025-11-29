@@ -753,6 +753,38 @@ class InstitucionForm(forms.ModelForm):
             }),
         }
 
+######################
+class CapacitacionForm(forms.ModelForm):
+    institucion = forms.ModelChoiceField(
+        queryset=Institucion.objects.all(),
+        required=True,
+        label='Institucion',
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_institucion'})
+    )
+
+    class Meta:
+        model = Capacitacion
+        fields = ['nombre', 'descripcion', 'fecha_inicio', 'fecha_fin'] #luego debo agregar los campos restantes
+        widgets = {
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre de la capacitación'
+            }),
+            'descripcion': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descripcion'
+            }),
+            'fecha_inicio': forms.DateInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Fecha de inicio',
+                'type':'date'
+            }),
+            'fecha_fin': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Fecha de fin',
+                'type':'date'
+            }),
+        }
 
 ######################
 class TipoCriterioForm(forms.ModelForm):
