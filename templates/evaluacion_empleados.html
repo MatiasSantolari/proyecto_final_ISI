@@ -68,23 +68,36 @@
                             {% endif %}
                         </td>
                         <td class="text-center">
-                            {% if empleado.id in asignados_ids %}
-                                {% if calificaciones_finales|dict_get:empleado.id %}
-                                    <button class="btn btn-sm btn-secondary" style="font-size:0.9rem;" title="No se puede quitar (ya calificado)" disabled>
-                                        <i class="bi bi-person-x-fill"></i>
+                            {% if modo == 'ver' %}
+                                {% if empleado.id in asignados_ids %}
+                                    <button class="btn btn-sm btn-secondary" style="font-size:0.9rem;" title="Modo Ver (asignado)" disabled>
+                                        <i class="bi bi-person-x-fill"></i> 
                                     </button>
                                 {% else %}
-                                    <a href="{% url 'quitar_empleado' evaluacion.id empleado.id %}?departamento={{ departamento_seleccionado }}&dni={{ dni_busqueda }}" 
-                                        class="btn btn-sm btn-danger"  style="font-size:0.9rem;" title="Quitar asignación">
-                                        <i class="bi bi-person-x-fill"></i>
+                                    <button class="btn btn-sm btn-secondary" style="font-size:0.9rem;" title="Modo Ver (no asignado)" disabled>
+                                        <i class="bi bi-person-check-fill"></i>
+                                    </button>
+                                {% endif %}
+
+                            {% else %}
+                                {% if empleado.id in asignados_ids %}
+                                    {% if calificaciones_finales|dict_get:empleado.id %}
+                                        <button class="btn btn-sm btn-secondary" style="font-size:0.9rem;" title="No se puede quitar (ya calificado)" disabled>
+                                            <i class="bi bi-person-x-fill"></i>
+                                        </button>
+                                    {% else %}
+                                        <a href="{% url 'quitar_empleado' evaluacion.id empleado.id %}?departamento={{ departamento_seleccionado }}&dni={{ dni_busqueda }}" 
+                                            class="btn btn-sm btn-danger"  style="font-size:0.9rem;" title="Quitar asignación">
+                                            <i class="bi bi-person-x-fill"></i>
+                                        </a>
+                                    {% endif %}
+                                {% else %}
+                                    <a href="{% url 'asignar_empleado' evaluacion.id empleado.id %}?departamento={{ departamento_seleccionado }}&dni={{ dni_busqueda }}" 
+                                        class="btn btn-sm btn-success"  style="font-size:0.9rem;" title="Asignar empleado">
+                                        <i class="bi bi-person-check-fill"></i>
                                     </a>
                                 {% endif %}
-                            {% else %}
-                                <a href="{% url 'asignar_empleado' evaluacion.id empleado.id %}?departamento={{ departamento_seleccionado }}&dni={{ dni_busqueda }}" 
-                                    class="btn btn-sm btn-success"  style="font-size:0.9rem;" title="Asignar empleado">
-                                    <i class="bi bi-person-check-fill"></i>
-                                </a>
-                            {% endif %}
+                            {% endif %}        
                         </td>
 
                         <td class="text-center">

@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from core.views import *
+from core import api
 
 from core import views 
 
@@ -122,7 +123,7 @@ urlpatterns = [
     path('nominas/eliminar/<int:id_nomina>/', nominas_view.eliminar_nomina, name='eliminar_nomina'),
     path('nominas/generar/', nominas_view.generar_nominas, name='generar_nominas'),
     path('nominas/confirmar/', nominas_view.confirmar_nominas, name='confirmar_nominas'),
-    path("mis-nominas/", views.mis_nominas, name="mis_nominas"), # Empleado
+    path("mis-nominas/", nominas_view.mis_nominas, name="mis_nominas"), # Empleado
 
 
     ## ASISTENCIA ##
@@ -139,10 +140,10 @@ urlpatterns = [
 
 
     ## CONTRATOS ##
-    path("contratos/", views.contratos, name="contratos"),
-    path("contratos/crear/", views.crear_contrato, name="crear_contrato"),
-    path("contratos/renovar/<int:contrato_id>/", views.crear_contrato, name="renovar_contrato"),
-    path("contratos/finalizar/<int:contrato_id>/", views.finalizar_contrato, name="finalizar_contrato"),
+    path("contratos/", contratos_view.contratos, name="contratos"),
+    path("contratos/crear/", contratos_view.crear_contrato, name="crear_contrato"),
+    path("contratos/renovar/<int:contrato_id>/", contratos_view.crear_contrato, name="renovar_contrato"),
+    path("contratos/finalizar/<int:contrato_id>/", contratos_view.finalizar_contrato, name="finalizar_contrato"),
 
 
     path("mis_contratos/", contratos_view.mis_contratos, name="mis_contratos"),
@@ -160,9 +161,9 @@ urlpatterns = [
     
 
     ## CRITERIO ##
-    path('criterios/', views.criterios, name='criterios'),
-    path('criterios/crear/', views.crear_criterio, name='crear_criterio'),
-    path('criterios/<int:id>/eliminar/', views.eliminar_criterio, name='eliminar_criterio'),
+    path('criterios/', criterios_view.criterios, name='criterios'),
+    path('criterios/crear/', criterios_view.crear_criterio, name='crear_criterio'),
+    path('criterios/<int:id>/eliminar/', criterios_view.eliminar_criterio, name='eliminar_criterio'),
 
 
     ## EVALUACION ##
@@ -172,7 +173,7 @@ urlpatterns = [
     path('evaluaciones/<int:id_evaluacion>/desactivar/', evaluaciones_view.desactivar_evaluacion, name='desactivar_evaluacion'),
     path('evaluaciones/<int:id_evaluacion>/eliminar/', evaluaciones_view.eliminar_evaluacion, name='eliminar_evaluacion'),
     path('evaluaciones/ver/<int:id_evaluacion>/', evaluaciones_view.ver_evaluacion, name='ver_evaluacion'),
-    path('evaluaciones/<int:evaluacion_id>/duplicar/', views.duplicar_evaluacion, name='duplicar_evaluacion'),
+    path('evaluaciones/<int:evaluacion_id>/duplicar/', evaluaciones_view.duplicar_evaluacion, name='duplicar_evaluacion'),
 
     path("evaluaciones/<int:id_evaluacion>/empleados/", evaluaciones_view.gestionar_empleados, name="evaluacion_empleados"),
     path("evaluaciones/<int:id_evaluacion>/empleados/<int:id_empleado>/asignar/", evaluaciones_view.asignar_empleado, name="asignar_empleado"),
@@ -182,10 +183,19 @@ urlpatterns = [
 
 
     ## CHATBOT ##
-    path("chatbot/get_response/", views.get_response_chatbot, name="chatbot_response"),
+    path("chatbot/get_response/", chatbot_view.get_response_chatbot, name="chatbot_response"),
 
 
     ###### INFORMES ######
+    path('dashboard/', informes_view.dashboard_view, name='dashboard'),
+    path('dashboard/api/kpis/', api.api_kpis, name='api_kpis'),
+    path('dashboard/api/vacaciones/', api.api_vacaciones, name='api_vacaciones'),
+    path('dashboard/api/asistencias/', api.api_asistencias, name='api_asistencias'),
+    path('dashboard/api/evaluaciones/', api.api_evaluaciones, name='api_evaluaciones'),
+    path('dashboard/api/nominas/', api.api_nominas, name='api_nominas'),
+    path('dashboard/api/estructura/', api.api_estructura, name='api_estructura'),
+    path('dashboard/api/objetivos/', api.api_objetivos, name='api_objetivos'),
+
                     ## ASISTENCIAS ##
     path('dashboard/asistencias/data/', informes_view.dashboard_asistencias_data, name='dashboard_asistencias_data'),
     path('informe/asistencias/', informes_view.informe_asistencias, name='informe_asistencias'),

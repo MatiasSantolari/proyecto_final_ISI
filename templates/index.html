@@ -5,14 +5,13 @@
 {% block content %}
 <div class="content">
     <div class="container-fluid ml-4 mt-4"><hr>
-        <h4 class="mb-5 mt-4">Bienvenido al Sistema</h4>
 
-        {% if request.session.rol_actual == 'admin' %}
+        {% if request.session.rol_actual == 'admin'%}
             <div class="d-flex gap-1 flex-wrap">    
-                {% include "dashboard_asistencias.html" %}
-                {% include "dashboard_vacaciones.html" %}
-            </div>
-        {% else %}
+                {% include "dashboard/dashboard.html" %}                
+                </div>
+        {% else %}    
+            <h4 class="mb-5 mt-4">Bienvenido al Sistema</h4>
             <div class="row" id="user-content">
                 <!-- Objetivos y Metas -->
                 <div class="col-md-4 mb-4">

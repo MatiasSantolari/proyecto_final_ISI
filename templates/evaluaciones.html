@@ -22,7 +22,7 @@
               <th>Fecha Evaluación</th>
               <th style="width:4%;">Activo</th>
               <th>Criterios</th>
-              <th style="width:9%;">Asignar Emp.</th>
+              <th style="width:9%;">Empleados</th>
               <th style="width:8%;">Acciones</th>
             </tr>
           </thead>
@@ -46,11 +46,13 @@
               </td>
               <td>
                 {% if eval.activo %}
-                <a href="{% url 'evaluacion_empleados' eval.id %}" class="btn btn-sm btn-primary">
+                <a href="{% url 'evaluacion_empleados' eval.id %}?modo=editar" class="btn btn-sm btn-primary">
                   <i class="bi bi-pencil-square"></i> 
                 </a>
                 {%else%}
-                  -
+                  <a href="{% url 'evaluacion_empleados' eval.id %}?modo=ver" class="btn btn-sm btn-warning">
+                  <i class="bi bi-eye-fill"></i>  
+                </a>
                 {%endif%}
               </td>
               <td>

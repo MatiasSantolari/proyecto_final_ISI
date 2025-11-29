@@ -1,0 +1,125 @@
+{% load static %}
+
+{% block content %}
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+</head>
+<body>
+  <div class="container-fluid p-4 " id="app-root">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 class="mb-0">Dashboard RRHH</h3>
+      <div class="d-flex gap-2 align-items-center">
+        <div class="form-check form-switch">
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="row g-3 kpi-deck mb-2">
+      <div class="col-6 col-md-3">
+        <div class="card p-3">
+          <div class="small-muted">Empleados activos</div>
+          <div id="kpiEmployees" class="kpi">—</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card p-3">
+          <div class="small-muted">Ausencias (mes)</div>
+          <div id="kpiAbsences" class="kpi">—</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card p-3">
+          <div class="small-muted">Costo laboral (mes)</div>
+          <div id="kpiPayroll" class="kpi">—</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card p-3">
+          <div class="small-muted">Evaluación promedio (Anual)</div>
+          <div id="kpiEvalAvg" class="kpi">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row: Vacaciones + Asistencias -->
+    <div class="row g-3 mb-2">
+      <div class="col-lg-4">
+        <div class="card p-3 chart-card">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div><strong>Solicitudes de vacaciones (estado)</strong></div>
+            <select id="vacationPeriodSelector" class="form-select form-select-sm" style="width: 155px;">
+              <option value="1m">Último mes</option>
+              <option value="3m">Últimos 3 meses</option>
+              <option value="6m">Últimos 6 meses</option>
+              <option value="12m">Últimos 12 meses</option>
+              <option value="24m">Últimos 24 meses</option>
+            </select>
+          </div>
+          <canvas id="vacChart"></canvas>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="card p-3 chart-card">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div><strong>Asistencias / Tardanzas (últimos 30 días)</strong></div>
+            <div class="small-muted">Tendencia</div>
+          </div>
+          <canvas id="attendanceChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row: Evaluaciones + Nómina -->
+    <div class="row g-3 mb-3">
+      <div class="col-lg-6">
+        <div class="card p-3 chart-card">
+          <div class="d-flex justify-content-between mb-2">
+            <div><strong>Distribución de calificaciones</strong></div>
+            <div class="small-muted">Anualizado</div>
+          </div>
+          <canvas id="evalChart"></canvas>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card p-3 chart-card">
+          <div class="d-flex justify-content-between mb-2">
+            <div><strong>Nómina: costos desglosados</strong></div>
+            <div class="small-muted">Último Período</div>
+          </div>
+          <canvas id="payrollChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row: Estructura + Objetivos -->
+    <div class="row g-3 mb-3">
+      <div class="col-lg-6">
+        <div class="card p-3">
+          <div class="mb-2"><strong>Estructura: empleados por departamento</strong></div>
+          <canvas id="deptChart" style="min-height:260px"></canvas>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card p-3">
+          <div class="mb-2 d-flex justify-content-between align-items-center">
+            <div><strong>Objetivos: % cumplimiento</strong></div>
+            <select id="departmentSelector" class="form-select form-select-sm" style="width: 150px;">
+                <option value="todos">Todos</option>
+                {% for departamento in departamentos_disponibles %}
+                    <option value="{{ departamento.id }}">{{ departamento.nombre }}</option>
+                {% endfor %}
+            </select>
+          </div>
+          <div id="objectivesList" class="d-flex flex-column gap-2" style="min-height:260px; max-height:320px; overflow:auto;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="{% static 'dashboard/js/dashboard.js' %}"></script>
+{%endblock%}

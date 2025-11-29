@@ -342,3 +342,19 @@ def informe_vacaciones_data(request):
     }
 
     return JsonResponse(data)
+
+
+
+#############################
+@login_required
+def cambiar_tema(request):
+    nuevo_tema = request.GET.get("tema")
+    request.user.tema = nuevo_tema
+    request.user.save()
+    return JsonResponse({"status": "ok"})
+
+
+####################
+@login_required
+def dashboard_view(request):
+    return render(request, "dashboard/dashboard.html", {})
