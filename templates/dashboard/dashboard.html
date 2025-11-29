@@ -63,8 +63,16 @@
       <div class="col-lg-8">
         <div class="card p-3 chart-card">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <div><strong>Asistencias / Tardanzas (últimos 30 días)</strong></div>
-            <div class="small-muted">Tendencia</div>
+            <div>
+              <strong>Asistencias / Tardanzas</strong>
+              <span id="attendanceDateRange" class="text-muted small ml-2"></span>
+            </div>
+            <select id="attendancePeriodSelector" class="form-select form-select-sm" style="width: 235px;">
+                <option value="30d">Últimos 30 días</option>
+                <option value="3m">Últimos 3 meses (por semana)</option>
+                <option value="6m">Últimos 6 meses (por mes)</option>
+                <option value="12m">Últimos 12 meses (por mes)</option>
+            </select>
           </div>
           <canvas id="attendanceChart"></canvas>
         </div>
@@ -76,8 +84,16 @@
       <div class="col-lg-6">
         <div class="card p-3 chart-card">
           <div class="d-flex justify-content-between mb-2">
-            <div><strong>Distribución de calificaciones</strong></div>
-            <div class="small-muted">Anualizado</div>
+            <div>
+              <strong>Distribución de calificaciones</strong>
+              <span id="evalDateRange" class="text-muted small ml-2"></span>
+            </div>
+            <select id="evalPeriodSelector" class="form-select form-select-sm" style="width: 155px;">
+                <option value="3m">Últimos 3 meses</option>
+                <option value="6m">Últimos 6 meses</option>
+                <option value="12m">Último año</option>
+                <option value="24m">Últimos 2 años</option>
+            </select>
           </div>
           <canvas id="evalChart"></canvas>
         </div>
@@ -86,8 +102,16 @@
       <div class="col-lg-6">
         <div class="card p-3 chart-card">
           <div class="d-flex justify-content-between mb-2">
-            <div><strong>Nómina: costos desglosados</strong></div>
-            <div class="small-muted">Último Período</div>
+            <div>
+              <strong>Nómina: costos desglosados</strong>
+              <span id="payrollDateRange" class="text-muted small ml-2"></span>
+            </div>
+            <select id="payrollPeriodSelector" class="form-select form-select-sm" style="width: 170px;">
+                <option value="1m">Último período</option>
+                <option value="3m">Últimos 3 períodos</option>
+                <option value="6m">Últimos 6 períodos</option>
+                <option value="12m">Últimos 12 períodos</option>
+            </select>
           </div>
           <canvas id="payrollChart"></canvas>
         </div>

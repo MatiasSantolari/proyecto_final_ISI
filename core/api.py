@@ -89,29 +89,111 @@ def api_vacaciones(request):
 @require_GET
 @login_required
 def api_asistencias(request):
-    # últimos 30 días
     today = timezone.localdate()
-    start = today - timedelta(days=29)
+    period = request.GET.get('periodo', '30d') 
+
+    if period == '3m':
+        days_back = 90
+        group_by = 'week'
+    elif period == '6m':
+        days_back = 180
+        group_by = 'month'
+    elif period == '12m':
+        days_back = 365
+        group_by = 'month'
+    else:
+        days_back = 30
+        group_by = 'day'
+    
+    start_date = today - timedelta(days=days_back - 1)
+
+    qs = HistorialAsistencia.objects.filter(fecha_asistencia__gte=start_date, fecha_asistencia__lte=today)
+    
     labels = []
     present = []
     ausent = []
     late = []
-    for i in range(30):
-        d = start + timedelta(days=i)
-        labels.append(d.isoformat())
-        day_qs = HistorialAsistencia.objects.filter(fecha_asistencia=d)
-        present.append(day_qs.filter(confirmado=True).count())
-        late.append(day_qs.filter(tardanza=True).count())
-        ausent.append(day_qs.filter(confirmado=False).count())
-    return JsonResponse({"labels": labels, "present": present, "late": late, "ausent": ausent})
+    
+    if group_by == 'day':
+        for i in range(days_back):
+            d = start_date + timedelta(days=i)
+            labels.append(d.strftime('%d %b'))
+            day_qs = qs.filter(fecha_asistencia=d)
+            present.append(day_qs.filter(confirmado=True).count())
+            late.append(day_qs.filter(tardanza=True).count())
+            ausent.append(day_qs.filter(confirmado=False).count())
+    
+    elif group_by == 'month':
+        current_date = start_date
+        while current_date <= today:
+            month_end = current_date + relativedelta(months=1, days=-1)
+            month_qs = qs.filter(fecha_asistencia__month=current_date.month, fecha_asistencia__year=current_date.year)
+            labels.append(current_date.strftime('%b %Y'))
+            present.append(month_qs.filter(confirmado=True).count())
+            late.append(month_qs.filter(tardanza=True).count())
+            ausent.append(month_qs.filter(confirmado=False).count())
+            current_date = month_end + timedelta(days=1)
+
+    elif group_by == 'week':
+        current_date = start_date
+        
+        while current_date <= today:
+            week_start = current_date
+            week_end = current_date + timedelta(days=6)
+            
+            if week_end > today:
+                week_end = today
+
+            week_qs = qs.filter(fecha_asistencia__range=[week_start, week_end])
+            
+            start_label = week_start.strftime('%d %b')
+            end_label = week_end.strftime('%d %b')
+
+            if start_label == end_label: 
+                 labels.append(f"Día {start_label}")
+            else:
+                 labels.append(f"{start_label} - {end_label}")
+
+            present.append(week_qs.filter(confirmado=True).count())
+            late.append(week_qs.filter(tardanza=True).count())
+            ausent.append(week_qs.filter(confirmado=False).count())
+
+            current_date = week_end + timedelta(days=1)
+
+            if current_date > today + timedelta(days=7): 
+                break
+            
+    start_date_formatted = start_date.strftime('%d %b %Y')
+    end_date_formatted = today.strftime('%d %b %Y')
+
+    return JsonResponse({
+        "labels": labels, 
+        "present": present, 
+        "late": late, 
+        "ausent": ausent,
+        "start_date_formatted": start_date_formatted,
+        "end_date_formatted": end_date_formatted,
+    })
 
 
-######RECORDAR HACER ANUAL
+
+
 @require_GET
 @login_required
 def api_evaluaciones(request):
     today = timezone.localdate()
-    start_date = today - timedelta(days=365) 
+
+    period = request.GET.get('periodo', '12m') 
+    
+    if period == '3m':
+        start_date = today + relativedelta(months=-3)
+    elif period == '6m':
+        start_date = today + relativedelta(months=-6)
+    elif period == '24m':
+        start_date = today + relativedelta(years=-2)
+    else:
+        start_date = today + relativedelta(years=-1) 
+
     counts = [0,0,0,0,0,0,0,0,0,0]
     evals = EvaluacionEmpleado.objects.exclude(calificacion_final__isnull=True).filter(
         fecha_registro__gte=start_date).values_list('calificacion_final', flat=True)
@@ -122,15 +204,51 @@ def api_evaluaciones(request):
                 counts[i-1] += 1
         except:
             continue
-    return JsonResponse({"labels": ["1","2","3","4","5","6","7","8","9","10"], "counts": counts})
+
+    start_date_formatted = start_date.strftime('%b %Y')
+    end_date_formatted = today.strftime('%b %Y')
+
+    return JsonResponse({
+        "labels": ["1","2","3","4","5","6","7","8","9","10"], 
+        "counts": counts,
+        "start_date_formatted": start_date_formatted,
+        "end_date_formatted": end_date_formatted,
+        })
+
+
 
 
 @require_GET
 @login_required
 def api_nominas(request):
     today = timezone.localdate()
-    first = today.replace(day=1)
-    qs = Nomina.objects.filter(fecha_generacion__gte=first)
+    current_month_start = today.replace(day=1)
+    period = request.GET.get('periodo', '1m') 
+    
+    ultima_nomina = Nomina.objects.order_by('-fecha_generacion').first()
+
+    if ultima_nomina and ultima_nomina.fecha_generacion >= current_month_start:
+        end_date = today.replace(day=1) + relativedelta(months=+1, days=-1)
+        months_to_go_back = 1 
+    else:
+        end_date = current_month_start + relativedelta(days=-1) 
+        months_to_go_back = 0 
+
+
+    num_months = int(period.replace('m', ''))
+    
+    start_date = (end_date + relativedelta(day=1)) + relativedelta(months=-(num_months - 1))
+
+    qs = Nomina.objects.filter(fecha_generacion__gte=start_date, fecha_generacion__lte=end_date)
+
+    start_date_formatted = start_date.strftime('%b. %Y').capitalize()
+    end_date_formatted = end_date.strftime('%b. %Y').capitalize()
+
+    if period == '1m':
+        range_display_end = start_date_formatted
+    else:
+        range_display_end = end_date_formatted
+
     base = qs.aggregate(total=Sum('monto_bruto'))['total'] or 0
     benefits = qs.aggregate(total=Sum('total_beneficios'))['total'] or 0
     discounts = qs.aggregate(total=Sum('total_descuentos'))['total'] or 0
@@ -142,8 +260,12 @@ def api_nominas(request):
         "benefits": to_float(benefits),
         "discounts": to_float(discounts),
         "extras": to_float(extras),
-        "state_counts": state_counts
+        "state_counts": state_counts,
+        "start_date_formatted": start_date_formatted,
+        "end_date_formatted": range_display_end,
     })
+
+
 
 
 @require_GET
@@ -158,6 +280,8 @@ def api_estructura(request):
         labels.append(d.nombre)
         counts.append(emp_count)
     return JsonResponse({"labels": labels, "counts": counts})
+
+
 
 
 @require_GET

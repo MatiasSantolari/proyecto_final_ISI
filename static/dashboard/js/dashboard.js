@@ -38,98 +38,6 @@
     }
 
 
-    // attendance
-    const att = await safeFetch(API.attendance);
-    if(att){
-      const ctx = document.getElementById('attendanceChart').getContext('2d');
-      const labels = att.labels || [];
-      const present = att.present || [];
-      const late = att.late || [];
-      const ausent = att.ausent || [];
-      if(!attendanceChart){
-        attendanceChart = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels,
-            datasets: [
-              { label: 'Presentes', data: present, stack: 'stack1' },
-              { label: 'Ausencias', data: ausent, stack: 'stack1' },
-              { label: 'Tardanzas', data: late, stack: 'stack1' }
-            ]
-          },
-          options: { 
-            scales: { 
-              x:{ 
-                stacked:true 
-              }, 
-              y:{ 
-                stacked:true,
-                ticks:{
-                  stepSize: 1,
-                  callback: function(value, index, values) {
-                    if (Number.isInteger(value)) {
-                      return value;
-                } 
-              } 
-            }, 
-            min: 0
-          }
-        },
-            plugins:{
-              legend:{
-                position:'bottom'
-              }
-            }
-          }
-        });
-      } else {
-        attendanceChart.data.labels = labels;
-        attendanceChart.data.datasets[0].data = present;
-        attendanceChart.data.datasets[2].data = ausent;
-        attendanceChart.data.datasets[1].data = late;
-        attendanceChart.update();
-      }
-    }
-
-
-    // evaluations
-    const evals = await safeFetch(API.evaluations);
-    if(evals){
-      const ctx = document.getElementById('evalChart').getContext('2d');
-      const labels = evals.labels || ["1","2","3","4","5","6","7","8","9","10"];
-      const data = evals.counts || [0,0,0,0,0,0,0,0,0,0];
-      if(!evalChart){
-        evalChart = new Chart(ctx, {
-          type: 'bar',
-          data: { labels, datasets: [{ label: 'Cantidad', data }]},
-          options:{ plugins:{legend:{display:false}}}
-        });
-      } else { 
-        evalChart.data.labels = labels;
-        evalChart.data.datasets[0].data = data; 
-        evalChart.update(); 
-      }
-    }
-
-
-    // payroll
-    const pay = await safeFetch(API.payroll);
-    if(pay){
-      const ctx = document.getElementById('payrollChart').getContext('2d');
-      const labels = ['Sueldo Base','Beneficios','Descuentos','Extras'];
-      const data = [pay.base||0, pay.benefits||0, pay.discounts||0, pay.extras||0];
-      if(!payrollChart){
-        payrollChart = new Chart(ctx, {
-          type: 'pie',
-          data: { labels, datasets:[{ 
-            data,
-            radius: '80%' 
-          }]},
-          options:{ plugins:{legend:{position:'bottom'}}}
-        });
-      } else { payrollChart.data.datasets[0].data = data; payrollChart.update(); }
-    }
-
 
     // structure (departments)
     const structure = await safeFetch(API.structure);
@@ -245,6 +153,157 @@
   }
 
 
+
+    // attendance
+  async function loadAttendance() {
+    const periodSelector = document.getElementById('attendancePeriodSelector');
+    const selectedPeriod = periodSelector ? periodSelector.value : '30d';
+    const apiUrl = `${API.attendance}?periodo=${selectedPeriod}`;
+  
+    const att = await safeFetch(apiUrl);
+    if(att){
+      const dateRangeEl = document.getElementById('attendanceDateRange');
+      if (dateRangeEl && att.start_date_formatted && att.end_date_formatted) {
+          const rangeText = `${att.start_date_formatted} - ${att.end_date_formatted}`;
+          dateRangeEl.textContent = `(${rangeText})`;
+      } else if (dateRangeEl) {
+          dateRangeEl.textContent = '';
+      }
+
+      const ctx = document.getElementById('attendanceChart').getContext('2d');
+      const labels = att.labels || [];
+      const present = att.present || [];
+      const late = att.late || [];
+      const ausent = att.ausent || [];
+      
+      if(!attendanceChart){
+        attendanceChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              { label: 'Presentes', data: present, stack: 'stack1' },
+              { label: 'Ausencias', data: ausent, stack: 'stack1' },
+              { label: 'Tardanzas', data: late, stack: 'stack1' }
+            ]
+          },
+          options: { 
+            scales: { 
+              x:{ 
+                stacked:true 
+              }, 
+              y:{ 
+                stacked:true,
+                ticks:{
+                  stepSize: 1,
+                  callback: function(value, index, values) {
+                    if (Number.isInteger(value)) {
+                      return value;
+                } 
+              } 
+            }, 
+            min: 0
+          }
+        },
+            plugins:{
+              legend:{
+                position:'bottom'
+              }
+            }
+          }
+        });
+      } else {
+        attendanceChart.data.labels = labels;
+        attendanceChart.data.datasets[0].data = present;
+        attendanceChart.data.datasets[2].data = ausent;
+        attendanceChart.data.datasets[1].data = late;
+        attendanceChart.update();
+      }
+    }
+  }
+
+
+
+    // evaluations
+  async function loadEvaluations() {
+    const periodSelector = document.getElementById('evalPeriodSelector');
+    const selectedPeriod = periodSelector ? periodSelector.value : '12m';
+    const apiUrl = `${API.evaluations}?periodo=${selectedPeriod}`;
+
+    const evals = await safeFetch(apiUrl);
+    if(evals){
+      const dateRangeEl = document.getElementById('evalDateRange');
+      if (dateRangeEl && evals.start_date_formatted && evals.end_date_formatted) {
+          const rangeText = `${evals.start_date_formatted} - ${evals.end_date_formatted}`;
+          dateRangeEl.textContent = `(${rangeText})`;
+      } else if (dateRangeEl) {
+          dateRangeEl.textContent = '';
+      }
+    
+      const ctx = document.getElementById('evalChart').getContext('2d');
+      const labels = evals.labels || ["1","2","3","4","5","6","7","8","9","10"];
+      const data = evals.counts || [0,0,0,0,0,0,0,0,0,0];
+      if(!evalChart){
+        evalChart = new Chart(ctx, {
+          type: 'bar',
+          data: { labels, datasets: [{ label: 'Cantidad', data }]},
+          options:{ plugins:{legend:{display:false}}}
+        });
+      } else { 
+        evalChart.data.labels = labels;
+        evalChart.data.datasets[0].data = data; 
+        evalChart.update(); 
+      }
+    }
+  }
+
+
+    // payroll
+  async function loadPayroll() {
+    const periodSelector = document.getElementById('payrollPeriodSelector');
+    const selectedPeriod = periodSelector ? periodSelector.value : '1m';
+    const apiUrl = `${API.payroll}?periodo=${selectedPeriod}`;
+
+    const pay = await safeFetch(apiUrl);
+    if(pay){
+
+      const dateRangeEl = document.getElementById('payrollDateRange');
+      if (dateRangeEl) {
+        if (pay.start_date_formatted && pay.end_date_formatted) {
+            let rangeText;
+            if (pay.start_date_formatted === pay.end_date_formatted) {
+                rangeText = `${pay.start_date_formatted}`;
+            } else {
+                rangeText = `${pay.start_date_formatted} - ${pay.end_date_formatted}`;
+            }
+            dateRangeEl.textContent = `(${rangeText})`;
+        } else {
+            dateRangeEl.textContent = '';
+        }
+      }
+
+      const ctx = document.getElementById('payrollChart').getContext('2d');
+      const labels = ['Sueldo Base','Beneficios','Descuentos','Extras'];
+      const data = [pay.base||0, pay.benefits||0, pay.discounts||0, pay.extras||0];
+      if(!payrollChart){
+        payrollChart = new Chart(ctx, {
+          type: 'pie',
+          data: { labels, datasets:[{ 
+            data,
+            radius: '80%' 
+          }]},
+          options:{ plugins:{legend:{position:'bottom'}}}
+        });
+      } else { 
+        payrollChart.data.datasets[0].data = data; 
+        payrollChart.update(); 
+      }
+    }
+  
+  }
+
+
+
 // objectives list
   async function loadObjectives() {
     const departmentSelector = document.getElementById('departmentSelector');
@@ -289,7 +348,22 @@
     loadAll();
     loadObjectives();
     loadVacations();
+    loadPayroll();
+    loadAttendance();
+    loadEvaluations();
 
+    const selectorEvals = document.getElementById('evalPeriodSelector');
+    if (selectorEvals) {
+        selectorEvals.addEventListener('change', loadEvaluations);
+    }
+    const selectorAttendance = document.getElementById('attendancePeriodSelector');
+    if (selectorAttendance) {
+        selectorAttendance.addEventListener('change', loadAttendance);
+    }
+    const selectorPayRoll = document.getElementById('payrollPeriodSelector');    
+    if (selectorPayRoll) {
+        selectorPayRoll.addEventListener('change', loadPayroll);
+    }
     const selectorVacations = document.getElementById('vacationPeriodSelector');
     if (selectorVacations) {
         selectorVacations.addEventListener('change', loadVacations);
