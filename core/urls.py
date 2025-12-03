@@ -193,17 +193,19 @@ urlpatterns = [
     path('dashboard/api/asistencias/', api.api_asistencias, name='api_asistencias'),
     path('dashboard/api/evaluaciones/', api.api_evaluaciones, name='api_evaluaciones'),
     path('dashboard/api/nominas/', api.api_nominas, name='api_nominas'),
+    path('dashboard/api/costo_laboral_comp/', api.api_labor_cost_comparison, name='api_costo_laboral_comp'),
     path('dashboard/api/estructura/', api.api_estructura, name='api_estructura'),
     path('dashboard/api/objetivos/', api.api_objetivos, name='api_objetivos'),
 
-                    ## ASISTENCIAS ##
-    path('dashboard/asistencias/data/', informes_view.dashboard_asistencias_data, name='dashboard_asistencias_data'),
-    path('informe/asistencias/', informes_view.informe_asistencias, name='informe_asistencias'),
-    path('informe/asistencias/data/', informes_view.informe_asistencias_data, name='informe_asistencias_data'),
-                    ## VACACIONES ##
-    path('dashboard/vacaciones/data/', informes_view.dashboard_vacaciones_data, name='dashboard_vacaciones_data'),
-    path('informe/vacaciones/', informes_view.informe_vacaciones, name='informe_vacaciones'),
-    path('informe/vacaciones/data/', informes_view.informe_vacaciones_data, name='informe_vacaciones_data'),
+    path('api/departamentos/list/', informes_view.api_departamentos_list, name='api_departamentos_list'),
+    
+            #### ASISTENCIAS ####
+    path('asistencias/detalle/', informes_view.asistencias_detalle_view, name='asistencias_detalle'),
+    path('api/asistencias/detalle/', informes_view.api_asistencias_detalle, name='api_asistencias_detalle'),
+    path('api/asistencias/exportar/csv/', informes_view.exportar_asistencias_csv, name='exportar_asistencias_csv'),
+    path('api/asistencias/exportar/pdf/', informes_view.exportar_asistencias_pdf, name='exportar_asistencias_pdf'),
+    
+
 
 
 ##############################################

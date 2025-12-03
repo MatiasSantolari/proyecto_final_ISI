@@ -23,14 +23,19 @@
         </div>
       </div>
       <div class="col-6 col-md-3">
-        <div class="card p-3">
-          <div class="small-muted">Ausencias (mes)</div>
-          <div id="kpiAbsences" class="kpi">—</div>
-        </div>
+        <a href="{% url 'asistencias_detalle'%}" class="card p-3 kpi-link">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="small-muted">
+              Ausencias (mes actual)
+              <i class="bi bi-chevron-right ml-1"></i>
+            </div>
+          </div>
+            <div id="kpiAbsences" class="kpi">—</div>
+        </a>
       </div>
       <div class="col-6 col-md-3">
         <div class="card p-3">
-          <div class="small-muted">Costo laboral (mes)</div>
+          <div class="small-muted">Costo laboral (mes pasado)</div>
           <div id="kpiPayroll" class="kpi">—</div>
         </div>
       </div>
@@ -50,6 +55,7 @@
             <div><strong>Solicitudes de vacaciones (estado)</strong></div>
             <select id="vacationPeriodSelector" class="form-select form-select-sm" style="width: 155px;">
               <option value="1m">Último mes</option>
+              <option value="2m">Últimos 2 meses</option>
               <option value="3m">Últimos 3 meses</option>
               <option value="6m">Últimos 6 meses</option>
               <option value="12m">Últimos 12 meses</option>
@@ -69,6 +75,7 @@
             </div>
             <select id="attendancePeriodSelector" class="form-select form-select-sm" style="width: 235px;">
                 <option value="30d">Últimos 30 días</option>
+                <option value="2m">Últimos 2 meses (por semana)</option>
                 <option value="3m">Últimos 3 meses (por semana)</option>
                 <option value="6m">Últimos 6 meses (por mes)</option>
                 <option value="12m">Últimos 12 meses (por mes)</option>
@@ -79,23 +86,43 @@
       </div>
     </div>
 
-    <!-- Row: Evaluaciones + Nómina -->
+    <!-- Row: Evaluaciones + Costo Laboral Comp + Nómina -->
     <div class="row g-3 mb-3">
       <div class="col-lg-6">
-        <div class="card p-3 chart-card">
-          <div class="d-flex justify-content-between mb-2">
-            <div>
-              <strong>Distribución de calificaciones</strong>
-              <span id="evalDateRange" class="text-muted small ml-2"></span>
+        <div class="row g-1">          
+          <div class="col-12">
+            <div class="card p-3 chart-card">
+              <div class="d-flex justify-content-between mb-2">
+                <div>
+                  <strong>Distribución de calificaciones</strong>
+                  <span id="evalDateRange" class="text-muted small ml-2"></span>
+                </div>
+                <select id="evalPeriodSelector" class="form-select form-select-sm" style="width: 155px;">
+                    <option value="3m">Últimos 3 meses</option>
+                    <option value="6m">Últimos 6 meses</option>
+                    <option value="12m">Último año</option>
+                    <option value="24m">Últimos 2 años</option>
+                </select>
+              </div>
+              <canvas id="evalChart"></canvas>
             </div>
-            <select id="evalPeriodSelector" class="form-select form-select-sm" style="width: 155px;">
-                <option value="3m">Últimos 3 meses</option>
-                <option value="6m">Últimos 6 meses</option>
-                <option value="12m">Último año</option>
-                <option value="24m">Últimos 2 años</option>
-            </select>
           </div>
-          <canvas id="evalChart"></canvas>
+
+          <div class="col-12">
+            <div class="card p-3 chart-card">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div><strong>Comparativa Coste Laboral Anual</strong></div>
+                <div class="d-flex gap-2">
+                    <select id="yearSelector1" class="form-select form-select-sm" style="width: 120px;"></select>
+                    <select id="yearSelector2" class="form-select form-select-sm" style="width: 120px;"></select>
+                </div>
+              </div>
+              <canvas id="laborCostComparisonChart"></canvas>
+              <div id="noComparisonDataMessage" style="display: none; padding: 20px; text-align: center; color: gray;">
+                  No hay datos suficientes para la comparación de años.
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -106,7 +133,7 @@
               <strong>Nómina: costos desglosados</strong>
               <span id="payrollDateRange" class="text-muted small ml-2"></span>
             </div>
-            <select id="payrollPeriodSelector" class="form-select form-select-sm" style="width: 170px;">
+            <select id="payrollPeriodSelector" class="form-select form-select-sm" style="width: 180px;">
                 <option value="1m">Último período</option>
                 <option value="3m">Últimos 3 períodos</option>
                 <option value="6m">Últimos 6 períodos</option>
@@ -118,6 +145,7 @@
       </div>
     </div>
 
+    
     <!-- Row: Estructura + Objetivos -->
     <div class="row g-3 mb-3">
       <div class="col-lg-6">

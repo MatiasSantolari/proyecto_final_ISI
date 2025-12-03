@@ -1,0 +1,99 @@
+{% extends "base.html"%}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block title %}Asistencias Detalle{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'informes/asistencias_detalle/css/asistencias_detalle.css' %}">
+<div class="container-fluid p-4 mt-5">
+    <h3 class="mb-3">Detalle de Historial de Asistencias</h3>
+
+    <div class="card mb-2">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            Filtros y Exportación
+            <div class="ms-auto">
+                <button type="button" id="downloadCsvBtn" class="btn btn-success me-2">
+                    <i class="bi bi-file-earmark-arrow-down"></i> CSV
+                </button>
+        <!--    <button type="button" id="downloadPdfBtn" class="btn btn-danger">
+                    <i class="bi bi-file-earmark-arrow-down"></i> PDF
+                </button>
+
+                NO IMPLEMENTADO
+        -->
+            </div>
+        </div>
+        <div class="card-body">
+            <form id="filterForm" class="row g-3 align-items-center">
+                
+                <div class="col-md-3">
+                    <label for="filterDni" class="form-label">Buscar DNI</label>
+                    <input type="text" id="filterDni" class="form-control" placeholder="DNI del empleado">
+                </div>
+
+                <div class="col-md-3">
+                    <label for="filterDepartamento" class="form-label">Departamento</label>
+                    <select id="filterDepartamento" class="form-select">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-2">
+                    <label for="filterConfirmado" class="form-label">Confirmado</label>
+                    <select id="filterConfirmado" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="true">Sí</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="filterTardanza" class="form-label">Tardanza</label>
+                    <select id="filterTardanza" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="true">Sí</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end align-bottom-buttons">
+                    <button type="button" id="clearFiltersBtn" class="btn btn-primary w-100">Limpiar Filtros</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-sm" id="asistenciasTable">
+                    <thead class="text-center">
+                        <tr>
+                            <th>Nombre Completo</th>
+                            <th>DNI</th>
+                            <th>Departamento</th>
+                            <th>Fecha Asistencia</th>
+                            <th>Hora Entrada</th>
+                            <th>Hora Salida</th>
+                            <th>Confirmado</th>
+                            <th>Tardanza</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center" id="asistenciasTableBody">
+                        <tr><td colspan="8" class="text-center">Cargando datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer">
+                <nav>
+                    <ul class="pagination justify-content-center" id="paginationControls"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'informes/asistencias_detalle/js/asistencias_detalle.js' %}"></script>
+{% endblock %}

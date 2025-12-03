@@ -1,11 +1,12 @@
 from django.http import JsonResponse
 from django.utils import timezone
-from datetime import timedelta
 from django.db.models import Sum, Avg, Count
 from django.views.decorators.http import require_GET
 from django.contrib.auth.decorators import login_required
 from datetime import timedelta, date
+from django.db.models.functions import ExtractMonth, ExtractYear
 from dateutil.relativedelta import relativedelta
+from collections import defaultdict
 
 from core.models import (
     Empleado,
@@ -30,18 +31,33 @@ def to_float(value):
     except:
         return 0.0
 
+
 @require_GET
 @login_required
 def api_kpis(request):
     today = timezone.localdate()
-    first_day = today.replace(day=1)
-    start_date = today - timedelta(days=365) 
+
+    first_day_of_current_month = today.replace(day=1)
+    last_day_of_previous_month = first_day_of_current_month - timedelta(days=1)
+    first_day_of_previous_month = last_day_of_previous_month.replace(day=1)
+
+    start_date_payroll = first_day_of_previous_month
+    end_date_payroll = last_day_of_previous_month
+
+    start_date_evaluations = today - timedelta(days=365) 
 
     employees_total = Empleado.objects.count()
-    absences_month = HistorialAsistencia.objects.filter(fecha_asistencia__gte=first_day, confirmado=False).count()
-    payroll_cost_month = Nomina.objects.filter(fecha_generacion__gte=first_day).aggregate(total=Sum('monto_neto'))['total'] or 0
+    absences_month = HistorialAsistencia.objects.filter(
+        fecha_asistencia__gte=start_date_payroll, 
+        fecha_asistencia__lte=end_date_payroll,
+        confirmado=False
+        ).count()
+    payroll_cost_month = Nomina.objects.filter(
+        fecha_generacion__gte=start_date_payroll,
+        fecha_generacion__lte=end_date_payroll,
+        ).aggregate(total=Sum('monto_neto'))['total'] or 0
 
-    eval_avg = EvaluacionEmpleado.objects.filter(fecha_registro__gte=start_date
+    eval_avg = EvaluacionEmpleado.objects.filter(fecha_registro__gte=start_date_evaluations
                                                  ).aggregate(avg=Avg('calificacion_final'))['avg'] or 0  
 
     return JsonResponse({
@@ -61,7 +77,9 @@ def api_vacaciones(request):
     
     start_date = today.replace(day=1)
 
-    if period == '3m':
+    if period == '2m':
+        start_date = today + relativedelta(months=-1, day=1)
+    elif period == '3m':
         start_date = today + relativedelta(months=-3, day=1)
     elif period == '6m':
         start_date = today + relativedelta(months=-6, day=1)
@@ -92,7 +110,10 @@ def api_asistencias(request):
     today = timezone.localdate()
     period = request.GET.get('periodo', '30d') 
 
-    if period == '3m':
+    if period == '2m':
+        days_back = 60
+        group_by = 'week'
+    elif period == '3m':
         days_back = 90
         group_by = 'week'
     elif period == '6m':
@@ -265,6 +286,41 @@ def api_nominas(request):
         "end_date_formatted": range_display_end,
     })
 
+
+
+@require_GET
+@login_required
+def api_labor_cost_comparison(request):
+    today = timezone.localdate()
+    year1 = int(request.GET.get('year1', today.year - 1))
+    year2 = int(request.GET.get('year2', today.year))
+
+    def get_monthly_costs(year):
+        costs = Nomina.objects.filter(
+            fecha_generacion__year=year
+        ).annotate(
+            month=ExtractMonth('fecha_generacion')
+        ).values('month').annotate(
+            total_cost=Sum('monto_neto')
+        ).order_by('month')
+        
+        monthly_data = {item['month']: float(item['total_cost'] or 0) for item in costs}
+        
+        full_year_data = [monthly_data.get(month, 0) for month in range(1, 13)]
+        return full_year_data
+
+    data_year1 = get_monthly_costs(year1)
+    data_year2 = get_monthly_costs(year2)
+    
+    months_labels = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+
+    return JsonResponse({
+        "labels": months_labels,
+        "year1_label": str(year1),
+        "year2_label": str(year2),
+        "data_year1": data_year1,
+        "data_year2": data_year2,
+    })
 
 
 

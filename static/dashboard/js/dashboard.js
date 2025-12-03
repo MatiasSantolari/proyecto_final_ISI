@@ -5,6 +5,7 @@
     attendance: '/dashboard/api/asistencias/',
     evaluations: '/dashboard/api/evaluaciones/',
     payroll: '/dashboard/api/nominas/',
+    laboral_cost: '/dashboard/api/costo_laboral_comp/',
     structure: '/dashboard/api/estructura/',
     objectives: '/dashboard/api/objetivos/'
   };
@@ -13,7 +14,7 @@
   const root = document.documentElement;
 
   // Chart instances
-  let vacChart=null, attendanceChart, evalChart=null, payrollChart, deptChart;
+  let vacChart=null, attendanceChart, evalChart=null, payrollChart, deptChart, laborCostChart = null;
 
   // helper to fetch json and safe fallback
   async function safeFetch(url){
@@ -304,6 +305,125 @@
 
 
 
+  // Laboral Cost Comparison
+  function populateYearSelectors() {
+    const currentYear = new Date().getFullYear();
+    const startYear = 2020; 
+    
+    const selector1 = document.getElementById('yearSelector1');
+    const selector2 = document.getElementById('yearSelector2');
+
+    selector1.innerHTML = '';
+    selector2.innerHTML = '';
+
+    for (let i = currentYear; i >= startYear; i--) {
+        const option1 = new Option(i, i);
+        const option2 = new Option(i, i);
+        
+        selector1.add(option1);
+        selector2.add(option2);
+    }
+    
+    selector1.value = currentYear - 1; 
+    selector2.value = currentYear;
+  }
+  
+
+  async function loadLaborCostComparison() {
+    const year1 = document.getElementById('yearSelector1').value;
+    const year2 = document.getElementById('yearSelector2').value;
+
+    if (!year1 || !year2) {
+        console.error("Selectores de año no encontrados o vacíos.");
+        return;
+    }
+    const apiUrl = `${API.laboral_cost}?year1=${year1}&year2=${year2}`;
+    const response = await safeFetch(apiUrl); 
+    
+    const chartCanvas = document.getElementById('laborCostComparisonChart');
+    const noDataMessage = document.getElementById('noComparisonDataMessage');
+
+    const allDataZeroYear1 = response.data_year1.every(item => item === 0);
+    const allDataZeroYear2 = response.data_year2.every(item => item === 0);
+    
+    if (!response || (allDataZeroYear1 && allDataZeroYear2)) {
+        chartCanvas.style.display = 'none';
+        noDataMessage.style.display = 'block';
+        if (laborCostChart) laborCostChart.destroy();
+        return; 
+    }
+
+    chartCanvas.style.display = 'block';
+    noDataMessage.style.display = 'none';
+
+    const ctx = chartCanvas.getContext('2d');
+    if (laborCostChart) {
+        laborCostChart.destroy();
+    }
+
+    laborCostChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: response.labels, 
+            datasets: [{
+                label: `Costo ${response.year1_label}`,
+                data: response.data_year1,
+                borderColor: '#007bff', 
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4, 
+                fill: false,
+                pointBackgroundColor: '#007bff',
+            }, {
+                label: `Costo ${response.year2_label}`,
+                data: response.data_year2,
+                borderColor: '#28a745', 
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4, 
+                fill: false,
+                pointBackgroundColor: '#28a745',
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Costo Monetario ($)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Mes del Año'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                },
+            },
+            elements: {
+                line: {
+                    borderWidth: 2
+                },
+                point: {
+                    radius: 4, 
+                    hoverRadius: 6
+                }
+            }
+        }
+    });
+  }
+
+
+
 // objectives list
   async function loadObjectives() {
     const departmentSelector = document.getElementById('departmentSelector');
@@ -351,7 +471,18 @@
     loadPayroll();
     loadAttendance();
     loadEvaluations();
+    populateYearSelectors();
+    loadLaborCostComparison(); 
 
+    
+    const selectorYear1 = document.getElementById('yearSelector1');
+    const selectorYear2 = document.getElementById('yearSelector2');
+    if (selectorYear1){
+      selectorYear1.addEventListener('change', loadLaborCostComparison);
+    }
+    if (selectorYear2){
+      selectorYear2.addEventListener('change', loadLaborCostComparison);
+    }
     const selectorEvals = document.getElementById('evalPeriodSelector');
     if (selectorEvals) {
         selectorEvals.addEventListener('change', loadEvaluations);
