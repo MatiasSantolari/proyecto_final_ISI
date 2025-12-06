@@ -764,7 +764,10 @@ class CapacitacionForm(forms.ModelForm):
 
     class Meta:
         model = Capacitacion
-        fields = ['nombre', 'descripcion', 'fecha_inicio', 'fecha_fin'] #luego debo agregar los campos restantes
+        fields = [
+            'nombre', 'descripcion', 'fecha_inicio', 'fecha_fin',
+            'origen_org', 'presencial', 'cupo'
+        ]
         widgets = {
             'nombre': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -776,14 +779,23 @@ class CapacitacionForm(forms.ModelForm):
             }),
             'fecha_inicio': forms.DateInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Fecha de inicio',
-                'type':'date'
+                'type': 'date'
             }),
-            'fecha_fin': forms.TextInput(attrs={
+            'fecha_fin': forms.DateInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Fecha de fin',
-                'type':'date'
+                'type': 'date'
             }),
+            'origen_org': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'presencial': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'cupo': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 0,
+                'placeholder': 'Cupo'
+            })
         }
 
 ######################

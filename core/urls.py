@@ -3,7 +3,7 @@ from django.contrib.auth import views as auth_views
 from core.views import *
 from core import api
 
-from core import views 
+from core import views
 
 urlpatterns = [
     path('home/', login_view.home, name='home'),
@@ -159,6 +159,11 @@ urlpatterns = [
     path('tipos_criterios/crear/', tipo_criterio_view.crear_tipoCriterio, name='crear_tipoCriterio'),
     path('tipos_criterios/<int:id_tipoCriterio>/eliminar/', tipo_criterio_view.eliminar_tipoCriterio, name='eliminar_tipoCriterio'),
     
+    ## CAPACITACION ##
+    path('capacitaciones/', capacitaciones_view.capacitaciones, name='capacitaciones'),
+    path('capacitaciones/crear/', capacitaciones_view.crear_capacitacion, name='crear_capacitacion'),
+    path('capacitaciones/<int:id_capacitacion>/eliminar/', capacitaciones_view.eliminar_capacitacion, name='eliminar_capacitacion'),
+
 
     ## CRITERIO ##
     path('criterios/', criterios_view.criterios, name='criterios'),
@@ -206,12 +211,12 @@ urlpatterns = [
     path('informe/vacaciones/data/', informes_view.informe_vacaciones_data, name='informe_vacaciones_data'),
 
 
+
 ##############################################
 ##############################################
 
     path('agregar_sueldo_base/', views.agregar_sueldo_base, name='agregar_sueldo_base'),
     path('calcular_bonificaciones/', views.calcular_bonificaciones, name='calcular_bonificaciones'),
-    path('capacitaciones/', views.capacitaciones, name='capacitaciones'),
     
     path('competencias/', views.competencias, name='competencias'),
     path('contratos/', views.contratos, name='contratos'),

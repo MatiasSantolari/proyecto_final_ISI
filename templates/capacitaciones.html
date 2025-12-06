@@ -1,168 +1,243 @@
 {% extends "base.html"%}
+{% load widget_tweaks %}
 
   {% block title %}Gestión de Capacitaciones{% endblock %}
   
   {% block content %}
 
-  <div class="container my-5">
+  <div class="container-fluid my-5">
     <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Capacitaciones</h1>
 
-    <!-- Botón para Crear -->
-    <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalCapacitacion">
-      + Crear Nueva Capacitacion
-    </button>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <!-- Botón para Crear -->
+      <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalCapacitacion">
+        + Crear Nuevo Capacitacion
+      </button>
+    </div>
 
     <!-- Tabla de Capacitaciones -->
-    <div class="table-responsive">
-      <table class="table table-bordered text-center">
-        <thead style="background-color: var(--color-suave);">
-          <tr>
-            <th style="width: 15%;">Nombre</th>
-            <th style="width: 32%;">Descripcion</th>
-            <th style="width: 11%;">Fecha de Inicio</th>
-            <th style="width: 10%;">Fecha de Fin</th>
-            <th style="width: 15%;">Institucion</th>
-            <th style="width: 15%;">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for capacitacion in capacitaciones %}
-          <tr>
-            <td>{{ capacitacion.nombre }}</td>
-            <td>
-              {% if capacitacion.descripcion %}
-                {{ capacitacion.descripcion }}
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1300px; font-size: 0.95rem;">
+            <thead class="table-light text-center">
+              <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Fecha de Inicio</th>
+                <th>Fecha de Fin</th>
+                <th>Origen de organizacion</th> <!--default false-->
+                <th>Presencial</th>
+                <th>Cupo</th> <!--default false-->
+                <th style="width:7%;">Institucion</th>
+                <th style="width:10%;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="text-center">
+              {% for capacitacion in capacitaciones %}
+              <tr>
+                <td>{{ capacitacion.nombre }}</td>
+                <td>
+                  {% if capacitacion.descripcion %}
+                    {{ capacitacion.descripcion }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>{{ capacitacion.fecha_inicio }}</td>
+                <td>{{ capacitacion.fecha_fin }}</td>
+                <td>{{ capacitacion.origen_org }}</td>
+                <td>{{ capacitacion.presencial }}</td>
+                <td>{{ capacitacion.cupo }}</td>
+                <td>{{ capacitacion.institucion }}</td>
+                <td>
+                  <div class="d-flex justify-content-center gap-2">
+                    <!-- Botón Editar -->
+                    <button class="btn btn-sm btn-outline-secondary"
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modalCapacitacion"
+                            data-id="{{ capacitacion.id }}"
+                            data-nombre="{{ capacitacion.nombre }}"
+                            data-descripcion="{{ capacitacion.descripcion }}"
+                            data-fecha_inicio="{{ capacitacion.fecha_inicio|date:'Y-m-d' }}"
+                            data-fecha_fin="{{ capacitacion.fecha_fin|date:'Y-m-d' }}"
+                            data-origen_org="{{ capacitacion.origen_org }}"
+                            data-presencial="{{ capacitacion.presencial }}"
+                            data-cupo="{{ capacitacion.cupo }}"
+                            data-institucion_id="{{ capacitacion.institucion_id }}"
+                            onclick="editarCapacitacion(this)" 
+                            title="Editar">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+
+                    <!-- Botón Ver -->
+                    <button class="btn btn-sm btn-outline-info"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalVerCapacitacion{{ capacitacion.id }}"
+                            data-bs-toggle="tooltip" title="Ver">
+                      <i class="bi bi-eye"></i>
+                    </button>
+
+                    <!-- Botón Eliminar -->
+                    <button class="btn btn-sm btn-outline-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalEliminarCapacitacion"
+                            data-id="{{ capacitacion.id }}"
+                            data-bs-toggle="tooltip" title="Eliminar">
+                      <i class="bi bi-trash3"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="3" class="text-center text-muted">
+                  No hay capacitaciones registradas.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <nav aria-label="Paginación">
+            <ul class="pagination justify-content-center mt-4">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+                </li>
               {% else %}
-                -
+                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
               {% endif %}
-              </td>
-            <td>{{ capacitacion.fecha_inicio }}</td>
-            <td>{{ capacitacion.fecha_fin }}</td>
-            <td>{{ capacitacion.institucion }}</td>
-            <td>
-              <div class="d-flex justify-content-center gap-2">
-                <!-- Botón Editar -->
-                <button class="btn btn-sm btn-outline-secondary"
-                        data-bs-toggle="modal" data-bs-target="#modalCapacitacion"
-                        data-id="{{ capacitacion.id }}"
-                        data-nombre="{{ capacitacion.nombre }}"
-                        data-descripcion="{{ capacitacion.descripcion }}"
-                        data-fecha_inicio="{{ capacitacion.fecha_inicio }}"
-                        data-fecha_fin="{{ capacitacion.fecha_fin }}"
-                        data-institucion="{{ capacitacion.institucion_id }}"
-                        onclick="editarCapacitacion(this)"
-                        data-bs-toggle="tooltip" title="Editar">
-                  <i class="bi bi-pencil-square"></i>
-                </button>
 
-                <!-- Botón Ver -->
-                <button class="btn btn-sm btn-outline-info"
-                        data-bs-toggle="modal"
-                        data-bs-target="#modalVerCapacitacion{{ capacitacion.id }}"
-                        data-bs-toggle="tooltip" title="Ver">
-                  <i class="bi bi-eye"></i>
-                </button>
+              {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                  <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% else %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
 
-                <!-- Botón Eliminar -->
-                <button class="btn btn-sm btn-outline-danger"
-                        data-bs-toggle="modal"
-                        data-bs-target="#modalEliminarCapacitacion"
-                        data-id="{{ capacitacion.id }}"
-                        data-bs-toggle="tooltip" title="Eliminar">
-                  <i class="bi bi-trash3"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="3" class="text-center text-muted">
-              No hay capacitaciones registrados.
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+              {% endif %}
+            </ul>
+          </nav>
 
-  <!-- Modal para Crear/Editar Capacitacion -->
-  <div class="modal fade" id="modalCapacitacion" tabindex="-1" aria-labelledby="modalCapacitacionLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalCapacitacionLabel">Crear/Editar Capacitacion</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-          <form>
-            <div class="mb-3">
-              <label for="id_nombre" class="form-label">Nombre de la Capacitacion</label>
-              <input type="text" class="form-control" id="nombreCapacitacion"  placeholder="Ingresa el nombre de la Capacitacion" required></input>
+      </div>
+    </div>
+
+    <!-- Modal para Crear/Editar Capacitacion -->
+    <div class="modal fade" id="modalCapacitacion" tabindex="-1" aria-labelledby="modalCapacitacionLabel" aria-hidden="true">
+      <div class="modal-dialog" style="margin-top: 6rem;">
+        <div class="modal-content">
+          <form method="post" action="{% url 'crear_capacitacion' %}" id="formCapacitacion">
+            {% csrf_token %}
+            <div class="modal-header" style="background-color: #3c8dbc;">
+              <h5 class="modal-title text-white" id="modalCapacitacionLabel">Crear/Editar Capacitacion</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="mb-3">
-              <label for="id_descripcion" class="form-label">Descripción de la Capacitacion</label>
-              <textarea class="form-control" id="descripcionCapacitacion" rows="3" placeholder="Ingresa la descripcion de la Capacitacion" required></textarea>
-            </div>
-            <div class="mb-3">
-              <label for="id_fecha_inicio" class="form-label">Fecha de Inicio</label>
-              <input type="date" class="form-control" id="fechaInicioCapacitacion" required>
-            </div>
-            <div class="mb-3">
-              <label for="id_fecha_fin" class="form-label">Fecha de Fin</label>
-              <input type="date" class="form-control" id="fechaFinCapacitacion" required>
-            </div>
-            <div class="mb-3">
-              <label for="id_institucion" class="form-label">Institucion</label>
+            <input type="hidden" name="id_capacitacion" id="id_capacitacion">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="id_institucion" class="form-label">Institucion</label>
                 {{ form.institucion }}
+              </div>
+              <div class="mb-3">
+                <label for="id_nombre" class="form-label">Nombre</label>
+                {{ form.nombre }}
+              </div>
+              <div class="mb-3">
+                <label for="id_descripcion" class="form-label">Descripción</label>
+                {{ form.descripcion }}
+              </div>
+              <div class="mb-3">
+                <label for="id_fecha_inicio" class="form-label">Fecha Inicio</label>
+                {{ form.fecha_inicio }}
+              </div>
+              <div class="mb-3">
+                <label for="id_fecha_fin" class="form-label">Fecha Fin</label>
+                {{ form.fecha_fin }}
+              </div>
+              <div class="mb-3">
+                <label for="id_origen_org" class="form-label">Origen Org</label>
+                {{ form.origen_org }}
+              </div>
+              <div class="mb-3">
+                <label for="id_presencial" class="form-label">Presencial</label>
+                {{ form.presencial }}
+              </div>
+              <div class="mb-3">
+                <label for="id_cupo" class="form-label">Cupo</label>
+                {{ form.cupo }}
+              </div>
             </div>
-            <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
+            <div class="modal-footer bg-light">
+              <button type="submit" class="btn btn-success w-100 fw-bold">  
+                <i class="bi bi-save"></i> Guardar
+              </button>
+            </div>
           </form>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Modal para Ver Detalles -->
-  <div class="modal fade" id="modalVerCapacitacion" tabindex="-1" aria-labelledby="modalVerCapacitacionLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalVerCapacitacionLabel">Detalles de la Capacitacion</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p><strong>Nombre:</strong> Comunicación Efectiva en el Trabajo</p>
-          <p><strong>Descripcion:</strong> Taller práctico para mejorar habilidades de comunicación interpersonal y manejo de conflictos en entornos laborales.</p>
-          <p><strong>Fecha de Inicio:</strong> 01-02-2025</p>
-          <p><strong>Fecha de Fin:</strong> 01-04-2025</p>
+
+    <!-- Modal para Ver Detalles -->
+    {% for capacitacion in capacitaciones %}
+    <div class="modal fade" id="modalVerCapacitacion{{ capacitacion.id }}" tabindex="-1" aria-labelledby="modalVerCapacitacion{{ capacitacion.id }}Label" aria-hidden="true">
+      <div class="modal-dialog" style="margin-top: 6rem;">
+        <div class="modal-content">
+          <div class="modal-header" style="background-color: #3c8dbc;">
+            <h5 class="modal-title text-white" id="modalVerCapacitacion{{ capacitacion.id }}Label">Detalles de la Capacitacion</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p><strong>Nombre:</strong> {{ capacitacion.nombre }}</p>
+            <p><strong>Descripción:</strong> {{ capacitacion.descripcion }}</p>
+            <p><strong>Fecha de Inicio:</strong> {{ capacitacion.fecha_inicio }}</p>
+            <p><strong>Fecha de Fin:</strong> {{ capacitacion.fecha_fin }}</p>
+            <p><strong>Origen de Org:</strong> {{ capacitacion.origen_org }}</p>
+            <p><strong>Presencial:</strong> {{ capacitacion.presencial }}</p>
+            <p><strong>Cupo:</strong> {{ capacitacion.cupo }}</p>
+            <p><strong>Institucion:</strong> {{ capacitacion.institucion }}</p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+    {% endfor %}
 
-  <!-- Modal para Confirmar Eliminación -->
-  <div class="modal fade" id="modalEliminarCapacitacion" tabindex="-1" aria-labelledby="modalEliminarCapacitacionLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-enfasis); color: white;">
-          <h5 class="modal-title" id="modalEliminarCapacitacionLabel">Confirmar Eliminación</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>¿Estás seguro de que deseas eliminar esta Capacitacion?</p>
-        </div>
-        <div class="modal-footer">
-          <form id="formEliminarCapacitacion" method="post">
+
+    <!-- Modal para Confirmar Eliminación -->
+    <div class="modal fade" id="modalEliminarCapacitacion" tabindex="-1" aria-labelledby="modalEliminarCapacitacionLabel" aria-hidden="true">
+      <div class="modal-dialog" style="margin-top: 12rem;">
+        <div class="modal-content">
+          <div class="modal-header" style="background-color: #3c8dbc;">
+            <h5 class="modal-title text-white" id="modalEliminarCapacitacionLabel">Confirmar Eliminación</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>¿Estás seguro de que deseas eliminar este Capacitacion?</p>
+          </div>
+          <div class="modal-footer">
+            <form id="formEliminarCapacitacion" method="post">
               {% csrf_token %}
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
               <button type="submit" class="btn btn-danger">Eliminar</button>
             </form>
+          </div>
         </div>
       </div>
     </div>
+
   </div>
- 
+
   <script>
     document.addEventListener('DOMContentLoaded', function () {
         
@@ -173,6 +248,12 @@
         const form = document.getElementById('formEliminarCapacitacion');
         form.action = `/capacitaciones/${capacitacionId}/eliminar/`;
       });
+
+      const selectDept = document.getElementById('institucion');
+      selectDept.addEventListener('change', function() {
+        this.form.submit();  
+      });
+
     });
 
 
@@ -190,31 +271,24 @@
       const form = document.getElementById('formCapacitacion');
       form.reset();
       document.getElementById('id_capacitacion').value = '';
-      document.getElementById('modalCapacitacionLabel').textContent = 'Crear Nueva Capacitacion';
+      document.getElementById('modalCapacitacionLabel').textContent = 'Crear Nuevo Capacitacion';
       document.querySelector('#formCapacitacion button[type="submit"]').textContent = 'Guardar';
     }
 
+    function editarCapacitacion(btn) {
 
-    function editarCapacitacion(button) {
-      const capacitacionId = button.getAttribute('data-id');
-      const nombre = button.getAttribute('data-nombre');
-      const descripcion = button.getAttribute('data-descripcion');
-      const fecha_inicio = parseFloat(button.getAttribute('data-fecha_inicio'));
-      const fecha_fin = parseFloat(button.getAttribute('data-fecha_fin'));
-      const institucion = button.getAttribute('data-institucion');
-
-      document.getElementById('id_capacitacion').value = capacitacionId || '';
-      document.getElementById('id_nombre').value = nombre || '';
-      document.getElementById('id_descripcion').value = descripcion || '';
-      document.getElementById('id_fecha_inicio').value = isNaN(fecha_inicio) ? '' : fecha_inicio;
-      document.getElementById('id_fecha_fin').value = isNaN(fecha_fin) ? '' : fecha_fin;
-      document.getElementById('id_institucion').value = institucion || '';
-
-      document.getElementById('modalCapacitacionLabel').textContent = 'Editar Capacitacion';
-      document.querySelector('#formCapacitacion button[type="submit"]').textContent = 'Actualizar';
+        document.getElementById("id_capacitacion").value = btn.dataset.id;
+        document.getElementById("id_nombre").value = btn.dataset.nombre || "";
+        document.getElementById("id_descripcion").value = btn.dataset.descripcion || "";
+        document.getElementById("id_fecha_inicio").value = btn.dataset.fecha_inicio || "";
+        document.getElementById("id_fecha_fin").value = btn.dataset.fecha_fin || "";
+        document.getElementById("id_origen_org").checked = (btn.dataset.origen_org === "True");
+        document.getElementById("id_presencial").checked = (btn.dataset.presencial === "True");
+        document.getElementById("id_cupo").value = btn.dataset.cupo || "";
+        document.getElementById("id_institucion").value = btn.dataset.institucion_id || "";
     }
+  </script>
 
-    </script>
   {% endblock %}
 </body>
 </html>

@@ -36,7 +36,7 @@ def capacitaciones(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    instituciones = Institucion.objects.order_by('nombre')
+    #instituciones = Institucion.objects.order_by('nombre')
 
     form = CapacitacionForm()
     return render(request, 'capacitaciones.html', {
@@ -84,8 +84,13 @@ def crear_capacitacion(request):
             'descripcion': capacitacion.descripcion,
             'fecha_inicio': capacitacion.fecha_inicio,
             'fecha_fin': capacitacion.fecha_fin,
+            'origen_org': capacitacion.origen_org,
+            'presencial': capacitacion.presencial,
+            'cupo': capacitacion.cupo,
+            'institucion_id': capacitacion_institucion.institucion.id if capacitacion_institucion else '',
             'institucion': institucion,
         })
+
 
     return render(request, 'capacitaciones.html', {'form': form, 'capacitaciones': lista_capacitaciones})
 
@@ -93,6 +98,6 @@ def crear_capacitacion(request):
 @login_required
 @require_POST
 def eliminar_capacitacion(request, id_capacitacion):
-    capacitacion = get_object_or_404(Cargo, id=id_capacitacion)
+    capacitacion = get_object_or_404(Capacitacion, id=id_capacitacion)
     capacitacion.delete()
     return redirect('capacitaciones')

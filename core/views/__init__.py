@@ -14,6 +14,7 @@ from .asistencia_view import *
 from .vacaciones_view import *
 from .contratos_view import *
 from .instituciones_view import *
+from .capacitaciones_view import *
 from .tipo_criterio_view import *
 from .criterios_view import *
 from .evaluaciones_view import *
