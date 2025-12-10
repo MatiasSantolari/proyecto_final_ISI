@@ -199,13 +199,24 @@ urlpatterns = [
 
     path('api/departamentos/list/', informes_view.api_departamentos_list, name='api_departamentos_list'),
     
-            #### ASISTENCIAS ####
+            #### ASISTENCIAS DETALLE ####
     path('asistencias/detalle/', informes_view.asistencias_detalle_view, name='asistencias_detalle'),
     path('api/asistencias/detalle/', informes_view.api_asistencias_detalle, name='api_asistencias_detalle'),
     path('api/asistencias/exportar/csv/', informes_view.exportar_asistencias_csv, name='exportar_asistencias_csv'),
-    path('api/asistencias/exportar/pdf/', informes_view.exportar_asistencias_pdf, name='exportar_asistencias_pdf'),
-    
-
+    #path('api/asistencias/exportar/pdf/', informes_view.exportar_asistencias_pdf, name='exportar_asistencias_pdf'),
+            #### EMPLEADOS DETALLE ####
+    path('empleados/detalle/', informes_view.empleados_detalle_view, name='empleados_detalle'),
+    path('api/empleados/detalle/', informes_view.api_empleados_detalle, name='api_empleados_detalle'),
+    path('api/empleados/exportar/csv/', informes_view.exportar_empleados_csv, name='exportar_empleados_csv'),
+            #### NOMINAS DETALLE ####
+    path('nominas/detalle/', informes_view.nominas_detalle_view, name='nominas_detalle'),
+    path('api/nominas/detalle/', informes_view.api_nominas_detalle, name='api_nominas_detalle'),
+    path('api/nominas/exportar/csv/', informes_view.exportar_nominas_csv, name='exportar_nominas_csv'),
+            #### EVALUACIONES DETALLE ####
+    path('evaluaciones/detalle/', informes_view.evaluaciones_detalle_view, name='evaluaciones_detalle'),
+    path('api/evaluaciones/detalle/', informes_view.api_evaluaciones_detalle, name='api_evaluaciones_detalle'),
+    path('api/evaluaciones/exportar/csv/', informes_view.exportar_evaluaciones_csv, name='exportar_evaluaciones_csv'),
+    path('api/evaluaciones/list/', informes_view.api_evaluaciones_list, name='api_evaluaciones_list'),    
 
 
 ##############################################

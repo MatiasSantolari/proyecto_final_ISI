@@ -17,33 +17,48 @@
     <!-- KPIs -->
     <div class="row g-3 kpi-deck mb-2">
       <div class="col-6 col-md-3">
-        <div class="card p-3">
-          <div class="small-muted">Empleados activos</div>
-          <div id="kpiEmployees" class="kpi">—</div>
-        </div>
+        <a href="{% url 'empleados_detalle'%}" class="card p-3 kpi-link">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="small">
+              Empleados activos
+              <i class="small-muted bi bi-chevron-right ml-1"></i>
+            </div>
+          </div>
+          <div id="kpiEmployees" class="kpi ml-4">—</div>
+        </a>
       </div>
       <div class="col-6 col-md-3">
         <a href="{% url 'asistencias_detalle'%}" class="card p-3 kpi-link">
           <div class="d-flex justify-content-between align-items-center">
-            <div class="small-muted">
+            <div class="small">
               Ausencias (mes actual)
-              <i class="bi bi-chevron-right ml-1"></i>
+              <i class="small-muted bi bi-chevron-right ml-1"></i>
             </div>
           </div>
-            <div id="kpiAbsences" class="kpi">—</div>
+          <div id="kpiAbsences" class="kpi ml-4">—</div>
         </a>
       </div>
       <div class="col-6 col-md-3">
-        <div class="card p-3">
-          <div class="small-muted">Costo laboral (mes pasado)</div>
-          <div id="kpiPayroll" class="kpi">—</div>
-        </div>
+        <a href="{% url 'nominas_detalle'%}" class="card p-3 kpi-link">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="small">
+              Costo laboral (mes pasado)
+              <i class="small-muted bi bi-chevron-right ml-1"></i>
+            </div>
+          </div>
+          <div id="kpiPayroll" class="kpi ml-3">—</div>
+        </a>
       </div>
       <div class="col-6 col-md-3">
-        <div class="card p-3">
-          <div class="small-muted">Evaluación promedio (Anual)</div>
-          <div id="kpiEvalAvg" class="kpi">—</div>
-        </div>
+        <a href="{% url 'evaluaciones_detalle'%}" class="card p-3 kpi-link">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="small">
+              Evaluación promedio (Anual)
+              <i class="small-muted bi bi-chevron-right ml-1"></i>
+            </div>
+          </div>
+          <div id="kpiEvalAvg" class="kpi ml-4">—</div>
+        </a>
       </div>
     </div>
 
@@ -65,13 +80,15 @@
           <canvas id="vacChart"></canvas>
         </div>
       </div>
-
       <div class="col-lg-8">
         <div class="card p-3 chart-card">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
-              <strong>Asistencias / Tardanzas</strong>
-              <span id="attendanceDateRange" class="text-muted small ml-2"></span>
+            <div class="d-flex align-items-center">
+              <a href="{% url 'asistencias_detalle'%}" class="kpi-link d-flex align-items-center">
+                <strong>Asistencias / Tardanzas</strong>
+                <i class="bi bi-chevron-right ms-2 text-muted"></i>
+              </a>
+              <span id="attendanceDateRange" class="text-muted small ms-3"></span>
             </div>
             <select id="attendancePeriodSelector" class="form-select form-select-sm" style="width: 235px;">
                 <option value="30d">Últimos 30 días</option>
@@ -93,8 +110,11 @@
           <div class="col-12">
             <div class="card p-3 chart-card">
               <div class="d-flex justify-content-between mb-2">
-                <div>
-                  <strong>Distribución de calificaciones</strong>
+                <div class="d-flex align-items-center">
+                  <a href="{% url 'evaluaciones_detalle'%}" class="kpi-link d-flex align-items-center">
+                      <strong>Distribución de calificaciones</strong>
+                    <i class="bi bi-chevron-right ms-2 text-muted"></i>
+                  </a>
                   <span id="evalDateRange" class="text-muted small ml-2"></span>
                 </div>
                 <select id="evalPeriodSelector" class="form-select form-select-sm" style="width: 155px;">
@@ -129,8 +149,11 @@
       <div class="col-lg-6">
         <div class="card p-3 chart-card">
           <div class="d-flex justify-content-between mb-2">
-            <div>
-              <strong>Nómina: costos desglosados</strong>
+            <div class="d-flex align-items-center">
+              <a href="{% url 'nominas_detalle'%}" class="kpi-link d-flex align-items-center">
+                <strong>Nómina: costos desglosados</strong>
+                <i class="bi bi-chevron-right ms-2 text-muted"></i>
+              </a>
               <span id="payrollDateRange" class="text-muted small ml-2"></span>
             </div>
             <select id="payrollPeriodSelector" class="form-select form-select-sm" style="width: 180px;">
