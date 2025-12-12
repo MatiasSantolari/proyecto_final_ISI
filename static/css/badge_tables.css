@@ -1,0 +1,24 @@
+.table-sm td {
+    font-size: 0.92rem; 
+    padding: 0.3rem 0.4rem;
+}  
+
+.btn.btn-sm {
+    padding: 0.22rem 0.35rem; 
+    line-height: 1;
+}
+
+.table-sm td, .table-sm th {
+    padding: 0.3rem 0.5rem; 
+}
+
+.btn.btn-sm i.bi {
+    font-size: 0.85rem; 
+}
+
+.badge {
+    font-size: 0.75rem;   
+    padding: 0.25em 0.5em;
+    line-height: 1;      
+    display: inline-block; 
+}

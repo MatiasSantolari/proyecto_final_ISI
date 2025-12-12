@@ -1,18 +1,23 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
+{% load static %}
 
 {% block title %}Gestión de Logros{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-  <h2 class="mb-4" style="color: var(--color-primario);">Gestión de Logros</h2>
 
-  <!-- Botón para Crear -->
-  <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalLogro">
-    + Crear Nuevo Logro
-  </button>
+<link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+<div class="container-fluid p-5 my-2">
+  <h4 class="mb-3" style="color: var(--color-primario);">Gestión de Logros</h4>
 
-  <!-- Tabla de Logros -->
+  <div class="card mb-2">
+    <div class="card-header d-flex justify-content-between align-items-center mb-0">
+      <button type="button" class="btn mb-0 btn-primary" data-bs-toggle="modal" data-bs-target="#modalLogro">
+        + Crear Nuevo Logro
+      </button>
+    </div>
+  </div>
+
   <div class="card shadow-sm border-0">
     <div class="card-body">
       <div class="table-responsive">
@@ -33,7 +38,7 @@
               <td>{{ logro.fecha_fin }}</td>
               <td>
                 <div class="d-flex justify-content-center gap-2">
-                  <button class="btn btn-sm btn-outline-secondary"
+                  <button class="btn btn-sm btn-outline-secondary me-1"
                           data-bs-toggle="modal" data-bs-target="#modalLogro"
                           data-id="{{ logro.id }}"
                           data-descripcion="{{ logro.descripcion }}"
@@ -43,7 +48,7 @@
                           data-bs-toggle="tooltip" title="Editar">
                     <i class="bi bi-pencil-square"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-info"
+                  <button class="btn btn-sm btn-outline-info me-1"
                           data-bs-toggle="modal"
                           data-bs-target="#modalVerLogro{{ logro.id }}"
                           data-bs-toggle="tooltip" title="Ver">

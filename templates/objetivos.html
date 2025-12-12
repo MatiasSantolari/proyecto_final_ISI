@@ -1,17 +1,21 @@
 {% extends "base.html"%}
 {% load widget_tweaks %}
+{% load static %}
 
   {% block title %}Gestión de Objetivos{% endblock %}
   
   {% block content %}
+  <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+  <div class="container-fluid p-5 my-2">
+    <h4 class="mb-4" style="color: var(--color-primario);">Gestión de Objetivos</h4>
 
-  <div class="container my-5">
-    <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Objetivos</h1>
-
-    <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalObjetivo">
-      + Crear Nuevo Objetivo
-    </button>
-
+    <div class="card mb-2">
+      <div class="card-header d-flex justify-content-between align-items-center mb-0">
+        <button type="button" class="btn mb-0 btn-primary" data-bs-toggle="modal" data-bs-target="#modalObjetivo">
+          + Crear Nuevo Objetivo
+        </button>
+      </div>
+    </div>
     <div class="card shadow-sm border-0">
       <div class="card-body">
         <div class="table-responsive">
@@ -56,7 +60,7 @@
                 </td>
                 <td>
                   <div class="d-flex justify-content-center gap-2">
-                     <button class="btn btn-sm btn-outline-primary"
+                     <button class="btn btn-sm btn-outline-primary me-1"
                             data-bs-toggle="modal" 
                             data-bs-target="#modalAsignarObjetivo"
                             data-objetivo-id="{{ objetivo.id }}"
@@ -65,7 +69,7 @@
                             onclick="abrirModalAsignar({{ objetivo.id }})">
                       <i class="bi bi-person-plus"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-secondary" 
+                    <button class="btn btn-sm btn-outline-secondary me-1" 
                             data-bs-toggle="modal" data-bs-target="#modalObjetivo"
                             data-id="{{ objetivo.id }}"
                             data-titulo="{{ objetivo.titulo }}"
@@ -77,7 +81,7 @@
                             data-bs-toggle="tooltip" title="Editar">
                       <i class="bi bi-pencil-square"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-info" 
+                    <button class="btn btn-sm btn-outline-info me-1" 
                             data-bs-toggle="modal" 
                             data-bs-target="#modalVerObjetivo{{ objetivo.id }}"
                             data-bs-toggle="tooltip" title="Ver">
