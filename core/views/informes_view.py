@@ -1,3 +1,4 @@
+from core.constants import ESTADO_EMPLEADO_CHOICES
 from django.shortcuts import get_object_or_404, render
 from datetime import date, datetime, timedelta
 from django.urls import reverse
@@ -174,7 +175,7 @@ def get_empleados_queryset(request):
 
 @login_required
 def empleados_detalle_view(request):
-    estados = Empleado.ESTADO_CHOICES
+    estados = ESTADO_EMPLEADO_CHOICES
     return render(request, 'informes/empleados_detalle.html', {'estados': estados})
 
 
