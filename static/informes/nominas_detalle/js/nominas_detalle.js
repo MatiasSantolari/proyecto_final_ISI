@@ -65,14 +65,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = document.createElement('tr');
             const formatCurrency = (value) => `$${value.toFixed(2)}`;
             const estadoClass = item.estado === 'pagado' ? 'success' : item.estado === 'pendiente' ? 'warning' : 'danger';
-
+            const nombreHtml = `<a href="${item.url_perfil}">${item.nombre_completo}</a>`;
+            let fechaPagoHtml;
+            if (item.fecha_pago) {
+                fechaPagoHtml = item.fecha_pago;
+            } else {
+                const urlConParametro = `${item.url_pago}?from_detalle=1`;
+                fechaPagoHtml = `<a href="${urlConParametro}" class="btn btn-sm btn-primary">Ir a pagar</a>`;
+            }
             row.innerHTML = `
-                <td>${item.nombre_completo}</td>
+                <td>${nombreHtml}</td>
                 <td>${item.dni}</td>
                 <td>${item.departamento}</td>
                 <td>${item.cargo}</td>
                 <td>${item.fecha_generacion}</td>
-                <td>${item.fecha_pago}</td>
+                <td>${fechaPagoHtml}</td>
                 <td><span class="badge bg-${estadoClass}">${item.estado}</span></td>
                 <td>${formatCurrency(item.total_beneficios)}</td>
                 <td>${formatCurrency(item.total_descuentos)}</td>

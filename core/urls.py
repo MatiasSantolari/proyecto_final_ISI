@@ -208,6 +208,12 @@ urlpatterns = [
     path('empleados/detalle/', informes_view.empleados_detalle_view, name='empleados_detalle'),
     path('api/empleados/detalle/', informes_view.api_empleados_detalle, name='api_empleados_detalle'),
     path('api/empleados/exportar/csv/', informes_view.exportar_empleados_csv, name='exportar_empleados_csv'),
+    path('empleado/<int:empleado_id>/', informes_view.empleado_perfil_detalle_view, name='empleado_perfil_detalle'),
+    path('api/empleado/<int:empleado_id>/nominas/', informes_view.api_empleado_nominas, name='api_empleado_nominas'),
+    path('api/empleado/<int:empleado_id>/evaluaciones/', informes_view.api_empleado_evaluaciones, name='api_empleado_evaluaciones'),
+    path('api/empleado/<int:empleado_id>/asistencia/', informes_view.api_empleado_asistencia, name='api_empleado_asistencia'),
+    path('api/empleado/<int:empleado_id>/vacaciones/', informes_view.api_empleado_vacaciones, name='api_empleado_vacaciones'),
+    path('api/empleado/<int:empleado_id>/objetivos/', informes_view.api_empleado_objetivos, name='api_empleado_objetivos'),
             #### NOMINAS DETALLE ####
     path('nominas/detalle/', informes_view.nominas_detalle_view, name='nominas_detalle'),
     path('api/nominas/detalle/', informes_view.api_nominas_detalle, name='api_nominas_detalle'),

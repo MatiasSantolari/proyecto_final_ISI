@@ -65,8 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         data.forEach(item => {
             const row = document.createElement('tr');
+            const nombreHtml = `<a href="${item.url_perfil}">${item.nombre_completo}</a>`;
             row.innerHTML = `
-                <td>${item.nombre_completo}</td>
+                <td>${nombreHtml}</td>
                 <td>${item.dni}</td>
                 <td><span class="badge bg-info">${item.estado}</span></td>
                 <td>${item.departamento}</td>
@@ -89,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         prevItem.innerHTML = `<a class="page-link" href="#" aria-label="Previous">«</a>`;
         prevItem.addEventListener('click', (e) => {
             e.preventDefault();
-            if (pagination.has_previous) loadAsistenciasData(pagination.current_page - 1);
+            if (pagination.has_previous) loadEmpleadosData(pagination.current_page - 1);
         });
         paginationControls.appendChild(prevItem);
 
@@ -99,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pageItem.innerHTML = `<a class="page-link" href="#">${i}</a>`;
             pageItem.addEventListener('click', (e) => {
                 e.preventDefault();
-                loadAsistenciasData(i);
+                loadEmpleadosData(i);
             });
             paginationControls.appendChild(pageItem);
         }
@@ -109,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         nextItem.innerHTML = `<a class="page-link" href="#" aria-label="Next">»</a>`;
         nextItem.addEventListener('click', (e) => {
             e.preventDefault();
-            if (pagination.has_next) loadAsistenciasData(pagination.current_page + 1);
+            if (pagination.has_next) loadEmpleadosData(pagination.current_page + 1);
         });
         paginationControls.appendChild(nextItem);
     }

@@ -1,0 +1,9 @@
+.table-sm {
+    font-size: 0.95rem; 
+}
+
+.table-sm th,
+.table-sm td {
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+}

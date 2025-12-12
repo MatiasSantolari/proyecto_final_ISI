@@ -6,7 +6,7 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'informes/empleados_detalle/css/empleados_detalle.css' %}">
-<div class="container-fluid p-4 mt-5">
+<div class="container-fluid p-5 mt-3">
     <h3 class="mb-3">Detalle de Empleados</h3>
 
     <div class="card mb-2">
@@ -16,11 +16,9 @@
                 <button type="button" id="downloadCsvBtn" class="btn btn-success me-2">
                     <i class="bi bi-file-earmark-arrow-down"></i> CSV
                 </button>
-                <!-- Botón de PDF (pendiente de implementar en backend) -->
-                <!-- <button type="button" id="downloadPdfBtn" class="btn btn-danger">PDF</button> -->
             </div>
         </div>
-        <div class="card-body">
+        <div class="card-body pt-0 pb-3">
             <form id="filterForm" class="row g-3 align-items-center">
                 
                 <div class="col-md-3">
@@ -53,7 +51,6 @@
         </div>
     </div>
 
-    <!-- Tabla de Datos -->
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">

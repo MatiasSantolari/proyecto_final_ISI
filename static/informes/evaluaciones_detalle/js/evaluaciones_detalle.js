@@ -63,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         data.forEach(item => {
             const row = document.createElement('tr');
+            const nombreHtml = `<a href="${item.url_perfil}">${item.nombre_completo}</a>`;
             let calificacionHtml;
             if (item.calificacion_final === 'Sin Calificar') {
                 const url = `/evaluaciones/${item.evaluacion_id}/empleados/`;
@@ -75,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             row.innerHTML = `
-                <td>${item.nombre_completo}</td>
+                <td>${nombreHtml}</td>
                 <td>${item.dni}</td>
                 <td>${item.descripcion_evaluacion}</td>
                 <td>${item.fecha_registro}</td>

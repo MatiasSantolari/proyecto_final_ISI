@@ -6,7 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterDepartamento = document.getElementById('filterDepartamento');
     const clearFiltersBtn = document.getElementById('clearFiltersBtn');
     const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+    const paginationControls = document.getElementById('paginationControls');
 
+    let currentPage = 1;
+    const itemsPerPage = 50;
 
     async function populateDepartamentosSelector() {
         const apiUrl = '/api/departamentos/list/';
@@ -27,10 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    const paginationControls = document.getElementById('paginationControls');
-
-    let currentPage = 1;
-    const itemsPerPage = 50;
     
     async function loadAsistenciasData(page = 1) {
         currentPage = page; 
@@ -67,8 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         data.forEach(item => {
             const row = document.createElement('tr');
+            const nombreHtml = `<a href="${item.url_perfil}">${item.nombre_completo}</a>`;
             row.innerHTML = `
-                <td>${item.nombre_completo}</td>
+                <td>${nombreHtml}</td>
                 <td>${item.dni}</td>
                 <td>${item.departamento}</td>
                 <td>${item.fecha_asistencia}</td>
@@ -119,9 +119,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
      
     
-    filterDni.addEventListener('input', loadAsistenciasData(1)); 
-    filterConfirmado.addEventListener('change', loadAsistenciasData(1));
-    filterTardanza.addEventListener('change', loadAsistenciasData(1));
+    filterDni.addEventListener('input', () => loadAsistenciasData(1)); 
+    filterConfirmado.addEventListener('change', () => loadAsistenciasData(1));
+    filterTardanza.addEventListener('change', () => loadAsistenciasData(1));
     filterDepartamento.addEventListener('change', () => loadAsistenciasData(1));
 
 

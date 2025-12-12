@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404, render
 from datetime import date, datetime, timedelta
+from django.urls import reverse
 from ..models import *
 from django.contrib.auth.decorators import login_required
 import csv
@@ -32,6 +33,8 @@ def get_asistencias_queryset(request):
     confirmado = request.GET.get('confirmado')
     tardanza = request.GET.get('tardanza')
     departamento_id = request.GET.get('departamento_id')
+    
+    queryset = queryset.filter(empleado__empleadocargo__fecha_fin__isnull=True)
 
     if dni:
         queryset = queryset.filter(empleado__dni__icontains=dni)
@@ -43,10 +46,8 @@ def get_asistencias_queryset(request):
     
     if departamento_id:
         queryset = queryset.filter(empleado__empleadocargo__cargo__cargodepartamento__departamento__id=departamento_id,
-                                   empleado__empleadocargo__fecha_fin__isnull=True)
-    else:
-        queryset = queryset.filter(empleado__empleadocargo__fecha_fin__isnull=True)
-
+                                    empleado__empleadocargo__fecha_fin__isnull=True)
+    
     return queryset.distinct()
 
 
@@ -89,6 +90,8 @@ def api_asistencias_detalle(request):
         else:
             nombre_dep = 'Sin Cargo Activo'
 
+        url_perfil = reverse('empleado_perfil_detalle', args=[asistencia.empleado.id])
+
         data.append({
             'nombre_completo': f"{asistencia.empleado.nombre} {asistencia.empleado.apellido}",
             'dni': asistencia.empleado.dni,
@@ -97,7 +100,8 @@ def api_asistencias_detalle(request):
             'hora_salida': asistencia.hora_salida.strftime('%H:%M:%S') if asistencia.hora_salida else '-',
             'confirmado': asistencia.confirmado,
             'tardanza': asistencia.tardanza,
-            'departamento': nombre_dep 
+            'departamento': nombre_dep,
+            'url_perfil': url_perfil
         })
     
     return JsonResponse({
@@ -196,6 +200,8 @@ def api_empleados_detalle(request):
         if cargo_activo and cargo_activo.cargo.cargodepartamento_set.first():
             nombre_dep = cargo_activo.cargo.cargodepartamento_set.first().departamento.nombre
         
+        url_perfil = reverse('empleado_perfil_detalle', args=[empleado.id])
+
         data.append({
             'id': empleado.id,
             'nombre_completo': f"{empleado.nombre} {empleado.apellido}",
@@ -205,6 +211,7 @@ def api_empleados_detalle(request):
             'cargo': nombre_cargo,
             'fecha_ingreso': empleado.fecha_ingreso.strftime('%d-%m-%Y'),
             'dias_vacaciones': empleado.cantidad_dias_disponibles,
+            'url_perfil': url_perfil,
         })
     
     return JsonResponse({
@@ -216,7 +223,6 @@ def api_empleados_detalle(request):
             'has_previous': empleados_page.has_previous(),
         }
     }, safe=False)
-
 
 
 @login_required
@@ -246,6 +252,198 @@ def exportar_empleados_csv(request):
         ])
     return response
 
+
+
+
+@login_required
+def empleado_perfil_detalle_view(request, empleado_id):
+    empleado = get_object_or_404(Empleado.objects.all(), id=empleado_id)
+    cargo_activo = empleado.empleadocargo_set.filter(fecha_fin__isnull=True).first()
+    departamento_activo = None
+    if cargo_activo and cargo_activo.cargo.cargodepartamento_set.first():
+        departamento_activo = cargo_activo.cargo.cargodepartamento_set.first().departamento
+        
+    return render(request, 'informes/empleado_perfil_detalle.html', {
+        'empleado': empleado,
+        'cargo_activo': cargo_activo,
+        'departamento_activo': departamento_activo,
+    })
+
+@login_required
+def api_empleado_nominas(request, empleado_id):
+    nominas = Nomina.objects.filter(empleado_id=empleado_id).order_by('-fecha_generacion')
+    page = request.GET.get('page', 1)
+    per_page = request.GET.get('per_page', 15)
+    paginator = Paginator(nominas, per_page)
+
+    try:
+        items_page = paginator.page(page)
+    except (PageNotAnInteger, EmptyPage):
+        items_page = paginator.page(1)
+    data = [{
+        'fecha': n.fecha_generacion.strftime('%d-%m-%Y'),
+        'neto': float(n.monto_neto),
+        'beneficios': float(n.total_beneficios),
+        'descuentos': float(n.total_descuentos),
+        'estado': n.estado,
+    } for n in items_page]
+
+    return JsonResponse({
+        'results': data,
+        'pagination': {
+            'total_pages': paginator.num_pages,
+            'current_page': items_page.number,
+            'has_next': items_page.has_next(),
+            'has_previous': items_page.has_previous(),
+        }
+    }, safe=False)
+
+
+@login_required
+def api_empleado_evaluaciones(request, empleado_id):
+    evaluaciones = EvaluacionEmpleado.objects.filter(empleado_id=empleado_id).order_by('-fecha_registro')
+    page = request.GET.get('page', 1)
+    per_page = request.GET.get('per_page', 15)
+    paginator = Paginator(evaluaciones, per_page)
+
+    try:
+        items_page = paginator.page(page)
+    except (PageNotAnInteger, EmptyPage):
+        items_page = paginator.page(1)
+    data = [{
+        'fecha': e.fecha_registro.strftime('%d-%m-%Y'),
+        'calificacion': float(e.calificacion_final) if e.calificacion_final is not None else 'N/A',
+        'descripcion': e.evaluacion.descripcion or f"Evaluación {e.evaluacion.id}",
+        'url_calificacion': f"/evaluaciones/{e.evaluacion.id}/empleados/", 
+    } for e in items_page]
+
+    return JsonResponse({
+        'results': data,
+        'pagination': {
+            'total_pages': paginator.num_pages,
+            'current_page': items_page.number,
+            'has_next': items_page.has_next(),
+            'has_previous': items_page.has_previous(),
+        }
+    }, safe=False)
+
+
+@login_required
+def api_empleado_asistencia(request, empleado_id):
+    asistencias = HistorialAsistencia.objects.filter(empleado_id=empleado_id).order_by('-fecha_asistencia')[:180]
+    page = request.GET.get('page', 1)
+    per_page = request.GET.get('per_page', 15)
+    paginator = Paginator(asistencias, per_page)
+
+    try:
+        items_page = paginator.page(page)
+    except (PageNotAnInteger, EmptyPage):
+        items_page = paginator.page(1)
+
+    data = [{
+        'fecha': a.fecha_asistencia.strftime('%d-%m-%Y'),
+        'entrada': a.hora_entrada.strftime('%H:%M') if a.hora_entrada else 'N/A',
+        'salida': a.hora_salida.strftime('%H:%M') if a.hora_salida else 'N/A',
+        'confirmado': a.confirmado,
+        'tardanza': a.tardanza,
+    } for a in items_page]
+    return JsonResponse({
+        'results': data,
+        'pagination': {
+            'total_pages': paginator.num_pages,
+            'current_page': items_page.number,
+            'has_next': items_page.has_next(),
+            'has_previous': items_page.has_previous(),
+        }
+    }, safe=False)
+
+
+@login_required
+def api_empleado_vacaciones(request, empleado_id):
+    solicitudes = VacacionesSolicitud.objects.filter(empleado_id=empleado_id).order_by('-fecha_solicitud')
+    page = request.GET.get('page', 1)
+    per_page = request.GET.get('per_page', 15)
+    paginator = Paginator(solicitudes, per_page)
+
+    try:
+        items_page = paginator.page(page)
+    except (PageNotAnInteger, EmptyPage):
+        items_page = paginator.page(1)
+
+    data = [{
+        'fecha_solicitud': s.fecha_solicitud.strftime('%d-%m-%Y'),
+        'fecha_inicio': s.fecha_inicio.strftime('%d-%m-%Y'),
+        'fecha_fin': s.fecha_fin.strftime('%d-%m-%Y'),
+        'dias': s.cant_dias_solicitados,
+        'estado': s.estado,
+    } for s in items_page]
+
+    return JsonResponse({
+        'results': data,
+        'pagination': {
+            'total_pages': paginator.num_pages,
+            'current_page': items_page.number,
+            'has_next': items_page.has_next(),
+            'has_previous': items_page.has_previous(),
+        }
+    }, safe=False)
+
+
+
+@login_required
+def api_empleado_objetivos(request, empleado_id):
+    tipo_filtro = request.GET.get('tipo', 'todos')
+    
+    qs_empleado = ObjetivoEmpleado.objects.filter(empleado_id=empleado_id).order_by('-fecha_asignacion')
+    
+    empleado_instance = Empleado.objects.get(id=empleado_id)
+    cargos_ids = empleado_instance.empleadocargo_set.filter(fecha_fin__isnull=True).values_list('cargo__id', flat=True)
+    qs_cargo = ObjetivoCargo.objects.filter(cargo__id__in=cargos_ids).order_by('-fecha_asignacion')
+
+    if tipo_filtro == 'empleado':
+        queryset_a_paginar = qs_empleado
+    elif tipo_filtro == 'cargo':
+        queryset_a_paginar = qs_cargo
+    else: 
+        queryset_a_paginar = sorted(
+            list(qs_empleado) + list(qs_cargo),
+            key=lambda x: x.fecha_asignacion,
+            reverse=True
+    )
+
+    page = request.GET.get('page', 1)
+    per_page = request.GET.get('per_page', 15)
+    paginator = Paginator(queryset_a_paginar, per_page)
+
+    try:
+        items_page = paginator.page(page)
+    except (PageNotAnInteger, EmptyPage):
+        items_page = paginator.page(1)
+
+    data = []
+    for item in items_page:
+        tipo = 'Empleado' if isinstance(item, ObjetivoEmpleado) else 'Cargo'
+        completado = item.completado
+        
+        data.append({
+            'titulo': item.objetivo.titulo,
+            'descripcion': item.objetivo.descripcion,
+            'fecha_asignacion': item.fecha_asignacion.strftime('%d-%m-%Y'),
+            'fecha_limite': item.fecha_limite.strftime('%d-%m-%Y') if hasattr(item, 'fecha_limite') and item.fecha_limite else 'N/A',
+            'completado': completado,
+            'departamento': item.objetivo.departamento.nombre if item.objetivo.departamento else 'Global',
+            'tipo': tipo,
+        })
+
+    return JsonResponse({
+        'results': data,
+        'pagination': {
+            'total_pages': paginator.num_pages,
+            'current_page': items_page.number,
+            'has_next': items_page.has_next(),
+            'has_previous': items_page.has_previous(),
+        }
+    }, safe=False)
 
 
 #############################
@@ -299,9 +497,11 @@ def api_nominas_detalle(request):
         nombre_dep = 'N/A'
         if cargo_activo and cargo_activo.cargo.cargodepartamento_set.first():
             nombre_dep = cargo_activo.cargo.cargodepartamento_set.first().departamento.nombre
-        fecha_pago_formateada = '-'
-        if nomina.fecha_pago:
-            fecha_pago_formateada = nomina.fecha_pago.strftime('%d-%m-%Y')
+
+        fecha_pago_valor = nomina.fecha_pago.strftime('%d-%m-%Y') if nomina.fecha_pago else None
+        url_perfil = reverse('empleado_perfil_detalle', args=[nomina.empleado.id])
+        url_pago = reverse('nominas') 
+
         data.append({
             'id': nomina.id,
             'nombre_completo': f"{nomina.empleado.nombre} {nomina.empleado.apellido}",
@@ -309,11 +509,13 @@ def api_nominas_detalle(request):
             'cargo': nombre_cargo,
             'departamento': nombre_dep,
             'fecha_generacion': nomina.fecha_generacion.strftime('%d-%m-%Y'),
-            'fecha_pago': fecha_pago_formateada,
+            'fecha_pago': fecha_pago_valor,
             'estado': nomina.estado,
             'total_beneficios': float(nomina.total_beneficios),
             'total_descuentos': float(nomina.total_descuentos),
             'monto_neto': float(nomina.monto_neto),
+            'url_perfil': url_perfil,
+            'url_pago': url_pago,
         })
     
     return JsonResponse({
@@ -412,6 +614,9 @@ def api_evaluaciones_detalle(request):
     data = []
     for ev_emp in evaluaciones_page:
         calificacion = float(ev_emp.calificacion_final) if ev_emp.calificacion_final is not None else 'Sin Calificar'
+
+        url_perfil = reverse('empleado_perfil_detalle', args=[ev_emp.empleado.id])
+
         data.append({
             'id': ev_emp.id,
             'nombre_completo': f"{ev_emp.empleado.nombre} {ev_emp.empleado.apellido}",
@@ -419,7 +624,8 @@ def api_evaluaciones_detalle(request):
             'calificacion_final': calificacion,
             'fecha_registro': ev_emp.fecha_registro.strftime('%d-%m-%Y'),
             'descripcion_evaluacion': ev_emp.evaluacion.descripcion or f"Evaluación {ev_emp.evaluacion.id}",
-            'evaluacion_id': ev_emp.evaluacion.id
+            'evaluacion_id': ev_emp.evaluacion.id,
+            'url_perfil': url_perfil
         })
     
     return JsonResponse({
