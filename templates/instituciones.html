@@ -1,22 +1,27 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
+{% load static %}
 
 {% block title %}Gestión de Instituciones{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-  <h2 class="mb-4" style="color: var(--color-primario);">Gestión de Instituciones</h2>
+<link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+<div class="container-fluid p-5 my-2">
+  <h4 class="mb-3" style="color: var(--color-primario);">Gestión de Instituciones</h4>
 
-  <!-- Botón para Crear -->
-  <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalInstitucion">
-    + Crear Nueva Institucion
-  </button>
-
+  <div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center mb-0">
+      <button type="button" class="btn mb-0 btn-primary" data-bs-toggle="modal" data-bs-target="#modalInstitucion">
+        + Crear Nueva Institucion
+      </button>
+    </div>
+  </div>
+  
   <!-- Tabla de Instituciones -->
   <div class="card shadow-sm border-0">
     <div class="card-body">
       <div class="table-responsive">
-         <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
+         <table class="table table-sm table-hover table-striped table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
           <thead class="table-light text-center">
             <tr>
               <th>Nombre</th>

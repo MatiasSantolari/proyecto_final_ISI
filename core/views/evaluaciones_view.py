@@ -169,6 +169,9 @@ def evaluacion_json(request, evaluacion_id):
 
 def gestionar_empleados(request, id_evaluacion):
     evaluacion = get_object_or_404(Evaluacion, id=id_evaluacion)
+
+    modo = request.GET.get('modo', 'editar')
+
     departamentos = Departamento.objects.order_by('nombre')
     departamento_seleccionado = request.GET.get('departamento', 'todos')
     dni = request.GET.get('dni', '').strip()
@@ -222,6 +225,7 @@ def gestionar_empleados(request, id_evaluacion):
         'tipos_criterios': tipos_criterios,
         'calificaciones': calificaciones,
         "calificaciones_finales": calificaciones_finales,
+        'modo': modo,
     })
 
 

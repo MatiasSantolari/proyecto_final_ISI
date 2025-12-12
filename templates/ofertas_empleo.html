@@ -1,41 +1,48 @@
 {% extends "base.html" %}
 {% load custom_filters %}
+{% load static %}
 
 {% block title %}Ofertas Disponibles{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-  <h2 class="text-center mb-4" style="color: var(--color-primario);">Ofertas de Empleo</h2>
-  <div class="alert alert-info d-flex align-items-center justify-content-between px-4 py-3 rounded shadow-sm mb-4" role="alert">
-    <div class="d-flex align-items-center">
-      <i class="bi bi-info-circle-fill me-2 fs-5 text-primary"></i>
-      <span class="fw-semibold">¿Tu CV está actualizado?</span>
-      <span class="ms-2">Recordá mantenerlo al día para postularte a nuevas ofertas.</span>
+<link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+<div class="container-fluid p-5 mt-2">
+  <h4 class="text-center mb-3" style="color: var(--color-primario);">Ofertas de Empleo</h4>
+  
+  <div class="row justify-content-center mb-2">
+    <div class="col-lg-8">                 
+      <div class="alert alert-info p-4 bg-white d-flex align-items-center justify-content-between px-4 py-3 rounded shadow-sm border border-info d-flex flex-column flex-md-row" role="alert">
+        <div class="d-flex align-items-center mb-3 mb-md-0">
+          <i class="bi bi-info-circle-fill me-3 fs-3 text-info"></i>
+          <span class="fw-semibold mb-0 me-2">¿Tu CV está actualizado?</span>
+          <span class="text-muted mb-0">Recordá mantenerlo al día para postularte a nuevas ofertas.</span>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm ms-5" data-bs-toggle="modal" data-bs-target="#modalActualizarCV">
+          <i class="bi bi-upload me-2"></i> Actualizar/Cargar CV
+        </button>
+      </div>
     </div>
-    <button type="button" class="btn btn-primary btn-sm ms-3" data-bs-toggle="modal" data-bs-target="#modalActualizarCV">
-      <i class="bi bi-upload me-1"></i> Actualizar/Cargar CV
-    </button>
   </div>
 
   
   {% if cargos_departamento %}
-  <div class="card shadow-sm border-0">
-    <div class="card-body">  
+  <div class="card shadow-lg border-0">
+    <div class="card-body p-4">  
       <div class="table-responsive">
-        <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
+        <table class="table table-sm table-hover table-bordered align-middle mb-0" style="font-size: 0.95rem;">
           <thead class="table-light text-center">
             <tr>
               <th>Cargo</th>
               <th>Descripción</th>
               <th>Departamento</th>
-              <th style="width:10%;"></th>
+              <th style="width:15%;">Estado</th>
             </tr>
           </thead>
           <tbody>
             {% for cd in cargos_departamento %}
-              <tr>
+              <tr class="text-center">
                 <td>{{ cd.cargo.nombre }}</td>
-                <td>
+                <td class="text-start">
                   {% if cd.cargo.descripcion %}
                     {{ cd.cargo.descripcion }}
                   {% else %}
@@ -45,15 +52,18 @@
                 <td>{{ cd.departamento.nombre }}</td>
                 <td class="text-center">
                   {% if cd.cargo.id in postulaciones %}
-                    <span class="badge bg-info text-dark">
-                      Postulado el {{ postulaciones|get_item:cd.cargo.id|date:"d/m/Y" }}
+                    <span class="badge bg-success me-2">
+                      Postulado
                     </span>
-                  {% else %}
+                    <small class="text-muted" style="font-size: 0.8rem;">
+                        {{ postulaciones|get_item:cd.cargo.id|date:"d/m/Y" }}
+                    </small>
+                    {% else %}
                     <form method="POST" action="{% url 'postularse' cd.cargo.id %}" class="form-postulacion" data-cargo-id="{{ cd.cargo.id }}">
                       {% csrf_token %}
                       <input type="hidden" name="forzar_sin_cv" value="false" />
-                      <button type="button" class="btn btn-sm btn-success btn-postularse">
-                        <i class="bi bi-send-fill"></i> Postularme
+                      <button type="button" class="btn btn-sm btn-primary btn-postularse">
+                        <i class="bi bi-send-fill me-1"></i> Postularme
                       </button>
                     </form>
                   {% endif %}
@@ -89,13 +99,13 @@
               <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
               {% endif %}
           </ul>
-      </nav>
+        </nav>
 
       </div>
     </div>
   </div>
   {% else %}
-    <div class="alert alert-warning text-center">
+    <div class="alert alert-info text-center">
       No hay ofertas disponibles en este momento.
     </div>
   {% endif %}

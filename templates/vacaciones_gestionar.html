@@ -1,16 +1,18 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
+{% load static %}
 
 {% block title %}Gestionar Solicitudes de Vacaciones{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-  <h2>Solicitudes de Vacaciones</h2>
+<link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+<div class="container-fluid p-5 my-3">
+  <h4 class="mb-3">Solicitudes de Vacaciones</h4>
 
   <div class="card shadow-sm border-0">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
+        <table class="table table-sm table-striped table-hover table-bordered align-middle mb-0" style="font-size: 0.95rem;">
           <thead class="table-light text-center">
             <tr>
               <th>Empleado</th>
@@ -25,32 +27,36 @@
           </thead>
           <tbody class="text-center">
             {% for s in solicitudes %}
-            <tr>
+            <tr class="align-middle">
               <td>{{ s.empleado }}</td>
               <td>{{ s.empleado.departamento_actual_nombre }}</td>
               <td>{{ s.fecha_inicio|date:"d/m/Y" }}</td>
               <td>{{ s.fecha_fin|date:"d/m/Y" }}</td>
-              <td>{{ s.cant_dias_solicitados }}</td>
-              <td>{{ s.empleado.cantidad_dias_disponibles }}</td>
+              <td>
+                <span class="badge bg-light text-dark border p-2">{{ s.cant_dias_solicitados }}</span>
+              </td>
+              <td>
+                <span class="badge bg-info p-2">{{ s.empleado.cantidad_dias_disponibles }}</span>
+              </td>
               <td>
               {% if s.estado == "rechazado"%}
-                      <span class="badge bg-danger">{{ s.estado }}</span>
+                      <span class="badge bg-danger shadow-sm">{{ s.estado }}</span>
                 {% elif s.estado == "pendiente" %}
-                      <span class="badge bg-warning">{{ s.estado }}</span>
+                      <span class="badge bg-warning shadow-sm" style="color: #ffffffff !important;">{{ s.estado }}</span>
                 {% elif s.estado == "aprobado" %}
-                      <span class="badge bg-success">{{ s.estado }}</span>
+                      <span class="badge bg-success shadow-sm">{{ s.estado }}</span>
                 {% endif %}
               </td>
               <td>
                 {% if s.estado == "pendiente" %}
-                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalAprobar{{ s.id }}">
-                  Aprobar
+                <button class="btn btn-outline-success btn-sm border-2 me-4" data-bs-toggle="modal" data-bs-target="#modalAprobar{{ s.id }}">
+                  <i class="bi bi-check-lg"></i>
                 </button>
-                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalRechazar{{ s.id }}">
-                  Rechazar
+                <button class="btn btn-outline-danger border-2 btn-sm" data-bs-toggle="modal" data-bs-target="#modalRechazar{{ s.id }}">
+                  <i class="bi bi-x-lg"></i>
                 </button>
                 {% else %}
-                  -
+                  <span class="text-muted small">-</span>
                 {% endif %}
               </td>
             </tr>
@@ -96,7 +102,9 @@
             </div>
 
             {% empty %}
-            <tr><td colspan="8" class="text-center text-muted">No hay solicitudes.</td></tr>
+            <tr>
+              <td colspan="8" class="text-center text-muted">No hay solicitudes.</td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>

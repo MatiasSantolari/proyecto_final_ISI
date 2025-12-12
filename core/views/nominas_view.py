@@ -287,9 +287,11 @@ def nominas(request):
     )
     empleados_con_nomina = nominas_periodo.values_list("empleado_id", flat=True)
     faltantes = Empleado.objects.exclude(id__in=empleados_con_nomina).count()
-
     
     departamentos = Departamento.objects.all().order_by('nombre')
+
+    mostrar_boton_regreso = 'from_detalle' in request.GET
+    url_regreso = request.META.get('HTTP_REFERER', '#') 
 
     return render(request, 'nominas.html', {
         'nominas': page_obj,
@@ -299,6 +301,8 @@ def nominas(request):
         'pendientes': pendientes,
         'pagadas': pagadas,
         'faltantes': faltantes,
+        'mostrar_boton_regreso': mostrar_boton_regreso,
+        'url_regreso': url_regreso,
     })
 
 

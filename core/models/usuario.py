@@ -53,6 +53,8 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
+    #tema = models.CharField(max_length=10, default="light")
+
 
  #   estado = models.CharField(
  #       max_length=10,

@@ -1,15 +1,22 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
+{% load static %}
 
 {% block title %}Gestión de Habilidades{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-  <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Habilidades</h1>
 
-  <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalHabilidad">
-    + Crear Nueva Habilidad
-  </button>
+<link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+<div class="container-fluid p-5 my-2">
+  <h4 class="mb-3" style="color: var(--color-primario);">Gestión de Habilidades</h4>
+
+  <div class="card mb-2">
+    <div class="card-header d-flex justify-content-between align-items-center mb-0"> 
+      <button type="button" class="btn mb-0 btn-primary" data-bs-toggle="modal" data-bs-target="#modalHabilidad">
+        + Crear Nueva Habilidad
+      </button>
+    </div>
+  </div>
 
   <div class="card shadow-sm border-0">
     <div class="card-body">
@@ -29,7 +36,7 @@
               <td>{{ habilidad.descripcion|default:"-" }}</td>
               <td>
                 <div class="d-flex justify-content-center gap-2">
-                  <button class="btn btn-sm btn-outline-secondary"
+                  <button class="btn btn-sm btn-outline-secondary me-1"
                           data-bs-toggle="modal" data-bs-target="#modalHabilidad"
                           data-id="{{ habilidad.id }}"
                           data-nombre="{{ habilidad.nombre }}"
@@ -38,7 +45,7 @@
                           data-bs-toggle="tooltip" title="Editar">
                     <i class="bi bi-pencil-square"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-info"
+                  <button class="btn btn-sm btn-outline-info me-1"
                           data-bs-toggle="modal"
                           data-bs-target="#modalVerHabilidad{{ habilidad.id }}"
                           data-bs-toggle="tooltip" title="Ver">
@@ -68,10 +75,10 @@
             <ul class="pagination justify-content-center mt-4">
               {% if habilidades.has_previous %}
                 <li class="page-item">
-                  <a class="page-link" href="?page={{ habilidades.previous_page_number }}">Anterior</a>
+                  <a class="page-link" href="?page={{ habilidades.previous_page_number }}">&laquo;</a>
                 </li>
               {% else %}
-                <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
               {% endif %}
 
               {% for num in habilidades.paginator.page_range %}
@@ -86,10 +93,10 @@
 
               {% if habilidades.has_next %}
                 <li class="page-item">
-                  <a class="page-link" href="?page={{ habilidades.next_page_number }}">Siguiente</a>
+                  <a class="page-link" href="?page={{ habilidades.next_page_number }}">&raquo;</a>
                 </li>
               {% else %}
-                <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+                <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
               {% endif %}
             </ul>
           </nav>

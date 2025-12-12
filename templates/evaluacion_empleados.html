@@ -1,42 +1,45 @@
 {% extends "base.html" %}
 {% load custom_filters %}
-
+{% load static %}
 {% block title %}Gestionar empleados en {{ evaluacion.descripcion }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-5">  
-    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3">
-        <h4 class="mb-2 mb-md-0">Gestionar empleados para <strong>{{ evaluacion.descripcion }} ({{evaluacion.fecha_evaluacion|date:"d/m/Y"}})</strong></h4>
-        <a href="{% url 'evaluaciones' %}" class="btn btn-outline-secondary mr-2">
+<link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+<div class="container-fluid p-5 mt-2">  
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-1">
+        <h5 class="mb-1 mb-md-0">Gestionar empleados para <strong>{{ evaluacion.descripcion }} ({{evaluacion.fecha_evaluacion|date:"d/m/Y"}})</strong></h5>
+        <a href="{% url 'evaluaciones' %}" class="btn btn-secondary mr-2">
         <i class="bi bi-arrow-left"></i> Volver a <strong>Evaluaciones</strong>
         </a>
     </div>
     <hr>
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center mb-0">
+            <form method="get" id="filtros-form" class="row g-3 mb-2">
+                <div class="col-md-5 mr-5">
+                <label class="form-label">Filtrar por Departamento</label>
+                <select name="departamento" class="form-select" onchange="this.form.submit()">
+                    <option value="todos" {% if departamento_seleccionado == 'todos' %}selected{% endif %}>Todos</option>
+                    {% for depto in departamentos %}
+                    <option value="{{ depto.id }}" {% if departamento_seleccionado == depto.id|stringformat:"s" %}selected{% endif %}>
+                        {{ depto.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+                </div>
 
-    <form method="get" id="filtros-form" class="row g-3 mb-4">
-        <div class="col-md-3 mr-5">
-        <label class="form-label">Filtrar por Departamento</label>
-        <select name="departamento" class="form-select" onchange="this.form.submit()">
-            <option value="todos" {% if departamento_seleccionado == 'todos' %}selected{% endif %}>Todos</option>
-            {% for depto in departamentos %}
-            <option value="{{ depto.id }}" {% if departamento_seleccionado == depto.id|stringformat:"s" %}selected{% endif %}>
-                {{ depto.nombre }}
-            </option>
-            {% endfor %}
-        </select>
+                <div class="col-md-4 ml-5">
+                <label class="form-label">Buscar por DNI</label>
+                <input type="text" name="dni" value="{{ dni_busqueda }}" class="form-control" placeholder="Ingrese DNI">
+                </div>
+            </form>
         </div>
-
-        <div class="col-md-2 ml-5">
-        <label class="form-label">Buscar por DNI</label>
-        <input type="text" name="dni" value="{{ dni_busqueda }}" class="form-control" placeholder="Ingrese DNI">
-        </div>
-    </form>
-
+    </div>
     
     <div class="card shadow-sm border-0">
         <div class="card-body">
             <div class="table-responsive">
-                    <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.9rem;">
+                    <table class="table table-sm table-striped table-hover table-bordered align-middle mb-0" style="font-size: 0.9rem;">
                     <thead class="table-light text-center">
                         <tr>
                         <th>Nombre Completo</th>
@@ -68,23 +71,36 @@
                             {% endif %}
                         </td>
                         <td class="text-center">
-                            {% if empleado.id in asignados_ids %}
-                                {% if calificaciones_finales|dict_get:empleado.id %}
-                                    <button class="btn btn-sm btn-secondary" style="font-size:0.9rem;" title="No se puede quitar (ya calificado)" disabled>
-                                        <i class="bi bi-person-x-fill"></i>
+                            {% if modo == 'ver' %}
+                                {% if empleado.id in asignados_ids %}
+                                    <button class="btn btn-sm btn-secondary" style="font-size:0.9rem;" title="Modo Ver (asignado)" disabled>
+                                        <i class="bi bi-person-x-fill"></i> 
                                     </button>
                                 {% else %}
-                                    <a href="{% url 'quitar_empleado' evaluacion.id empleado.id %}?departamento={{ departamento_seleccionado }}&dni={{ dni_busqueda }}" 
-                                        class="btn btn-sm btn-danger"  style="font-size:0.9rem;" title="Quitar asignación">
-                                        <i class="bi bi-person-x-fill"></i>
+                                    <button class="btn btn-sm btn-secondary" style="font-size:0.9rem;" title="Modo Ver (no asignado)" disabled>
+                                        <i class="bi bi-person-check-fill"></i>
+                                    </button>
+                                {% endif %}
+
+                            {% else %}
+                                {% if empleado.id in asignados_ids %}
+                                    {% if calificaciones_finales|dict_get:empleado.id %}
+                                        <button class="btn btn-sm btn-secondary" style="font-size:0.9rem;" title="No se puede quitar (ya calificado)" disabled>
+                                            <i class="bi bi-person-x-fill"></i>
+                                        </button>
+                                    {% else %}
+                                        <a href="{% url 'quitar_empleado' evaluacion.id empleado.id %}?departamento={{ departamento_seleccionado }}&dni={{ dni_busqueda }}" 
+                                            class="btn btn-sm btn-danger"  style="font-size:0.9rem;" title="Quitar asignación">
+                                            <i class="bi bi-person-x-fill"></i>
+                                        </a>
+                                    {% endif %}
+                                {% else %}
+                                    <a href="{% url 'asignar_empleado' evaluacion.id empleado.id %}?departamento={{ departamento_seleccionado }}&dni={{ dni_busqueda }}" 
+                                        class="btn btn-sm btn-success"  style="font-size:0.9rem;" title="Asignar empleado">
+                                        <i class="bi bi-person-check-fill"></i>
                                     </a>
                                 {% endif %}
-                            {% else %}
-                                <a href="{% url 'asignar_empleado' evaluacion.id empleado.id %}?departamento={{ departamento_seleccionado }}&dni={{ dni_busqueda }}" 
-                                    class="btn btn-sm btn-success"  style="font-size:0.9rem;" title="Asignar empleado">
-                                    <i class="bi bi-person-check-fill"></i>
-                                </a>
-                            {% endif %}
+                            {% endif %}        
                         </td>
 
                         <td class="text-center">
