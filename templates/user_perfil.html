@@ -1,255 +1,180 @@
 {% include 'auth/partials/base_head2.html' %}
+<head>
+ 
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+</head>
 <style>
-    body {
-      background-color: #f0f2f5;
-      font-family: "Segoe UI", sans-serif;
-      height: 100vh;
-      overflow: hidden;
-    }
+  body {
+    background-color: #f0f2f5;
+    font-family: "Segoe UI", sans-serif;
+    height: 100vh;
+    overflow: hidden;
+  }
 
-    .navbar-custom {
-      background-color: #1f2a44;
-      color: white;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    }
-    .navbar-custom .navbar-brand { color: #ffffff; font-weight: 600; }
-    .navbar-custom .nav-link { color: #cfd4da; margin-right: 15px; }
-    .navbar-custom .nav-link:hover { color: #ffffff; }
-    .navbar-custom .nav-link:focus {color: #ffffff;}
+  .sidebar {
+    background-color: #27324a;
+    color: white;
+    width: 320px;
+    height: calc(100vh - 60px);
+    position: fixed;
+    top: 60px;
+    left: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 25px;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.2);
+  }
 
-    .navbar-custom  {
-      background-color: #1f2a44; /* mismo color que el navbar */
-      border: none;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    }
+  .sidebar img {
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    border: 3px solid white;
+    object-fit: cover;
+    margin-bottom: 15px;
+  }
+  .sidebar h5 { color: #fff; margin-bottom: 10px; font-weight: 500; }
+  .sidebar .btn { width: 80%; margin-bottom: 10px; background-color: #32405f; color: #fff; border: none; }
+  .sidebar .btn:hover { background-color: #3e5070; }
+  .sidebar .calendar { background-color: #32405f; border-radius: 8px; color: #fff; padding: 15px; width: 80%; text-align: center; margin-top: 20px; }
 
-    .navbar-custom .nav-link {
-      color: #cfd4da;
-      font-weight: 500;
-      text-decoration: none;
-      transition: color 0.2s ease;
-    }
+  .main-content {
+    margin-left: 260px;
+    padding: 30px;
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  }
 
-    .navbar-custom .dropdown-item:hover {
-      background-color: #32405f;
-      color: #ffffff;
-    }
+  .tab-content { margin-top: 20px; }
 
-    .sidebar {
-      background-color: #27324a;
-      color: white;
-      width: 320px;
-      height: calc(100vh - 60px);
-      position: fixed;
-      top: 60px;
-      left: 0;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 25px;
-      box-shadow: 2px 0 8px rgba(0,0,0,0.2);
-    }
-    .sidebar img {
-      width: 100px; height: 100px;
-      border-radius: 50%;
-      border: 3px solid white;
-      object-fit: cover;
-      margin-bottom: 15px;
-    }
-    .sidebar h5 { color: #fff; margin-bottom: 10px; font-weight: 500; }
-    .sidebar .btn { width: 80%; margin-bottom: 10px; background-color: #32405f; color: #fff; border: none; }
-    .sidebar .btn:hover { background-color: #3e5070; }
-    .sidebar .calendar { background-color: #32405f; border-radius: 8px; color: #fff; padding: 15px; width: 80%; text-align: center; margin-top: 20px; }
+  form label { font-weight: 500; }
+  form input, form select { border-radius: 6px; }
 
-    .main-content {
-      margin-left: 260px;
-      padding: 30px;
-      background-color: #ffffff;
-      height: calc(100vh - 60px);
-      overflow-y: auto;
-      border-radius: 10px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-    }
+  #avatarContainer { position: relative; width: 120px; height: 120px; margin-bottom: 10px; cursor: pointer; }
+  #avatarContainer img, #defaultAvatarIcon { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+  #avatarPlus { position: absolute; width: 30px; height: 30px; bottom: 5px; right: 5px; display: flex; justify-content: center; align-items: center; background-color: #0d6efd; border-radius: 50%; color: white; font-size: 1rem; display: none; cursor: pointer; }
 
-    .tab-content { margin-top: 20px; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background-color: #b0b7c3; border-radius: 4px; }
 
-    .nav-tabs .nav-link { color: #1f2a44; font-weight: 500; }
-    .nav-tabs .nav-link.active {
-      background-color: #1f2a44;
-      color: white !important;
-      border: none;
-      border-radius: 5px 5px 0 0;
-    }
+  .section-title {
+    color: #1f2a44;
+    font-weight: 600;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+  }
 
-    form label { font-weight: 500; color: #333; }
-    form input, form select { border-radius: 6px; }
+  .sidebar .btn.active {
+    background-color: #0d6efd !important; 
+    color: white !important;
+  }
 
-    #avatarContainer { position: relative; width: 120px; height: 120px; margin-bottom: 10px; cursor: pointer; }
-    #avatarContainer img, #defaultAvatarIcon { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-    #avatarPlus { position: absolute; width: 30px; height: 30px; bottom: 5px; right: 5px; display: flex; justify-content: center; align-items: center; background-color: #0d6efd; border-radius: 50%; color: white; font-size: 1rem; display: none; cursor: pointer; }
+  .calendar-container {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    padding: 10px;
+    color: #333; 
+  }
 
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-thumb { background-color: #b0b7c3; border-radius: 4px; }
+  .calendar-header {
+    background-color: #e9f5ff;
+    border-radius: 6px;
+    padding: 4px 8px;
+  }
 
-    .section-title {
-      color: #1f2a44;
-      font-weight: 600;
-      border-bottom: 2px solid #007bff;
-      padding-bottom: 5px;
-      margin-bottom: 15px;
-    }
+  .calendar-header h6 {
+    color: #0d6efd; 
+    font-weight: 600;
+    margin: 0;
+  }
 
-    .sidebar .btn.active {
-      background-color: #0d6efd !important; 
-      color: white !important;
-    }
+  .calendar-header button {
+    border: none;
+    background-color: transparent; 
+    color: #0d6efd;
+    font-size: 0.9rem; 
+    padding: 0; 
+    width: 25px;
+    height: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+  }
 
+  .calendar-header button:hover {
+    color: #084298; 
+    transform: scale(1.2); 
+  }
 
+  .calendar-table th {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #555;
+  }
 
-.calendar-container {
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  padding: 10px;
-  color: #333; 
-}
+  .calendar-table td {
+    height: 30px;
+    width: 30px;
+    cursor: pointer;
+    border-radius: 6px;
+    color: #333;
+  }
 
-.calendar-header {
-  background-color: #e9f5ff;
-  border-radius: 6px;
-  padding: 4px 8px;
-}
+  .calendar-table td:hover {
+    background-color: #e9f5ff;
+  }
 
-.calendar-header h6 {
-  color: #0d6efd; 
-  font-weight: 600;
-  margin: 0;
-}
-
-.calendar-header button {
-  border: none;
-  background-color: transparent; 
-  color: #0d6efd;
-  font-size: 0.9rem; 
-  padding: 0; 
-  width: 25px;
-  height: 25px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: all 0.2s ease;
-}
-
-.calendar-header button:hover {
-  color: #084298; 
-  transform: scale(1.2); 
-}
-
-.calendar-table th {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #555;
-}
-
-.calendar-table td {
-  height: 30px;
-  width: 30px;
-  cursor: pointer;
-  border-radius: 6px;
-  color: #333;
-}
-
-.calendar-table td:hover {
-  background-color: #e9f5ff;
-}
-
-.calendar-table td.today {
-  background-color: #198754;
-  color: white;
-  font-weight: bold;
-  border-radius: 6px;
-}
+  .calendar-table td.today {
+    background-color: #198754;
+    color: white;
+    font-weight: bold;
+    border-radius: 6px;
+  }
 
 
-#academicosContainer .card {
-  border-radius: 10px;
-  background-color: #f8f9fa; 
-}
+  #academicosContainer .card {
+    border-radius: 10px;
+    background-color: #f8f9fa; 
+  }
 
-#academicosContainer .card h5 {
-  font-size: 1.1rem;
-}
+  #academicosContainer .card h5 {
+    font-size: 1.1rem;
+  }
 
-#academicosContainer .card p {
-  font-size: 0.9rem;
-  color: #555;
-}
-
-#academicosContainer .card button {
-  font-size: 0.8rem;
-}
+  #academicosContainer .card button {
+    font-size: 0.8rem;
+  }
 
 
-.tab-pane {
-  display: none;
-}
-.tab-pane.show {
-  display: block;
-}
+  .tab-pane {
+    display: none;
+  }
+  .tab-pane.show {
+    display: block;
+  }
 
 </style>
 
+<body class="">
 
-<body class="bg-light text-dark">
-
-  <nav class="navbar navbar-custom px-4">
-      <div class="d-flex align-items-center w-100">
-        <div class="d-flex align-items-center">
-          <div class="navbar-brand fw-semibold me-5">
-            <a href="{% url 'home' %}" class="nav-link fw-semibold ms-1 fs-5">RRHH System</a>
-          </div>
-        </div>
-
-        <div class="ms-auto d-flex align-items-center">
-          <a href="{% url 'home' %}" class="nav-link fw-semibold ms-1 fs-5">
-            <i class="bi bi-house-door"></i> Inicio
-          </a>  
-
-          <a href="{% url 'registrar_asistencia' %}" class="nav-link fw-semibold ms-3">
-            Registrar Asistencia
-          </a>
-
-          <a class="nav-link fw-semibold ms-3" href="{% url 'user_perfil' %}">
-            <i class="bi bi-person me-2"></i>Mi Perfil
-          </a>
-          
-          <div class="nav-item dropdown ms-4">
-            <a class="nav-link dropdown-toggle d-flex align-items-center fw-semibold" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-person-circle me-1"></i> {{ request.user.nombre_usuario }}
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end shadow">
-              <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Configuración</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li>
-                <form action="{% url 'logout' %}" method="post" class="m-0">
-                  {% csrf_token %}
-                  <button type="submit" class="dropdown-item text-danger">
-                    <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión
-                  </button>
-                </form>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  </nav>
+  {% include "partials/navbar.html" %}
 
 
   <div class="sidebar">
@@ -272,7 +197,7 @@
     <div class="calendar-container mt-3">
       <div class="calendar-header d-flex justify-content-between align-items-center px-2 py-1">
         <button id="prevMonth"><i class="bi bi-chevron-left"></i></button>
-        <h6 id="monthYear" class="mb-0 fw-bold"></h6>
+        <h6 id="monthYear" class="mb-0 fw-bold "></h6>
         <button id="nextMonth"><i class="bi bi-chevron-right"></i></button>
       </div>
       <table class="calendar-table table table-bordered text-center mt-2 mb-0">
@@ -293,131 +218,135 @@
 
   </div>
 
+  <div class="main-content-wrapper mt-5">
+    <div class="content-wrapper">
 
-  {% include "user_perfil-mi_perfil.html" %}
-
-
-  <div id="editarPerfilContent" class="d-none">
-  <div class="main-content d-flex justify-content-center py-3">
-    <div class="form-wrapper p-4 rounded shadow-sm" 
-         style="max-width: 1000px; width: 100%; background-color: #f3f3f3ff;">
-      <ul class="nav nav-tabs" id="perfilTabs" role="tablist"
-          style="background-color: #ffffff; border-radius: 10px; padding: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-        <li class="nav-item">
-          <button class="nav-link  fw-semibold" id="datos-personales-tab"
-                  data-bs-toggle="tab" data-bs-target="#datos-personales" type="button" role="tab"
-                  style="border-radius: 8px; margin-right: 5px;">
-            <i class="bi bi-person-circle me-1"></i> Datos personales
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link fw-semibold" id="datos-academicos-tab"
-                  data-bs-toggle="tab" data-bs-target="#datos-academicos" type="button" role="tab"
-                  style="border-radius: 8px; margin-right: 5px;">
-            <i class="bi bi-book me-1"></i> Datos académicos
-          </button>
-        </li>
-          <li class="nav-item">
-          <button class="nav-link fw-semibold" id="certificaciones-tab"
-                  data-bs-toggle="tab" data-bs-target="#certificaciones" type="button" role="tab"
-                  style="border-radius: 8px; margin-right: 5px;">
-            <i class="bi bi-patch-check me-1"></i> Certificaciones
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link fw-semibold" id="experiencia-tab"
-                  data-bs-toggle="tab" data-bs-target="#experiencia" type="button" role="tab"
-                  style="border-radius: 8px;">
-            <i class="bi bi-briefcase me-1"></i> Experiencia laboral
-          </button>
-        </li>
-      </ul>
+      {% include "user_perfil-mi_perfil.html" %}
 
 
-      <div class="tab-content">
+      <div id="editarPerfilContent" class="d-none">
+      <div class="main-content d-flex justify-content-center py-3">
+        <div class="form-wrapper p-4 rounded shadow-sm" 
+            style="max-width: 1000px; width: 100%; background-color: #f3f3f3ff;">
+          <ul class="nav nav-tabs" id="perfilTabs" role="tablist"
+              style="background-color: #ffffff; border-radius: 10px; padding: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+            <li class="nav-item">
+              <button class="nav-link  fw-semibold" id="datos-personales-tab"
+                      data-bs-toggle="tab" data-bs-target="#datos-personales" type="button" role="tab"
+                      style="border-radius: 8px; margin-right: 5px;">
+                <i class="bi bi-person-circle me-1"></i> Datos personales
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link fw-semibold" id="datos-academicos-tab"
+                      data-bs-toggle="tab" data-bs-target="#datos-academicos" type="button" role="tab"
+                      style="border-radius: 8px; margin-right: 5px;">
+                <i class="bi bi-book me-1"></i> Datos académicos
+              </button>
+            </li>
+              <li class="nav-item">
+              <button class="nav-link fw-semibold" id="certificaciones-tab"
+                      data-bs-toggle="tab" data-bs-target="#certificaciones" type="button" role="tab"
+                      style="border-radius: 8px; margin-right: 5px;">
+                <i class="bi bi-patch-check me-1"></i> Certificaciones
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link fw-semibold" id="experiencia-tab"
+                      data-bs-toggle="tab" data-bs-target="#experiencia" type="button" role="tab"
+                      style="border-radius: 8px;">
+                <i class="bi bi-briefcase me-1"></i> Experiencia laboral
+              </button>
+            </li>
+          </ul>
 
-        {% include "user_perfil-edit_datos_personales.html" %}
 
-                
-        <div class="tab-pane fade" id="datos-academicos" role="tabpanel">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <p class="mb-0 fw-semibold">Aquí podrás ver tus datos académicos registrados.</p>
-            <button class="btn btn-sm btn-success d-flex align-items-center" id="addAcademicoBtn">
-              <i class="bi bi-plus me-1"></i> Nuevo
-            </button>
+          <div class="tab-content">
+
+            {% include "user_perfil-edit_datos_personales.html" %}
+
+                    
+            <div class="tab-pane fade" id="datos-academicos" role="tabpanel">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <p class="mb-0 fw-semibold">Aquí podrás ver tus datos académicos registrados.</p>
+                <button class="btn btn-sm btn-success d-flex align-items-center" id="addAcademicoBtn">
+                  <i class="bi bi-plus me-1"></i> Nuevo
+                </button>
+              </div>
+              <div id="academicosContainer" class="row g-3 justify-content-center">
+              </div>
+            </div>
+
+
+            <div class="tab-pane fade" id="certificaciones" role="tabpanel">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <p class="mb-0 fw-semibold">Aquí podrás registrar tus certificaciones.</p>
+                <button class="btn btn-sm btn-success d-flex align-items-center" id="addCertificacionBtn">
+                  <i class="bi bi-plus me-1"></i> Nueva
+                </button>
+              </div>
+              <div id="certificacionesContainer" class="row g-3 justify-content-center">
+              </div>
+            </div>
+
+
+            <div class="tab-pane fade" id="experiencia" role="tabpanel">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <p class="mb-0 fw-semibold">Aquí podrás registrar tu experiencia laboral.</p>
+                <button class="btn btn-sm btn-success d-flex align-items-center" id="addExperienciaBtn">
+                  <i class="bi bi-plus me-1"></i> Nuevo
+                </button>
+              </div>
+              <div id="experienciasContainer" class="row g-3 justify-content-center"></div>
+            </div>
+
+
           </div>
-          <div id="academicosContainer" class="row g-3 justify-content-center">
-          </div>
-        </div>
-
-
-        <div class="tab-pane fade" id="certificaciones" role="tabpanel">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <p class="mb-0 fw-semibold">Aquí podrás registrar tus certificaciones.</p>
-            <button class="btn btn-sm btn-success d-flex align-items-center" id="addCertificacionBtn">
-              <i class="bi bi-plus me-1"></i> Nueva
-            </button>
-          </div>
-          <div id="certificacionesContainer" class="row g-3 justify-content-center">
-          </div>
-        </div>
-
-
-        <div class="tab-pane fade" id="experiencia" role="tabpanel">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <p class="mb-0 fw-semibold">Aquí podrás registrar tu experiencia laboral.</p>
-            <button class="btn btn-sm btn-success d-flex align-items-center" id="addExperienciaBtn">
-              <i class="bi bi-plus me-1"></i> Nuevo
-            </button>
-          </div>
-          <div id="experienciasContainer" class="row g-3 justify-content-center"></div>
-        </div>
-
-
-      </div>
-    </div>
-  </div>
-  </div>
-
-
-
-
-  <div class="modal fade" id="confirmEliminarCvModal" tabindex="-1" aria-labelledby="confirmEliminarCvLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header bg-danger text-white">
-          <h5 class="modal-title" id="confirmEliminarCvLabel">¿Eliminar Currículum?</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
-        <div class="modal-body">
-          ¿Estás seguro que querés eliminar el currículum actual?
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger fw-bold" id="confirmEliminarCvBtn"><i class="bi bi-trash3-fill me-1"></i>Eliminar</button>
         </div>
       </div>
-    </div>
-  </div>
+      </div>
 
 
-  <!-- MODAL CONFIRMACIÓN -->
-  <div class="modal fade" id="confirmSalirModal" tabindex="-1" aria-labelledby="confirmSalirLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="confirmSalirLabel">¿Desea Salir?</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
-        <div class="modal-body">¿Esta seguro que desea salir?<br> Si NO ha guardado los cambios se perderan.</div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger" id="confirmSalirBtn">Salir</button>
+
+
+      <div class="modal fade" id="confirmEliminarCvModal" tabindex="-1" aria-labelledby="confirmEliminarCvLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+              <h5 class="modal-title" id="confirmEliminarCvLabel">¿Eliminar Currículum?</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+              ¿Estás seguro que querés eliminar el currículum actual?
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-danger fw-bold" id="confirmEliminarCvBtn"><i class="bi bi-trash3-fill me-1"></i>Eliminar</button>
+            </div>
+          </div>
         </div>
       </div>
+
+
+      <!-- MODAL CONFIRMACIÓN -->
+      <div class="modal fade" id="confirmSalirModal" tabindex="-1" aria-labelledby="confirmSalirLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="confirmSalirLabel">¿Desea Salir?</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">¿Esta seguro que desea salir?<br> Si NO ha guardado los cambios se perderan.</div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-danger" id="confirmSalirBtn">Salir</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
-
 
 <script>
 window.onload = () => {
@@ -614,7 +543,6 @@ window.onload = () => {
 
 
 
-// Restaurar el tab activo y modo edición según el hash
 const hash = window.location.hash;
 
 let abrirEdicion = false;
@@ -637,14 +565,12 @@ if (tabElement) {
     tabInstance.show();
 }
 
-// Mostrar contenido según hash
 if (abrirEdicion) {
     mostrarEditarPerfil();
 } else {
     mostrarMiPerfil();
 }
 
-// Guardar tab activo en hash al cambiar
 tabs.forEach(tab => {
   tab.addEventListener('shown.bs.tab', (e) => {
     const id = e.target.getAttribute('data-bs-target').replace('#', '');
@@ -769,7 +695,7 @@ function bloquearFechaFinAcademico(card) {
     }
 
     selectSituacion.addEventListener('change', actualizar);
-    actualizar(); // inicializar al cargar
+    actualizar(); 
 }
 
 
@@ -872,14 +798,12 @@ function cerrarCardsAcademicoEnEdicion() {
     document.querySelectorAll('#academicosContainer .col-12').forEach(c => {
         const guardarBtn = c.querySelector('.guardarAcademicoBtn');
 
-        // Si es una card NUEVA sin guardar, la eliminamos directamente
         const id = c.querySelector('.datoAcademicoId')?.value || '';
         if (guardarBtn && !id) {
             c.remove();
             return;
         }
 
-        // Si estaba en modo edición y tenía datos cargados, la volvemos a modo vista
         if (guardarBtn && id) {
             const carrera = c.querySelector('.carreraAcademico')?.value || '';
             const institucion = c.querySelector('.institucionAcademico')?.value || '';

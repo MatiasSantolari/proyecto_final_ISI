@@ -1,37 +1,39 @@
 {% extends "base.html"%}
 {% load widget_tweaks %}
+{% load static %}
 
   {% block title %}Gestión de Cargos{% endblock %}
   
   {% block content %}
+  <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+  <div class="container-fluid p-5 my-3">
+    <h4 class="mb-4" style="color: var(--color-primario);">Gestión de Cargos</h4>
 
-  <div class="container-fluid my-5">
-    <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Cargos</h1>
+    <div class="card mb-2">
+      <div class="card-header d-flex justify-content-between align-items-center mb-0">
+        <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalCargo">
+          + Crear Nuevo Cargo
+        </button>
 
-    <div class="d-flex align-items-center justify-content-between mb-3">
-      <!-- Botón para Crear -->
-      <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalCargo">
-        + Crear Nuevo Cargo
-      </button>
-
-      <form method="get" class="mb-3 d-flex align-items-center gap-2">
-        <label for="departamento" class="form-label mb-0">Filtrar por Departamento:</label>
-        <select name="departamento" id="departamento" class="form-select" style="width: auto;">
-          <option value="todos" {% if departamento_seleccionado == 'todos' %}selected{% endif %}>Todos</option>
-          {% for dept in departamentos %}
-            <option value="{{ dept.id }}" {% if dept.id|stringformat:"s" == departamento_seleccionado %}selected{% endif %}>
-              {{ dept.nombre }}
-            </option>
-          {% endfor %}
-        </select>
-      </form>
+        <form method="get" class="mb-3 d-flex align-items-center gap-2">
+          <label for="departamento" class="form-label mb-0">Filtrar por Departamento:</label>
+          <select name="departamento" id="departamento" class="form-select" style="width: auto;">
+            <option value="todos" {% if departamento_seleccionado == 'todos' %}selected{% endif %}>Todos</option>
+            {% for dept in departamentos %}
+              <option value="{{ dept.id }}" {% if dept.id|stringformat:"s" == departamento_seleccionado %}selected{% endif %}>
+                {{ dept.nombre }}
+              </option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
     </div>
-
+    
     <!-- Tabla de Cargos -->
     <div class="card shadow-sm border-0">
       <div class="card-body">
         <div class="table-responsive">
-          <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1300px; font-size: 0.95rem;">
+          <table class="table table-sm table-striped table-hover table-bordered align-middle mb-0" style="min-width: 1300px; font-size: 0.95rem;">
             <thead class="table-light text-center">
               <tr>
                 <th>Nombre</th>
@@ -65,7 +67,7 @@
                 <td>
                   <div class="d-flex justify-content-center gap-2">
                     <!-- Botón Editar -->
-                    <button class="btn btn-sm btn-outline-secondary"
+                    <button class="btn btn-sm btn-outline-secondary me-1"
                             data-bs-toggle="modal" data-bs-target="#modalCargo"
                             data-id="{{ cargo.id }}"
                             data-nombre="{{ cargo.nombre }}"
@@ -79,7 +81,7 @@
                     </button>
 
                     <!-- Botón Ver -->
-                    <button class="btn btn-sm btn-outline-info"
+                    <button class="btn btn-sm btn-outline-info me-1"
                             data-bs-toggle="modal"
                             data-bs-target="#modalVerCargo{{ cargo.id }}"
                             data-bs-toggle="tooltip" title="Ver">

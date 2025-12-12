@@ -4,235 +4,242 @@
 {% block content %}
 <div class="container mt-5">
   <h2 class="text-center mb-4" style="color: var(--color-primario);">Postulaciones Recibidas</h2>
-<div class="text-end mb-3">
-  <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalHistoricoPostulaciones">
-    Ver histórico de postulaciones
-  </button>
-</div>
-
-{% if cargos_visibles_por_dpto or cargos_no_visibles_por_dpto %}
-
-    <!-- CARGOS ACTIVOS -->
-    {% if cargos_visibles_por_dpto %}
-      <h4 class="mt-4 text-success">Cargos con búsqueda activa</h4>
-      {% for departamento, relaciones in cargos_visibles_por_dpto.items %}
-        <h5 class="mt-4 ps-2 border-start border-3 border-success">{{ departamento }}</h5>
-        <div class="accordion mb-4 shadow-sm border-start border-3 border-success" id="accordionVisibles-{{ forloop.counter }}">
-          {% for rel in relaciones %}
-            <div class="accordion-item mb-2 shadow-sm" id="accordion-cargo-{{ rel.cargo.id }}">
-                <h2 class="accordion-header" id="heading{{ rel.cargo.id }}">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ rel.cargo.id }}" aria-expanded="false" aria-controls="collapse{{ rel.cargo.id }}">
-                    {{ rel.cargo.nombre }}
-                    </button>
-                </h2>
-                <div id="collapse{{ rel.cargo.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ rel.cargo.id }}">
-                    <div class="accordion-body">
-                    {% if rel.cargo.solicitudes_visibles %}
-                        <table class="table table-bordered table-hover">
-                        <thead class="table-light">
-                            <tr>
-                            <th>Nombre</th>
-                            <th>DNI</th>
-                            <th>Fecha</th>
-                            <th>Estado</th>
-                            <th>CV</th>
-                            <th>Ver datos</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for solicitud in rel.cargo.solicitudes_visibles %}
-                            <tr>
-                            <td>{{ solicitud.persona.apellido }}, {{ solicitud.persona.nombre }}</td>
-                            <td>{{ solicitud.persona.dni }}</td>
-                            <td>{{ solicitud.fecha|date:"d/m/Y" }}</td>
-                            <td>
-                                <select class="form-select form-select-sm cambiar-estado" data-id="{{ solicitud.id }}">
-                                <option value="pendiente" {% if solicitud.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
-                                <option value="seleccionado" {% if solicitud.estado == 'seleccionado' %}selected{% endif %}>Seleccionado</option>
-                                <option value="descartado" {% if solicitud.estado == 'descartado' %}selected{% endif %}>Descartado</option>
-                                </select>
-                            </td>
-                            <td>
-                                {% if solicitud.persona.cvitae %}
-                                <a href="{{ solicitud.persona.cvitae.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Ver CV</a>
-                                {% else %}
-                                <em class="text-muted">No disponible</em>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalVerPersona{{ solicitud.persona.id }}">Ver</button>
-                            </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                        </table>
-                    {% else %}
-                        <p class="text-muted">No hay postulantes aún.</p>
-                    {% endif %}
-
-                    <form method="post">
-                        {% csrf_token %}
-                        <button type="button" class="btn btn-sm btn-danger finalizar-postulaciones mt-2" data-cargo-id="{{ rel.cargo.id }}">
-                            Finalizar postulaciones para este cargo
-                        </button>
-                        {% if rel.cargo.solicitudes_visibles %}
-                            <button type="button" class="btn btn-sm btn-warning limpiar-postulantes mt-2 ms-2" data-cargo-id="{{ rel.cargo.id }}">
-                                Limpiar postulantes
-                            </button>
-                        {% endif %}
-                    </form>
-
-                    </div>
-                </div>
-                </div>
-
-                <!-- MODALES -->
-                {% for solicitud in rel.cargo.solicitudes_visibles %}
-                <div class="modal fade" id="modalVerPersona{{ solicitud.persona.id }}" tabindex="-1" aria-labelledby="modalVerPersonaLabel{{ solicitud.persona.id }}" aria-hidden="true">
-                    <div class="modal-dialog" style="margin-top: 6rem;">
-                        <div class="modal-content">
-                            <div class="modal-header bg-info text-white">
-                                <h5 class="modal-title" id="modalVerPersonaLabel{{ solicitud.persona.id }}">Datos del Postulante</h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                            </div>
-                            <div class="modal-body">
-                                <p><strong>Nombre:</strong> {{ solicitud.persona.nombre }}</p>
-                                <p><strong>Apellido:</strong> {{ solicitud.persona.apellido }}</p>
-                                <p><strong>DNI:</strong> {{ solicitud.persona.dni }}</p>
-                                <p><strong>Teléfono:</strong> {{ solicitud.persona.prefijo_pais }} {{ solicitud.persona.telefono }}</p>
-                                <p><strong>Fecha de nacimiento:</strong> {{ solicitud.persona.fecha_nacimiento|date:"d/m/Y" }}</p>
-                                <p><strong>Género:</strong> {{ solicitud.persona.genero }}</p>
-                                <p><strong>Dirección:</strong>
-                                {{ solicitud.persona.calle }} {{ solicitud.persona.numero }},
-                                {{ solicitud.persona.ciudad }},
-                                {{ solicitud.persona.provincia }},
-                                {{ solicitud.persona.pais }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-          {% endfor %}
-        </div>
-      {% endfor %}
-    {% endif %}
-
-
-
-
-     <!-- CARGOS CERRADOS -->
-    {% if cargos_no_visibles_por_dpto %}
-      <hr class="my-5 border-2 border">
-      <h4 class="mt-5 text-danger">Cargos con búsqueda cerrada</h4>
-      {% for departamento, relaciones in cargos_no_visibles_por_dpto.items %}
-        <h5 class="mt-4 ps-2 border-start border-3 border-danger">{{ departamento }}</h5>
-        <div class="accordion mb-4 shadow-sm border-start border-3 border-danger" id="accordionNoVisibles-{{ forloop.counter }}">
-          {% for rel in relaciones %}
-            <div class="accordion-item mb-2 shadow-sm" id="accordion-cargo-{{ rel.cargo.id }}">
-                <h2 class="accordion-header" id="heading{{ rel.cargo.id }}">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ rel.cargo.id }}" aria-expanded="false" aria-controls="collapse{{ rel.cargo.id }}">
-                    {{ rel.cargo.nombre }}
-                    </button>
-                </h2>
-                <div id="collapse{{ rel.cargo.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ rel.cargo.id }}">
-                    <div class="accordion-body">
-                    {% if rel.cargo.solicitudes_visibles %}
-                        <table class="table table-bordered table-hover">
-                        <thead class="table-light">
-                            <tr>
-                            <th>Nombre</th>
-                            <th>DNI</th>
-                            <th>Fecha</th>
-                            <th>Estado</th>
-                            <th>CV</th>
-                            <th>Ver datos</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for solicitud in rel.cargo.solicitudes_visibles %}
-                            <tr>
-                            <td>{{ solicitud.persona.apellido }}, {{ solicitud.persona.nombre }}</td>
-                            <td>{{ solicitud.persona.dni }}</td>
-                            <td>{{ solicitud.fecha|date:"d/m/Y" }}</td>
-                            <td>
-                                <select class="form-select form-select-sm cambiar-estado" data-id="{{ solicitud.id }}">
-                                <option value="pendiente" {% if solicitud.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
-                                <option value="seleccionado" {% if solicitud.estado == 'seleccionado' %}selected{% endif %}>Seleccionado</option>
-                                <option value="descartado" {% if solicitud.estado == 'descartado' %}selected{% endif %}>Descartado</option>
-                                </select>
-                            </td>
-                            <td>
-                                {% if solicitud.persona.cvitae %}
-                                <a href="{{ solicitud.persona.cvitae.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Ver CV</a>
-                                {% else %}
-                                <em class="text-muted">No disponible</em>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalVerPersona{{ solicitud.persona.id }}">Ver</button>
-                            </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                        </table>
-
-                    {% else %}
-                        <p class="text-muted">No hay postulantes aún.</p>
-                    {% endif %}
-                        <form method="post">
-                            {% csrf_token %}
-                            <button type="button" class="btn btn-sm btn-success mostrar-cargo mt-2" data-cargo-id="{{ rel.cargo.id }}">
-                                Reabrir búsqueda para este cargo
-                            </button>
-                            {% if rel.cargo.solicitudes_visibles %}
-                                <button type="button" class="btn btn-sm btn-warning limpiar-postulantes mt-2 ms-2" data-cargo-id="{{ rel.cargo.id }}">
-                                    Limpiar postulantes
-                                </button>
-                            {% endif %}    
-                        </form>    
-                    </div>
-                </div>
-                </div>
-
-                <!-- MODALES -->
-                {% for solicitud in rel.cargo.solicitudes_visibles %}
-                <div class="modal fade" id="modalVerPersona{{ solicitud.persona.id }}" tabindex="-1" aria-labelledby="modalVerPersonaLabel{{ solicitud.persona.id }}" aria-hidden="true">
-                    <div class="modal-dialog" style="margin-top: 6rem;">
-                        <div class="modal-content">
-                            <div class="modal-header bg-info text-white">
-                                <h5 class="modal-title" id="modalVerPersonaLabel{{ solicitud.persona.id }}">Datos del Postulante</h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                            </div>
-                            <div class="modal-body">
-                                <p><strong>Nombre:</strong> {{ solicitud.persona.nombre }}</p>
-                                <p><strong>Apellido:</strong> {{ solicitud.persona.apellido }}</p>
-                                <p><strong>DNI:</strong> {{ solicitud.persona.dni }}</p>
-                                <p><strong>Teléfono:</strong> {{ solicitud.persona.prefijo_pais }} {{ solicitud.persona.telefono }}</p>
-                                <p><strong>Fecha de nacimiento:</strong> {{ solicitud.persona.fecha_nacimiento|date:"d/m/Y" }}</p>
-                                <p><strong>Género:</strong> {{ solicitud.persona.genero }}</p>
-                                <p><strong>Dirección:</strong>
-                                {{ solicitud.persona.calle }} {{ solicitud.persona.numero }},
-                                {{ solicitud.persona.ciudad }},
-                                {{ solicitud.persona.provincia }},
-                                {{ solicitud.persona.pais }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-          {% endfor %}
-        </div>
-      {% endfor %}
-    {% endif %}
-
-  {% else %}
-    <div class="alert alert-info text-center">
-      No hay postulaciones disponibles.
+    <div class="text-end mb-3">
+    <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalHistoricoPostulaciones">
+        Ver histórico de postulaciones
+    </button>
     </div>
-  {% endif %}
 
+    <div class="card mb-4">
+        <div class="card-body pt-0 pb-3">
+
+            {% if cargos_visibles_por_dpto or cargos_no_visibles_por_dpto %}
+
+                <!-- CARGOS ACTIVOS -->
+                {% if cargos_visibles_por_dpto %}
+                <h4 class="mt-4 text-success">Cargos con búsqueda activa</h4>
+                {% for departamento, relaciones in cargos_visibles_por_dpto.items %}
+                    <h5 class="mt-4 ps-2 border-start border-3 border-success">{{ departamento }}</h5>
+                    <div class="accordion mb-4 shadow-sm border-start border-3 border-success" id="accordionVisibles-{{ forloop.counter }}">
+                    {% for rel in relaciones %}
+                        <div class="accordion-item mb-2 shadow-sm" id="accordion-cargo-{{ rel.cargo.id }}">
+                            <h2 class="accordion-header" id="heading{{ rel.cargo.id }}">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ rel.cargo.id }}" aria-expanded="false" aria-controls="collapse{{ rel.cargo.id }}">
+                                {{ rel.cargo.nombre }}
+                                </button>
+                            </h2>
+                            <div id="collapse{{ rel.cargo.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ rel.cargo.id }}">
+                                <div class="accordion-body">
+                                {% if rel.cargo.solicitudes_visibles %}
+                                    <table class="table table-bordered table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                        <th>Nombre</th>
+                                        <th>DNI</th>
+                                        <th>Fecha</th>
+                                        <th>Estado</th>
+                                        <th>CV</th>
+                                        <th>Ver datos</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for solicitud in rel.cargo.solicitudes_visibles %}
+                                        <tr>
+                                        <td>{{ solicitud.persona.apellido }}, {{ solicitud.persona.nombre }}</td>
+                                        <td>{{ solicitud.persona.dni }}</td>
+                                        <td>{{ solicitud.fecha|date:"d/m/Y" }}</td>
+                                        <td>
+                                            <select class="form-select form-select-sm cambiar-estado" data-id="{{ solicitud.id }}">
+                                            <option value="pendiente" {% if solicitud.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                            <option value="seleccionado" {% if solicitud.estado == 'seleccionado' %}selected{% endif %}>Seleccionado</option>
+                                            <option value="descartado" {% if solicitud.estado == 'descartado' %}selected{% endif %}>Descartado</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            {% if solicitud.persona.cvitae %}
+                                            <a href="{{ solicitud.persona.cvitae.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Ver CV</a>
+                                            {% else %}
+                                            <em class="text-muted">No disponible</em>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalVerPersona{{ solicitud.persona.id }}">Ver</button>
+                                        </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    </table>
+                                {% else %}
+                                    <p class="text-muted">No hay postulantes aún.</p>
+                                {% endif %}
+
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <button type="button" class="btn btn-sm btn-danger finalizar-postulaciones mt-2" data-cargo-id="{{ rel.cargo.id }}">
+                                        Finalizar postulaciones para este cargo
+                                    </button>
+                                    {% if rel.cargo.solicitudes_visibles %}
+                                        <button type="button" class="btn btn-sm btn-warning limpiar-postulantes mt-2 ms-2" data-cargo-id="{{ rel.cargo.id }}">
+                                            Limpiar postulantes
+                                        </button>
+                                    {% endif %}
+                                </form>
+
+                                </div>
+                            </div>
+                            </div>
+
+                            <!-- MODALES -->
+                            {% for solicitud in rel.cargo.solicitudes_visibles %}
+                            <div class="modal fade" id="modalVerPersona{{ solicitud.persona.id }}" tabindex="-1" aria-labelledby="modalVerPersonaLabel{{ solicitud.persona.id }}" aria-hidden="true">
+                                <div class="modal-dialog" style="margin-top: 6rem;">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-info text-white">
+                                            <h5 class="modal-title" id="modalVerPersonaLabel{{ solicitud.persona.id }}">Datos del Postulante</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p><strong>Nombre:</strong> {{ solicitud.persona.nombre }}</p>
+                                            <p><strong>Apellido:</strong> {{ solicitud.persona.apellido }}</p>
+                                            <p><strong>DNI:</strong> {{ solicitud.persona.dni }}</p>
+                                            <p><strong>Teléfono:</strong> {{ solicitud.persona.prefijo_pais }} {{ solicitud.persona.telefono }}</p>
+                                            <p><strong>Fecha de nacimiento:</strong> {{ solicitud.persona.fecha_nacimiento|date:"d/m/Y" }}</p>
+                                            <p><strong>Género:</strong> {{ solicitud.persona.genero }}</p>
+                                            <p><strong>Dirección:</strong>
+                                            {{ solicitud.persona.calle }} {{ solicitud.persona.numero }},
+                                            {{ solicitud.persona.ciudad }},
+                                            {{ solicitud.persona.provincia }},
+                                            {{ solicitud.persona.pais }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                    {% endfor %}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+
+    <div class="card mb-2">
+        <div class="card-body pt-0 pb-3">
+
+            <!-- CARGOS CERRADOS -->
+            {% if cargos_no_visibles_por_dpto %}
+            <hr class="my-4 border-2 border">
+            <h4 class="mt-5 text-danger">Cargos con búsqueda cerrada</h4>
+            {% for departamento, relaciones in cargos_no_visibles_por_dpto.items %}
+                <h5 class="mt-4 ps-2 border-start border-3 border-danger">{{ departamento }}</h5>
+                <div class="accordion mb-4 shadow-sm border-start border-3 border-danger" id="accordionNoVisibles-{{ forloop.counter }}">
+                {% for rel in relaciones %}
+                    <div class="accordion-item mb-2 shadow-sm" id="accordion-cargo-{{ rel.cargo.id }}">
+                        <h2 class="accordion-header" id="heading{{ rel.cargo.id }}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ rel.cargo.id }}" aria-expanded="false" aria-controls="collapse{{ rel.cargo.id }}">
+                            {{ rel.cargo.nombre }}
+                            </button>
+                        </h2>
+                        <div id="collapse{{ rel.cargo.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ rel.cargo.id }}">
+                            <div class="accordion-body">
+                            {% if rel.cargo.solicitudes_visibles %}
+                                <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                    <th>Nombre</th>
+                                    <th>DNI</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                    <th>CV</th>
+                                    <th>Ver datos</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for solicitud in rel.cargo.solicitudes_visibles %}
+                                    <tr>
+                                    <td>{{ solicitud.persona.apellido }}, {{ solicitud.persona.nombre }}</td>
+                                    <td>{{ solicitud.persona.dni }}</td>
+                                    <td>{{ solicitud.fecha|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <select class="form-select form-select-sm cambiar-estado" data-id="{{ solicitud.id }}">
+                                        <option value="pendiente" {% if solicitud.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                        <option value="seleccionado" {% if solicitud.estado == 'seleccionado' %}selected{% endif %}>Seleccionado</option>
+                                        <option value="descartado" {% if solicitud.estado == 'descartado' %}selected{% endif %}>Descartado</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        {% if solicitud.persona.cvitae %}
+                                        <a href="{{ solicitud.persona.cvitae.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Ver CV</a>
+                                        {% else %}
+                                        <em class="text-muted">No disponible</em>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalVerPersona{{ solicitud.persona.id }}">Ver</button>
+                                    </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                </table>
+
+                            {% else %}
+                                <p class="text-muted">No hay postulantes aún.</p>
+                            {% endif %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <button type="button" class="btn btn-sm btn-success mostrar-cargo mt-2" data-cargo-id="{{ rel.cargo.id }}">
+                                        Reabrir búsqueda para este cargo
+                                    </button>
+                                    {% if rel.cargo.solicitudes_visibles %}
+                                        <button type="button" class="btn btn-sm btn-warning limpiar-postulantes mt-2 ms-2" data-cargo-id="{{ rel.cargo.id }}">
+                                            Limpiar postulantes
+                                        </button>
+                                    {% endif %}    
+                                </form>    
+                            </div>
+                        </div>
+                        </div>
+
+                        <!-- MODALES -->
+                        {% for solicitud in rel.cargo.solicitudes_visibles %}
+                        <div class="modal fade" id="modalVerPersona{{ solicitud.persona.id }}" tabindex="-1" aria-labelledby="modalVerPersonaLabel{{ solicitud.persona.id }}" aria-hidden="true">
+                            <div class="modal-dialog" style="margin-top: 6rem;">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-info text-white">
+                                        <h5 class="modal-title" id="modalVerPersonaLabel{{ solicitud.persona.id }}">Datos del Postulante</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p><strong>Nombre:</strong> {{ solicitud.persona.nombre }}</p>
+                                        <p><strong>Apellido:</strong> {{ solicitud.persona.apellido }}</p>
+                                        <p><strong>DNI:</strong> {{ solicitud.persona.dni }}</p>
+                                        <p><strong>Teléfono:</strong> {{ solicitud.persona.prefijo_pais }} {{ solicitud.persona.telefono }}</p>
+                                        <p><strong>Fecha de nacimiento:</strong> {{ solicitud.persona.fecha_nacimiento|date:"d/m/Y" }}</p>
+                                        <p><strong>Género:</strong> {{ solicitud.persona.genero }}</p>
+                                        <p><strong>Dirección:</strong>
+                                        {{ solicitud.persona.calle }} {{ solicitud.persona.numero }},
+                                        {{ solicitud.persona.ciudad }},
+                                        {{ solicitud.persona.provincia }},
+                                        {{ solicitud.persona.pais }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                {% endfor %}
+                </div>
+            {% endfor %}
+            {% endif %}
+
+        {% else %}
+            <div class="alert alert-info text-center">
+            No hay postulaciones disponibles.
+            </div>
+        {% endif %}
+        </div>
+    </div>
 
     <!-- Modal de Confirmación -->
     <div class="modal fade" id="modalConfirmacion" tabindex="-1" aria-labelledby="modalConfirmacionLabel" aria-hidden="true">

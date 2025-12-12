@@ -1,19 +1,22 @@
 {% extends "base.html"%}
 {% load widget_tweaks %}
+{% load static %}
 
   {% block title %}Gestión de Beneficios{% endblock %}
   
   {% block content %}
+  <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+  <div class="container-fluid p-5 my-2">
+    <h4 class="mb-3" style="color: var(--color-primario);">Gestión de Beneficios</h4>
 
-  <div class="container-fluid my-5"><hv><hv>
-    <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Beneficios</h1>
+    <div class="card mb-2">
+      <div class="card-header d-flex justify-content-between align-items-center mb-0">
+        <button type="button" class="btn mb-0 btn-primary" data-bs-toggle="modal" data-bs-target="#modalBeneficio">
+          + Crear Nuevo Tipo de Beneficio
+        </button>
+      </div>
+    </div>
 
-    <!-- Botón para Crear -->
-    <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalBeneficio">
-      + Crear Nuevo Tipo de Beneficio
-    </button>
-
-    <!-- Tabla de Beneficios -->
     <div class="card shadow-sm border-0">
       <div class="card-body">
         <div class="table-responsive">
@@ -62,7 +65,7 @@
                 </td>
                 <td>
                   <div class="d-flex justify-content-center gap-2">
-                    <button class="btn btn-sm btn-outline-secondary" 
+                    <button class="btn btn-sm btn-outline-secondary me-1" 
                             data-bs-toggle="modal" data-bs-target="#modalBeneficio"
                             data-id="{{ beneficio.id }}"
                             data-descripcion="{{ beneficio.descripcion }}"
@@ -73,7 +76,7 @@
                             data-bs-toggle="tooltip" title="Editar">
                       <i class="bi bi-pencil-square"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-info" 
+                    <button class="btn btn-sm btn-outline-info me-1" 
                             data-bs-toggle="modal" 
                             data-bs-target="#modalVerBeneficio{{ beneficio.id }}"
                             data-bs-toggle="tooltip" title="Ver">

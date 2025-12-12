@@ -1,39 +1,41 @@
-<div class="d-flex flex-row mb-3 align-items-center">
-  <div class="p-2 flex-grow-1">
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center gap-3">      
     <button type="button" class="btn btn-primary" id="btnCrearPersona" data-bs-toggle="modal" data-bs-target="#modalPersona">
       Crear Nueva Persona
     </button>
-  </div>
 
-  <div class="p-2">
-    <label class="form-label mb-1" for="filtroDepartamento">Filtrar por Departamento</label>
-    <form method="get" class="d-flex gap-2">
-      <select class="form-select" id="filtroDepartamento" name="departamento" onchange="this.form.submit()">
-        <option value="0" {% if departamento_seleccionado == "0" %}selected{% endif %}>
-          Todos
-        </option>
-        {% for departamento in departamentos %}
-          <option value="{{ departamento.id }}" {% if departamento_seleccionado == departamento.id|stringformat:"s" %}selected{% endif %}>
-            {{ departamento.nombre }}
-          </option>
-        {% endfor %}
-      </select>
-    </form>
-  </div>
+    <div class="d-flex align-items-center gap-3 ms-auto">
+      <div>
+        <label class="form-label mb-1" for="filtroDepartamento">Filtrar por Departamento</label>
+        <form method="get" class="d-flex gap-2">
+          <select class="form-select form-select-sm" id="filtroDepartamento" name="departamento" onchange="this.form.submit()">
+            <option value="0" {% if departamento_seleccionado == "0" %}selected{% endif %}>
+              Todos
+            </option>
+            {% for departamento in departamentos %}
+              <option value="{{ departamento.id }}" {% if departamento_seleccionado == departamento.id|stringformat:"s" %}selected{% endif %}>
+                {{ departamento.nombre }}
+              </option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
 
-    <div class="p-2">
-      <label class="form-label mb-1" for="{{ filtro.element_id }}">Filtrar por Tipo de Usuario</label>
-      <form method="get" class="d-flex gap-2">
-        <select class="form-select" id="{{ filtro.element_id }}" name="tipo_usuario" onchange="this.form.submit()">
-          <option value="0" {% if tipo_usuario_seleccionado == "0" %}selected{% endif %}>Todos</option>
-          {% for id, tipo in tipos_usuarios %}
-            <option value="{{ id }}" {% if tipo_usuario_seleccionado == id|stringformat:"s" %}selected{% endif %}>{{ tipo }}</option>
-          {% endfor %}
-        </select>
-        {% if departamento_seleccionado %}
-          <input type="hidden" name="departamento" value="{{ departamento_seleccionado }}">
-        {% endif %}
-      </form>
+      <div>
+        <label class="form-label mb-1" for="{{ filtro.element_id }}">Filtrar por Tipo de Usuario</label>
+        <form method="get" class="d-flex gap-2">
+          <select class="form-select form-select-sm" id="{{ filtro.element_id }}" name="tipo_usuario" onchange="this.form.submit()">
+            <option value="0" {% if tipo_usuario_seleccionado == "0" %}selected{% endif %}>Todos</option>
+            {% for id, tipo in tipos_usuarios %}
+              <option value="{{ id }}" {% if tipo_usuario_seleccionado == id|stringformat:"s" %}selected{% endif %}>{{ tipo }}</option>
+            {% endfor %}
+          </select>
+          {% if departamento_seleccionado %}
+            <input type="hidden" name="departamento" value="{{ departamento_seleccionado }}">
+          {% endif %}
+        </form>
+      </div>
     </div>
 
+  </div>
 </div>

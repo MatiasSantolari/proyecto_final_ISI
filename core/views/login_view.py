@@ -48,7 +48,13 @@ def home(request):
     user = request.user
     rol_actual = request.session.get('rol_actual', user.rol)
 
-    context = {'rol_actual': rol_actual, 'usuario': user}
+    departamentos_disponibles = Departamento.objects.all().order_by('nombre')
+
+    context = {
+        'rol_actual': rol_actual, 
+        'usuario': user,
+        'departamentos_disponibles': departamentos_disponibles,
+        }
 
     if not hasattr(user, 'persona'):
         return redirect('create_profile')

@@ -1,0 +1,568 @@
+{% extends "base.html"%}
+{% load static %}
+
+  {% block title %}Gestión de Personas{% endblock %}
+  
+  {% block content %}
+  <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+
+  <div class="container-fluid p-5 my-2">
+    <h4 class="mb-4" style="color: var(--color-primario);">Gestión de Personas</h4>
+
+    <div class="card mb-2">
+      <div class="card-header p-1 d-flex justify-content-between align-items-center mb-0 mt-2">
+        <button type="button" class="btn mb-2 ml-4 btn-primary" id="btnCrearPersona"
+          data-bs-toggle="modal" data-bs-target="#modalPersona">
+            + Crear Nueva Persona
+        </button>
+
+        <div class="ms-3">
+          <input type="text" class="form-control" id="buscadorDNI" placeholder="Buscar por DNI" style="width: 200px;">
+        </div>
+
+
+        <div class="mb-4">
+          <label>Filtrar por Departamento:</label>
+          <form method="get">
+            <select class="form-select" name="departamento" onchange="this.form.submit()">
+              <option value="" {% if not request.GET.departamento %}selected{% endif %}>Todos</option>
+              {% for dep in departamentos %}
+              <option value="{{ dep.id }}" {% if request.GET.departamento == dep.id|stringformat:"s" %}selected{% endif %}>
+                {{ dep.nombre }}
+              </option>
+              {% endfor %}
+            </select>
+          </form>
+        </div>
+
+        <!-- Filtro de Tipo de Usuario -->
+        <div class="mb-4">
+          <label for="filtroTipoUsuario" class="form-label">Filtrar por Tipo de Usuario:</label>
+          <select class="form-select" id="filtroTipoUsuario">
+            <option value="todos" selected>Todos</option>
+            <option value="normal">Normal</option>
+            <option value="empleado">Empleado</option>
+            <option value="jefe">Jefe</option>
+            <option value="gerente">Gerente</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de Personas -->
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+        <div class="table-responsive" style="overflow-x: auto;">
+          <table id="tablaPersonas" class="table table-sm table-hover table-bordered align-middle mb-0" style=" min-width: 1300px; font-size: 0.95rem;">
+            <thead class="table-light text-center">
+              <tr>
+                <th>Apellido</th>
+                <th>Nombre</th>
+                <th>DNI</th>
+                <th>Email</th>
+                <th>Telefono</th>
+                <th>Tipo Usuario</th>
+                <th>Estado</th>
+                <th>Cargo</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for persona in personas %}
+                <tr class="fila-persona" data-tipo="{{ persona.tipo_usuario }}" data-dni="{{ persona.dni }}">
+                  <td>{{ persona.apellido }}</td>
+                  <td>{{ persona.nombre }}</td>
+                  <td>{{ persona.dni }}</td>
+                  <td>{{ persona.email }}</td>
+                  <td>{{ persona.telefono_completo }}</td>
+                  <td>{{ persona.tipo_usuario }}</td>
+                  <td>{{ persona.estado }}</td>
+                  <td>{{ persona.nombre_cargo }}</td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-editar btn-outline-secondary me-1"
+                            data-bs-toggle="modal" data-bs-target="#modalPersona"
+                            data-id="{{ persona.id }}"
+                            data-nombre="{{ persona.nombre }}"
+                            data-apellido="{{ persona.apellido }}"
+                            data-dni="{{ persona.dni }}"
+                            data-email="{{ persona.email }}"
+                            data-prefijo="{{ persona.prefijo_pais }}"
+                            data-telefono="{{ persona.telefono }}"
+                            data-fecha-nacimiento="{{ persona.fecha_nacimiento|date:'Y-m-d' }}"
+                            data-genero="{{ persona.genero }}"
+                            data-pais="{{ persona.pais }}"
+                            data-provincia="{{ persona.provincia }}"
+                            data-ciudad="{{ persona.ciudad }}"
+                            data-calle="{{ persona.calle }}"
+                            data-numero="{{ persona.numero }}"
+                            data-tipo-usuario="{{ persona.tipo_usuario }}"
+                            {% if persona.tipo_persona != 'normal' %}
+                              data-estado="{{ persona.estado }}"                  
+                            {% else %}
+                              data-estado=""
+                            {% endif %}
+                            {% if persona.cargo %}
+                              data-departamento="{{ persona.departamento_id }}"
+                              data-cargo="{{ persona.cargo }}"
+                            {% else %}  
+                            data-departamento=""
+                            data-cargo=""
+                            {% endif %}
+                              onclick="editarPersona(this)" 
+                              data-bs-toggle="tooltip" title="Editar">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+
+                    <button class="btn btn-sm btn-outline-info me-1" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modalVerPersona{{ persona.id }}" 
+                            data-id="{{ persona.id }}"
+                            data-bs-toggle="tooltip" title="Ver">
+                      <i class="bi bi-eye"></i>
+                    </button>
+
+                    <button class="btn btn-sm btn-outline-danger" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modalEliminarPersona" 
+                            data-id="{{ persona.id }}"
+                            data-bs-toggle="tooltip" title="Eliminar">
+                      <i class="bi bi-trash3"></i>
+                    </button>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="9" class="text-center text-muted">
+                    No hay personas registradas.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <nav aria-label="Paginación">
+            <ul class="pagination justify-content-center mt-3">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}">&laquo;</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+              {% endif %}
+
+              {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                  <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% else %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}">{{ num }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}">&raquo;</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+              {% endif %}
+            </ul>
+          </nav>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Crear/Editar Persona -->
+  <div class="modal fade" id="modalPersona" tabindex="-1" aria-labelledby="modalPersonaLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 2rem;">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: #3c8dbc;">
+          <h5 class="modal-title text-white" id="modalPersonaLabel">Crear/Editar Persona</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form method="post" action="{% url 'crear_persona' %}" id="formPersona">
+            {% csrf_token %}
+            <input type="hidden" name="id_persona" id="id_persona">
+            <div class="mb-3">
+              <label for="id_nombre" class="form-label">Nombre</label>
+              {{ form.nombre }}
+            </div>
+            <div class="mb-3">
+              <label for="id_apellido" class="form-label">Apellido</label>
+              {{ form.apellido }}
+            </div>
+            <div class="mb-3">
+              <label for="id_dni" class="form-label">DNI</label>
+              {{ form.dni }}
+            </div>
+            <div class="mb-3">
+              <label for="id_email" class="form-label">Email</label>
+              {{ form.email }}
+              {% if form.email.errors %}
+                <div class="text-danger">{{ form.email.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              <label for="id_prefijo" class="form-label">Prefijo Pais</label>
+              {{ form.prefijo_pais }}
+            </div>
+            <div class="mb-3">
+              <label for="id_telefono" class="form-label">Teléfono</label>
+              {{ form.telefono }}
+            </div>
+            <div class="mb-3">
+              <label for="id_fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+              {{ form.fecha_nacimiento }}
+            </div>
+            <div class="mb-3">
+              <label for="id_genero" class="form-label">Genero</label>
+              {{ form.genero }}
+            </div>
+            <div class="mb-3">
+              <label for="id_pais" class="form-label">Pais</label>
+              {{ form.pais }}
+            </div>
+            <div class="mb-3">
+              <label for="id_provincia" class="form-label">Provincia</label>
+              {{ form.provincia }}
+            </div>
+            <div class="mb-3">
+              <label for="id_ciudad" class="form-label">Ciudad</label>
+              {{ form.ciudad }}
+            </div>
+            <div class="mb-3">
+              <label for="id_calle" class="form-label">Calle</label>
+              {{ form.calle }}
+            </div>
+            <div class="mb-3">
+              <label for="id_numero" class="form-label">Numero</label>
+              {{ form.numero }}
+            </div>
+            <div class="mb-3">
+              <label for="id_tipo_usuario" class="form-label">Tipo de Usuario</label>
+              {{ form.tipo_usuario }}
+            </div>
+
+              <div id="campoEstado" class="mb-3" style="display: none;">
+                <label for="id_estado" class="form-label">Estado</label>
+                {{ form.estado }}
+              </div>
+              <div id="campoDepartamento" class="mb-3" style="display: none;">
+                <label for="id_departamento" class="form-label">Departamento</label>
+                {{ form.departamento }}
+                {% if form.departamento.errors %}
+                  <div class="text-danger">{{ form.departamento.errors }}</div>
+                {% endif %}
+              </div>
+              <div id="campoCargo" class="mb-3" style="display: none;">
+                <label for="id_cargo" class="form-label">Cargo</label>
+                {{ form.cargo }}
+              </div>
+            
+              <input type="hidden" name="accion" id="accion_input" value="">
+
+              <div class="modal-footer bg-light">
+                <button type="submit" class="btn btn-success fw-bold" onclick="setAccion('guardar')">
+                  <i class="bi bi-save"></i> Guardar
+                </button>
+                <button type="submit" class="btn btn-primary fw-bold" onclick="setAccion('guardar_crear_contrato')">
+                  <i class="bi bi-file-earmark-text"></i> Guardar y Crear Contrato
+                </button>
+              </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Ver Detalles -->
+  {% for persona in personas %}
+  <div class="modal fade" id="modalVerPersona{{ persona.id }}" tabindex="-1" aria-labelledby="modalVerPersonaLabel{{ persona.id }}" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 6rem;">
+      <div class="modal-content">
+        <div class="modal-header"  style="background-color: #3c8dbc;">
+          <h5 class="modal-title" id="modalVerPersonaLabel{{ persona.id }}">Detalles de la Persona</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Nombre:</strong> <span>{{ persona.nombre }}</span></p>
+          <p><strong>Apellido:</strong> <span>{{ persona.apellido }}</span></p>
+          <p><strong>DNI:</strong> <span>{{ persona.dni }}</span></p>
+          <p><strong>Email:</strong> <span>{{ persona.email }}</span></p>
+          <p><strong>Teléfono:</strong> <span>{{ persona.telefono_completo }}</span></p>
+          <p><strong>Fecha de Nacimiento:</strong> <span>{{ persona.fecha_nacimiento }}</span></p>
+          <p><strong>Genero:</strong> <span>{{ persona.genero }}</span></p>
+          <p><strong>Lugar:</strong> <span>{{ persona.pais|add:", "|add:persona.provincia|add:", "|add:persona.ciudad }}</span></p>
+          <p><strong>Dirección:</strong> <span>{{ persona.calle|add:" "|add:persona.numero }}</span></p>
+          <p><strong>Tipo de Usuario:</strong> <span>{{ persona.tipo_usuario }}</span></p>
+          {% if persona.tipo_persona != 'normal' %}
+            <p><strong>Estado del Empleado:</strong> <span>{{ persona.estado }}</span></p>
+            <p><strong>Departamento:</strong> <span>{{ persona.departamento_nombre }}</span></p>
+            <p><strong>Cargo:</strong> <span>{{ persona.nombre_cargo }}</span></p>
+        {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- Modal para Confirmar Eliminación -->
+  <div class="modal fade" id="modalEliminarPersona" tabindex="-1" aria-labelledby="modalEliminarPersonaLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 10rem;">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: #3c8dbc;">
+          <h5 class="modal-title" id="modalEliminarPersonaLabel">Confirmar Eliminación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas eliminar esta Persona?</p>
+        </div>
+        <div class="modal-footer">
+          <form id="formEliminarPersona" method="post">
+            {% csrf_token %}
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-danger">Eliminar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const tipoUsuarioSelect = document.getElementById('id_tipo_usuario');
+    const departamentoSelect = document.getElementById('id_departamento');
+    const cargoSelect = document.getElementById('id_cargo');
+
+
+    function toggleCampos() {
+      const tipoUsuario = tipoUsuarioSelect.value;
+      const campoEstado = document.getElementById('campoEstado');
+      const campoCargo = document.getElementById('campoCargo');
+      const campoDepartamento = document.getElementById('campoDepartamento');
+      const idPersona = document.getElementById('id_persona').value;
+
+      if (tipoUsuario === 'admin') {
+        campoDepartamento.style.display = 'none';
+        campoCargo.style.display = 'none';
+        campoEstado.style.display = 'none';
+        return;
+      }
+      const mostrar = ['empleado', 'jefe', 'gerente'].includes(tipoUsuario);
+
+      campoDepartamento.style.display = mostrar ? 'block' : 'none';
+
+      if (tipoUsuario === 'gerente' || tipoUsuario === 'jefe') {
+        campoCargo.style.display = 'none';
+      } else {
+        campoCargo.style.display = mostrar ? 'block' : 'none';
+      }
+      campoEstado.style.display = (mostrar && idPersona) ? 'block' : 'none';
+    }
+
+    function cargarCargos(deptId, tipoUsuario, cargoSeleccionado = null) {
+      if (!deptId) {
+        cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
+        return;
+      }
+      cargoSelect.innerHTML = '<option value="">Cargando...</option>';
+
+      fetch(`/personas/cargos_por_departamento/${deptId}/?tipo_usuario=${tipoUsuario}`)
+        .then(response => response.json())
+        .then(data => {
+          cargoSelect.innerHTML = '';
+
+          if (data.cargos.length === 0) {
+            const option = document.createElement('option');
+            option.value = "";
+            option.textContent = "No hay cargos disponibles";
+            option.disabled = true;
+            cargoSelect.appendChild(option);
+            return;
+          }
+
+          cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
+          data.cargos.forEach(c => {
+            const option = document.createElement('option');
+            option.value = c.id;
+            option.textContent = c.nombre;
+          
+            if (c.vacante === 0) {
+              option.disabled = true;
+              option.style.color = 'gray';
+            }
+            if (cargoSeleccionado && c.id == cargoSeleccionado) {
+              option.selected = true;
+            }
+            cargoSelect.appendChild(option);
+          });
+        });
+    }
+
+    function limpiarFormulario() {
+      const form = document.getElementById('formPersona');
+      form.reset();
+      document.getElementById('id_persona').value = '';
+      document.getElementById('modalPersonaLabel').textContent = 'Crear Nueva Persona';
+      document.querySelector('#formPersona button[type="submit"]').textContent = 'Guardar';
+      departamentoSelect.selectedIndex = 0;
+      cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
+      document.getElementById('campoEstado').style.display = 'none';
+      toggleCampos();
+    }
+
+    function editarPersona(button) {
+      const id = button.getAttribute('data-id');
+      const estado = button.getAttribute('data-estado');
+      const departamento = button.getAttribute('data-departamento');
+      const tipoUsuario = button.getAttribute('data-tipo-usuario');
+      const cargo = button.getAttribute('data-cargo');
+
+      document.getElementById('id_persona').value = id;
+      document.getElementById('id_nombre').value = button.getAttribute('data-nombre');
+      document.getElementById('id_apellido').value = button.getAttribute('data-apellido');
+      document.getElementById('id_dni').value = button.getAttribute('data-dni');
+      document.getElementById('id_email').value = button.getAttribute('data-email');
+      document.getElementById('id_prefijo_pais').value = button.getAttribute('data-prefijo');
+      document.getElementById('id_telefono').value = button.getAttribute('data-telefono');
+      document.getElementById('id_fecha_nacimiento').value = button.getAttribute('data-fecha-nacimiento');
+      document.getElementById('id_genero').value = button.getAttribute('data-genero');
+      document.getElementById('id_pais').value = button.getAttribute('data-pais');
+      document.getElementById('id_provincia').value = button.getAttribute('data-provincia');
+      document.getElementById('id_ciudad').value = button.getAttribute('data-ciudad');
+      document.getElementById('id_calle').value = button.getAttribute('data-calle');
+      document.getElementById('id_numero').value = button.getAttribute('data-numero');
+      tipoUsuarioSelect.value = tipoUsuario;
+
+      toggleCampos();
+
+      if (estado) {
+        document.getElementById('id_estado').value = estado;
+        document.getElementById('campoEstado').style.display = 'block';
+      } else {
+        document.getElementById('campoEstado').style.display = 'none';
+      }
+
+      if (departamento) {
+        departamentoSelect.value = departamento;
+        // Solo cargar cargos si el tipo_usuario necesita mostrar cargos
+        if (['empleado'].includes(tipoUsuario)) {
+          cargarCargos(departamento, tipoUsuario, cargo);
+        } else {
+          cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
+        }
+      } else {
+        departamentoSelect.selectedIndex = 0;
+        cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
+      }
+
+      document.getElementById('modalPersonaLabel').textContent = 'Editar Persona';
+      document.querySelector('#formPersona button[type="submit"]').textContent = 'Actualizar';
+    }
+
+    // Listener para cuando cambia el tipo_usuario
+    tipoUsuarioSelect.addEventListener('change', function () {
+      toggleCampos();
+
+      const deptId = departamentoSelect.value;
+      const tipoUsuario = this.value;
+
+      // Si el tipo_usuario es empleado y hay departamento, cargar cargos
+      if (deptId && ['empleado'].includes(tipoUsuario)) {
+        cargarCargos(deptId, tipoUsuario);
+      } else {
+        cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
+      }
+    });
+
+    // Listener para cuando cambia el departamento
+    departamentoSelect.addEventListener('change', function () {
+      const deptId = this.value;
+      const tipoUsuario = tipoUsuarioSelect.value;
+      cargarCargos(deptId, tipoUsuario);
+    });
+
+    // Botón crear limpia el formulario
+    document.getElementById('btnCrearPersona').addEventListener('click', limpiarFormulario);
+
+    // Modal eliminar (sin cambios)
+    const modalEliminar = document.getElementById('modalEliminarPersona');
+    modalEliminar.addEventListener('show.bs.modal', function (event) {
+      const button = event.relatedTarget;
+      const personaId = button.getAttribute('data-id');
+      const form = document.getElementById('formEliminarPersona');
+      form.action = `/personas/${personaId}/eliminar/`;
+    });
+
+    // Exponer función para el botón editar
+    window.editarPersona = editarPersona;
+
+    // Inicializar toggleCampos al cargar DOM
+    toggleCampos();
+
+
+    const buscadorDNI = document.getElementById("buscadorDNI");
+    const filtroTipoUsuario = document.getElementById("filtroTipoUsuario");
+    const filas = document.querySelectorAll("#tablaPersonas tbody tr");
+
+    function aplicarFiltros() {
+      const dniBuscado = buscadorDNI.value.trim().toLowerCase();
+      const tipoSeleccionado = filtroTipoUsuario.value.toLowerCase();
+
+      filas.forEach(fila => {
+        const dni = fila.getAttribute("data-dni").toLowerCase();
+        const tipo = fila.getAttribute("data-tipo").toLowerCase();
+
+        const coincideDNI = dni.startsWith(dniBuscado);
+        const coincideTipo = tipoSeleccionado === "todos" || tipo === tipoSeleccionado;
+
+        fila.style.display = (coincideDNI && coincideTipo) ? "" : "none";
+      });
+    }
+
+    buscadorDNI.addEventListener("input", aplicarFiltros);
+    filtroTipoUsuario.addEventListener("change", aplicarFiltros);
+});
+
+
+// Filtro combinado por DNI y Tipo de Usuario
+const buscadorDNI = document.getElementById("buscadorDNI");
+const filtroTipoUsuario = document.getElementById("filtroTipoUsuario");
+const filas = document.querySelectorAll("#tablaPersonas tbody tr");
+
+function aplicarFiltros() {
+  const dniFiltro = buscadorDNI.value.trim().toLowerCase();
+  const tipoFiltro = filtroTipoUsuario.value;
+
+  document.querySelectorAll("#tablaPersonas tbody tr").forEach(fila => {
+    const dni = (fila.getAttribute("data-dni") || "").toLowerCase();
+    const tipo = fila.getAttribute("data-tipo");
+
+    const coincideDNI = dni.includes(dniFiltro);
+    const coincideTipo = (tipoFiltro === "todos" || tipo === tipoFiltro);
+
+    fila.style.display = (coincideDNI && coincideTipo) ? "" : "none";
+  });
+}
+
+
+// Eventos para aplicar filtros
+buscadorDNI.addEventListener("input", aplicarFiltros);
+filtroTipoUsuario.addEventListener("change", aplicarFiltros);
+
+
+
+
+
+function setAccion(valor) {
+    document.getElementById("accion_input").value = valor;
+  }
+
+
+</script>
+{% endblock %}

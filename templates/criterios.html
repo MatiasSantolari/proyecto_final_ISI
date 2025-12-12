@@ -1,20 +1,26 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
+{% load static %}
 
 {% block title %}Gestión de Criterios{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-  <h2 class="mb-4" style="color: var(--color-primario);">Gestión de Criterios</h2>
+<link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+<div class="container-fluid p-5 my-2">
+  <h4 class="mb-3" style="color: var(--color-primario);">Gestión de Criterios</h4>
 
-  <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalCriterio">
-    + Crear Nuevo Criterio
-  </button>
+  <div class="card mb-2">
+    <div class="card-header d-flex justify-content-between align-items-center mb-0">
+      <button type="button" class="btn mb-0 btn-primary" data-bs-toggle="modal" data-bs-target="#modalCriterio">
+        + Crear Nuevo Criterio
+      </button>
+    </div>
+  </div>
 
   <div class="card shadow-sm border-0">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.9rem;">
+        <table class="table table-sm table-hover table-striped table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.9rem;">
           <thead class="table-light text-center">
             <tr>
               <th>Descripción</th>
@@ -29,7 +35,7 @@
               <td>{{ c.tipo_criterio.descripcion }}</td>
               <td>
                 <div class="d-flex justify-content-center gap-2">
-                  <button class="btn btn-sm btn-outline-secondary"
+                  <button class="btn btn-sm btn-outline-secondary me-1"
                           data-bs-toggle="modal" data-bs-target="#modalCriterio"
                           data-id="{{ c.id }}"
                           data-descripcion="{{ c.descripcion }}"
@@ -37,7 +43,7 @@
                           onclick="editarCriterio(this)">
                     <i class="bi bi-pencil-square"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-info"
+                  <button class="btn btn-sm btn-outline-info me-1"
                           data-bs-toggle="modal"
                           data-bs-target="#modalVerCriterio{{ c.id }}">
                     <i class="bi bi-eye"></i>

@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from core.views import *
+from core import api
 
 from core import views 
 
@@ -96,7 +97,7 @@ urlpatterns = [
     path('nominas/eliminar/<int:id_nomina>/', nominas_view.eliminar_nomina, name='eliminar_nomina'),
     path('nominas/generar/', nominas_view.generar_nominas, name='generar_nominas'),
     path('nominas/confirmar/', nominas_view.confirmar_nominas, name='confirmar_nominas'),
-    path("mis-nominas/", views.mis_nominas, name="mis_nominas"), # Empleado
+    path("mis-nominas/", nominas_view.mis_nominas, name="mis_nominas"), # Empleado
 
 
     ## ASISTENCIA ##
@@ -113,10 +114,10 @@ urlpatterns = [
 
 
     ## CONTRATOS ##
-    path("contratos/", views.contratos, name="contratos"),
-    path("contratos/crear/", views.crear_contrato, name="crear_contrato"),
-    path("contratos/renovar/<int:contrato_id>/", views.crear_contrato, name="renovar_contrato"),
-    path("contratos/finalizar/<int:contrato_id>/", views.finalizar_contrato, name="finalizar_contrato"),
+    path("contratos/", contratos_view.contratos, name="contratos"),
+    path("contratos/crear/", contratos_view.crear_contrato, name="crear_contrato"),
+    path("contratos/renovar/<int:contrato_id>/", contratos_view.crear_contrato, name="renovar_contrato"),
+    path("contratos/finalizar/<int:contrato_id>/", contratos_view.finalizar_contrato, name="finalizar_contrato"),
 
 
     path("mis_contratos/", contratos_view.mis_contratos, name="mis_contratos"),
@@ -134,9 +135,9 @@ urlpatterns = [
     
 
     ## CRITERIO ##
-    path('criterios/', views.criterios, name='criterios'),
-    path('criterios/crear/', views.crear_criterio, name='crear_criterio'),
-    path('criterios/<int:id>/eliminar/', views.eliminar_criterio, name='eliminar_criterio'),
+    path('criterios/', criterios_view.criterios, name='criterios'),
+    path('criterios/crear/', criterios_view.crear_criterio, name='crear_criterio'),
+    path('criterios/<int:id>/eliminar/', criterios_view.eliminar_criterio, name='eliminar_criterio'),
 
 
     ## EVALUACION ##
@@ -146,7 +147,7 @@ urlpatterns = [
     path('evaluaciones/<int:id_evaluacion>/desactivar/', evaluaciones_view.desactivar_evaluacion, name='desactivar_evaluacion'),
     path('evaluaciones/<int:id_evaluacion>/eliminar/', evaluaciones_view.eliminar_evaluacion, name='eliminar_evaluacion'),
     path('evaluaciones/ver/<int:id_evaluacion>/', evaluaciones_view.ver_evaluacion, name='ver_evaluacion'),
-    path('evaluaciones/<int:evaluacion_id>/duplicar/', views.duplicar_evaluacion, name='duplicar_evaluacion'),
+    path('evaluaciones/<int:evaluacion_id>/duplicar/', evaluaciones_view.duplicar_evaluacion, name='duplicar_evaluacion'),
 
     path("evaluaciones/<int:id_evaluacion>/empleados/", evaluaciones_view.gestionar_empleados, name="evaluacion_empleados"),
     path("evaluaciones/<int:id_evaluacion>/empleados/<int:id_empleado>/asignar/", evaluaciones_view.asignar_empleado, name="asignar_empleado"),
@@ -156,18 +157,46 @@ urlpatterns = [
 
 
     ## CHATBOT ##
-    path("chatbot/get_response/", views.get_response_chatbot, name="chatbot_response"),
+    path("chatbot/get_response/", chatbot_view.get_response_chatbot, name="chatbot_response"),
 
 
     ###### INFORMES ######
-                    ## ASISTENCIAS ##
-    path('dashboard/asistencias/data/', informes_view.dashboard_asistencias_data, name='dashboard_asistencias_data'),
-    path('informe/asistencias/', informes_view.informe_asistencias, name='informe_asistencias'),
-    path('informe/asistencias/data/', informes_view.informe_asistencias_data, name='informe_asistencias_data'),
-                    ## VACACIONES ##
-    path('dashboard/vacaciones/data/', informes_view.dashboard_vacaciones_data, name='dashboard_vacaciones_data'),
-    path('informe/vacaciones/', informes_view.informe_vacaciones, name='informe_vacaciones'),
-    path('informe/vacaciones/data/', informes_view.informe_vacaciones_data, name='informe_vacaciones_data'),
+    path('dashboard/', informes_view.dashboard_view, name='dashboard'),
+    path('dashboard/api/kpis/', api.api_kpis, name='api_kpis'),
+    path('dashboard/api/vacaciones/', api.api_vacaciones, name='api_vacaciones'),
+    path('dashboard/api/asistencias/', api.api_asistencias, name='api_asistencias'),
+    path('dashboard/api/evaluaciones/', api.api_evaluaciones, name='api_evaluaciones'),
+    path('dashboard/api/nominas/', api.api_nominas, name='api_nominas'),
+    path('dashboard/api/costo_laboral_comp/', api.api_labor_cost_comparison, name='api_costo_laboral_comp'),
+    path('dashboard/api/estructura/', api.api_estructura, name='api_estructura'),
+    path('dashboard/api/objetivos/', api.api_objetivos, name='api_objetivos'),
+
+    path('api/departamentos/list/', informes_view.api_departamentos_list, name='api_departamentos_list'),
+    
+            #### ASISTENCIAS DETALLE ####
+    path('asistencias/detalle/', informes_view.asistencias_detalle_view, name='asistencias_detalle'),
+    path('api/asistencias/detalle/', informes_view.api_asistencias_detalle, name='api_asistencias_detalle'),
+    path('api/asistencias/exportar/csv/', informes_view.exportar_asistencias_csv, name='exportar_asistencias_csv'),
+    #path('api/asistencias/exportar/pdf/', informes_view.exportar_asistencias_pdf, name='exportar_asistencias_pdf'),
+            #### EMPLEADOS DETALLE ####
+    path('empleados/detalle/', informes_view.empleados_detalle_view, name='empleados_detalle'),
+    path('api/empleados/detalle/', informes_view.api_empleados_detalle, name='api_empleados_detalle'),
+    path('api/empleados/exportar/csv/', informes_view.exportar_empleados_csv, name='exportar_empleados_csv'),
+    path('empleado/<int:empleado_id>/', informes_view.empleado_perfil_detalle_view, name='empleado_perfil_detalle'),
+    path('api/empleado/<int:empleado_id>/nominas/', informes_view.api_empleado_nominas, name='api_empleado_nominas'),
+    path('api/empleado/<int:empleado_id>/evaluaciones/', informes_view.api_empleado_evaluaciones, name='api_empleado_evaluaciones'),
+    path('api/empleado/<int:empleado_id>/asistencia/', informes_view.api_empleado_asistencia, name='api_empleado_asistencia'),
+    path('api/empleado/<int:empleado_id>/vacaciones/', informes_view.api_empleado_vacaciones, name='api_empleado_vacaciones'),
+    path('api/empleado/<int:empleado_id>/objetivos/', informes_view.api_empleado_objetivos, name='api_empleado_objetivos'),
+            #### NOMINAS DETALLE ####
+    path('nominas/detalle/', informes_view.nominas_detalle_view, name='nominas_detalle'),
+    path('api/nominas/detalle/', informes_view.api_nominas_detalle, name='api_nominas_detalle'),
+    path('api/nominas/exportar/csv/', informes_view.exportar_nominas_csv, name='exportar_nominas_csv'),
+            #### EVALUACIONES DETALLE ####
+    path('evaluaciones/detalle/', informes_view.evaluaciones_detalle_view, name='evaluaciones_detalle'),
+    path('api/evaluaciones/detalle/', informes_view.api_evaluaciones_detalle, name='api_evaluaciones_detalle'),
+    path('api/evaluaciones/exportar/csv/', informes_view.exportar_evaluaciones_csv, name='exportar_evaluaciones_csv'),
+    path('api/evaluaciones/list/', informes_view.api_evaluaciones_list, name='api_evaluaciones_list'),    
 
 
 ##############################################

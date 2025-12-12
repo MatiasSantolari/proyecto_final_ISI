@@ -1,18 +1,22 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
+{% load static %}
 
 {% block title %}Gestión de Tipos de Criterios de Evaluacion{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-  <h2 class="mb-4" style="color: var(--color-primario);">Gestión de Tipos de Criterios de Evaluacion</h2>
+<link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+<div class="container-fluid p-5 my-2">
+  <h4 class="mb-3" style="color: var(--color-primario);">Gestión de Tipos de Criterios de Evaluacion</h4>
 
-  <!-- Botón para Crear -->
-  <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalTipoCriterio">
-    + Crear Nuevo Tipo Criterio
-  </button>
+  <div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center mb-0">
+      <button type="button" class="btn mb-0 btn-primary" data-bs-toggle="modal" data-bs-target="#modalTipoCriterio">
+        + Crear Nuevo Tipo Criterio
+      </button>
+    </div>
+  </div>
 
-  <!-- Tabla de Tipos de Criterios de Evaluacion -->
   <div class="card shadow-sm border-0">
     <div class="card-body">
       <div class="table-responsive">
@@ -20,7 +24,7 @@
           <thead class="table-light text-center">
             <tr>
               <th>Descripcion</th>
-              <th style="width:12%;">Acciones</th>
+              <th style="width:15%;">Acciones</th>
             </tr>
           </thead>
           <tbody class="text-center">
@@ -29,7 +33,7 @@
               <td>{{ tipoC.descripcion }}</td>
               <td>
                 <div class="d-flex justify-content-center gap-2">
-                  <button class="btn btn-sm btn-outline-secondary"
+                  <button class="btn btn-sm btn-outline-secondary me-1"
                           data-bs-toggle="modal" data-bs-target="#modalTipoCriterio"
                           data-id="{{ tipoC.id }}"
                           data-descripcion="{{ tipoC.descripcion }}"
@@ -37,7 +41,7 @@
                           data-bs-toggle="tooltip" title="Editar">
                     <i class="bi bi-pencil-square"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-info"
+                  <button class="btn btn-sm btn-outline-info me-1"
                           data-bs-toggle="modal"
                           data-bs-target="#modalVerTipoCriterio{{ tipoC.id }}"
                           data-bs-toggle="tooltip" title="Ver">

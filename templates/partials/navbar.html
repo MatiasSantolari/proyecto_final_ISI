@@ -51,19 +51,12 @@
           <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
         </li>
       </ul>
-    
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item"><a class="nav-link fs-5" href="{% url 'home' %}"><i class="bi bi-house-door"></i> Inicio</a></li>
+     <ul class="navbar-nav align-items-center">
+        <li class="nav-item">
+            <a class="nav-link fs-5" href="{% url 'home' %}">RRHH System <i class="bi bi-house-door"></i></a>
+        </li>
       </ul>
-      <!--
-      <form class="d-flex me-3" role="search">
-        <input class="form-control me-2" type="search" placeholder="Buscar" aria-label="Buscar">
-        <button class="btn btn-outline-primary" type="submit">
-          <i class="fas fa-search"></i>
-        </button>
-      </form>
-      -->
-      <ul class="navbar-nav mb-2 mb-lg-0">
+      <ul class="navbar-nav mb-2 mb-lg-0 ms-auto">
         <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}">Registrar Asistencia</a></li>
         <li><a class="nav-link" href="{% url 'user_perfil' %}"><i class="bi bi-person me-2"></i> Perfil</a></li>
         <li class="nav-item dropdown ms-3">
@@ -90,6 +83,11 @@
           {% endif %}
         </li>
 
+        <li>
+          <button id="theme-toggle" class="btn nav-item">
+            <span id="theme-icon">🌙</span> 
+          </button>
+        </li>
        <!--
          <li class="nav-item dropdown">
           <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown">
@@ -147,28 +145,147 @@
       </div>
     </div>
 
+    <style>
+      body.dark-mode {
+          background-color: #121212 !important;
+          color: #f1f1f1 !important;
+      }
+
+      .dark-mode .card {
+          background-color: #1e1e1e !important;
+          color: #fff !important;
+      }
+
+      .dark-mode .navbar, 
+      .dark-mode .sidebar {
+          background-color: #1f1f1f !important;
+          color: #fff !important;
+      }
+
+
+      body {
+        background-color: #f8f9fa; 
+        color: #121212;           
+      }
+
+      body.dark-mode {
+          background-color: #121212 !important;
+          color: #f1f1f1 !important;
+      }
+
+      .dark-mode .card,
+      .dark-mode .bg-light, 
+      .dark-mode .navbar, 
+      .dark-mode .navbar-light,
+      .dark-mode .sidebar,
+      .dark-mode .form-wrapper {
+          background-color: #1e1e1e !important;
+          color: #fff !important;
+          border-color: #444 !important; 
+      }
+      
+      .dark-mode .text-dark,
+      .dark-mode h1, .dark-mode h2, .dark-mode h3, .dark-mode h4, .dark-mode h5, {
+          color: #fff !important;
+      }
+      
+      .dark-mode .form-control,
+      .dark-mode .form-select {
+          background-color: #333 !important;
+          border-color: #555 !important;
+          color: #fff !important;
+      }
+      
+      .dark-mode .nav-tabs {
+          background-color: #1e1e1e !important;
+          box-shadow: none !important;
+      }
+
+      .dark-mode .nav-link {
+          color: #aaa !important;
+      }
+      
+      .dark-mode .nav-link.active {
+          background-color: #121212 !important;
+          color: #fff !important;
+      }
+
+      .dark-mode .list-group-item {
+          background-color: #2f2f2fff !important; 
+          color: #e1e1e1ff !important;
+          border-color: #444 !important;
+      }
+
+      .dark-mode .text-muted,
+      .dark-mode .text-secondary {
+          color: #aaa !important; 
+      }
+
+      .dark-mode .btn .bi {
+          color: inherit !important; 
+      }
+
+      .dark-mode .text-muted .bi,
+      .dark-mode .text-secondary .bi {
+          color: #aaa !important;
+      }
+    </style>
+
+
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-      const rolInput = document.getElementById("inputRolSeleccionado");
-      const rolTexto = document.getElementById("rolSeleccionadoTexto");
-      const modalElement = document.getElementById('confirmarCambioRol');
-      const modal = new bootstrap.Modal(modalElement);
+        const rolInput = document.getElementById("inputRolSeleccionado");
+        const rolTexto = document.getElementById("rolSeleccionadoTexto");
+        const modalElement = document.getElementById('confirmarCambioRol');
+        const modal = new bootstrap.Modal(modalElement);
 
-      document.querySelectorAll('.dropdown-toggle').forEach(dropdown => {
-        new bootstrap.Dropdown(dropdown);
-      });
-  
-      document.querySelectorAll("[data-rol]").forEach(item => {
-        item.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const rol = item.dataset.rol;
-          rolInput.value = rol;      
-          rolTexto.textContent = rol; 
-          modal.show();
+        document.querySelectorAll('.dropdown-toggle').forEach(dropdown => {
+          new bootstrap.Dropdown(dropdown);
         });
+    
+        document.querySelectorAll("[data-rol]").forEach(item => {
+          item.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const rol = item.dataset.rol;
+            rolInput.value = rol;      
+            rolTexto.textContent = rol; 
+            modal.show();
+          });
+        });    
       });
+
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const toggleBtn = document.getElementById("theme-toggle");
+        const themeIcon = document.getElementById("theme-icon");
+        const savedTheme = localStorage.getItem("theme");
+
+        function applyTheme(theme) {
+            if (theme === "dark") {
+                document.body.classList.add("dark-mode");
+                themeIcon.textContent = "☀️"; 
+            } else {
+                document.body.classList.remove("dark-mode");
+                themeIcon.textContent = "🌙"; 
+            }
+        }
         
+        if (savedTheme) {
+        applyTheme(savedTheme);
+        } else {
+            applyTheme("light"); 
+        }
+
+        toggleBtn.addEventListener("click", function () {
+            const isDarkMode = document.body.classList.contains("dark-mode");
+            
+            const newTheme = isDarkMode ? "light" : "dark";
+
+            applyTheme(newTheme);
+            localStorage.setItem("theme", newTheme);
+        });
     });
+
     </script>
 </nav>

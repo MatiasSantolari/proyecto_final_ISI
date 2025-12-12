@@ -1,28 +1,34 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
 {% load custom_filters %}
+{% load static %}
 
 {% block title %}Gestión de Evaluaciones{% endblock %}
 
 {% block content %}
-<div class="container-fluid my-5">
-  <h2 class="mb-4" style="color: var(--color-primario);">Gestión de Evaluaciones</h2>
+<link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+<div class="container-fluid p-5 my-3">
+  <h4 class="mb-3" style="color: var(--color-primario);">Gestión de Evaluaciones</h4>
 
-  <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalEvaluacion">
-    + Crear Nueva Evaluación
-  </button>
-
+  <div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center mb-0">
+      <button type="button" class="btn mb-0 btn-primary" data-bs-toggle="modal" data-bs-target="#modalEvaluacion">
+        + Crear Nueva Evaluación
+      </button>
+    </div>
+  </div>
+  
   <div class="card shadow-sm border-0">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-sm table-hover table-bordered align-middle" style="margin-bottom: 5rem;">
+        <table class="table table-sm table-striped table-hover table-bordered align-middle" style="margin-bottom: 7rem;">
           <thead class="table-light text-center">
             <tr>
               <th>Descripción</th>
               <th>Fecha Evaluación</th>
               <th style="width:4%;">Activo</th>
               <th>Criterios</th>
-              <th style="width:9%;">Asignar Emp.</th>
+              <th style="width:9%;">Empleados</th>
               <th style="width:8%;">Acciones</th>
             </tr>
           </thead>
@@ -41,21 +47,23 @@
 
               <td>
                 {% for ec in eval.evaluacioncriterio_set.all %}
-                  <span class="badge bg-info text-dark" style="font-size: 0.6rem;">{{ ec.criterio.descripcion }} ({{ ec.ponderacion|format_ponderacion }})</span>
+                  <span class="badge bg-info" style="font-size: 0.60rem;">{{ ec.criterio.descripcion }} ({{ ec.ponderacion|format_ponderacion }})</span>
                 {% empty %}-{% endfor %}
               </td>
               <td>
                 {% if eval.activo %}
-                <a href="{% url 'evaluacion_empleados' eval.id %}" class="btn btn-sm btn-primary">
+                <a href="{% url 'evaluacion_empleados' eval.id %}?modo=editar" class="btn btn-sm btn-primary">
                   <i class="bi bi-pencil-square"></i> 
                 </a>
                 {%else%}
-                  -
+                  <a href="{% url 'evaluacion_empleados' eval.id %}?modo=ver" class="btn btn-sm btn-warning">
+                  <i class="bi bi-eye-fill"></i>  
+                </a>
                 {%endif%}
               </td>
               <td>
                 <div class="d-flex justify-content-center gap-2 align-items-center">
-                  <button class="btn btn-sm btn-outline-info btn-ver-evaluacion" data-id="{{ eval.id }}" title="Ver">
+                  <button class="btn btn-sm btn-outline-info me-1 btn-ver-evaluacion" data-id="{{ eval.id }}" title="Ver">
                     <i class="bi bi-eye"></i>
                   </button>
 
@@ -79,16 +87,16 @@
                       </li>
                       {% if eval.activo %}
                       <li>
-  <button 
-    type="button" 
-    class="dropdown-item btn-abrir-modal-desactivar"
-    data-id="{{ eval.id }}" 
-    data-descripcion="{{ eval.descripcion }}"
-    data-bs-toggle="modal" 
-    data-bs-target="#modalDesactivarEvaluacion">
-    <i class="bi bi-trash3 me-2"></i> Desactivar
-  </button>
-</li>
+                        <button 
+                          type="button" 
+                          class="dropdown-item btn-abrir-modal-desactivar"
+                          data-id="{{ eval.id }}" 
+                          data-descripcion="{{ eval.descripcion }}"
+                          data-bs-toggle="modal" 
+                          data-bs-target="#modalDesactivarEvaluacion">
+                          <i class="bi bi-trash3 me-2"></i> Desactivar
+                        </button>
+                      </li>
 
                       {% else %}
                       <li>
