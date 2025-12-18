@@ -1,152 +1,283 @@
 {% load filename_filters %}
-<div class="tab-pane fade" id="datos-personales" role="tabpanel">
-  <form method="POST" enctype="multipart/form-data" id="perfilForm" class="text-start">
+<div class="tab-pane fade p-2" id="datos-personales" role="tabpanel">
+  <form method="POST" enctype="multipart/form-data" id="perfilForm" action="{% url 'perfil_save' %}" class="text-start">
     {% csrf_token %}
     {{ form.non_field_errors }}
-          
-    <div class="bg-success text-white p-2 d-flex justify-content-between align-items-center rounded mb-4 shadow-sm">
-    <i class="bi bi-cloud-arrow-up-fill me-2 fs-5"></i>
-    <strong>Sube tu CV aquí</strong>
-    <span class="ms-2 text-light small d-block">Formatos permitidos: PDF o ZIP</span>
-
-    <div class="d-flex align-items-center gap-2">
-      <button type="button" class="btn btn-light btn-sm btn-outline-secondary" id="seleccionarCVBtn">
-        <i class="bi bi-upload"></i> Seleccionar archivo
-      </button>
-
-      {% if form.instance.cvitae %}
-        <input type="text" id="cvitaeNombre" class="form-control bg-white" style="width: 220px;" value="{{ form.instance.cvitae.name|basename }}" readonly>
-      {% else %}
-        <input type="text" id="cvitaeNombre" class="form-control bg-white" style="width: 220px;" placeholder="Ningún archivo seleccionado" readonly>
-      {% endif %}
-
-      {% if request.user.persona.cvitae %}
-        <a href="{{ request.user.persona.cvitae.url }}" target="_blank" id="verCVBtn" class="btn btn-primary btn-sm">
-          <i class="bi bi-file-earmark-arrow-down"></i> Ver
-        </a>
-      {% endif %}
-      {% if request.user.persona.cvitae %}
-      <button type="button" id="eliminarCVBtn" class="btn btn-sm btn-danger">
-        <i class="bi bi-x-circle"></i> Eliminar
-      </button>
-    {% endif %}
+  
+  
+<!-- Envuelve todo en una fila (row) de Bootstrap -->
+<div class="row g-4 align-items-center mb-3">
+    
+    <!-- Columna Izquierda para el Avatar (ocupa 2 columnas en pantallas medianas+) -->
+    <div class="col-md-2 d-flex justify-content-center">
+        <div id="avatarContainerEdit">
+            {% if request.user.persona.avatar %}
+              <img id="previewAvatarEdit" src="{{ request.user.persona.avatar.url }}" alt="Avatar">
+            {% else %}
+              <div id="defaultAvatarIcon" class="bg-secondary d-flex justify-content-center align-items-center text-white">
+                <i class="bi bi-person-circle" style="font-size: 3rem;"></i>
+              </div>
+            {% endif %}
+            <div id="avatarPlus"><i class="bi bi-plus"></i></div>
+            
+             <div id="hiddenAvatarInputFields">
+                {{ form.avatar }} 
+            </div>
+        </div>
     </div>
-    {{ form.cvitae }}
-  </div>
 
-    <div class="row g-3">
+    <!-- Columna Derecha para el CV (ocupa 10 columnas en pantallas medianas+) -->
+    <div class="col-md-10">
+        <div class="cv-upload-container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-cloud-arrow-up-fill me-2 fs-5"></i>
+              <div>
+                <strong>Sube tu CV aquí</strong>
+                <span class="d-block small">Formatos permitidos: PDF o ZIP</span>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              <button type="button" class="btn btn-light btn-sm btn-outline-secondary" id="seleccionarCVBtn">
+                <i class="bi bi-upload"></i> Seleccionar archivo
+              </button>
+
+              {% if form.instance.cvitae %}
+                <input type="text" id="cvitaeNombre" class="form-control" style="width: 220px;" value="{{ form.instance.cvitae.name|basename }}" readonly>
+              {% else %}
+                <input type="text" id="cvitaeNombre" class="form-control" style="width: 220px;" placeholder="Ningún archivo seleccionado" readonly>
+              {% endif %}
+
+              {% if request.user.persona.cvitae %}
+                <a href="{{ request.user.persona.cvitae.url }}" target="_blank" id="verCVBtn" class="btn btn-primary btn-sm me-2">
+                  <i class="bi bi-file-earmark-arrow-down"></i>
+                </a>
+              {% endif %}
+              {% if request.user.persona.cvitae %}
+              <button type="button" id="eliminarCVBtn" class="btn btn-sm btn-danger">
+                <i class="bi bi-trash"></i> 
+              </button>
+            {% endif %}
+            </div>
+            {{ form.cvitae }}
+          </div>
+    </div>
+</div>
+
+  
+  <div class="p-3">
+    <div class="row g-2">
       <h5 class="section-title">Identificación</h5>
     
-      <div class="col-md-5 align-items-center">
-        <label for="nombre" class="col-md-3 fw-semibold">Nombres</label>
-        <div class="col-md-8 input-group">
+      <div class="col-md-4">
+        <label for="nombre" class="fw-semibold form-label">Nombres</label>
+        <div class="input-group">
           {{ form.nombre.errors }}
           {{ form.nombre }}
-        <i class="bi bi-person-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          <span class="input-group-text"><i class="bi bi-person-fill text-muted"></i></span>
         </div>
       </div>
 
-      <div class="col-md-5 align-items-center">
-        <label for="apellido" class="col-md-3 fw-semibold">Apellidos</label>
-        <div class="col-md-8 input-group">
+      <div class="col-md-4">
+        <label for="apellido" class="fw-semibold form-label">Apellidos</label>
+        <div class="input-group">
           {{ form.apellido.errors }}
           {{ form.apellido }}
-          <i class="bi bi-person-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          <span class="input-group-text"><i class="bi bi-person-fill text-muted"></i></span>
         </div>
       </div>
 
-      <div class="col-md-2 align-items-center">
-        <label for="dni" class="col-md-3 fw-semibold">DNI</label>
-        <div class="col-md-8 input-group">
+      <div class="col-md-4">
+        <label for="dni" class="fw-semibold form-label">DNI</label>
+        <div class="input-group">
           {{ form.dni.errors }}
           {{ form.dni }}
-          <i class="bi bi-credit-card-2-front-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
+          <span class="input-group-text"><i class="bi bi-credit-card-2-front-fill text-muted"></i></span>
         </div>
       </div>
     </div>
       
-    <div class="row g-3 mt-2">
+    <div class="row g-2 mt-3"> 
       <h5 class="section-title">Contacto</h5>
-      <div class="row mb-3">
-
-        <div class="col-md-2 position-relative">
-          <label for="prefijo" class="fw-semibold">Prefijo</label>
-          <div class="col-md-8 input-group">
-            {{ form.prefijo_pais.errors }}
-            {{ form.prefijo_pais }}
-            <i class="bi bi-globe position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
-          </div>
-        </div>
-        
-        <div class="col-md-3 position-relative">
-          <label for="telefono" class="fw-semibold">Telefono</label>
-          <div class="col-md-8 input-group">
-            {{ form.telefono.errors }}
-            {{ form.telefono }}
-            <i class="bi bi-telephone-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
-          </div>
-        </div>
       
+      <div class="col-md-2">
+        <label for="prefijo_pais" class="fw-semibold form-label">Prefijo</label>
+        <div class="input-group">
+          {{ form.prefijo_pais.errors }}
+          {{ form.prefijo_pais }}
+          <span class="input-group-text"><i class="bi bi-globe text-muted"></i></span>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <label for="telefono" class="fw-semibold form-label">Teléfono</label>
+        <div class="input-group">
+          {{ form.telefono.errors }}
+          {{ form.telefono }}
+          <span class="input-group-text"><i class="bi bi-telephone-fill text-muted"></i></span>
+        </div>
       </div>
     </div>
       
-    <div class="row g-3 mt-1">  
+     <div class="row g-2 mt-3">  
       <h5 class="section-title">Lugar de Residencia</h5>
-      <div class="row mb-3">
       
-        <div class="col-md-4 position-relative">
-          <label for="pais" class="fw-semibold">País</label>
-          <div class="col-md-8 input-group">
-            {{ form.pais.errors }}
-            {{ form.pais }}
-            <i class="bi bi-flag position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
-          </div>
+      <div class="col-md-4">
+        <label for="pais" class="fw-semibold form-label">País</label>
+        <div class="input-group">
+          {{ form.pais.errors }}
+          {{ form.pais }}
+          <span class="input-group-text"><i class="bi bi-flag text-muted"></i></span>
         </div>
+      </div>
 
-        <div class="col-md-4 position-relative">
-          <label for="provincia" class="fw-semibold">Provincia</label>
-          <div class="col-md-8 input-group">
-            {{ form.provincia.errors }}
-            {{ form.provincia }}
-            <i class="bi bi-map-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
-          </div>
+      <div class="col-md-4">
+        <label for="provincia" class="fw-semibold form-label">Provincia</label>
+        <div class="input-group">
+          {{ form.provincia.errors }}
+          {{ form.provincia }}
+          <span class="input-group-text"><i class="bi bi-map-fill text-muted"></i></span>
         </div>
+      </div>
         
-        <div class="col-md-4 position-relative">
-          <label for="ciudad" class="fw-semibold">Ciudad</label>
-          <div class="col-md-8 input-group">
-            {{ form.ciudad.errors }}
-            {{ form.ciudad }}
-            <i class="bi bi-geo-alt-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
-          </div>
+      <div class="col-md-4">
+        <label for="ciudad" class="fw-semibold form-label">Ciudad</label>
+        <div class="input-group">
+          {{ form.ciudad.errors }}
+          {{ form.ciudad }}
+          <span class="input-group-text"><i class="bi bi-geo-alt-fill text-muted"></i></span>
         </div>
+      </div>
       
-        <div class="col-md-4 mt-2 position-relative">
-          <label for="calle" class="fw-semibold">Calle</label>
-          <div class="col-md-8 input-group">
-            {{ form.calle.errors }}
-            {{ form.calle }}
-            <i class="bi bi-signpost-2-fill position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
-          </div>
+      <div class="col-md-4 mt-2">
+        <label for="calle" class="fw-semibold form-label">Calle</label>
+        <div class="input-group">
+          {{ form.calle.errors }}
+          {{ form.calle }}
+          <span class="input-group-text"><i class="bi bi-signpost-2-fill text-muted"></i></span>
         </div>
-        <div class="col-md-2 mt-2 position-relative">
-          <label for="numero" class="fw-semibold">N°</label>
-          <div class="col-md-8 input-group">
-            {{ form.numero.errors }}
-            {{ form.numero }}
-            <i class="bi bi-hash position-absolute top-50 end-0 translate-middle-y text-muted me-3"></i>
-          </div>
-        </div>
+      </div>
 
+      <div class="col-md-2 mt-2">
+        <label for="numero" class="fw-semibold form-label">N°</label>
+        <div class="input-group">
+          {{ form.numero.errors }}
+          {{ form.numero }}
+          <span class="input-group-text"><i class="bi bi-hash text-muted"></i></span>
+        </div>
       </div>
     </div>
 
-    <hr>
+    <hr class="mt-0">
       <div class="d-flex justify-content-end gap-2" id="editarAcciones">
-        <button type="submit" class="btn btn-success px-4"><i class="bi bi-check-circle"></i> Guardar</button>
+        <button type="submit" class="btn btn-success px-4 me-4"><i class="bi bi-check-circle"></i> Guardar</button>
         <button type="button" class="btn btn-secondary px-4" id="cancelarBtn"><i class="bi bi-x-circle"></i> Cancelar</button>
       </div>
 
     </div>
   </form>
+  </div>
 </div>
+
+
+
+<style>
+#hiddenAvatarInputFields {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+}
+
+#avatarContainerEdit {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 0;
+}
+#avatarContainerEdit img, 
+#avatarContainerEdit #defaultAvatarIcon {
+    position: relative; 
+    z-index: 1;         
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+#avatarPlus {
+    position: absolute;
+    z-index: 10;
+    bottom: 5px; 
+    right: 5px;  
+    background: rgba(0, 113, 6, 0.8);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none; 
+}
+
+#hiddenAvatarInputFields {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+}
+
+
+#id_avatar {
+    display: none !important; 
+}
+
+
+  #cvitaeNombre {
+    color: #333 !important; 
+    background-color: #f8f9fa !important; 
+    cursor: default; 
+  }
+
+  .section-title {
+    color: #007bff; 
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  .input-group input, .input-group select {
+    padding-right: 2.5rem; 
+  }
+
+  .cv-upload-container {
+    background: linear-gradient(90deg, #28a745 0%, #20c997 100%); 
+    color: white;
+    padding: 0.8rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  #editarAcciones .btn-success {
+    background: linear-gradient(45deg, #28a745, #218838);
+    border: none;
+    transition: background 0.3s;
+  }
+
+  #editarAcciones .btn-secondary {
+    background-color: #6c757d;
+    border: none;
+  }
+
+  #cvitaeNombre {
+    cursor: default;
+    border: 1px solid #ccc;
+    background-color: #f8f9fa !important;
+  }
+</style>

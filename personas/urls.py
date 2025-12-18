@@ -17,4 +17,5 @@ urlpatterns = [
     path("perfil/experiencias/list/", views.experiencias_list, name="experiencias_list"),
     path("perfil/experiencias/save/", views.experiencias_save, name="experiencias_save"),
     path("perfil/experiencias/delete/", views.experiencias_delete, name="experiencias_delete"),
+    path("perfil/save/", views.perfil_save_view, name="perfil_save"),
 ]

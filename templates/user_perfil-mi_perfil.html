@@ -1,25 +1,29 @@
-<div id="miPerfilContent" class="main-content d-flex justify-content-center align-items-start mt-4">  
-  <div class="form-wrapper p-4 rounded shadow-sm" 
+<div id="miPerfilContent" class="main-content justify-content-center align-items-start mt-5 rounded">  
+  <div class="form-wrapper p-3 rounded shadow-sm" 
        style="max-width: 950px; width: 100%; background-color: #f3f3f3; border-radius: 12px; margin: 0 auto;">
 
-    <div class="p-3 mb-2 text-center text-white rounded" 
+    <div class="p-2 mb-2 text-center text-white rounded" 
         style="background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%);">
-      <h3 class="fw-bold mb-1">Mi Perfil</h3>
+      <h4 class="fw-bold mb-1">Mi Perfil</h4>
       <p class="mb-0">Vista de Datos Personales</p>
     </div>
     
     <div class="row g-4 justify-content-center">
 
       <div class="col-md-6 d-flex justify-content-end">
-        <div class="card shadow-sm p-4" 
+        <div class="card shadow-sm p-3" 
              style="background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%); color: white; height: 250px; width: 100%; border: none; border-radius: 12px;">
           <div class="d-flex align-items-center mb-3">
-            <i class="bi bi-person-fill fs-1 me-3"></i>
+            {% if request.user.persona.avatar %}
+              <img src="{{ request.user.persona.avatar.url }}" alt="Avatar" class="profile-avatar-display me-3">
+            {% else %}
+              <i class="bi bi-person-fill fs-1 me-3"></i>
+            {% endif %}
             <div>
               <h5 class="mb-1">{{ request.user.persona.nombre }}</h5>
               <p class="mb-0">{{ request.user.persona.apellido }}</p>
             </div>
-          </div>
+        </div>
           <hr style="border-color: rgba(255,255,255,0.5);">
           <div class="d-flex justify-content-between">
             <strong>DNI:</strong>
@@ -45,7 +49,7 @@
       </div>
 
       <div class="col-md-6 d-flex justify-content-start">
-        <div class="card shadow-sm p-4 d-flex flex-column justify-content-between" 
+        <div class="card shadow-sm p-3 d-flex flex-column justify-content-between" 
              style="background: linear-gradient(135deg, #2ecc71, #27ae60);; color: white; height: 250px; width: 100%; border: none; border-radius: 12px;">
           <div class="d-flex align-items-center mb-3">
             <i class="bi bi-gift-fill fs-1 me-3"></i>
@@ -72,13 +76,13 @@
       </div>
     </div>
 
-    <div class="row justify-content-center mt-2">
+    <div class="row justify-content-center mt-0">
       <div class="col-12">
-        <div class="card shadow-sm p-4" 
+        <div class="card shadow-sm p-3" 
              style="background: linear-gradient(135deg, #f1c40f, #d4a017); color: #f5f5f5ff; border: none; border-radius: 12px; width: 100%;">
           <div class="d-flex align-items-center mb-3">
             <i class="bi bi-geo-alt-fill fs-4 me-2"></i>
-            <h5 class="mb-0 fw-bold">Información de contacto</h5>
+            <h5 class="fw-bold">Información de contacto</h5>
           </div>
           <hr>
 
@@ -104,9 +108,9 @@
       </div>
 
 
-      <div class="card shadow-sm mt-2 p-4 text-center" 
+      <div class="manage-info-card shadow-sm mt-2 p-3 text-center" 
         style="background: linear-gradient(135deg, #2c3e50, #1a252f); color: white; border: none; border-radius: 12px;">
-        <h5 class="fw-bold mb-3">Gestionar mi Información</h5>
+        <h4 class="fw-bold mb-3">Gestionar mi Información</h4>
         <div class="d-flex flex-wrap justify-content-center gap-3">
 
           <button class="gradient-btn btn-personal" onclick="seleccionarTab('datos-personales')">
@@ -133,6 +137,13 @@
 
 
 <style>
+  .profile-avatar-display {
+    width: 60px;   
+    height: 60px;  
+    border-radius: 50%; 
+    object-fit: cover; 
+}
+
 .btn-outline-primary:hover,
 .btn-outline-success:hover,
 .btn-outline-warning:hover {
@@ -149,68 +160,70 @@
   box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
-.gradient-btn {
-    color: white;
+
+  body {
+    background-color: #f0f2f5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+  }
+
+  .form-wrapper {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
+  }
+
+  .card h5, .card h6 {
     font-weight: 600;
-    padding: 10px 18px;
+  }
+
+  hr {
+    border-color: rgba(0,0,0,0.1); 
+  }
+
+  .gradient-btn {
+    padding: 10px 20px;
     border: none;
     border-radius: 8px;
-    transition: all 0.25s ease-in-out;
+    color: white;
+    font-weight: 500;
+    transition: transform 0.2s, box-shadow 0.3s;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .gradient-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   }
 
   .btn-personal {
-    background: linear-gradient(135deg, #0069d9, #004085);
-  }
-  .btn-personal:hover {
-    background: linear-gradient(135deg, #1a7cf0, #0056b3);
-    transform: scale(1.05);
+    background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%);
   }
 
   .btn-academico {
-    background: linear-gradient(135deg, #17a2b8, #0d6678);
-  }
-  .btn-academico:hover {
-    background: linear-gradient(135deg, #20c0d3, #11889d);
-    transform: scale(1.05);
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
   }
 
   .btn-certificaciones {
-    background: linear-gradient(135deg, #28a745, #155d27);
-  }
-  .btn-certificaciones:hover {
-    background: linear-gradient(135deg, #34c759, #1c7a3a);
-    transform: scale(1.05);
+    background: linear-gradient(135deg, #f1c40f, #d4a017);
+    color: #333; /* Mejor contraste para el amarillo */
   }
 
   .btn-experiencia {
-    background: linear-gradient(135deg, #ffc107, #b37f00);
-    color: #1a1a1a;
+    background: linear-gradient(135deg, #2c3e50, #1a252f);
   }
-  .btn-experiencia:hover {
-    background: linear-gradient(135deg, #ffd740, #c99700);
-    transform: scale(1.05);
+
+  .manage-info-card {
+    background: linear-gradient(135deg, #2c3e50, #1a252f);
+    color: white;
+    border: none;
+    border-radius: 12px;
   }
+
+  .tab-pane:not(.active) {
+    display: none !important;
+  }
+  .tab-pane.active {
+    display: block !important;
+  }
+  
 </style>
-
-<script>
-function seleccionarTab(tabId) {
-  const tabButton = document.querySelector(`[data-bs-target="#${tabId}"]`);
-  const tabContent = document.getElementById(tabId);
-
-  if (tabButton && tabContent) {
-    const tabInstance = new bootstrap.Tab(tabButton);
-    tabInstance.show();
-
-    const editarActivo = !document.getElementById('editarPerfilContent')?.classList.contains('d-none');
-    const newHash = editarActivo ? `#editar-tab-${tabId}` : `#editar-tab-${tabId}`;
-    history.replaceState(null, '', newHash);
-
-    tabContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  } else {
-    console.warn(`❗ No se encontró el tab con ID: ${tabId}`);
-  }
-
-  window.location.reload();
-}
-</script>
-

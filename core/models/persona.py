@@ -20,8 +20,8 @@ class Persona(models.Model):
     numero = models.CharField(max_length=10, blank=True, null=True, verbose_name='Numero calle')
 
     genero = models.CharField(max_length=50, null=True, blank=True, verbose_name='Genero')
-    avatar = models.ImageField(upload_to='avatar/%Y/%m/%d', null=True, blank=True)
-    cvitae = models.FileField(upload_to='cvitae/%Y/%m/%d', null=True, blank=True)
+    avatar = models.ImageField(max_length=255, upload_to='avatar/%Y/%m/%d', null=True, blank=True)
+    cvitae = models.FileField(max_length=255, upload_to='cvitae/%Y/%m/%d', null=True, blank=True)
 
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)

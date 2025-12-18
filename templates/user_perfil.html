@@ -1,20 +1,18 @@
-{% include 'auth/partials/base_head2.html' %}
-<head>
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% load static %}
+
  
-  <!-- Bootstrap 5 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-
-  <!-- Bootstrap Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-</head>
 <style>
+  .tab-pane:not(.active) {
+    display: none !important;
+  }
+  
+  .tab-pane.active {
+    display: block !important; 
+  }
+
+
   body {
     background-color: #f0f2f5;
     font-family: "Segoe UI", sans-serif;
@@ -22,131 +20,22 @@
     overflow: hidden;
   }
 
-  .sidebar {
-    background-color: #27324a;
-    color: white;
-    width: 320px;
-    height: calc(100vh - 60px);
-    position: fixed;
-    top: 60px;
-    left: 0;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 25px;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.2);
-  }
-
-  .sidebar img {
-    width: 100px; height: 100px;
-    border-radius: 50%;
-    border: 3px solid white;
-    object-fit: cover;
-    margin-bottom: 15px;
-  }
-  .sidebar h5 { color: #fff; margin-bottom: 10px; font-weight: 500; }
-  .sidebar .btn { width: 80%; margin-bottom: 10px; background-color: #32405f; color: #fff; border: none; }
-  .sidebar .btn:hover { background-color: #3e5070; }
-  .sidebar .calendar { background-color: #32405f; border-radius: 8px; color: #fff; padding: 15px; width: 80%; text-align: center; margin-top: 20px; }
-
-  .main-content {
-    margin-left: 260px;
-    padding: 30px;
-    height: calc(100vh - 60px);
-    overflow-y: auto;
-    border-radius: 10px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-  }
+ .main-content {
+  margin-left: 260px; 
+  padding: 30px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
 
   .tab-content { margin-top: 20px; }
 
   form label { font-weight: 500; }
   form input, form select { border-radius: 6px; }
 
-  #avatarContainer { position: relative; width: 120px; height: 120px; margin-bottom: 10px; cursor: pointer; }
-  #avatarContainer img, #defaultAvatarIcon { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-  #avatarPlus { position: absolute; width: 30px; height: 30px; bottom: 5px; right: 5px; display: flex; justify-content: center; align-items: center; background-color: #0d6efd; border-radius: 50%; color: white; font-size: 1rem; display: none; cursor: pointer; }
-
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-thumb { background-color: #b0b7c3; border-radius: 4px; }
-
-  .section-title {
-    color: #1f2a44;
-    font-weight: 600;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 5px;
-    margin-bottom: 15px;
-  }
-
-  .sidebar .btn.active {
-    background-color: #0d6efd !important; 
-    color: white !important;
-  }
-
-  .calendar-container {
-    background-color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    padding: 10px;
-    color: #333; 
-  }
-
-  .calendar-header {
-    background-color: #e9f5ff;
-    border-radius: 6px;
-    padding: 4px 8px;
-  }
-
-  .calendar-header h6 {
-    color: #0d6efd; 
-    font-weight: 600;
-    margin: 0;
-  }
-
-  .calendar-header button {
-    border: none;
-    background-color: transparent; 
-    color: #0d6efd;
-    font-size: 0.9rem; 
-    padding: 0; 
-    width: 25px;
-    height: 25px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.2s ease;
-  }
-
-  .calendar-header button:hover {
-    color: #084298; 
-    transform: scale(1.2); 
-  }
-
-  .calendar-table th {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #555;
-  }
-
-  .calendar-table td {
-    height: 30px;
-    width: 30px;
-    cursor: pointer;
-    border-radius: 6px;
-    color: #333;
-  }
-
-  .calendar-table td:hover {
-    background-color: #e9f5ff;
-  }
-
-  .calendar-table td.today {
-    background-color: #198754;
-    color: white;
-    font-weight: bold;
-    border-radius: 6px;
-  }
 
 
   #academicosContainer .card {
@@ -162,76 +51,29 @@
     font-size: 0.8rem;
   }
 
-
-  .tab-pane {
-    display: none;
-  }
-  .tab-pane.show {
-    display: block;
-  }
-
 </style>
 
-<body class="">
-
-  {% include "partials/navbar.html" %}
-
-
-  <div class="sidebar">
-    <div id="avatarContainer">
-      {% if request.user.persona.avatar %}
-        <img id="previewAvatar" src="{{ request.user.persona.avatar.url }}" alt="Avatar">
-      {% else %}
-        <div id="defaultAvatarIcon" class="bg-secondary d-flex justify-content-center align-items-center text-white">
-          <i class="bi bi-person-circle" style="font-size: 3rem;"></i>
-        </div>
-      {% endif %}
-      <div id="avatarPlus"><i class="bi bi-plus"></i></div>
-      <input type="file" id="id_avatar" name="avatar" class="d-none" accept="image/*">
-    </div>
-    
-    <h5>{{ request.user.persona.nombre }} {{ request.user.persona.apellido }}</h5>
-    <button class="btn active" id="miPerfilBtn"><i class="bi bi-person"></i> Mi Perfil</button>
-    <button type="button" class="btn" id="editarBtn"><i class="bi bi-pencil-square"></i> Editar Perfil</button>
-
-    <div class="calendar-container mt-3">
-      <div class="calendar-header d-flex justify-content-between align-items-center px-2 py-1">
-        <button id="prevMonth"><i class="bi bi-chevron-left"></i></button>
-        <h6 id="monthYear" class="mb-0 fw-bold "></h6>
-        <button id="nextMonth"><i class="bi bi-chevron-right"></i></button>
-      </div>
-      <table class="calendar-table table table-bordered text-center mt-2 mb-0">
-        <thead class="table-light">
-          <tr>
-            <th>Lu</th>
-            <th>Ma</th>
-            <th>Mi</th>
-            <th>Ju</th>
-            <th>Vi</th>
-            <th>Sa</th>
-            <th>Do</th>
-          </tr>
-        </thead>
-        <tbody id="calendarBody"></tbody>
-      </table>
-    </div>
-
-  </div>
-
-  <div class="main-content-wrapper mt-5">
-    <div class="content-wrapper">
+  {% block content%}
 
       {% include "user_perfil-mi_perfil.html" %}
 
-
-      <div id="editarPerfilContent" class="d-none">
-      <div class="main-content d-flex justify-content-center py-3">
-        <div class="form-wrapper p-4 rounded shadow-sm" 
+      <div id="editarPerfilContent">
+      <div class="main-content d-flex justify-content-center mt-5">
+        <div class="form-wrapper p-1 rounded shadow-sm" 
             style="max-width: 1000px; width: 100%; background-color: #f3f3f3ff;">
-          <ul class="nav nav-tabs" id="perfilTabs" role="tablist"
+
+            <ul class="nav nav-tabs" id="perfilTabs" role="tablist"
               style="background-color: #ffffff; border-radius: 10px; padding: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+            
+            <li class="nav-item me-auto"> 
+              <button class="btn btn-outline-secondary btn-sm fw-bold" id="volverMiPerfilBtn"
+                      type="button" style="border-radius: 8px;">
+                <i class="bi bi-arrow-left me-1"></i> Volver a Mi Perfil
+              </button> 
+            </li>
+            
             <li class="nav-item">
-              <button class="nav-link  fw-semibold" id="datos-personales-tab"
+              <button class="nav-link fw-semibold" id="datos-personales-tab"
                       data-bs-toggle="tab" data-bs-target="#datos-personales" type="button" role="tab"
                       style="border-radius: 8px; margin-right: 5px;">
                 <i class="bi bi-person-circle me-1"></i> Datos personales
@@ -262,44 +104,40 @@
 
 
           <div class="tab-content">
-
             {% include "user_perfil-edit_datos_personales.html" %}
-
                     
-            <div class="tab-pane fade" id="datos-academicos" role="tabpanel">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <p class="mb-0 fw-semibold">Aquí podrás ver tus datos académicos registrados.</p>
-                <button class="btn btn-sm btn-success d-flex align-items-center" id="addAcademicoBtn">
-                  <i class="bi bi-plus me-1"></i> Nuevo
-                </button>
-              </div>
-              <div id="academicosContainer" class="row g-3 justify-content-center">
-              </div>
+            <div class="tab-pane fade p-2" id="datos-academicos" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3 p-1 bg-white rounded shadow-sm">
+                    <p class="mb-0 fw-semibold text-muted">Aquí podrás ver tus datos académicos registrados.</p>
+                    <button class="gradient-btn btn-academico d-flex align-items-center" id="addAcademicoBtn">
+                        <i class="bi bi-plus me-1"></i> Nuevo
+                    </button>
+                </div>
+                <div id="academicosContainer" class="row g-3 justify-content-center">
+                 </div>
             </div>
 
-
-            <div class="tab-pane fade" id="certificaciones" role="tabpanel">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <p class="mb-0 fw-semibold">Aquí podrás registrar tus certificaciones.</p>
-                <button class="btn btn-sm btn-success d-flex align-items-center" id="addCertificacionBtn">
+        <div class="tab-pane fade p-2" id="certificaciones" role="tabpanel">
+          <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-white rounded shadow-sm">
+              <p class="mb-0 fw-semibold text-muted">Aquí podrás registrar tus certificaciones.</p>
+              <button class="gradient-btn btn-certificaciones d-flex align-items-center" id="addCertificacionBtn">
                   <i class="bi bi-plus me-1"></i> Nueva
-                </button>
-              </div>
-              <div id="certificacionesContainer" class="row g-3 justify-content-center">
-              </div>
-            </div>
+              </button>
+          </div>
+          <div id="certificacionesContainer" class="row g-3 justify-content-center">
+          </div>
+        </div>
 
-
-            <div class="tab-pane fade" id="experiencia" role="tabpanel">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <p class="mb-0 fw-semibold">Aquí podrás registrar tu experiencia laboral.</p>
-                <button class="btn btn-sm btn-success d-flex align-items-center" id="addExperienciaBtn">
+        <div class="tab-pane fade p-2" id="experiencia" role="tabpanel">
+          <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-white rounded shadow-sm">
+              <p class="mb-0 fw-semibold text-muted">Aquí podrás registrar tu experiencia laboral.</p>
+              <button class="gradient-btn btn-experiencia d-flex align-items-center" id="addExperienciaBtn">
                   <i class="bi bi-plus me-1"></i> Nuevo
-                </button>
-              </div>
-              <div id="experienciasContainer" class="row g-3 justify-content-center"></div>
-            </div>
-
+              </button>
+          </div>
+          <div id="experienciasContainer" class="row g-3 justify-content-center">
+          </div>
+        </div>
 
           </div>
         </div>
@@ -343,257 +181,305 @@
             </div>
           </div>
         </div>
-      </div>
 
-    </div>
-  </div>
 
 <script>
-window.onload = () => {
-  const form = document.getElementById('perfilForm');
-  const inputs = form.querySelectorAll('input, select, textarea');
-  const miPerfilBtn = document.getElementById('miPerfilBtn');
-  const editarBtn = document.getElementById('editarBtn');
-  const miPerfilContent = document.getElementById('miPerfilContent');
-  const editarPerfilContent = document.getElementById('editarPerfilContent');
-  const cancelarBtn = document.getElementById('cancelarBtn');
 
-  const avatarInput = document.getElementById('id_avatar');
-  const avatarContainer = document.getElementById('avatarContainer');
-  const avatarPlus = document.getElementById('avatarPlus');
-  const editarAcciones = document.getElementById('editarAcciones');
-
-  const tabs = document.querySelectorAll('#perfilTabs .nav-link');
-
-  const monthYear = document.getElementById("monthYear");
-  const calendarBody = document.getElementById("calendarBody");
-  const prevMonthBtn = document.getElementById("prevMonth");
-  const nextMonthBtn = document.getElementById("nextMonth");
-
-  let currentDate = new Date();
-
-  function renderCalendar(date) {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const startDay = (firstDay.getDay() + 6) % 7;
-    const totalDays = lastDay.getDate();
-
-    const months = [
-      "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-    ];
-
-    monthYear.textContent = `${months[month]} ${year}`;
-    calendarBody.innerHTML = "";
-
-    let day = 1;
-    for (let i = 0; i < 6; i++) {
-      const row = document.createElement("tr");
-      for (let j = 0; j < 7; j++) {
-        const cell = document.createElement("td");
-        if ((i === 0 && j < startDay) || day > totalDays) {
-          cell.textContent = "";
-        } else {
-          cell.textContent = day;
-          const today = new Date();
-          if (
-            day === today.getDate() &&
-            month === today.getMonth() &&
-            year === today.getFullYear()
-          ) {
-            cell.classList.add("today");
-          }
-          day++;
-        }
-        row.appendChild(cell);
-      }
-      calendarBody.appendChild(row);
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        document.cookie.split(';').forEach(c => {
+            const cookie = c.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            }
+        });
     }
+    return cookieValue;
   }
 
-  prevMonthBtn.addEventListener("click", () => {
-    currentDate.setMonth(currentDate.getMonth() - 1);
-    renderCalendar(currentDate);
-  });
 
-  nextMonthBtn.addEventListener("click", () => {
-    currentDate.setMonth(currentDate.getMonth() + 1);
-    renderCalendar(currentDate);
-  });
-
-  renderCalendar(currentDate);
-
-  function actualizarAvatarEditable() {
-    const tabActivo = document.querySelector('#perfilTabs .nav-link.active');
-    const avatarInput = document.getElementById('id_avatar');
-    const avatarContainer = document.getElementById('avatarContainer');
-    const avatarPlus = document.getElementById('avatarPlus');
-
-    if (!document.getElementById('editarPerfilContent').classList.contains('d-none') &&
-        tabActivo && tabActivo.id === 'datos-personales-tab') {
-      avatarInput.disabled = false;
-      avatarPlus.style.display = 'flex';
-      avatarContainer.style.cursor = 'pointer';
-      avatarPlus.style.cursor = 'pointer';
+  function seleccionarTab(tabId) {
+    if (window.mostrarEditarPerfilGlobal) {
+        window.mostrarEditarPerfilGlobal(tabId);
     } else {
-      avatarInput.disabled = true;
-      avatarPlus.style.display = 'none';
-      avatarContainer.style.cursor = 'default';
+        console.error("Window function not exposed yet.");
     }
   }
 
 
-  function mostrarEditarPerfil() {
-    miPerfilContent.classList.add('d-none');
-    editarPerfilContent.classList.remove('d-none');
+  window.onload = () => {
+    const form = document.getElementById('perfilForm');
+    const inputs = form.querySelectorAll('input, select, textarea');
+    const miPerfilBtn = document.getElementById('miPerfilBtn');
+    const editarBtn = document.getElementById('editarBtn');
 
-    editarBtn.classList.add('active'); 
-    miPerfilBtn.classList.remove('active');
+    const miPerfilContent = document.getElementById('miPerfilContent');
+    const editarPerfilContent = document.getElementById('editarPerfilContent');
 
-    inputs.forEach(input => input.disabled = false);
-    editarAcciones.classList.remove('d-none');
+    const cancelarBtn = document.getElementById('cancelarBtn');
+    const botonesGestionar = document.querySelectorAll('.gradient-btn');
+    const volverMiPerfilBtn = document.getElementById('volverMiPerfilBtn');
 
-    actualizarAvatarEditable();
+    const avatarInput = document.getElementById('id_avatar');
+    const avatarContainer = document.getElementById('avatarContainerEdit');
+    const avatarPlus = document.getElementById('avatarPlus');
+    const editarAcciones = document.getElementById('editarAcciones');
+    const tabs = document.querySelectorAll('#perfilTabs .nav-link');
 
-    history.replaceState(null, '', '#editar');
-  }
+    const seleccionarCVBtn = document.getElementById('seleccionarCVBtn');
+    const inputCVitae = document.getElementById('id_cvitae');
+    const cvitaeNombre = document.getElementById('cvitaeNombre');
+    const eliminarCVBtn = document.getElementById('eliminarCVBtn');
+    const verCVBtn = document.getElementById('verCVBtn');
+    const confirmEliminarCvModalElement = document.getElementById('confirmEliminarCvModal');
+    const confirmEliminarCvModal = confirmEliminarCvModalElement ? new bootstrap.Modal(confirmEliminarCvModalElement) : null;
+    const confirmEliminarCvBtn = document.getElementById('confirmEliminarCvBtn');
+    
 
-  function mostrarMiPerfil() {
-    miPerfilContent.classList.remove('d-none');
-    editarPerfilContent.classList.add('d-none');
+    botonesGestionar.forEach(button => {
+      button.addEventListener('click', (e) => {
+          
+        const tabIdRegex = button.getAttribute('onclick').match(/seleccionarTab\('(.+)'\)/);
+          if (tabIdRegex && tabIdRegex[1]) {
+              mostrarEditarPerfil(tabIdRegex[1]);
+          }
+      });
+    });
 
-    miPerfilBtn.classList.add('active');
-    editarBtn.classList.remove('active');
+
+    function actualizarAvatarEditable() {
+      const tabActivo = document.querySelector('#perfilTabs .nav-link.active');
+      if (!editarPerfilContent.classList.contains('d-none') &&
+          tabActivo && tabActivo.id === 'datos-personales-tab' && avatarInput && avatarPlus && avatarContainer) {
+        avatarInput.disabled = false;
+        avatarPlus.style.display = 'flex';
+        avatarContainer.style.cursor = 'pointer';
+      } else if(avatarInput && avatarPlus && avatarContainer) {
+        avatarInput.disabled = true;
+        avatarPlus.style.display = 'none';
+        avatarContainer.style.cursor = 'default';
+      }
+    }
+
+    
+    if (avatarContainer && avatarInput) {
+      avatarContainer.addEventListener('click', () => {
+        if (!avatarInput.disabled) avatarInput.click();
+      });
+
+      avatarInput.addEventListener('change', (event) => {
+        const files = event.target.files;
+        if (files && files.length > 0) {
+          const file = files[0];
+          const reader = new FileReader();
+          
+          reader.onload = e => {
+            let preview = document.getElementById('previewAvatarEdit'); 
+            const defaultIconDiv = document.getElementById('defaultAvatarIcon');
+            
+            if (defaultIconDiv) {
+              const newImg = document.createElement('img');
+              newImg.id = 'previewAvatarEdit';
+              newImg.alt = 'Avatar Preview';
+              avatarContainer.insertBefore(newImg, defaultIconDiv);
+              avatarContainer.removeChild(defaultIconDiv);
+              preview = newImg;
+            }   
+            preview.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+
+
+    function mostrarEditarPerfil(tabId = null) {
+      if (miPerfilContent && editarPerfilContent) {
+        miPerfilContent.classList.add('d-none'); 
+        editarPerfilContent.classList.remove('d-none'); 
+      }
+
+      if (editarBtn && miPerfilBtn) {
+        editarBtn.classList.add('active');
+        miPerfilBtn.classList.remove('active');
+      }
+      inputs.forEach(input => input.disabled = false);
+      if (editarAcciones) editarAcciones.classList.remove('d-none');
+      actualizarAvatarEditable();
+
+
+
+      if (tabId) {
+          const tabButton = document.querySelector(`[data-bs-target="#${tabId}"]`);
+          if (tabButton) {
+              const tabInstance = new bootstrap.Tab(tabButton);
+              tabInstance.show();
+              history.replaceState(null, '', `#editar-tab-${tabId}`);
+          }
+      } else {
+          if (tabs.length > 0) {
+              const primeraPestana = new bootstrap.Tab(tabs[0]);
+              primeraPestana.show();
+          }
+          history.replaceState(null, '', '#editar');
+      }
+    }
+    
+    function mostrarMiPerfil() {
+      if (miPerfilContent && editarPerfilContent) {
+        miPerfilContent.classList.remove('d-none'); 
+        editarPerfilContent.classList.add('d-none'); 
+      }
+
+      if (miPerfilBtn && editarBtn) {
+          miPerfilBtn.classList.add('active');
+          editarBtn.classList.remove('active');
+      }
+    
+      inputs.forEach(input => input.disabled = true);
+      if (editarAcciones) editarAcciones.classList.add('d-none');
+      actualizarAvatarEditable();
+
+      history.replaceState(null, '', '#perfil');
+    }
+
+
+      botonesGestionar.forEach(button => {
+          button.addEventListener('click', (e) => {
+              const tabIdRegex = button.getAttribute('onclick').match(/seleccionarTab\('(.+)'\)/);
+              if (tabIdRegex && tabIdRegex[1]) {
+                  mostrarEditarPerfil(tabIdRegex[1]);
+              }
+          });
+      });
+
+
+
+      if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const fechaNacimientoInput = document.getElementById('id_fecha_nacimiento');
+            const generoSelect = document.getElementById('id_genero');
+            
+            if (fechaNacimientoInput) fechaNacimientoInput.disabled = false;
+            if (generoSelect) generoSelect.disabled = false;
+            
+            const disabledInputs = form.querySelectorAll(':disabled');
+            disabledInputs.forEach(input => {
+                input.disabled = false;
+            });
+
+            const formData = new FormData(this); 
+            
+            disabledInputs.forEach(input => {
+                input.disabled = true;
+            });
+            
+            fetch(form.action || '/personas/perfil/save/', { 
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            })
+            .then(response => response.json()) 
+            .then(data => {
+                if (data.success) {
+                  if (typeof mostrarToast === 'function') {
+                      mostrarToast(data.toast_message || 'Acción exitosa', data.toast_type || 'success');
+                  } else {
+                      alert(data.toast_message || '¡Datos guardados exitosamente!');
+                  }
+                  mostrarMiPerfil(); 
+                } else {
+                    alert('Error al guardar: ' + (data.errors ? JSON.stringify(data.errors) : ''));
+                }
+            })
+            .catch(error => {
+              if (typeof mostrarToast === 'function') {
+                  mostrarToast('Ocurrió un error de red o del servidor.', 'error');
+              } else {
+                  alert('Ocurrió un error de red o del servidor.');
+              }
+            });
+        });
+      }
+
+
+    if (editarBtn) editarBtn.addEventListener('click', () => mostrarEditarPerfil());
+    if (miPerfilBtn) miPerfilBtn.addEventListener('click', mostrarMiPerfil);
+    if (cancelarBtn) cancelarBtn.addEventListener('click', mostrarMiPerfil);
+    if (volverMiPerfilBtn) volverMiPerfilBtn.addEventListener('click', mostrarMiPerfil);
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('shown.bs.tab', (e) => {
+        const id = e.target.getAttribute('data-bs-target').replace('#', '');
+        history.replaceState(null, '', `#editar-tab-${id}`);
+        actualizarAvatarEditable();
+        if(typeof cerrarCardsAcademicoEnEdicion === 'function') cerrarCardsAcademicoEnEdicion();
+        if(typeof cerrarCardsCertificacionEnEdicion === 'function') cerrarCardsCertificacionEnEdicion();
+        if(typeof cerrarCardsExperienciaEnEdicion === 'function') cerrarCardsExperienciaEnEdicion();
+
+        document.querySelectorAll('.tab-pane').forEach(panel => {
+            if (panel.id !== id) {
+                panel.style.display = 'none';
+            } else {
+                panel.style.display = 'block'; 
+            }
+        });
+
+      });
+    });
+
+
+    
+    if (seleccionarCVBtn && inputCVitae && cvitaeNombre) {
+      seleccionarCVBtn.addEventListener('click', () => inputCVitae.click());
+      inputCVitae.addEventListener('change', () => {
+        if (inputCVitae.files.length > 0) cvitaeNombre.value = inputCVitae.files[0].name;
+      });
+    }
+    if (eliminarCVBtn) eliminarCVBtn.addEventListener('click', () => confirmEliminarCvModal.show());
+    if (confirmEliminarCvBtn) {
+      confirmEliminarCvBtn.addEventListener('click', () => {
+        cvitaeNombre.value = ''; inputCVitae.value = '';
+        if (verCVBtn) verCVBtn.style.display = 'none';
+        let inputHidden = document.querySelector('input[name="eliminar_cvitae"]');
+        if (!inputHidden) {
+          inputHidden = document.createElement('input'); inputHidden.type = 'hidden';
+          inputHidden.name = 'eliminar_cvitae'; inputHidden.value = '1'; form.appendChild(inputHidden);
+        }
+        confirmEliminarCvModal.hide();
+      });
+    }
+
+    window.seleccionarTab = (tabId) => {mostrarEditarPerfil(tabId);};
+
+    window.mostrarEditarPerfilGlobal = mostrarEditarPerfil;
+    const hash = window.location.hash;
+
+
+    if (hash.startsWith('#editar-tab-')) {
+      const tabId = hash.substring('#editar-tab-'.length);
+      mostrarEditarPerfil(tabId);
+    } else if (hash === '#editar') {
+      mostrarEditarPerfil(); 
+    } else {
+      mostrarMiPerfil();   
+    }
+
+    if(typeof cargarDatosAcademicos === 'function') cargarDatosAcademicos();
+    if(typeof cargarCertificaciones === 'function') cargarCertificaciones();
+    if(typeof cargarExperiencias === 'function') cargarExperiencias();
   
-    inputs.forEach(input => input.disabled = true);
-    editarAcciones.classList.add('d-none');
+  };
 
-    actualizarAvatarEditable();
-
-    history.replaceState(null, '', '#perfil');
-  }
-
-  editarBtn.addEventListener('click', mostrarEditarPerfil);
-  miPerfilBtn.addEventListener('click', mostrarMiPerfil);
-  cancelarBtn.addEventListener('click', mostrarMiPerfil);
-
-   tabs.forEach(tab => {
-    tab.addEventListener('shown.bs.tab', actualizarAvatarEditable);
-  });
-
-
-  avatarContainer.addEventListener('click', () => {
-    if (!avatarInput.disabled) avatarInput.click();
-  });
-  avatarInput.addEventListener('change', () => {
-    const file = avatarInput.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const preview = document.getElementById('previewAvatar');
-        const defaultIcon = document.getElementById('defaultAvatarIcon');
-        if (preview) { preview.src = e.target.result; preview.style.display = 'block'; }
-        if (defaultIcon) { defaultIcon.style.display = 'none'; }
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-
-
-  const seleccionarCVBtn = document.getElementById('seleccionarCVBtn');
-  const inputCVitae = document.getElementById('id_cvitae');
-  const cvitaeNombre = document.getElementById('cvitaeNombre');
-  const eliminarCVBtn = document.getElementById('eliminarCVBtn');
-  const verCVBtn = document.getElementById('verCVBtn');
-  const confirmEliminarCvModal = new bootstrap.Modal(document.getElementById('confirmEliminarCvModal'));
-  const confirmEliminarCvBtn = document.getElementById('confirmEliminarCvBtn');
-
-  if (seleccionarCVBtn && inputCVitae && cvitaeNombre) {
-    seleccionarCVBtn.addEventListener('click', () => inputCVitae.click());
-    inputCVitae.addEventListener('change', () => {
-      if (inputCVitae.files.length > 0) {
-        cvitaeNombre.value = inputCVitae.files[0].name;
-      }
-    });
-  }
-
-  if (eliminarCVBtn) {
-    eliminarCVBtn.addEventListener('click', () => confirmEliminarCvModal.show());
-  }
-
-  if (confirmEliminarCvBtn) {
-    confirmEliminarCvBtn.addEventListener('click', () => {
-      cvitaeNombre.value = '';
-      inputCVitae.value = '';
-      if (verCVBtn) verCVBtn.style.display = 'none';
-      let inputHidden = document.querySelector('input[name="eliminar_cvitae"]');
-      if (!inputHidden) {
-        inputHidden = document.createElement('input');
-        inputHidden.type = 'hidden';
-        inputHidden.name = 'eliminar_cvitae';
-        inputHidden.value = '1';
-        form.appendChild(inputHidden);
-      }
-      confirmEliminarCvModal.hide();
-    });
-  }
-
-
-
-const hash = window.location.hash;
-
-let abrirEdicion = false;
-let tabName = null;
-
-if (hash.includes('editar')) abrirEdicion = true;
-const matchTab = hash.match(/tab-([a-zA-Z0-9\-]+)/);
-if (matchTab) tabName = matchTab[1];
-
-let tablElement;
-
-if (tabName) {
-    tabElement = document.querySelector(`#perfilTabs .nav-link[data-bs-target="#${tabName}"]`);
-} else {
-    tabElement = tabs[0];
-}
-
-if (tabElement) {
-    const tabInstance = new bootstrap.Tab(tabElement);
-    tabInstance.show();
-}
-
-if (abrirEdicion) {
-    mostrarEditarPerfil();
-} else {
-    mostrarMiPerfil();
-}
-
-tabs.forEach(tab => {
-  tab.addEventListener('shown.bs.tab', (e) => {
-    const id = e.target.getAttribute('data-bs-target').replace('#', '');
-    const editarActivo = !document.getElementById('editarPerfilContent').classList.contains('d-none');
-    const newHash = editarActivo ? `#editar-tab-${id}` : `#tab-${id}`;
-    history.replaceState(null, '', newHash);
-    actualizarAvatarEditable();
-  });
-});
-
-
-
-cargarDatosAcademicos();
-cargarCertificaciones();
-cargarExperiencias();
-
-};
 
 
 
 /////////////////
 
-function crearCardAcademico(dato = {}, modoVer = false) {
+  function crearCardAcademico(dato = {}, modoVer = false) {
     const id = dato.id || '';
     const carrera = dato.carrera || '';
     const institucion = dato.institucion || '';
@@ -607,7 +493,7 @@ function crearCardAcademico(dato = {}, modoVer = false) {
 
     if (modoVer) {
         card.innerHTML = `
-        <div class="card shadow-sm p-4 position-relative" style="max-width: 950px;">
+        <div class="card shadow-sm p-3 position-relative" style="max-width: 950px;">
             <div class="d-flex">
                 <div class="me-4 d-flex align-items-center">
                     <i class="bi bi-mortarboard-fill fs-1 text-primary"></i>
@@ -627,7 +513,7 @@ function crearCardAcademico(dato = {}, modoVer = false) {
         `;
     } else {
         card.innerHTML = `
-        <div class="card shadow-sm p-4 position-relative" style="max-width: 950px;">
+        <div class="card shadow-sm p-3 position-relative" style="max-width: 950px;">
             <div class="d-flex">
                 <div class="me-4 d-flex align-items-center">
                     <i class="bi bi-mortarboard-fill fs-1 text-primary"></i>
@@ -660,47 +546,47 @@ function crearCardAcademico(dato = {}, modoVer = false) {
     }
 
     return card;
-}
+  }
 
 
-function cargarDatosAcademicos() {
-    fetch('/perfil/datos-academicos/list/')
-        .then(res => res.json())
-        .then(data => {
-            const container = document.getElementById('academicosContainer');
-            container.innerHTML = '';
-            data.datos.forEach(dato => {
-                const card = crearCardAcademico(dato, true);
-                container.appendChild(card);
-                agregarEventosCardAcademico(card);
-            });
-        });
-}
+  function cargarDatosAcademicos() {
+      fetch('/personas/perfil/datos-academicos/list/')
+          .then(res => res.json())
+          .then(data => {
+              const container = document.getElementById('academicosContainer');
+              container.innerHTML = '';
+              data.datos.forEach(dato => {
+                  const card = crearCardAcademico(dato, true);
+                  container.appendChild(card);
+                  agregarEventosCardAcademico(card);
+              });
+          });
+  }
 
 
-function bloquearFechaFinAcademico(card) {
-    const selectSituacion = card.querySelector('.situacionAcademico');
-    const fechaFin = card.querySelector('.fechaFinAcademico');
+  function bloquearFechaFinAcademico(card) {
+      const selectSituacion = card.querySelector('.situacionAcademico');
+      const fechaFin = card.querySelector('.fechaFinAcademico');
 
-    if (!selectSituacion || !fechaFin) return;
+      if (!selectSituacion || !fechaFin) return;
 
-    function actualizar() {
-        const valor = selectSituacion.value;
-        if (valor === 'cursando' || valor === 'abandonado') {
-            fechaFin.value = '';
-            fechaFin.disabled = true;
-        } else {
-            fechaFin.disabled = false;
-        }
-    }
+      function actualizar() {
+          const valor = selectSituacion.value;
+          if (valor === 'cursando' || valor === 'abandonado') {
+              fechaFin.value = '';
+              fechaFin.disabled = true;
+          } else {
+              fechaFin.disabled = false;
+          }
+      }
 
-    selectSituacion.addEventListener('change', actualizar);
-    actualizar(); 
-}
+      selectSituacion.addEventListener('change', actualizar);
+      actualizar(); 
+  }
 
 
 
-function agregarEventosCardAcademico(card) {
+  function agregarEventosCardAcademico(card) {
 
     bloquearFechaFinAcademico(card);
 
@@ -719,7 +605,7 @@ function agregarEventosCardAcademico(card) {
             formData.append('fecha_inicio', card.querySelector('.fechaInicioAcademico').value);
             formData.append('fecha_fin', card.querySelector('.fechaFinAcademico').value);
 
-            fetch('/perfil/datos-academicos/save/', {
+            fetch('/personas/perfil/datos-academicos/save/', {
                 method: 'POST',
                 body: formData,
                 headers: {'X-CSRFToken': getCookie('csrftoken')}
@@ -727,6 +613,9 @@ function agregarEventosCardAcademico(card) {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
+                    if (typeof mostrarToast === 'function') {
+                          mostrarToast(data.toast_message, data.toast_type || 'success');
+                      }
                     const newCard = crearCardAcademico({
                         id: data.id,
                         carrera: formData.get('carrera'),
@@ -742,559 +631,557 @@ function agregarEventosCardAcademico(card) {
                 }
             });
         });
-    }
+      }
 
     if (cancelarBtn) {
         cancelarBtn.addEventListener('click', () => {
-            cargarDatosAcademicos();
-        });
+          cargarDatosAcademicos();
+      });
     }
 
     if (eliminarBtn) {
-        eliminarBtn.addEventListener('click', () => {
-            const id = card.querySelector('.datoAcademicoId').value;
-            const formData = new FormData();
-            formData.append('id', id);
+      eliminarBtn.addEventListener('click', () => {
+          const id = card.querySelector('.datoAcademicoId').value;
+          const formData = new FormData();
+          formData.append('id', id);
 
-            fetch('/perfil/datos-academicos/delete/', {
-                method: 'POST',
-                body: formData,
-                headers: {'X-CSRFToken': getCookie('csrftoken')}
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    cargarDatosAcademicos();
-                } else {
-                    alert('Error: ' + data.error);
+          fetch('/personas/perfil/datos-academicos/delete/', {
+              method: 'POST',
+              body: formData,
+              headers: {'X-CSRFToken': getCookie('csrftoken')}
+          })
+          .then(res => res.json())
+          .then(data => {
+              if (data.success) {
+                if (typeof mostrarToast === 'function') {
+                    mostrarToast(data.toast_message, data.toast_type || 'success');
                 }
-            });
-        });
+                cargarDatosAcademicos();
+              } else {
+                  alert('Error: ' + data.error);
+              }
+          });
+      });
     }
 
     if (editarBtn) {
-        editarBtn.addEventListener('click', () => {
-          
-          cerrarCardsAcademicoEnEdicion();
+      editarBtn.addEventListener('click', () => {
+        
+        cerrarCardsAcademicoEnEdicion();
 
-          const datos = {
-              id: card.dataset.id || '',
-              carrera: card.querySelector('h5')?.textContent || '',
-              institucion: card.querySelector('p')?.childNodes[1]?.textContent.trim() || '',
-              situacion_academica: card.querySelectorAll('p')[1]?.textContent.split(': ')[1].toLowerCase() || '',
-              fecha_inicio: card.querySelectorAll('p')[2]?.textContent.split(': ')[1] || '',
-              fecha_fin: card.querySelectorAll('p')[3]?.textContent.split(': ')[1] === '--' ? '' : card.querySelectorAll('p')[3]?.textContent.split(': ')[1]
-          };
+        const datos = {
+            id: card.dataset.id || '',
+            carrera: card.querySelector('h5')?.textContent || '',
+            institucion: card.querySelector('p')?.childNodes[1]?.textContent.trim() || '',
+            situacion_academica: card.querySelectorAll('p')[1]?.textContent.split(': ')[1].toLowerCase() || '',
+            fecha_inicio: card.querySelectorAll('p')[2]?.textContent.split(': ')[1] || '',
+            fecha_fin: card.querySelectorAll('p')[3]?.textContent.split(': ')[1] === '--' ? '' : card.querySelectorAll('p')[3]?.textContent.split(': ')[1]
+        };
 
-          const newCard = crearCardAcademico(datos, false);
-          card.replaceWith(newCard);
-          agregarEventosCardAcademico(newCard);
-      });
-    }
+        const newCard = crearCardAcademico(datos, false);
+        card.replaceWith(newCard);
+        agregarEventosCardAcademico(newCard);
+    });
+  }
 }
 
 
 function cerrarCardsAcademicoEnEdicion() {
-    document.querySelectorAll('#academicosContainer .col-12').forEach(c => {
-        const guardarBtn = c.querySelector('.guardarAcademicoBtn');
+  document.querySelectorAll('#academicosContainer .col-12').forEach(c => {
+      const guardarBtn = c.querySelector('.guardarAcademicoBtn');
 
-        const id = c.querySelector('.datoAcademicoId')?.value || '';
-        if (guardarBtn && !id) {
-            c.remove();
-            return;
-        }
+      const id = c.querySelector('.datoAcademicoId')?.value || '';
+      if (guardarBtn && !id) {
+          c.remove();
+          return;
+      }
 
-        if (guardarBtn && id) {
-            const carrera = c.querySelector('.carreraAcademico')?.value || '';
-            const institucion = c.querySelector('.institucionAcademico')?.value || '';
-            const situacion = c.querySelector('.situacionAcademico')?.value || '';
-            const fecha_inicio = c.querySelector('.fechaInicioAcademico')?.value || '';
-            const fecha_fin = c.querySelector('.fechaFinAcademico')?.value || '';
+      if (guardarBtn && id) {
+          const carrera = c.querySelector('.carreraAcademico')?.value || '';
+          const institucion = c.querySelector('.institucionAcademico')?.value || '';
+          const situacion = c.querySelector('.situacionAcademico')?.value || '';
+          const fecha_inicio = c.querySelector('.fechaInicioAcademico')?.value || '';
+          const fecha_fin = c.querySelector('.fechaFinAcademico')?.value || '';
 
-            const datos = { id, carrera, institucion, situacion_academica: situacion, fecha_inicio, fecha_fin };
-            const verCard = crearCardAcademico(datos, true);
-            c.replaceWith(verCard);
-            agregarEventosCardAcademico(verCard);
-        }
-    });
-}
-
-
-
-document.querySelectorAll('button[data-bs-toggle="tab"], a[data-bs-toggle="tab"]').forEach(tabBtn => {
-    tabBtn.addEventListener('shown.bs.tab', (event) => {
-        // Cierra cualquier card en edición al cambiar de tab
-        cerrarCardsAcademicoEnEdicion();
-    });
-});
-
-
-document.getElementById('addAcademicoBtn').addEventListener('click', () => {
-  cerrarCardsAcademicoEnEdicion();
-  const container = document.getElementById('academicosContainer');
-    const card = crearCardAcademico({}, false);
-    container.prepend(card);
-    agregarEventosCardAcademico(card);
-});
-
-
-////////////////////
-
-function crearCardCertificacion(dato = {}, modoVer = false) {
-    const id = dato.id || '';
-    const nombre = dato.nombre || '';
-    const institucion = dato.institucion || '';
-    const fecha_inicio = dato.fecha_inicio || '';
-    const fecha_fin = dato.fecha_fin || '';
-
-    const card = document.createElement('div');
-    card.classList.add('col-12');
-    card.dataset.id = id;
-
-    if (modoVer) {
-        card.innerHTML = `
-        <div class="card shadow-sm p-4 position-relative" style="max-width: 950px;">
-            <div class="d-flex">
-                <div class="me-4 d-flex align-items-center">
-                    <i class="bi bi-award-fill fs-1 text-warning"></i>
-                </div>
-                <div>
-                    <h5 class="fw-bold mb-1">${nombre}</h5>
-                    <p class="mb-1"><i class="bi bi-building me-1"></i> ${institucion}</p>
-                    <p class="mb-0"><i class="bi bi-calendar-event me-1"></i> Inicio: ${fecha_inicio}</p>
-                    <p class="mb-0"><i class="bi bi-calendar-event me-1"></i> Fin: ${fecha_fin || '--'}</p>
-                </div>
-            </div>
-            <button class="btn btn-sm btn-primary position-absolute top-0 end-0 m-2 editarCertificacionBtn">
-                <i class="bi bi-pencil"></i>
-            </button>
-        </div>
-        `;
-    } else {
-        card.innerHTML = `
-        <div class="card shadow-sm p-4 position-relative" style="max-width: 950px;">
-            <div class="d-flex">
-                <div class="me-4 d-flex align-items-center">
-                    <i class="bi bi-award-fill fs-1 text-warning"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <input type="hidden" class="datoCertificacionId" value="${id}">
-                    <input type="text" class="form-control mb-2 nombreCertificacion" placeholder="Nombre de la certificación" value="${nombre}">
-                    <input type="text" class="form-control mb-2 institucionCertificacion" placeholder="Institución" value="${institucion}">
-                    <div class="d-flex gap-2 mb-2">
-                        <input type="date" class="form-control fechaInicioCertificacion" value="${fecha_inicio}">
-                        <input type="date" class="form-control fechaFinCertificacion" value="${fecha_fin}">
-                    </div>
-                </div>
-            </div>
-            <div class="d-flex align-items-center mt-3">
-              <div class="d-flex gap-2">
-                <button class="btn btn-success guardarCertificacionBtn">Guardar</button>
-                <button class="btn btn-secondary cancelarCertificacionBtn">Cancelar</button>
-              </div>
-                ${id ? '<button class="btn btn-danger eliminarCertificacionBtn ms-auto">Eliminar</button>' : ''}
-            </div>
-        </div>
-        `;
-    }
-
-    return card;
-}
-
-function cargarCertificaciones() {
-    fetch('/perfil/certificaciones/list/')
-        .then(res => res.json())
-        .then(data => {
-            const container = document.getElementById('certificacionesContainer');
-            container.innerHTML = '';
-            data.datos.forEach(dato => {
-                const card = crearCardCertificacion(dato, true);
-                container.appendChild(card);
-                agregarEventosCardCertificacion(card);
-            });
-        });
-}
-
-function agregarEventosCardCertificacion(card) {
-    const guardarBtn = card.querySelector('.guardarCertificacionBtn');
-    const cancelarBtn = card.querySelector('.cancelarCertificacionBtn');
-    const eliminarBtn = card.querySelector('.eliminarCertificacionBtn');
-    const editarBtn = card.querySelector('.editarCertificacionBtn');
-
-    if (guardarBtn) {
-        guardarBtn.addEventListener('click', () => {
-            const formData = new FormData();
-            formData.append('id', card.querySelector('.datoCertificacionId').value);
-            formData.append('nombre', card.querySelector('.nombreCertificacion').value);
-            formData.append('institucion', card.querySelector('.institucionCertificacion').value);
-            formData.append('fecha_inicio', card.querySelector('.fechaInicioCertificacion').value);
-            formData.append('fecha_fin', card.querySelector('.fechaFinCertificacion').value);
-
-            fetch('/perfil/certificaciones/save/', {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-CSRFToken': getCookie('csrftoken') }
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        const newCard = crearCardCertificacion({
-                            id: data.id,
-                            nombre: formData.get('nombre'),
-                            institucion: formData.get('institucion'),
-                            fecha_inicio: formData.get('fecha_inicio'),
-                            fecha_fin: formData.get('fecha_fin')
-                        }, true);
-                        card.replaceWith(newCard);
-                        agregarEventosCardCertificacion(newCard);
-                    } else {
-                        alert('Error: ' + JSON.stringify(data.errors));
-                    }
-                });
-        });
-    }
-
-    if (cancelarBtn) {
-        cancelarBtn.addEventListener('click', () => {
-            cargarCertificaciones();
-        });
-    }
-
-    if (eliminarBtn) {
-        eliminarBtn.addEventListener('click', () => {
-            const id = card.querySelector('.datoCertificacionId').value;
-            const formData = new FormData();
-            formData.append('id', id);
-
-            fetch('/perfil/certificaciones/delete/', {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-CSRFToken': getCookie('csrftoken') }
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        cargarCertificaciones();
-                    } else {
-                        alert('Error: ' + data.error);
-                    }
-                });
-        });
-    }
-
-    if (editarBtn) {
-        editarBtn.addEventListener('click', () => {
-            cerrarCardsCertificacionEnEdicion();
-  
-            const datos = {
-                id: card.dataset.id || '',
-                nombre: card.querySelector('h5')?.textContent || '',
-                institucion: card.querySelector('p')?.childNodes[1]?.textContent.trim() || '',
-                fecha_inicio: card.querySelectorAll('p')[1]?.textContent.split(': ')[1] || '',
-                fecha_fin: card.querySelectorAll('p')[2]?.textContent.split(': ')[1] === '--' ? '' : card.querySelectorAll('p')[2]?.textContent.split(': ')[1]
-            };
-
-            const newCard = crearCardCertificacion(datos, false);
-            card.replaceWith(newCard);
-            agregarEventosCardCertificacion(newCard);
-        });
-    }
-}
-
-function cerrarCardsCertificacionEnEdicion() {
-    document.querySelectorAll('#certificacionesContainer .col-12').forEach(c => {
-        const guardarBtn = c.querySelector('.guardarCertificacionBtn');
-const id = c.querySelector('.datoCertificacionId')?.value || '';
-
-        if (guardarBtn && !id) {
-            c.remove();
-            return;
-        }
-
-        if (guardarBtn && id) {
-            const nombre = c.querySelector('.nombreCertificacion')?.value || '';
-            const institucion = c.querySelector('.institucionCertificacion')?.value || '';
-            const fecha_inicio = c.querySelector('.fechaInicioCertificacion')?.value || '';
-            const fecha_fin = c.querySelector('.fechaFinCertificacion')?.value || '';
-
-            const datos = { id, nombre, institucion, fecha_inicio, fecha_fin };
-            const verCard = crearCardCertificacion(datos, true);
-            c.replaceWith(verCard);
-            agregarEventosCardCertificacion(verCard);
-        }
-    });
-}
-
-document.querySelectorAll('button[data-bs-toggle="tab"], a[data-bs-toggle="tab"]').forEach(tabBtn => {
-    tabBtn.addEventListener('shown.bs.tab', () => {
-        cerrarCardsCertificacionEnEdicion();
-    });
-});
-
-document.getElementById('addCertificacionBtn').addEventListener('click', () => {
-    cerrarCardsCertificacionEnEdicion();
-    const container = document.getElementById('certificacionesContainer');
-    const card = crearCardCertificacion({}, false);
-    container.prepend(card);
-    agregarEventosCardCertificacion(card);
-});
-
-
-
-////////////////////
-
-function crearCardExperiencia(dato = {}, modoVer = false) {
-    const id = dato.id || '';
-    const cargo_exp = dato.cargo_exp || '';
-    const empresa = dato.empresa || '';
-    const descripcion = dato.descripcion || '';
-    const fecha_inicio = dato.fecha_inicio || '';
-    const fecha_fin = dato.fecha_fin || '';
-    const actualidad = dato.actualidad || false;
-
-    const card = document.createElement('div');
-    card.classList.add('col-12');
-    card.dataset.id = id;
-
-    if (modoVer) {
-        card.innerHTML = `
-        <div class="card shadow-sm p-4 position-relative" style="max-width: 950px;">
-            <div class="d-flex">
-                <div class="me-4 d-flex align-items-center">
-                    <i class="bi bi-briefcase-fill fs-1 text-primary"></i>
-                </div>
-                <div>
-                    <h5 class="fw-bold mb-1">${cargo_exp}</h5>
-                    <p class="mb-1"><i class="bi bi-building me-1"></i> ${empresa}</p>
-                    <p class="mb-1"><i class="bi bi-calendar-event me-1"></i> Inicio: ${fecha_inicio}</p>
-                    <p class="mb-1"><i class="bi bi-calendar-event me-1"></i> Fin: ${actualidad ? 'Actualidad' : (fecha_fin || '--')}</p>
-                    <p class="mb-0"><i class="bi bi-card-text me-1"></i> ${descripcion || ''}</p>
-                </div>
-            </div>
-            <button class="btn btn-sm btn-primary position-absolute top-0 end-0 m-2 editarExperienciaBtn">
-                <i class="bi bi-pencil"></i>
-            </button>
-        </div>
-        `;
-    } else {
-        card.innerHTML = `
-        <div class="card shadow-sm p-4 position-relative" style="max-width: 950px;">
-            <input type="hidden" class="datoExperienciaId" value="${id}">
-            <input type="text" class="form-control mb-2 cargo_expExperiencia" placeholder="Cargo_exp" value="${cargo_exp}">
-            <input type="text" class="form-control mb-2 empresaExperiencia" placeholder="Empresa" value="${empresa}">
-            <textarea class="form-control mb-2 descripcionExperiencia" placeholder="Descripción">${descripcion}</textarea>
-            <div class="d-flex gap-2 mb-2">
-                <input type="date" class="form-control fechaInicioExperiencia" value="${fecha_inicio}">
-                <input type="date" class="form-control fechaFinExperiencia" value="${fecha_fin}" ${actualidad ? 'disabled' : ''}>
-            </div>
-            <div class="form-check mb-4">
-                <input class="form-check-input actualidadExperiencia" type="checkbox" ${actualidad ? 'checked' : ''}>
-                <label class="form-check-label">Actualmente trabajando aquí</label>
-            </div>
-            <div class="d-flex align-items-center mt-2">
-              <div class="d-flex gap-2">
-                <button class="btn btn-success guardarExperienciaBtn">Guardar</button>
-                <button class="btn btn-secondary cancelarExperienciaBtn">Cancelar</button>
-              </div>
-                ${id ? '<button class="btn btn-danger eliminarExperienciaBtn ms-auto">Eliminar</button>' : ''}
-            </div>
-        </div>
-        `;
-    }
-
-    return card;
-}
-
-function bloquearFechaFinExperiencia(card) {
-    const chk = card.querySelector('.actualidadExperiencia');
-    const fechaFin = card.querySelector('.fechaFinExperiencia');
-    if (!chk || !fechaFin) return;
-
-    function actualizar() {
-        if (chk.checked) {
-            fechaFin.value = '';
-            fechaFin.disabled = true;
-        } else {
-            fechaFin.disabled = false;
-        }
-    }
-    chk.addEventListener('change', actualizar);
-    actualizar();
-}
-
-function agregarEventosCardExperiencia(card) {
-    bloquearFechaFinExperiencia(card);
-
-    const guardarBtn = card.querySelector('.guardarExperienciaBtn');
-    const cancelarBtn = card.querySelector('.cancelarExperienciaBtn');
-    const eliminarBtn = card.querySelector('.eliminarExperienciaBtn');
-    const editarBtn = card.querySelector('.editarExperienciaBtn');
-
-    if (guardarBtn) {
-        guardarBtn.addEventListener('click', () => {
-            const formData = new FormData();
-            formData.append('id', card.querySelector('.datoExperienciaId').value);
-            formData.append('cargo_exp', card.querySelector('.cargo_expExperiencia').value);
-            formData.append('empresa', card.querySelector('.empresaExperiencia').value);
-            formData.append('descripcion', card.querySelector('.descripcionExperiencia').value);
-            formData.append('fecha_inicio', card.querySelector('.fechaInicioExperiencia').value);
-            formData.append('fecha_fin', card.querySelector('.fechaFinExperiencia').value);
-            formData.append('actualidad', card.querySelector('.actualidadExperiencia').checked ? 'true' : 'false');
-
-            fetch('/perfil/experiencias/save/', {
-                method: 'POST',
-                body: formData,
-                headers: {'X-CSRFToken': getCookie('csrftoken')}
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const newCard = crearCardExperiencia({
-                        id: data.id,
-                        cargo_exp: formData.get('cargo_exp'),
-                        empresa: formData.get('empresa'),
-                        descripcion: formData.get('descripcion'),
-                        fecha_inicio: formData.get('fecha_inicio'),
-                        fecha_fin: formData.get('fecha_fin'),
-                        actualidad: formData.get('actualidad') === 'true'
-                    }, true);
-                    card.replaceWith(newCard);
-                    agregarEventosCardExperiencia(newCard);
-                } else {
-                    alert('Error: ' + JSON.stringify(data.errors));
-                }
-            });
-        });
-    }
-
-    if (cancelarBtn) cancelarBtn.addEventListener('click', cargarExperiencias);
-
-    if (eliminarBtn) {
-        eliminarBtn.addEventListener('click', () => {
-            const id = card.querySelector('.datoExperienciaId').value;
-            const formData = new FormData();
-            formData.append('id', id);
-
-            fetch('/perfil/experiencias/delete/', {
-                method: 'POST',
-                body: formData,
-                headers: {'X-CSRFToken': getCookie('csrftoken')}
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) cargarExperiencias();
-                else alert('Error: ' + data.error);
-            });
-        });
-    }
-
-    if (editarBtn) {
-        editarBtn.addEventListener('click', () => {
-            cerrarCardsExperienciaEnEdicion();
-
-            const datos = {
-                id: card.dataset.id || '',
-                cargo_exp: card.querySelector('h5')?.textContent || '',
-                empresa: card.querySelectorAll('p')[0]?.textContent.split(' ').slice(1).join(' ') || '',
-                descripcion: card.querySelectorAll('p')[3]?.textContent?.trim() || '',
-                fecha_inicio: card.querySelectorAll('p')[1]?.textContent.split(': ')[1] || '',
-                fecha_fin: card.querySelectorAll('p')[2]?.textContent.split(': ')[1] === 'Actualidad' ? '' : card.querySelectorAll('p')[2]?.textContent.split(': ')[1],
-                actualidad: card.querySelectorAll('p')[2]?.textContent.split(': ')[1] === 'Actualidad'
-            };
-
-            const newCard = crearCardExperiencia(datos, false);
-            card.replaceWith(newCard);
-            agregarEventosCardExperiencia(newCard);
-        });
-    }
-}
-
-
-function cerrarCardsExperienciaEnEdicion() {
-  const cards = document.querySelectorAll('#experienciasContainer .card');
-
-  cards.forEach(card => {
-    const id = card.querySelector('.datoExperienciaId')?.value || '';
-    const cargoInput = card.querySelector('.cargo_expExperiencia');
-
-    if (!cargoInput) return;
-
-    const empresaVal = card.querySelector('.empresaExperiencia')?.value.trim() || '';
-    const descripcionVal = card.querySelector('.descripcionExperiencia')?.value.trim() || '';
-    const fechaInicioVal = card.querySelector('.fechaInicioExperiencia')?.value.trim() || '';
-    const fechaFinVal = card.querySelector('.fechaFinExperiencia')?.value.trim() || '';
-    const cargoVal = cargoInput.value.trim() || '';
-
-    const sinDatos = !id && !empresaVal && !descripcionVal && !fechaInicioVal && !fechaFinVal && !cargoVal;
-    if (sinDatos) {
-      card.remove();
-      return;
-    }
-
-    const datos = {
-      id: id,
-      cargo_exp: cargoVal,
-      empresa: empresaVal,
-      descripcion: descripcionVal,
-      fecha_inicio: fechaInicioVal,
-      fecha_fin: fechaFinVal,
-      actualidad: card.querySelector('.actualidadExperiencia')?.checked || false
-    };
-
-    const newCard = crearCardExperiencia(datos, true);
-    card.replaceWith(newCard);
-    agregarEventosCardExperiencia(newCard);
+          const datos = { id, carrera, institucion, situacion_academica: situacion, fecha_inicio, fecha_fin };
+          const verCard = crearCardAcademico(datos, true);
+          c.replaceWith(verCard);
+          agregarEventosCardAcademico(verCard);
+      }
   });
 }
 
 
-function cargarExperiencias() {
-    fetch('/perfil/experiencias/list/')
-        .then(res => res.json())
-        .then(data => {
-            const container = document.getElementById('experienciasContainer');
-            container.innerHTML = '';
-            data.datos.forEach(dato => {
-                const card = crearCardExperiencia(dato, true);
-                container.appendChild(card);
-                agregarEventosCardExperiencia(card);
-            });
-        });
-}
 
-document.getElementById('addExperienciaBtn').addEventListener('click', () => {
-    cerrarCardsExperienciaEnEdicion();
-    const container = document.getElementById('experienciasContainer');
-    const card = crearCardExperiencia({}, false);
-    container.prepend(card);
-    agregarEventosCardExperiencia(card);
-});
-
-document.querySelectorAll('button[data-bs-toggle="tab"], a[data-bs-toggle="tab"]').forEach(tabBtn => {
-    tabBtn.addEventListener('shown.bs.tab', () => cerrarCardsExperienciaEnEdicion());
-});
-
-
-
-
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        document.cookie.split(';').forEach(c => {
-            const cookie = c.trim();
-            if (cookie.startsWith(name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-            }
-        });
-    }
-    return cookieValue;
+if (document.getElementById('addAcademicoBtn')) {
+  document.getElementById('addAcademicoBtn').addEventListener('click', () => {
+    cerrarCardsAcademicoEnEdicion();
+    const container = document.getElementById('academicosContainer');
+      const card = crearCardAcademico({}, false);
+      container.prepend(card);
+      agregarEventosCardAcademico(card);
+  });
 }
 
 
-  </script>
 
 
-  {% include 'auth/partials/base_scripts.html' %}
+////////////////////
+
+  function crearCardCertificacion(dato = {}, modoVer = false) {
+      const id = dato.id || '';
+      const nombre = dato.nombre || '';
+      const institucion = dato.institucion || '';
+      const fecha_inicio = dato.fecha_inicio || '';
+      const fecha_fin = dato.fecha_fin || '';
+
+      const card = document.createElement('div');
+      card.classList.add('col-12');
+      card.dataset.id = id;
+
+      if (modoVer) {
+          card.innerHTML = `
+          <div class="card shadow-sm p-3 position-relative" style="max-width: 950px;">
+              <div class="d-flex">
+                  <div class="me-4 d-flex align-items-center">
+                      <i class="bi bi-award-fill fs-1 text-warning"></i>
+                  </div>
+                  <div>
+                      <h5 class="fw-bold mb-1">${nombre}</h5>
+                      <p class="mb-1"><i class="bi bi-building me-1"></i> ${institucion}</p>
+                      <p class="mb-0"><i class="bi bi-calendar-event me-1"></i> Inicio: ${fecha_inicio}</p>
+                      <p class="mb-0"><i class="bi bi-calendar-event me-1"></i> Fin: ${fecha_fin || '--'}</p>
+                  </div>
+              </div>
+              <button class="btn btn-sm btn-primary position-absolute top-0 end-0 m-2 editarCertificacionBtn">
+                  <i class="bi bi-pencil"></i>
+              </button>
+          </div>
+          `;
+      } else {
+          card.innerHTML = `
+          <div class="card shadow-sm p-3 position-relative" style="max-width: 950px;">
+              <div class="d-flex">
+                  <div class="me-4 d-flex align-items-center">
+                      <i class="bi bi-award-fill fs-1 text-warning"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                      <input type="hidden" class="datoCertificacionId" value="${id}">
+                      <input type="text" class="form-control mb-2 nombreCertificacion" placeholder="Nombre de la certificación" value="${nombre}">
+                      <input type="text" class="form-control mb-2 institucionCertificacion" placeholder="Institución" value="${institucion}">
+                      <div class="d-flex gap-2 mb-2">
+                          <input type="date" class="form-control fechaInicioCertificacion" value="${fecha_inicio}">
+                          <input type="date" class="form-control fechaFinCertificacion" value="${fecha_fin}">
+                      </div>
+                  </div>
+              </div>
+              <div class="d-flex align-items-center mt-3">
+                <div class="d-flex gap-2">
+                  <button class="btn btn-success guardarCertificacionBtn">Guardar</button>
+                  <button class="btn btn-secondary cancelarCertificacionBtn">Cancelar</button>
+                </div>
+                  ${id ? '<button class="btn btn-danger eliminarCertificacionBtn ms-auto">Eliminar</button>' : ''}
+              </div>
+          </div>
+          `;
+      }
+
+      return card;
+  }
+
+  function cargarCertificaciones() {
+      fetch('/personas/perfil/certificaciones/list/')
+          .then(res => res.json())
+          .then(data => {
+              const container = document.getElementById('certificacionesContainer');
+              container.innerHTML = '';
+              data.datos.forEach(dato => {
+                  const card = crearCardCertificacion(dato, true);
+                  container.appendChild(card);
+                  agregarEventosCardCertificacion(card);
+              });
+          });
+  }
+
+  function agregarEventosCardCertificacion(card) {
+      const guardarBtn = card.querySelector('.guardarCertificacionBtn');
+      const cancelarBtn = card.querySelector('.cancelarCertificacionBtn');
+      const eliminarBtn = card.querySelector('.eliminarCertificacionBtn');
+      const editarBtn = card.querySelector('.editarCertificacionBtn');
+
+      if (guardarBtn) {
+          guardarBtn.addEventListener('click', () => {
+              const formData = new FormData();
+              formData.append('id', card.querySelector('.datoCertificacionId').value);
+              formData.append('nombre', card.querySelector('.nombreCertificacion').value);
+              formData.append('institucion', card.querySelector('.institucionCertificacion').value);
+              formData.append('fecha_inicio', card.querySelector('.fechaInicioCertificacion').value);
+              formData.append('fecha_fin', card.querySelector('.fechaFinCertificacion').value);
+
+              fetch('/personas/perfil/certificaciones/save/', {
+                  method: 'POST',
+                  body: formData,
+                  headers: { 'X-CSRFToken': getCookie('csrftoken') }
+              })
+                  .then(res => res.json())
+                  .then(data => {
+                      if (data.success) {
+                          if (typeof mostrarToast === 'function') {
+                              mostrarToast(data.toast_message, data.toast_type || 'success');
+                          }
+                          const newCard = crearCardCertificacion({
+                              id: data.id,
+                              nombre: formData.get('nombre'),
+                              institucion: formData.get('institucion'),
+                              fecha_inicio: formData.get('fecha_inicio'),
+                              fecha_fin: formData.get('fecha_fin')
+                          }, true);
+                          card.replaceWith(newCard);
+                          agregarEventosCardCertificacion(newCard);
+                      } else {
+                          alert('Error: ' + JSON.stringify(data.errors));
+                      }
+                  });
+          });
+      }
+
+      if (cancelarBtn) {
+          cancelarBtn.addEventListener('click', () => {
+              cargarCertificaciones();
+          });
+      }
+
+      if (eliminarBtn) {
+          eliminarBtn.addEventListener('click', () => {
+              const id = card.querySelector('.datoCertificacionId').value;
+              const formData = new FormData();
+              formData.append('id', id);
+
+              fetch('/personas/perfil/certificaciones/delete/', {
+                  method: 'POST',
+                  body: formData,
+                  headers: { 'X-CSRFToken': getCookie('csrftoken') }
+              })
+                  .then(res => res.json())
+                  .then(data => {
+                      if (data.success) {
+                          if (typeof mostrarToast === 'function') {
+                              mostrarToast(data.toast_message, data.toast_type || 'success');
+                          }
+                          cargarCertificaciones();
+                      } else {
+                          alert('Error: ' + data.error);
+                      }
+                  });
+          });
+      }
+
+      if (editarBtn) {
+          editarBtn.addEventListener('click', () => {
+              cerrarCardsCertificacionEnEdicion();
+    
+              const datos = {
+                  id: card.dataset.id || '',
+                  nombre: card.querySelector('h5')?.textContent || '',
+                  institucion: card.querySelector('p')?.childNodes[1]?.textContent.trim() || '',
+                  fecha_inicio: card.querySelectorAll('p')[1]?.textContent.split(': ')[1] || '',
+                  fecha_fin: card.querySelectorAll('p')[2]?.textContent.split(': ')[1] === '--' ? '' : card.querySelectorAll('p')[2]?.textContent.split(': ')[1]
+              };
+
+              const newCard = crearCardCertificacion(datos, false);
+              card.replaceWith(newCard);
+              agregarEventosCardCertificacion(newCard);
+          });
+      }
+  }
+
+  function cerrarCardsCertificacionEnEdicion() {
+      document.querySelectorAll('#certificacionesContainer .col-12').forEach(c => {
+          const guardarBtn = c.querySelector('.guardarCertificacionBtn');
+          const id = c.querySelector('.datoCertificacionId')?.value || '';
+
+          if (guardarBtn && !id) {
+              c.remove();
+              return;
+          }
+
+          if (guardarBtn && id) {
+              const nombre = c.querySelector('.nombreCertificacion')?.value || '';
+              const institucion = c.querySelector('.institucionCertificacion')?.value || '';
+              const fecha_inicio = c.querySelector('.fechaInicioCertificacion')?.value || '';
+              const fecha_fin = c.querySelector('.fechaFinCertificacion')?.value || '';
+
+              const datos = { id, nombre, institucion, fecha_inicio, fecha_fin };
+              const verCard = crearCardCertificacion(datos, true);
+              c.replaceWith(verCard);
+              agregarEventosCardCertificacion(verCard);
+          }
+      });
+  }
+
+
+
+  if (document.getElementById('addCertificacionBtn')) {
+      document.getElementById('addCertificacionBtn').addEventListener('click', () => {
+          cerrarCardsCertificacionEnEdicion();
+          const container = document.getElementById('certificacionesContainer');
+          const card = crearCardCertificacion({}, false);
+          container.prepend(card);
+          agregarEventosCardCertificacion(card);
+      });
+  }
+
+
+
+////////////////////
+
+  function crearCardExperiencia(dato = {}, modoVer = false) {
+      const id = dato.id || '';
+      const cargo_exp = dato.cargo_exp || '';
+      const empresa = dato.empresa || '';
+      const descripcion = dato.descripcion || '';
+      const fecha_inicio = dato.fecha_inicio || '';
+      const fecha_fin = dato.fecha_fin || '';
+      const actualidad = dato.actualidad || false;
+
+      const card = document.createElement('div');
+      card.classList.add('col-12');
+      card.dataset.id = id;
+
+      if (modoVer) {
+          card.innerHTML = `
+          <div class="card shadow-sm p-3 position-relative" style="max-width: 950px;">
+              <div class="d-flex">
+                  <div class="me-4 d-flex align-items-center">
+                      <i class="bi bi-briefcase-fill fs-1 text-primary"></i>
+                  </div>
+                  <div>
+                      <h5 class="fw-bold mb-1">${cargo_exp}</h5>
+                      <p class="mb-1"><i class="bi bi-building me-1"></i> ${empresa}</p>
+                      <p class="mb-1"><i class="bi bi-calendar-event me-1"></i> Inicio: ${fecha_inicio}</p>
+                      <p class="mb-1"><i class="bi bi-calendar-event me-1"></i> Fin: ${actualidad ? 'Actualidad' : (fecha_fin || '--')}</p>
+                      <p class="mb-0"><i class="bi bi-card-text me-1"></i> ${descripcion || ''}</p>
+                  </div>
+              </div>
+              <button class="btn btn-sm btn-primary position-absolute top-0 end-0 m-2 editarExperienciaBtn">
+                  <i class="bi bi-pencil"></i>
+              </button>
+          </div>
+          `;
+      } else {
+          card.innerHTML = `
+          <div class="card shadow-sm p-3 position-relative" style="max-width: 950px;">
+              <input type="hidden" class="datoExperienciaId" value="${id}">
+              <input type="text" class="form-control mb-2 cargo_expExperiencia" placeholder="Cargo_exp" value="${cargo_exp}">
+              <input type="text" class="form-control mb-2 empresaExperiencia" placeholder="Empresa" value="${empresa}">
+              <textarea class="form-control mb-2 descripcionExperiencia" placeholder="Descripción">${descripcion}</textarea>
+              <div class="d-flex gap-2 mb-2">
+                  <input type="date" class="form-control fechaInicioExperiencia" value="${fecha_inicio}">
+                  <input type="date" class="form-control fechaFinExperiencia" value="${fecha_fin}" ${actualidad ? 'disabled' : ''}>
+              </div>
+              <div class="form-check mb-4">
+                  <input class="form-check-input actualidadExperiencia" type="checkbox" ${actualidad ? 'checked' : ''}>
+                  <label class="form-check-label">Actualmente trabajando aquí</label>
+              </div>
+              <div class="d-flex align-items-center mt-2">
+                <div class="d-flex gap-2">
+                  <button class="btn btn-success guardarExperienciaBtn">Guardar</button>
+                  <button class="btn btn-secondary cancelarExperienciaBtn">Cancelar</button>
+                </div>
+                  ${id ? '<button class="btn btn-danger eliminarExperienciaBtn ms-auto">Eliminar</button>' : ''}
+              </div>
+          </div>
+          `;
+      }
+
+      return card;
+  }
+
+  function bloquearFechaFinExperiencia(card) {
+      const chk = card.querySelector('.actualidadExperiencia');
+      const fechaFin = card.querySelector('.fechaFinExperiencia');
+      if (!chk || !fechaFin) return;
+
+      function actualizar() {
+          if (chk.checked) {
+              fechaFin.value = '';
+              fechaFin.disabled = true;
+          } else {
+              fechaFin.disabled = false;
+          }
+      }
+      chk.addEventListener('change', actualizar);
+      actualizar();
+  }
+
+  function agregarEventosCardExperiencia(card) {
+      bloquearFechaFinExperiencia(card);
+
+      const guardarBtn = card.querySelector('.guardarExperienciaBtn');
+      const cancelarBtn = card.querySelector('.cancelarExperienciaBtn');
+      const eliminarBtn = card.querySelector('.eliminarExperienciaBtn');
+      const editarBtn = card.querySelector('.editarExperienciaBtn');
+
+      if (guardarBtn) {
+          guardarBtn.addEventListener('click', () => {
+              const formData = new FormData();
+              formData.append('id', card.querySelector('.datoExperienciaId').value);
+              formData.append('cargo_exp', card.querySelector('.cargo_expExperiencia').value);
+              formData.append('empresa', card.querySelector('.empresaExperiencia').value);
+              formData.append('descripcion', card.querySelector('.descripcionExperiencia').value);
+              formData.append('fecha_inicio', card.querySelector('.fechaInicioExperiencia').value);
+              formData.append('fecha_fin', card.querySelector('.fechaFinExperiencia').value);
+              formData.append('actualidad', card.querySelector('.actualidadExperiencia').checked ? 'true' : 'false');
+
+              fetch('/personas/perfil/experiencias/save/', {
+                  method: 'POST',
+                  body: formData,
+                  headers: {'X-CSRFToken': getCookie('csrftoken')}
+              })
+              .then(res => res.json())
+              .then(data => {
+                  if (data.success) {
+                      if (typeof mostrarToast === 'function') {
+                          mostrarToast(data.toast_message, data.toast_type || 'success');
+                      }
+                      const newCard = crearCardExperiencia({
+                          id: data.id,
+                          cargo_exp: formData.get('cargo_exp'),
+                          empresa: formData.get('empresa'),
+                          descripcion: formData.get('descripcion'),
+                          fecha_inicio: formData.get('fecha_inicio'),
+                          fecha_fin: formData.get('fecha_fin'),
+                          actualidad: formData.get('actualidad') === 'true'
+                      }, true);
+                      card.replaceWith(newCard);
+                      agregarEventosCardExperiencia(newCard);
+                  } else {
+                      alert('Error: ' + JSON.stringify(data.errors));
+                  }
+              });
+          });
+      }
+
+      if (cancelarBtn) cancelarBtn.addEventListener('click', cargarExperiencias);
+
+      if (eliminarBtn) {
+          eliminarBtn.addEventListener('click', () => {
+              const id = card.querySelector('.datoExperienciaId').value;
+              const formData = new FormData();
+              formData.append('id', id);
+
+              fetch('/personas/perfil/experiencias/delete/', {
+                  method: 'POST',
+                  body: formData,
+                  headers: {'X-CSRFToken': getCookie('csrftoken')}
+              })
+              .then(res => res.json())
+              .then(data => {
+                  if (data.success) {
+                    if (typeof mostrarToast === 'function') {
+                        mostrarToast(data.toast_message, data.toast_type || 'success');
+                    }
+                    cargarExperiencias();
+                  } else { 
+                    alert('Error: ' + data.error);
+                  }
+              });
+          });
+      }
+
+      if (editarBtn) {
+          editarBtn.addEventListener('click', () => {
+              cerrarCardsExperienciaEnEdicion();
+
+              const datos = {
+                  id: card.dataset.id || '',
+                  cargo_exp: card.querySelector('h5')?.textContent || '',
+                  empresa: card.querySelectorAll('p')[0]?.textContent.split(' ').slice(1).join(' ') || '',
+                  descripcion: card.querySelectorAll('p')[3]?.textContent?.trim() || '',
+                  fecha_inicio: card.querySelectorAll('p')[1]?.textContent.split(': ')[1] || '',
+                  fecha_fin: card.querySelectorAll('p')[2]?.textContent.split(': ')[1] === 'Actualidad' ? '' : card.querySelectorAll('p')[2]?.textContent.split(': ')[1],
+                  actualidad: card.querySelectorAll('p')[2]?.textContent.split(': ')[1] === 'Actualidad'
+              };
+
+              const newCard = crearCardExperiencia(datos, false);
+              card.replaceWith(newCard);
+              agregarEventosCardExperiencia(newCard);
+          });
+      }
+  }
+
+
+  function cerrarCardsExperienciaEnEdicion() {
+    const cards = document.querySelectorAll('#experienciasContainer .card');
+
+    cards.forEach(card => {
+      const id = card.querySelector('.datoExperienciaId')?.value || '';
+      const cargoInput = card.querySelector('.cargo_expExperiencia');
+
+      if (!cargoInput) return;
+
+      const empresaVal = card.querySelector('.empresaExperiencia')?.value.trim() || '';
+      const descripcionVal = card.querySelector('.descripcionExperiencia')?.value.trim() || '';
+      const fechaInicioVal = card.querySelector('.fechaInicioExperiencia')?.value.trim() || '';
+      const fechaFinVal = card.querySelector('.fechaFinExperiencia')?.value.trim() || '';
+      const cargoVal = cargoInput.value.trim() || '';
+
+      const sinDatos = !id && !empresaVal && !descripcionVal && !fechaInicioVal && !fechaFinVal && !cargoVal;
+      if (sinDatos) {
+        card.remove();
+        return;
+      }
+
+      const datos = {
+        id: id,
+        cargo_exp: cargoVal,
+        empresa: empresaVal,
+        descripcion: descripcionVal,
+        fecha_inicio: fechaInicioVal,
+        fecha_fin: fechaFinVal,
+        actualidad: card.querySelector('.actualidadExperiencia')?.checked || false
+      };
+
+      const newCard = crearCardExperiencia(datos, true);
+      card.replaceWith(newCard);
+      agregarEventosCardExperiencia(newCard);
+    });
+  }
+
+  
+  function cargarExperiencias() {
+      fetch('/personas/perfil/experiencias/list/')
+          .then(res => res.json())
+          .then(data => {
+              const container = document.getElementById('experienciasContainer');
+              container.innerHTML = '';
+              data.datos.forEach(dato => {
+                  const card = crearCardExperiencia(dato, true);
+                  container.appendChild(card);
+                  agregarEventosCardExperiencia(card);
+              });
+          });
+  }
+
+
+
+  if (document.getElementById('addExperienciaBtn')) {
+      document.getElementById('addExperienciaBtn').addEventListener('click', () => {
+          cerrarCardsExperienciaEnEdicion();
+          const container = document.getElementById('experienciasContainer');
+          const card = crearCardExperiencia({}, false);
+          container.prepend(card);
+          agregarEventosCardExperiencia(card);
+      });
+  }
+
+  window.seleccionarTab = seleccionarTab;
+
+
+  
+
+</script>
+{% include 'auth/partials/base_scripts.html' %}
+
+{% endblock %}
 </body>
-</html>

@@ -193,6 +193,77 @@ class PersonaForm(forms.ModelForm):
         self.fields["cargo"].queryset = cargos_qs
 
 
+
+class PersonaPerfilForm(forms.ModelForm):
+    avatar = forms.ImageField(
+        required=False, widget=forms.ClearableFileInput(attrs={"class": "form-control"})
+    )
+
+    cvitae = forms.FileField(
+        required=False,
+        widget=forms.FileInput(
+            attrs={
+                "class": "form-control d-none",
+                "accept": ".pdf,.zip",
+                "id": "id_cvitae",
+            }
+        ),
+    )
+
+    class Meta:
+        model = Persona
+        fields = [
+            "nombre",
+            "apellido",
+            "dni",
+            "telefono",
+            "prefijo_pais",
+            "pais",
+            "provincia",
+            "ciudad",
+            "calle",
+            "numero",
+            "avatar",
+            "cvitae",
+        ]
+        widgets = {
+            "nombre": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Nombre"}
+            ),
+            "apellido": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Apellido"}
+            ),
+            "dni": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "DNI"}
+            ),
+            "prefijo_pais": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "+54",
+                    "style": "max-width: 90px;",
+                }
+            ),
+            "telefono": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "123-456789"}
+            ),
+            "pais": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "País"}
+            ),
+            "provincia": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Provincia"}
+            ),
+            "ciudad": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Ciudad"}
+            ),
+            "calle": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Calle"}
+            ),
+            "numero": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Número"}
+            ),
+        }
+
+
 class DatoAcademicoForm(forms.ModelForm):
     class Meta:
         model = DatoAcademico

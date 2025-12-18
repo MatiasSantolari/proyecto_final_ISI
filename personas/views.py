@@ -1,5 +1,4 @@
 from datetime import date
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -31,6 +30,7 @@ from personas.forms import (
     DatoAcademicoForm,
     ExperienciaLaboralForm,
     PersonaForm,
+    PersonaPerfilForm,
 )
 
 
@@ -284,14 +284,20 @@ def datos_academicos_save(request):
         if dato_id:
             dato = DatoAcademico.objects.get(id=dato_id, persona=persona)
             form = DatoAcademicoForm(data, instance=dato)
+            toast_msg = "Dato académico actualizado."
         else:
             form = DatoAcademicoForm(data)
-
+            toast_msg = "Nuevo dato académico agregado."
         if form.is_valid():
             nuevo_dato = form.save(commit=False)
             nuevo_dato.persona = persona
             nuevo_dato.save()
-            return JsonResponse({"success": True, "id": nuevo_dato.id})
+            return JsonResponse({
+                "success": True, 
+                "id": nuevo_dato.id,
+                "toast_message": toast_msg,
+                "toast_type": "success"
+            })
         else:
             return JsonResponse({"success": False, "errors": form.errors})
 
@@ -305,9 +311,14 @@ def datos_academicos_delete(request):
         try:
             dato = DatoAcademico.objects.get(id=dato_id, persona=persona)
             dato.delete()
-            return JsonResponse({"success": True})
+            return JsonResponse({
+                "success": True,
+                "toast_message": "Dato académico eliminado.",
+                "toast_type": "success"
+            })
         except DatoAcademico.DoesNotExist:
             return JsonResponse({"success": False, "error": "Dato no encontrado"})
+
 
 
 @login_required
@@ -340,14 +351,21 @@ def certificaciones_save(request):
         if dato_id:
             dato = Certificacion.objects.get(id=dato_id, persona=persona)
             form = CertificacionForm(data, instance=dato)
+            toast_msg = "Certificación actualizada."
         else:
             form = CertificacionForm(data)
-
+            toast_msg = "Nueva certificación agregada."
+        
         if form.is_valid():
             nuevo_dato = form.save(commit=False)
             nuevo_dato.persona = persona
             nuevo_dato.save()
-            return JsonResponse({"success": True, "id": nuevo_dato.id})
+            return JsonResponse({
+                "success": True, 
+                "id": nuevo_dato.id,
+                "toast_message": toast_msg,
+                "toast_type": "success"
+            })
         else:
             return JsonResponse({"success": False, "errors": form.errors})
 
@@ -361,7 +379,11 @@ def certificaciones_delete(request):
         try:
             dato = Certificacion.objects.get(id=dato_id, persona=persona)
             dato.delete()
-            return JsonResponse({"success": True})
+            return JsonResponse({
+                "success": True,
+                "toast_message": "Certificación eliminada.",
+                "toast_type": "success"
+            })
         except Certificacion.DoesNotExist:
             return JsonResponse({"success": False, "error": "Certificación no encontrada"})
 
@@ -398,14 +420,21 @@ def experiencias_save(request):
         if exp_id:
             exp = ExperienciaLaboral.objects.get(id=exp_id, persona=persona)
             form = ExperienciaLaboralForm(data, instance=exp)
+            toast_msg = "Experiencia laboral actualizada."
         else:
             form = ExperienciaLaboralForm(data)
+            toast_msg = "Nueva experiencia laboral agregada."
 
         if form.is_valid():
             nueva_exp = form.save(commit=False)
             nueva_exp.persona = persona
             nueva_exp.save()
-            return JsonResponse({"success": True, "id": nueva_exp.id})
+            return JsonResponse({
+                "success": True, 
+                "id": nueva_exp.id,
+                "toast_message": toast_msg,
+                "toast_type": "success"
+            })
         else:
             return JsonResponse({"success": False, "errors": form.errors})
 
@@ -419,6 +448,28 @@ def experiencias_delete(request):
         try:
             exp = ExperienciaLaboral.objects.get(id=exp_id, persona=persona)
             exp.delete()
-            return JsonResponse({"success": True})
+            return JsonResponse({
+                "success": True,
+                "toast_message": "Experiencia laboral eliminada.",
+                "toast_type": "success"
+            })
         except ExperienciaLaboral.DoesNotExist:
             return JsonResponse({"success": False, "error": "Experiencia no encontrada"})
+
+
+
+def perfil_save_view(request):
+    if request.method == 'POST':
+        form = PersonaPerfilForm(request.POST, request.FILES, instance=request.user.persona)
+        if form.is_valid():
+            persona = form.save()
+            cv_url = persona.cvitae.url if persona.cvitae else None
+            return JsonResponse({
+                'success': True, 
+                'message': 'Datos guardados correctamente.',
+                'cv_url': cv_url,
+                'toast_message': '¡Perfil actualizado con éxito!', 
+                'toast_type': 'success'
+            })
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors.as_json()}, status=400)
