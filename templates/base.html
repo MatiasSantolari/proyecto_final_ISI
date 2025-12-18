@@ -24,31 +24,32 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
 
   <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
     body {
-      background-color: #f8f9fa; /* Más claro y uniforme */
+      background-color: #f8f9fa;
       font-family: "Segoe UI", sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
+    .wrapper {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
     .content-wrapper {
       flex: 1 0 auto;
       padding: 20px;
       background-color: #f4f6f9;
-      margin-left: 250px;
-    }
-
-    .navbar {
-      z-index: 1100;
-    }
-
-    .main-sidebar {
-      position: fixed;
-      left: 0;
-      height: calc(100% - 56px);
-      z-index: 1200;
-      background-color: #27324a;
+      margin-top: 0 !important; 
     }
 
     footer.app-footer {
@@ -58,23 +59,12 @@
       font-size: 0.9rem;
       color: #555;
       flex-shrink: 0;
-      margin-left: 250px;
     }
 
-    body:not(.sidebar-collapse) footer.app-footer {
-      margin-left: 250px;
+    .main-sidebar {
+      z-index: 1200;
+      background-color: #27324a;
     }
-
-    body.sidebar-collapse footer.app-footer {
-      margin-left: 72px;
-    }
-
-    @media (max-width: 768px) {
-      .main-content-wrapper {
-        margin-left: 0 !important;
-      }
-    }
-
 
     .bg-soft-success   { background-color: #d4edda !important; }
     .bg-soft-warning   { background-color: #fff3cd !important; }
@@ -84,16 +74,7 @@
     .bg-soft-secondary { background-color: #e2e3e5 !important; }
     .bg-soft-mint      { background-color: #d1f2eb !important; }
     .border-mint       { border-color: #1abc9c !important;}
-
     
-    html, body {
-      height: 100%;
-    }
-
-    .content-wrapper {
-      min-height: calc(100vh - 56px - 50px);
-    }
-
     .table thead th {
       background-color: #e9ecef;
       font-weight: 700;
@@ -105,7 +86,6 @@
       border-radius: 0.5rem;
       box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
     }
-
 
     .toast-custom-animate {
       animation: slideFadeIn 0.6s ease-out;
@@ -137,37 +117,35 @@
       }
     }
 
-    .objetivo-completado {
-        text-decoration: line-through;
-        color: gray;
-        opacity: 0.6;
-        transition: all 0.3s ease;
-    }
   </style>
 
   {% block extra_head %}{% endblock %}
 </head>
 
-<body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed d-flex flex-column">
-  <!-- Navbar -->
-  {% include "partials/navbar.html" %}
+<body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed"> 
+  <div class="wrapper">
+      <!-- Navbar -->
+    {% include "partials/navbar.html" %}
 
-  <!-- sidebar -->
-  {% include "partials/sidebar.html" %}
+    <!-- sidebar -->
+    {% include "partials/sidebar.html" %} 
 
 
- <!-- Contenedor principal de contenido y footer -->
-<div class="main-content-wrapper d-flex flex-column flex-grow-1">
-  <div class="content-wrapper flex-grow-1">
-    {% block content %}
-    {% endblock %}
+  <!-- Contenedor principal de contenido -->
+  <div class="content-wrapper">
+      <section class="content">
+        <div class="container-fluid">
+            {% block content %}{% endblock %}
+        </div>
+      </section>
+    </div>
+
+  <!-- Footer -->
+    {% include "partials/footer.html" %}
+   
   </div>
 
-  {% include "partials/footer.html" %}
-</div>
 
-
-  <!-- Scripts -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>

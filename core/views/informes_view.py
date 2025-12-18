@@ -395,26 +395,18 @@ def api_empleado_vacaciones(request, empleado_id):
 def api_empleado_objetivos(request, empleado_id):
     tipo_filtro = request.GET.get('tipo', 'todos')
     
-    qs_empleado = ObjetivoEmpleado.objects.filter(empleado_id=empleado_id).order_by('-fecha_asignacion')
-    
-    empleado_instance = Empleado.objects.get(id=empleado_id)
-    cargos_ids = empleado_instance.empleadocargo_set.filter(fecha_fin__isnull=True).values_list('cargo__id', flat=True)
-    qs_cargo = ObjetivoCargo.objects.filter(cargo__id__in=cargos_ids).order_by('-fecha_asignacion')
+    queryset = ObjetivoEmpleado.objects.filter(empleado_id=empleado_id).select_related(
+        'objetivo', 'objetivo__departamento', 'cargo'
+    ).order_by('-fecha_asignacion')
 
     if tipo_filtro == 'empleado':
-        queryset_a_paginar = qs_empleado
+        queryset = queryset.filter(cargo__isnull=True)
     elif tipo_filtro == 'cargo':
-        queryset_a_paginar = qs_cargo
-    else: 
-        queryset_a_paginar = sorted(
-            list(qs_empleado) + list(qs_cargo),
-            key=lambda x: x.fecha_asignacion,
-            reverse=True
-    )
+        queryset = queryset.filter(cargo__isnull=False)
 
     page = request.GET.get('page', 1)
     per_page = request.GET.get('per_page', 15)
-    paginator = Paginator(queryset_a_paginar, per_page)
+    paginator = Paginator(queryset, per_page)
 
     try:
         items_page = paginator.page(page)
@@ -423,17 +415,17 @@ def api_empleado_objetivos(request, empleado_id):
 
     data = []
     for item in items_page:
-        tipo = 'Empleado' if isinstance(item, ObjetivoEmpleado) else 'Cargo'
-        completado = item.completado
+        tipo_label = 'Cargo' if item.cargo_id else 'Empleado'
         
         data.append({
             'titulo': item.objetivo.titulo,
             'descripcion': item.objetivo.descripcion,
             'fecha_asignacion': item.fecha_asignacion.strftime('%d-%m-%Y'),
-            'fecha_limite': item.fecha_limite.strftime('%d-%m-%Y') if hasattr(item, 'fecha_limite') and item.fecha_limite else 'N/A',
-            'completado': completado,
+            'fecha_limite': item.fecha_limite.strftime('%d-%m-%Y') if item.fecha_limite else 'N/A',
+            'completado': item.completado,
             'departamento': item.objetivo.departamento.nombre if item.objetivo.departamento else 'Global',
-            'tipo': tipo,
+            'tipo': tipo_label,
+            'nombre_cargo': item.cargo.nombre if item.cargo else None 
         })
 
     return JsonResponse({
@@ -444,7 +436,7 @@ def api_empleado_objetivos(request, empleado_id):
             'has_next': items_page.has_next(),
             'has_previous': items_page.has_previous(),
         }
-    }, safe=False)
+    })
 
 
 #############################

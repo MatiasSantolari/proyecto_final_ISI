@@ -1,59 +1,17 @@
-<style>
-.navbar-main-custom {
-  background-color: #1f2a44 !important;
-  color: white !important;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
+{% load static %}
 
-.navbar-main-custom .nav-link,
-.navbar-main-custom .navbar-brand,
-.navbar-main-custom .dropdown-toggle {
-  color: #cfd4da !important;
-  font-weight: 500;
-}
+<link rel="stylesheet" href="{% static 'css/navbar.css' %}">
 
-.navbar-main-custom .nav-link:hover,
-.navbar-main-custom .dropdown-item:hover,
-.navbar-main-custom .dropdown-toggle:hover {
-  color: #ffffff !important;
-}
-
-.navbar-main-custom {
-  background-color: #27324a !important;
-  border: none;
-}
-
-.navbar-main-custom {
-  color: #cfd4da !important;
-}
-
-.navbar-main-custom .dropdown-item:hover {
-  background-color: #32405f !important;
-  color: #fff !important;
-}
-
-.navbar-main-custom .dropdown-item.active {
-  background-color: #0d6efd !important;
-  color: white !important;
-}
-</style>
-
-
-<nav class="main-header navbar navbar-expand navbar-main-custom shadow-sm fixed-top px-4 py-1" style="z-index:1100;">
+<nav class="main-header navbar navbar-expand navbar-main-custom shadow-sm fixed-top px-3 py-1" style="z-index:1100;">
     <div class="collapse navbar-collapse" id="navbarContent">
-      <ul class="navbar-nav">
+      <ul class="navbar-nav me-4">
         <li class="nav-item">
           <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
         </li>
       </ul>
      <ul class="navbar-nav align-items-center">
         <li class="nav-item">
-            <a class="nav-link fs-5" href="{% url 'home' %}">RRHH System <i class="bi bi-house-door"></i></a>
+            <a class="nav-link fs-5" href="{% url 'home' %}"><i class="bi bi-house-door me-2"></i>RRHH System </a>
         </li>
       </ul>
       <ul class="navbar-nav mb-2 mb-lg-0 ms-auto">
@@ -144,92 +102,6 @@
         </div>
       </div>
     </div>
-
-    <style>
-      body.dark-mode {
-          background-color: #121212 !important;
-          color: #f1f1f1 !important;
-      }
-
-      .dark-mode .card {
-          background-color: #1e1e1e !important;
-          color: #fff !important;
-      }
-
-      .dark-mode .navbar, 
-      .dark-mode .sidebar {
-          background-color: #1f1f1f !important;
-          color: #fff !important;
-      }
-
-
-      body {
-        background-color: #f8f9fa; 
-        color: #121212;           
-      }
-
-      body.dark-mode {
-          background-color: #121212 !important;
-          color: #f1f1f1 !important;
-      }
-
-      .dark-mode .card,
-      .dark-mode .bg-light, 
-      .dark-mode .navbar, 
-      .dark-mode .navbar-light,
-      .dark-mode .sidebar,
-      .dark-mode .form-wrapper {
-          background-color: #1e1e1e !important;
-          color: #fff !important;
-          border-color: #444 !important; 
-      }
-      
-      .dark-mode .text-dark,
-      .dark-mode h1, .dark-mode h2, .dark-mode h3, .dark-mode h4, .dark-mode h5, {
-          color: #fff !important;
-      }
-      
-      .dark-mode .form-control,
-      .dark-mode .form-select {
-          background-color: #333 !important;
-          border-color: #555 !important;
-          color: #fff !important;
-      }
-      
-      .dark-mode .nav-tabs {
-          background-color: #1e1e1e !important;
-          box-shadow: none !important;
-      }
-
-      .dark-mode .nav-link {
-          color: #aaa !important;
-      }
-      
-      .dark-mode .nav-link.active {
-          background-color: #121212 !important;
-          color: #fff !important;
-      }
-
-      .dark-mode .list-group-item {
-          background-color: #2f2f2fff !important; 
-          color: #e1e1e1ff !important;
-          border-color: #444 !important;
-      }
-
-      .dark-mode .text-muted,
-      .dark-mode .text-secondary {
-          color: #aaa !important; 
-      }
-
-      .dark-mode .btn .bi {
-          color: inherit !important; 
-      }
-
-      .dark-mode .text-muted .bi,
-      .dark-mode .text-secondary .bi {
-          color: #aaa !important;
-      }
-    </style>
 
 
     <script>

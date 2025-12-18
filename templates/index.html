@@ -4,16 +4,20 @@
 
 {% block content %}
 <div class="content">
-    <div class="container-fluid ml-4 mt-3"><hr>
+    <div class="container-fluid ml-0 mt-3"><hr>
 
         {% if request.session.rol_actual == 'admin'%}
             <div class="d-flex gap-1 flex-wrap">    
                 {% include "dashboard/dashboard.html" %}                
-                </div>
-        {% else %}    
+            </div>
+        {% else %}
+            <div class="d-flex gap-1 flex-wrap">    
+                {% include "dashboard/dashboard_empleado.html" %}                
+            </div>
+        
+        <!--    
             <h4 class="mb-5 mt-4">Bienvenido al Sistema</h4>
             <div class="row" id="user-content">
-                <!-- Objetivos y Metas -->
                 <div class="col-md-4 mb-4">
                     <div class="card bg-soft-success bg-light text-dark border-start border-4 border-success shadow-sm h-100 rounded-4">
                         <div class="card-body">
@@ -43,7 +47,6 @@
                     </div>
                 </div>
 
-                <!-- Logros -->
                 <div class="col-md-4 mb-4">
                     <div class="card bg-soft-warning bg-light text-dark border-start border-4 border-warning shadow-sm h-100 rounded-4">
                         <div class="card-body">
@@ -54,7 +57,6 @@
                     </div>
                 </div>
 
-                <!-- Tareas Pendientes -->
                 <div class="col-md-4 mb-4">
                     <div class="card bg-soft-info bg-light text-dark border-start border-4 border-info shadow-sm h-100 rounded-4">
                         <div class="card-body">
@@ -66,7 +68,6 @@
                     </div>
                 </div>
 
-                <!-- Beneficios Disponibles -->
                 <div class="col-md-4 mb-4">
                     <div class="card bg-soft-mint bg-light text-dark border-start border-4 border-mint shadow-sm h-100 rounded-4">
                         <div class="card-body">
@@ -77,7 +78,6 @@
                     </div>
                 </div>
 
-                <!-- Informe Personalizado -->
                 <div class="col-md-4 mb-4">
                     <div class="card bg-soft-primary bg-light text-dark border-start border-4 border-primary shadow-sm h-100 rounded-4">
                         <div class="card-body">
@@ -88,7 +88,6 @@
                     </div>
                 </div>
 
-                <!-- Anuncios Importantes -->
                 <div class="col-md-4 mb-4">
                     <div class="card bg-soft-danger bg-light text-dark border-start border-4 border-danger shadow-sm h-100 rounded-4">
                         <div class="card-body">
@@ -99,7 +98,6 @@
                     </div>
                 </div>
 
-                <!-- Accesos rápidos -->
                 <div class="col-md-4 mb-4">
                     <div class="card bg-soft-secondary bg-light text-dark border-start border-4 border-secondary shadow-sm h-100 rounded-4">
                         <div class="card-body">
@@ -111,6 +109,7 @@
                     </div>
                 </div>
             </div>
+        -->
         {% endif %}
 
     </div>

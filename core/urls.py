@@ -58,10 +58,11 @@ urlpatterns = [
     ## OBJETIVOS ##
     path('objetivos/', objetivos_view.objetivos, name='objetivos'),
     path('objetivos/crear/', objetivos_view.crear_objetivo, name='crear_objetivo'),
-    path('objetivos/<int:id_objetivo>/desactivar/', objetivos_view.desactivar_objetivo, name='desactivar_objetivo'),
+    path('objetivos/desactivar/<int:id_objetivo>/', objetivos_view.desactivar_objetivo, name='desactivar_objetivo'),
     path('objetivos/<int:id_objetivo>/eliminar/', objetivos_view.eliminar_objetivo, name='eliminar_objetivo'),
-    path('objetivos/<int:id_objetivo>/activar/', objetivos_view.activar_objetivo, name='activar_objetivo'),
-    path('objetivos/obtener_datos_asignacion/', objetivos_view.obtener_datos_asignacion, name='obtener_datos_asignacion'),
+    path('objetivos/activar/<int:id_objetivo>/', objetivos_view.activar_objetivo, name='activar_objetivo'),
+  #  path('objetivos/obtener_datos_asignacion/', objetivos_view.obtener_datos_asignacion, name='obtener_datos_asignacion'),
+    path('obtener-datos-depto/', objetivos_view.obtener_datos_por_depto, name='obtener_datos_depto'),
     path('objetivos/asignar/', objetivos_view.asignar_objetivo, name='asignar_objetivo'),
     path('objetivos/marcar-objetivo/', objetivos_view.marcar_objetivo, name='marcar_objetivo'),
 ##  path('objetivos/obtener_asignaciones_objetivo/', objetivos_view.obtener_asignaciones_objetivo, name='obtener_asignaciones_objetivo'),
@@ -199,25 +200,31 @@ urlpatterns = [
     path('api/evaluaciones/list/', informes_view.api_evaluaciones_list, name='api_evaluaciones_list'),    
 
 
-##############################################
-##############################################
+## INFORMES EMPLEADO ##
+    path('dashboard/api/empleado/objetivos/', api.api_dashboard_empleado, name='api_dashboard_empleado'),
+    path('dashboard/marcar-objetivo-completado/<int:pk>/', informes_empleado_view.marcar_objetivo_completado, name='marcar_objetivo_completado'),
 
-    path('agregar_sueldo_base/', views.agregar_sueldo_base, name='agregar_sueldo_base'),
-    path('calcular_bonificaciones/', views.calcular_bonificaciones, name='calcular_bonificaciones'),
-    path('capacitaciones/', views.capacitaciones, name='capacitaciones'),
+
+    path('mi-panel/', informes_empleado_view.dashboard_empleado, name='dashboard_empleado'),
     
-    path('competencias/', views.competencias, name='competencias'),
-    path('contratos/', views.contratos, name='contratos'),
-    path('costos_de_personal/', views.costos_de_personal, name='costos_de_personal'),
-    path('evaluacion_desempeno/', views.evaluacion_desempeno, name='evaluacion_desempeno'),
 
-    path('solicitudes_nuevos_empleados/', views.solicitudes_nuevos_empleados, name='solicitudes_nuevos_empleados'),
-    path('tipos_contrato/', views.tipos_contrato, name='tipos_contrato'),
-    path('competencias_faltantes/', views.competencias_faltantes, name='competencias_faltantes'),
-    path('costos_de_contratacion/', views.costos_de_contratacion, name='costos_de_contratacion'),
-    path('reporte_evaluacion_desempeno/', views.reporte_evaluacion_desempeno, name='reporte_evaluacion_desempeno'),
-    path('contratar_nuevo_empleado/', views.contratar_nuevo_empleado, name='contratar_nuevo_empleado'),
-    path('ausencias_retardos/', views.ausencias_retardos, name='ausencias_retardos'),
+
+
+
+
+
+
+
+
+
+
+
+
+
+##############################################
+##############################################
+
+    path('capacitaciones/', views.capacitaciones, name='capacitaciones'),
 
 
 

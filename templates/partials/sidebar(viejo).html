@@ -1,176 +1,6 @@
 <style>
-.main-sidebar,
-.sidebar-mini.sidebar-collapse .main-sidebar:hover {
-    width: 300px !important; 
-    transition: width 0.3s ease-in-out;
-}
-
-.sidebar-collapse .main-sidebar:not(:hover) {
-    width: 4.6rem !important;
-}
-
-.sidebar-collapse .main-sidebar:not(:hover) .brand-text, 
-.sidebar-collapse .main-sidebar:not(:hover) .calendar-container,
-.sidebar-collapse .main-sidebar:not(:hover) h6,
-.sidebar-collapse .main-sidebar:not(:hover) .info-user-sidebar {
-    display: none !important;
-}
-
-.main-sidebar:not(.sidebar-collapse) #avatarContainer,
-.main-sidebar:not(.sidebar-collapse) #previewAvatar,
-.main-sidebar:not(.sidebar-collapse) #defaultAvatarIcon,
-.sidebar-mini.sidebar-collapse .main-sidebar:hover #avatarContainer,
-.sidebar-mini.sidebar-collapse .main-sidebar:hover #previewAvatar,
-.sidebar-mini.sidebar-collapse .main-sidebar:hover #defaultAvatarIcon {
-    width: 70px !important; 
-    height: 70px !important;
-    margin: 10px auto !important;
-    display: block !important;
-    transition: width 0.2s ease, height 0.2s ease !important;
-}
-
-.sidebar-collapse .main-sidebar:not(:hover) #avatarContainer,
-.sidebar-collapse .main-sidebar:not(:hover) #previewAvatar,
-.sidebar-collapse .main-sidebar:not(:hover) #defaultAvatarIcon {
-    width: 35px !important;
-    height: 35px !important;
-    margin: 10px 6px !important;
-}
-
-.calendar-container {
-    width: 90% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-}
-
-.calendar-table td.today, td.today {
-    background-color: #28a745 !important;
-    color: white !important;
-    border-radius: 50%;
-    font-weight: bold;
-}
-
-#avatarContainer, #previewAvatar, #defaultAvatarIcon {
-    transition: width 0.2s ease-in-out, height 0.2s ease-in-out, margin 0.2s ease-in-out !important;
-}
-
-.main-sidebar,
-.sidebar-mini.sidebar-collapse .main-sidebar:hover {
-    width: 300px !important; 
-}
-
-.brand-link,
-.sidebar-mini.sidebar-collapse .main-sidebar:hover .brand-link {
-    padding: 1rem 1rem !important; 
-    display: flex !important;
-    align-items: center !important;
-    white-space: nowrap !important;
-    overflow: hidden;
-}
-
-.brand-link .brand-text {
-    display: inline-block !important;
-    margin-left: 10px !important;
-    font-size: 1rem;
-    flex: 1;
-    min-width: 0;  
-}
-
-.sidebar-collapse .main-sidebar:not(:hover) .brand-text {
-    display: none !important;
-}
-
-.main-sidebar .nav-link {
-    height: 40px !important;    
-    padding: 0.5rem 1rem !important; 
-    display: flex;
-    align-items: center;
-}
-
-.main-sidebar .nav-item {
-    width: 290px !important;
-    margin: 0 auto;
-}
-
-.sidebar-collapse .main-sidebar:not(:hover) .brand-text { display: none !important; }
-
-.sidebar-mini .main-sidebar .nav-link, .sidebar-mini-md .main-sidebar .nav-link, .sidebar-mini-xs .main-sidebar .nav-link {
-    width: calc(290px - .5rem * 2) !important;
-}
-
-.layout-navbar-fixed .wrapper .main-sidebar:hover .brand-link {
- width: 300px !important;
-}
-
-.layout-navbar-fixed .wrapper .brand-link {
-    width: 300px;
-}
 
 </style>
-
-
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    try {
-        const monthYear = document.getElementById("monthYear");
-        const calendarBody = document.getElementById("calendarBody");
-        const prevMonthBtn = document.getElementById("prevMonth");
-        const nextMonthBtn = document.getElementById("nextMonth");
-
-        if (!monthYear || !calendarBody) return;
-
-        let currentDate = new Date();
-
-        function renderCalendar(date) {
-            const year = date.getFullYear();
-            const month = date.getMonth();
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            
-            let startDay = (firstDay.getDay() + 6) % 7; 
-            const totalDays = lastDay.getDate();
-            const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-
-            monthYear.textContent = `${months[month]} ${year}`;
-            calendarBody.innerHTML = "";
-
-            let day = 1;
-            for (let i = 0; i < 6; i++) {
-                const row = document.createElement("tr");
-                for (let j = 0; j < 7; j++) {
-                    const cell = document.createElement("td");
-                    cell.style.padding = "2px";
-                    cell.style.fontSize = "0.75rem";
-
-                    if ((i === 0 && j < startDay) || day > totalDays) {
-                        cell.textContent = "";
-                    } else {
-                        cell.textContent = day;
-                        const today = new Date();
-                        if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
-                            cell.style.backgroundColor = "#28a745";
-                            cell.style.color = "white";
-                            cell.style.borderRadius = "50%";
-                        }
-                        day++;
-                    }
-                    row.appendChild(cell);
-                }
-                calendarBody.appendChild(row);
-                if (day > totalDays) break;
-            }
-        }
-
-        if(prevMonthBtn) prevMonthBtn.onclick = (e) => { e.preventDefault(); currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(currentDate); };
-        if(nextMonthBtn) nextMonthBtn.onclick = (e) => { e.preventDefault(); currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(currentDate); };
-
-        renderCalendar(currentDate);
-    } catch (error) {
-        console.error("Error en calendario:", error);
-    }
-});
-</script>
 
 
 <aside class="main-sidebar sidebar-dark-primary elevation-4" style="height: 100vh; overflow-y: auto;">
@@ -182,42 +12,8 @@ document.addEventListener("DOMContentLoaded", function() {
   <div class="sidebar">
     <nav class="mt-2">
       <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
-          <li class="nav-item text-center mb-2 mt-0">
-            <a href="{% url 'user_perfil' %}" class="d-block text-decoration-none">
-              
-              <div id="avatarContainer" class="d-inline-block position-relative">
-                {% if request.user.persona.avatar %}
-                    <img id="previewAvatar" src="{{ request.user.persona.avatar.url }}" 
-                        class="img-circle elevation-2" style="width: 90px; height: 90px; object-fit: cover;">
-                {% else %}
-                    <div id="defaultAvatarIcon" class="bg-secondary img-circle d-flex justify-content-center align-items-center text-white elevation-2" style="width: 70px; height: 70px;">
-                      <i class="fas fa-user" style="font-size: 2rem;"></i>
-                    </div>
-                {% endif %}
-              </div>
-
-              <h6 class="brand-text mt-2 text-white">{{ request.user.persona.nombre }} {{ request.user.persona.apellido }}</h6>
-            </a>
-          </li>
-
-          <!-- CALENDARIO -->
-          <li class="nav-item px-2 brand-text">
-            <div class="calendar-container bg-white rounded p-2 text-dark shadow-sm">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <button id="prevMonth" class="btn btn-xs btn-link p-0"><i class="fas fa-chevron-left"></i></button>
-                    <small id="monthYear" class="fw-bold text-primary"></small>
-                    <button id="nextMonth" class="btn btn-xs btn-link p-0"><i class="fas fa-chevron-right"></i></button>
-                </div>
-                <table class="table table-sm table-borderless text-center mb-0" style="font-size: 0.7rem;">
-                    <thead class="border-bottom">
-                        <tr><th>Lu</th><th>Ma</th><th>Mi</th><th>Ju</th><th>Vi</th><th>Sa</th><th>Do</th></tr>
-                    </thead>
-                    <tbody id="calendarBody"></tbody>
-                </table>
-            </div>
-          </li>
-          
-          <hr class="my-3 border-secondary brand-text ">
+        
+        
 
         {% if request.session.rol_actual == 'admin' %}
           <li class="nav-header" style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #28a745;">
@@ -258,7 +54,19 @@ document.addEventListener("DOMContentLoaded", function() {
           </li>
          
 
+          <!-- <li class="nav-item"><a class="nav-link" href=""><i class="nav-icon fas fa-dollar-sign"></i><p>Agregar Sueldo Base</p></a></li> -->
+          <!-- <li class="nav-item"><a class="nav-link" href=""><i class="nav-icon fas fa-calculator"></i><p>Bonificaciones</p></a></li> -->
           <li class="nav-item"><a class="nav-link" href="{% url 'capacitaciones' %}"><i class="nav-icon fas fa-chalkboard-teacher"></i><p>Capacitaciones</p></a></li>
+          <!-- <li class="nav-item"><a class="nav-link" href=""><i class="nav-icon fas fa-layer-group"></i><p></p></a></li> -->
+          <!--<li class="nav-item"><a class="nav-link" href=""><i class="nav-icon fas fa-tasks"></i><p>Competencias</p></a></li>-->
+          <!--<li class="nav-item"><a class="nav-link" href="{% url 'costos_de_personal' %}"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Costos de Personal</p></a></li>-->
+          <!-- <li class="nav-item"><a class="nav-link" href=""><i class="nav-icon fas fa-users"></i><p></p></a></li> -->
+          <!-- <li class="nav-item"><a class="nav-link" href=""><i class="nav-icon fas fa-user-plus"></i><p></p></a></li> -->
+          <!--<li class="nav-item"><a class="nav-link" href="{% url 'solicitudes_nuevos_empleados' %}"><i class="nav-icon fas fa-user-edit"></i><p>Solicitudes Nuevos Empleados</p></a></li>-->
+          <!--<li class="nav-item"><a class="nav-link" href=""><i class="nav-icon fas fa-exclamation-circle"></i><p>Competencias Faltantes</p></a></li>-->
+          <!--<li class="nav-item"><a class="nav-link" href="{% url 'costos_de_contratacion' %}"><i class="nav-icon fas fa-coins"></i><p>Costos de Contratación</p></a></li>-->
+          <!--<li class="nav-item"><a class="nav-link" href="{% url 'contratar_nuevo_empleado' %}"><i class="nav-icon fas fa-user-check"></i><p>Contratar Nuevo</p></a></li>-->
+          <!--<li class="nav-item"><a class="nav-link" href=""><i class="nav-icon fas fa-check-circle"></i><p>Ausencias y Retardos</p></a></li>-->
         {% endif %}
 
         {% if request.session.rol_actual == 'empleado' %}
@@ -295,7 +103,6 @@ document.addEventListener("DOMContentLoaded", function() {
           <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="nav-icon fas fa-bullhorn"></i><p>Ofertas de Empleo(Emp)</p></a></li>
           <!--<li class="nav-item"><a class="nav-link" href="{% url 'solicitudes_nuevos_empleados' %}"><i class="nav-icon fas fa-user-edit"></i><p>Solicitudes Nuevos Empleados</p></a></li>-->
         {% endif %}
-
       </ul>
     </nav>
   </div>

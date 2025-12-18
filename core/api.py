@@ -7,6 +7,8 @@ from datetime import timedelta, date
 from django.db.models.functions import ExtractMonth, ExtractYear
 from dateutil.relativedelta import relativedelta
 from collections import defaultdict
+from django.utils import translation
+from django.db.models import Q
 
 from core.models import (
     Empleado,
@@ -20,8 +22,7 @@ from core.models import (
     CargoDepartamento,
     EmpleadoCargo,
     Objetivo,
-    ObjetivoEmpleado,
-    ObjetivoCargo
+    ObjetivoEmpleado
 )
 
 # Helper to force float for Decimal
@@ -346,33 +347,99 @@ def api_objetivos(request):
     department_id = request.GET.get('departamento_id')
 
     items = []
-    objs_queryset = Objetivo.objects.filter(activo=True).order_by('-fecha_creacion')
+    objs_queryset = Objetivo.objects.filter(activo=True).select_related('departamento', 'creado_por__persona').order_by('-fecha_creacion')
 
     if department_id and department_id != 'todos':
         try:
             objs_queryset = objs_queryset.filter(departamento__id=int(department_id))
         except ValueError:
             pass 
+            
     objs = objs_queryset[:50] 
 
     for o in objs:
-        emps = ObjetivoEmpleado.objects.filter(objetivo=o)
-        cargos = ObjetivoCargo.objects.filter(objetivo=o)
-        progress_vals = []
-        if emps.exists():
-            for x in emps:
-                progress_vals.append(100 if x.completado else 0)
-        if cargos.exists():
-            for x in cargos:
-                progress_vals.append(100 if x.completado else 0)
-        if progress_vals:
-            avg_progress = sum(progress_vals) // len(progress_vals)
+        asignaciones = ObjetivoEmpleado.objects.filter(objetivo=o)
+        
+        if asignaciones.exists():
+            total_asignados = asignaciones.count()
+            completados = asignaciones.filter(completado=True).count()
+            avg_progress = (completados * 100) // total_asignados
+            
+            tiene_cargo = asignaciones.filter(cargo__isnull=False).exists()
+            tipo_label = "Por Cargo" if tiene_cargo else "Directo"
         else:
             avg_progress = 0
+            tipo_label = "Sin asignar"
+
+        if o.departamento:
+            owner_name = o.departamento.nombre
+        elif o.creado_por and hasattr(o.creado_por, 'persona'):
+            owner_name = f"{o.creado_por.persona.nombre} {o.creado_por.persona.apellido}"
+        else:
+            owner_name = o.creado_por.username if o.creado_por else "Sistema"
+
         items.append({
-            "title": o.titulo or (o.descripcion or "Objetivo"),
-            "type": "Recurrente" if o.es_recurrente else "Único",
-            "owner": o.departamento.nombre if getattr(o, 'departamento', None) else (o.creado_por.get_full_name() if getattr(o, 'creado_por', None) else None),
+            "title": o.titulo,
+            "type": f"{'Recurrente' if o.es_recurrente else 'Único'} ({tipo_label})",
+            "owner": owner_name,
             "progress": int(avg_progress)
         })
+
     return JsonResponse({"items": items})
+
+
+
+
+###########################################################
+###########################################################
+###########################################################
+###########################################################
+###########################################################
+###########################################################
+                # DASHBOARD EMPLEADO #
+###########################################################
+###########################################################
+###########################################################
+###########################################################
+###########################################################
+
+@login_required
+def api_dashboard_empleado(request):
+    empleado = Empleado.objects.get(id=request.user.persona.id)
+    hoy = timezone.now().date()
+    
+    qs = ObjetivoEmpleado.objects.filter(empleado=empleado, objetivo__activo=True).select_related('objetivo')
+    
+    qs_diarios = qs.filter(objetivo__es_recurrente=True)
+
+    qs_cargo_vigentes = qs.filter(objetivo__es_recurrente=False).filter(
+        Q(fecha_limite__gte=hoy) | Q(fecha_limite__isnull=True)
+    )
+
+    with translation.override('es'):
+        fecha_str = hoy.strftime("%A, %d de %B %Y").capitalize()
+
+    data = {
+        "fecha_formateada": fecha_str,
+        "diarios": [
+            {
+                "id": o.id, 
+                "titulo": o.objetivo.titulo, 
+                "descripcion": o.objetivo.descripcion,
+                "completado": o.completado
+            } for o in qs_diarios
+        ],
+        "cargo": [
+            {
+                "id": o.id, 
+                "titulo": o.objetivo.titulo,
+                "completado": o.completado,
+                "descripcion": o.objetivo.descripcion,
+                "fecha_completa": o.fecha_limite.isoformat() if o.fecha_limite else None, 
+                "vence": o.fecha_limite.strftime("%d/%m/%Y") if o.fecha_limite else None,
+                "atrasado": o.fecha_limite < hoy if o.fecha_limite else False,
+                "es_hoy": o.fecha_limite == hoy if o.fecha_limite else False 
+            } for o in qs_cargo_vigentes
+        ]   
+    }
+    return JsonResponse(data)
