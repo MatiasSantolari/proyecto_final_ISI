@@ -1,0 +1,46 @@
+  .tab-pane:not(.active) {
+    display: none !important;
+  }
+  
+  .tab-pane.active {
+    display: block !important; 
+  }
+
+
+  body {
+    background-color: #f0f2f5;
+    font-family: "Segoe UI", sans-serif;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+ .main-content {
+  margin-left: 260px; 
+  padding: 30px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+  .tab-content { margin-top: 20px; }
+
+  form label { font-weight: 500; }
+  form input, form select { border-radius: 6px; }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background-color: #b0b7c3; border-radius: 4px; }
+
+
+  #academicosContainer .card {
+    border-radius: 10px;
+    background-color: #f8f9fa; 
+  }
+
+  #academicosContainer .card h5 {
+    font-size: 1.1rem;
+  }
+
+  #academicosContainer .card button {
+    font-size: 0.8rem;
+  }

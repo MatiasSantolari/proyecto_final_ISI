@@ -405,7 +405,15 @@ def api_objetivos(request):
 
 @login_required
 def api_dashboard_empleado(request):
-    empleado = Empleado.objects.get(id=request.user.persona.id)
+    persona = getattr(request.user, 'persona', None)
+    
+    if not persona:
+        return JsonResponse(
+            {'error': 'Perfil incompleto'},
+            status=403
+        )
+    empleado = Empleado.objects.get(id=persona.id)
+    
     hoy = timezone.now().date()
     
     qs = ObjetivoEmpleado.objects.filter(empleado=empleado, objetivo__activo=True).select_related('objetivo')

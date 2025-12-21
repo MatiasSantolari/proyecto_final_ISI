@@ -1,0 +1,89 @@
+
+  .profile-avatar-display {
+    width: 60px;   
+    height: 60px;  
+    border-radius: 50%; 
+    object-fit: cover; 
+}
+
+.btn-outline-primary:hover,
+.btn-outline-success:hover,
+.btn-outline-warning:hover {
+  color: #fff !important;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+
+  body {
+    background-color: #f0f2f5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+  }
+
+  .form-wrapper {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
+  }
+
+  .card h5, .card h6 {
+    font-weight: 600;
+  }
+
+  hr {
+    border-color: rgba(0,0,0,0.1); 
+  }
+
+  .gradient-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    transition: transform 0.2s, box-shadow 0.3s;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .gradient-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-personal {
+    background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%);
+  }
+
+  .btn-academico {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+  }
+
+  .btn-certificaciones {
+    background: linear-gradient(135deg, #f1c40f, #d4a017);
+    color: #333; /* Mejor contraste para el amarillo */
+  }
+
+  .btn-experiencia {
+    background: linear-gradient(135deg, #2c3e50, #1a252f);
+  }
+
+  .manage-info-card {
+    background: linear-gradient(135deg, #2c3e50, #1a252f);
+    color: white;
+    border: none;
+    border-radius: 12px;
+  }
+
+  .tab-pane:not(.active) {
+    display: none !important;
+  }
+  .tab-pane.active {
+    display: block !important;
+  }

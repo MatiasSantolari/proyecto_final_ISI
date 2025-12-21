@@ -9,10 +9,9 @@ class CustomLoginView(auth_views.LoginView):
     template_name = 'auth/login.html'
 
     def get(self, request, *args, **kwargs):
-        # Limpiar todos los mensajes pendientes
         storage = messages.get_messages(request)
         for _ in storage:
-            pass  # Esto vacía el storage
+            pass 
         return super().get(request, *args, **kwargs)
     
 
@@ -35,7 +34,6 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='auth/password_reset_complete.html'), name='password_reset_complete'),
 
-    # Registro usuario
     path('registro/', views.registrar_usuario, name='registro'),
 
 ]

@@ -1,24 +1,17 @@
-import os
-from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from ..models import *
 from ..forms import *
 from personas.forms import PersonaForm
-from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
 from django.contrib import messages
-from django.conf import settings
-from django.utils import timezone
-from datetime import date, datetime
+from datetime import date
 from django.views.decorators.http import require_POST
-from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
-from django.utils.timezone import now
-from collections import defaultdict
-from django.contrib.admin.views.decorators import staff_member_required
-from django.db.models import Min
 from django.db.models import Q
+import requests
+import os
+from django.core.files.base import ContentFile
+
 
 @login_required
 @require_POST
@@ -43,8 +36,12 @@ def crear_objetivos_recurrentes_hoy(empleado):
             defaults={'completado': False}
         )
 
+
 @login_required
 def home(request):
+    if not request.user.persona:
+        return redirect('create_profile')
+    
     user = request.user
     rol_actual = request.session.get('rol_actual', user.rol)
 
@@ -55,9 +52,6 @@ def home(request):
         'usuario': user,
         'departamentos_disponibles': departamentos_disponibles,
         }
-
-    if not hasattr(user, 'persona'):
-        return redirect('create_profile')
 
     empleado = None
     
@@ -117,7 +111,6 @@ def home(request):
     departamentos = Departamento.objects.all()
     context['departamentos'] = departamentos
 
-    
     return render(request, 'index.html', context)
 #
 
@@ -135,24 +128,68 @@ def registrar_usuario(request):
 
 
 @login_required
-@require_POST
 def create_persona(request):
+    social = request.user.social_auth.filter(provider='google-oauth2').first()
+
+    initial_data = {}
+    avatar_url = None
+
+    if social:
+        initial_data = {
+            'nombre': (social.extra_data.get('nombre') or '').capitalize(),
+            'apellido': (social.extra_data.get('apellido') or '').capitalize(),
+            'email': social.extra_data.get('email'),
+        }
+        avatar_url = social.extra_data.get('picture')
+    
+#    print("INITIAL DATA:", initial_data)
+#    print("AVATAR URL:", avatar_url)
+
     if request.method == 'POST':
-        form = PersonaForm(request.POST, request.FILES, include_admin_fields=False)
+        form = PersonaForm(
+            request.POST,
+            request.FILES,
+            include_admin_fields=False,
+            initial=initial_data,
+        )
         if form.is_valid():
             persona = form.save(commit=False)
+            if avatar_url and not persona.avatar:
+                try:
+                    response_img = requests.get(avatar_url, stream=True)
+                    if response_img.status_code == 200:
+                        fname = os.path.basename(avatar_url)
+                        if 'googleusercontent' in fname:
+                             fname = f"avatar_{request.user.username}.jpg"
+                             
+                        persona.avatar.save(
+                            fname, 
+                            ContentFile(response_img.content), 
+                            save=False
+                        )
 
+                except requests.exceptions.RequestException as e:
+                    print(f"ERROR al descargar avatar de Google: {e}")
+            
             persona.save()
 
-            user = request.user
-            user.persona = persona
-            user.save()
-
+            request.user.persona = persona
+            request.user.save()
             return redirect('home')
     else:
-        form = PersonaForm(include_admin_fields=False)
+        form = PersonaForm(
+            include_admin_fields=False,
+            initial=initial_data
+        )
 
-    return render(request, 'auth/create_profile.html', {'form': form})
+    return render(
+        request, 
+        'auth/create_profile.html', 
+        {
+            'form': form,
+            'avatar_url': avatar_url,
+        }
+    )
 
 
 

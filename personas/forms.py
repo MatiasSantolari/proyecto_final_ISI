@@ -141,6 +141,9 @@ class PersonaForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
+        if self.initial.get('email'):
+            self.fields['email'].disabled = True
+            
         if not include_admin_fields:
             for field in ADMIN_FIELDS:
                 self.fields.pop(field, None)

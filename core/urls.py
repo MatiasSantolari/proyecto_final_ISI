@@ -2,7 +2,6 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from core.views import *
 from core import api
-
 from core import views 
 
 urlpatterns = [
@@ -12,7 +11,7 @@ urlpatterns = [
     path('cambiar_vista/', login_view.cambiar_vista, name='cambiar_vista'),
      
     path('profile/create/', login_view.create_persona, name='create_profile'),
-
+    
     # Perfil usuario
     path('perfil/', login_view.perfil_usuario, name='user_perfil'),
     path('actualizar-cv/', postulaciones_view.actualizar_cv_ajax, name='actualizar_cv_ajax'),
