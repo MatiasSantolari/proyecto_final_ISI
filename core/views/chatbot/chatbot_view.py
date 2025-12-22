@@ -8,7 +8,12 @@ from .hr_tools import (
     get_benefits_tool, 
     get_discounts_tool, 
     get_current_role_and_department_tool,
-    get_employee_objectives_tool
+    get_employee_objectives_tool,
+    get_last_payroll_tool,
+    get_last_performance_review_tool,
+    get_current_contract_info_tool,
+    get_internal_job_applications_tool,
+    get_attendance_summary_tool
 )
 
 
@@ -32,14 +37,14 @@ def get_response_chatbot(request):
     user_id = user.pk
 
     saludos_entrada = [
-        "hola", "buenas", "buenos dias", "que tal", "que onda", "hey", "buenos dias", "q onda", "q tal", "holis", 
+        "hola", "buenas", "buenos dias", "que tal", "que onda", "hey", "q onda", "q tal", "holis", 
         "hi", "hello", "como va", "que hay", "saludos", "q paso", "que paso", "buen dia", "buena", "que onda pa", 
         "che", "che que tal", "che hola", "ayuda", "necesito ayuda", "asistente", "bot", "rhrr", "rrhh bot"
     ]
     
     saludos_salida = [
         "chau", "bye", "hasta luego", "nos vemos", "adios", "gracias", "muchas gracias", "gracias totales", 
-        "saludos", "chao", "cya", "hasta pronto", "me voy", "terminamos", "listo gracias", "eso es todo", 
+        "chao", "cya", "hasta pronto", "me voy", "terminamos", "listo gracias", "eso es todo", 
         "gracias por la ayuda", "ok gracias", "gracias chau", "thanks", "thank you", "gracias mil"
     ]
     
@@ -55,19 +60,17 @@ def get_response_chatbot(request):
     
     kw_beneficios = [
         "beneficio", "beneficios", "obra social", "obra", "social", "salud", "prepaga", "prepagada", "medicina prepaga", 
-        "que me dan", "que tengo", "que recibo", "plan de salud", "cobertura", "beneficio medico", "beneficio salud", 
+        "que me dan", "que recibo", "plan de salud", "cobertura", "beneficio medico", "beneficio salud", 
         "gimnasio", "descuento gimnasio", "capacitacion", "capacitaciones", "cursos", "estudio", "estudios", "bono", "bonos",
         "plus", "premios", "aguinaldo", "obra social familiar", "afiliados", "familiares", "beneficios extras", "ticket canasta",
-        "comida", "beneficio comida", "transporte", "ayuda transporte", "guarderia", "cheque guarderia", "descuento gimnasio", 
+        "comida", "beneficio comida", "transporte", "ayuda transporte", "guarderia", "cheque guarderia", 
         "cuanto es el bono", "que beneficios tengo", "ver beneficios", "mis beneficios", "beneficios obra social", "plan salud"
     ]
     
     kw_descuentos = [
-        "descuento", "descuentos", "retencion", "retenciones", "deduccion", "deducciones", "nomina", "sueldo", "salario", 
-        "pago", "cobro", "me descuentan", "cuanto cobro", "recibo de sueldo", "recibo", "impuesto", "impuestos", "aportes", 
-        "jubilacion", "afip", "sindicato", "cuota sindicato", "obra social descuento", "cuanto gano", "neto", "bruto", "sueldo neto",
-        "sueldo bruto", "ver sueldo", "ver pago", "cuando pagan", "fecha de pago", "transferencia sueldo", "aumento", "aumentos",
-        "paritarias", "escalafon", "categoria", "impuesto a las ganancias", "ganancias", "ingresos brutos", "retencion ganancia"
+        "descuento", "descuentos", "retencion", "retenciones", "deduccion", "deducciones", "impuesto", "impuestos", "aportes", 
+        "jubilacion", "afip", "sindicato", "cuota sindicato", "retencion ganancia", 
+        "impuesto a las ganancias", "ganancias", "ingresos brutos"
     ]
     
     kw_rol_depto = [
@@ -79,10 +82,42 @@ def get_response_chatbot(request):
     ]
 
     kw_objetivos = [
-        "objetivo", "objetivos", "metas", "meta", "performance", "rendimiento", "evaluacion", "evaluar", 
+        "objetivo", "objetivos", "metas", "meta", "performance", "rendimiento", "que tengo asignado",
         "review", "mis objetivos", "mis metas", "que tengo que hacer", "tareas", "tarea", "asignacion", 
         "asignaciones", "objetivo anual", "objetivos del mes", "que se espera de mi", "completado", 
-        "pendiente", "estado objetivos", "mis tareas", "que tengo asignado"
+        "pendiente", "estado objetivos", "mis tareas"
+    ]
+    
+    kw_nomina = [
+        "nomina", "nómina", "recibo sueldo", "recibo de sueldo", "sueldo", "salario", 
+        "pago", "cobro", "monto neto", "monto bruto", "mi pago", "cuanto cobré", 
+        "ver sueldo", "ultima nomina", "nomina mes", "liquidación", "liquidacion sueldo",
+        "monto bruto", "monto neto", "cuanto gano", "neto", "bruto", "sueldo neto",
+        "sueldo bruto", "ver sueldo", "ver pago", "cuando pagan", "fecha de pago", "transferencia sueldo"
+    ]
+
+    kw_evaluaciones = [
+        "evaluacion", "evaluaciones", "evaluar", "desempeño", "rendimiento", "performance",
+        "calificacion", "mis notas", "nota", "review", "puntuacion", "puntaje",
+        "como me fue", "evaluacion anual", "evaluacion de desempeño", "mis evaluaciones"
+    ]
+    
+    kw_contrato = [
+        "contrato", "tipo de contrato", "mi contrato", "condiciones contrato", 
+        "fecha inicio", "fecha fin", "finalizacion contrato", "estado contrato",
+        "sueldo pactado", "monto extra", "activo", "renovacion", "terminar contrato",
+        "vence", "cuando termina"
+    ]
+
+    kw_postulaciones = [
+        "postulacion", "postulaciones", "solicitud cargo", "cargos internos", 
+        "aplicacion trabajo", "trabajo interno", "busqueda interna", "moverme de puesto",
+        "cambio de cargo", "estado solicitud", "mis solicitudes", "carrera", "puestos disponibles"
+    ]
+
+    kw_asistencia = [
+        "asistencia", "presente", "ausente", "falta", "faltas", "llegada tarde", "horas trabajadas",
+        "ingreso", "salida", "mi horario", "registro horario", "checador", "fichaje", "mis asistencias"
     ]
     
 
@@ -100,29 +135,44 @@ def get_response_chatbot(request):
         response_text = get_current_role_and_department_tool.invoke({"user_id": user_id}) 
     elif any(kw in text for kw in kw_objetivos):
         response_text = get_employee_objectives_tool.invoke({"user_id": user_id}) 
+    elif any(kw in text for kw in kw_nomina):
+        response_text = get_last_payroll_tool.invoke({"user_id": user_id})
+    elif any(kw in text for kw in kw_evaluaciones):
+        response_text = get_last_performance_review_tool.invoke({"user_id": user_id})
+    elif any(kw in text for kw in kw_contrato):
+        response_text = get_current_contract_info_tool.invoke({"user_id": user_id})
+    elif any(kw in text for kw in kw_postulaciones):
+        response_text = get_internal_job_applications_tool.invoke({"user_id": user_id})
+    elif any(kw in text for kw in kw_asistencia):
+        response_text = get_attendance_summary_tool.invoke({"user_id": user_id})
+  
 
     if not response_text:
         response_text = "Lo siento, no entendí tu consulta. Por favor, sé mas específico con palabras clave."
 
+
+    ## Esto se implementaria para utilizar el modo agente AI pro
+    ## Cuando el metodo manual no puede dar una respuesta, se produce un fallback y llama al modo agente
+    ## (Para activarlo hay que pagar la API, igual que creo es barata)
+    ## Se reemplaza el "response_text = "Lo siento, no entendí...." por el codigo comentado de abajo
+        '''
+        if not response_text:        
+            try:
+                config = {"configurable": {"thread_id": f"hr_chat_intention_{user_id}"}}
+                input_message = HumanMessage(content=text)
+            
+                final_state = hr_agent.invoke({"messages": [input_message]}, config=config)            
+                last_message = final_state['messages'][-1]
+                if last_message.type == 'ai':
+                    response_text = last_message.content
+                else:
+                    response_text = "Hubo un problema con la respuesta de la IA. Intenta de nuevo."
+
+            except Exception as e:
+                print(f"Error executing HR Agent as fallback: {e}")
+                response_text = "Lo siento, hubo un error general al procesar tu consulta."
+        ''' 
     return JsonResponse({"response": response_text or "No tengo información sobre ese tema específico."})
 
 
 
-## Esto se implementaria para utilizar el modo agente (problema, hay que pagar la API jiji)
-'''
-    if not response_text:        
-        try:
-            config = {"configurable": {"thread_id": f"hr_chat_intention_{user_id}"}}
-            input_message = HumanMessage(content=text)
-        
-            final_state = hr_agent.invoke({"messages": [input_message]}, config=config)            
-            last_message = final_state['messages'][-1]
-            if last_message.type == 'ai':
-                response_text = last_message.content
-            else:
-                response_text = "Hubo un problema con la respuesta de la IA. Intenta de nuevo."
-
-        except Exception as e:
-            print(f"Error executing HR Agent as fallback: {e}")
-            response_text = "Lo siento, hubo un error general al procesar tu consulta."
-''' 

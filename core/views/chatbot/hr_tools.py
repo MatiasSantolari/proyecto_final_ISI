@@ -4,6 +4,7 @@ from langchain_core.tools import tool
 from django.db.models import Sum
 from ...models import *
 from pydantic import BaseModel, Field 
+from datetime import date, timedelta, datetime
 
 
 class GenericUserIDInput(BaseModel):
@@ -134,11 +135,239 @@ def get_employee_objectives_tool(user_id: int) -> str:
 
 
 
+@tool("get_last_payroll", args_schema=GenericUserIDInput)
+def get_last_payroll_tool(user_id: int) -> str:
+    """Busca y devuelve los detalles de la última nómina (recibo de sueldo) del empleado, incluyendo montos netos, brutos, beneficios y descuentos."""
+    
+    empleado = Empleado.objects.filter(usuario=user_id).first()
+    if not empleado: 
+        return "ERROR: No se encontró el registro de empleado asociado a este usuario."
+
+    last_payroll = Nomina.objects.filter(
+        empleado=empleado
+    ).order_by('-fecha_pago').first()
+
+    if not last_payroll:
+        return "😔 Vaya, parece que no hay registros de nóminas anteriores para mostrar."
+
+    fecha_pago_str = last_payroll.fecha_pago.strftime("%d/%m/%Y") if last_payroll.fecha_pago else "N/A"
+    
+    response_text = (
+        f"Aquí están los detalles de tu última nómina (liquidación):\n\n"
+        f"🔢 **Período/Número:** {last_payroll.numero or 'N/A'}\n"
+        f"📅 **Fecha de Pago:** {fecha_pago_str}\n\n"
+        
+        f"--- Resumen Financiero ---\n\n"        
+        f"💰 **Total Bruto:** ${last_payroll.monto_bruto}\n"
+        f"✨ **Total Beneficios:** ${last_payroll.total_beneficios}\n"
+        f"➖ **Total Descuentos:** ${last_payroll.total_descuentos}\n\n"
+
+        f"💸 **Monto Neto (A cobrar):** **${last_payroll.monto_neto}**\n\n"
+        f"--------------------------"
+    )
+    return response_text
+
+
+
+@tool("get_last_performance_review", args_schema=GenericUserIDInput)
+def get_last_performance_review_tool(user_id: int) -> str:
+    """Busca y devuelve los detalles de la última evaluación de desempeño del empleado, incluyendo la calificación final y los criterios evaluados."""
+    
+    empleado = Empleado.objects.filter(usuario=user_id).first()
+    if not empleado: 
+        return "ERROR: No se encontró el registro de empleado."
+
+    last_review_emp = EvaluacionEmpleado.objects.filter(empleado=empleado).order_by('-fecha_registro').first()
+
+    if not last_review_emp:
+        return "😔 Vaya, parece que no hay registros de evaluaciones de desempeño anteriores para mostrar."
+
+    review_date_str = last_review_emp.fecha_registro.strftime("%d/%m/%Y")
+    review_description = last_review_emp.evaluacion.descripcion or f"Evaluación {last_review_emp.evaluacion.id}"
+    
+    response_text = (
+        f"📋 **Última Evaluación de Desempeño:** {review_description}\n"
+        f"📅 **Fecha de Registro:** {review_date_str}\n"
+    )
+    
+    criterios_calificados = EvaluacionEmpleadoCriterio.objects.filter(
+        evaluacion_empleado=last_review_emp
+    ).select_related('criterio')
+
+    if criterios_calificados.exists():
+        response_text += f"\n--- Desglose de Criterios ---\n"
+        for calif_criterio in criterios_calificados:
+            criterio_desc = calif_criterio.criterio.descripcion
+            puntuacion = calif_criterio.calificacion_criterio
+            response_text += f" • {criterio_desc}: **{puntuacion}**\n" 
+    
+    response_text += ( 
+                      f"--------------------------------------\n"
+                      f"⭐ **Calificación Final:** **{last_review_emp.calificacion_final or 'N/A'}**\n"
+                      f"--------------------------------------"
+    )
+    if last_review_emp.comentarios and last_review_emp.comentarios.strip():
+        response_text += f"\n\n💬 **Comentarios:** {last_review_emp.comentarios}\n"
+
+    return response_text
+
+
+@tool("get_current_contract_info", args_schema=GenericUserIDInput)
+def get_current_contract_info_tool(user_id: int) -> str:
+    """Busca y devuelve los detalles del contrato actual del empleado logueado."""
+    
+    empleado = Empleado.objects.filter(usuario=user_id).first()
+    if not empleado: 
+        return "ERROR: No se encontró el registro de empleado."
+
+    current_contract = HistorialContrato.objects.filter(
+        empleado=empleado,
+        estado='activo'
+    ).select_related('contrato', 'cargo').first() # Optimiza la consulta
+
+    if not current_contract:
+        current_contract = HistorialContrato.objects.filter(empleado=empleado).order_by('-fecha_inicio').first()
+        if not current_contract:
+             return "😔 Vaya, parece que no hay registros de contratos anteriores para mostrar."
+
+    fecha_inicio_str = current_contract.fecha_inicio.strftime("%d/%m/%Y") if current_contract.fecha_inicio else "N/A"
+    fecha_fin_str = current_contract.fecha_fin.strftime("%d/%m/%Y") if current_contract.fecha_fin else "Indefinida"
+    
+    response_text = (
+        f"📄 **Detalles de tu Contrato Actual (o más reciente):**\n\n"
+        f"🔧 **Cargo:** {current_contract.cargo.nombre if current_contract.cargo else 'N/A'}\n"
+        f"📝 **Tipo de Contrato:** {current_contract.contrato.descripcion if current_contract.contrato else 'N/A'}\n"
+        f"📊 **Estado:** {current_contract.get_estado_display()}\n\n"
+        f"📅 **Inicio:** {fecha_inicio_str}\n"
+        f"🔚 **Fin:** {fecha_fin_str}\n"
+    )
+    
+    if current_contract.monto_extra_pactado:
+         response_text += f"💰 **Sueldo Pactado (Extra):** ${current_contract.monto_extra_pactado}\n"
+
+    if current_contract.condiciones and current_contract.condiciones.strip():
+        response_text += f"\n💬 **Condiciones:** {current_contract.condiciones}\n"
+
+    return response_text
+
+
+
+@tool("get_internal_job_applications", args_schema=GenericUserIDInput)
+def get_internal_job_applications_tool(user_id: int) -> str:
+    """Busca y devuelve el estado de todas las solicitudes internas de trabajo (postulaciones a cargos) que el empleado ha realizado, ordenadas lógicamente por estado y fecha."""
+    
+    empleado = Empleado.objects.filter(usuario=user_id).first()
+    if not empleado: 
+        return "ERROR: No se encontró el registro de empleado."
+        
+    persona = empleado.persona_ptr 
+    
+    applications = Solicitud.objects.filter(
+        persona=persona,
+        es_interno=True,
+        visible=True
+    ).order_by('estado', '-fecha').select_related('cargo') 
+
+    applications_list = list(applications)
+
+    status_order = {'pendiente': 1, 'seleccionado': 2, 'descartado': 3}
+
+    def sort_key(app):
+        fecha_tuple = (app.fecha.year, app.fecha.month, app.fecha.day)
+        return (status_order.get(app.estado, 99), -fecha_tuple[0], -fecha_tuple[1], -fecha_tuple[2])
+
+    sorted_applications = sorted(applications_list, key=sort_key)
+
+    if not sorted_applications:
+        return "😔 Vaya, no has realizado ninguna postulación interna a cargos todavía."
+
+    response_text = f"Aquí están todas tus postulaciones internas a cargos (ordenadas por estado y fecha):\n\n"
+    
+    for app in sorted_applications:
+        fecha_str = app.fecha.strftime("%d/%m/%Y")
+        estado_display = app.get_estado_display()
+        
+        response_text += (
+            f"--- 💼 Postulación a {app.cargo.nombre} ---\n"
+            f"📅 **Fecha:** {fecha_str}\n"
+            f"📊 **Estado:** **{estado_display}**\n"
+        )
+        if app.descripcion and app.descripcion.strip():
+             response_text += f"💬 **Notas:** {app.descripcion.strip()}\n"
+        response_text += f"\n"
+
+    return response_text
+
+
+
+
+@tool("get_attendance_summary", args_schema=GenericUserIDInput)
+def get_attendance_summary_tool(user_id: int) -> str:
+    """Proporciona un resumen de asistencias de los últimos 30 días, incluyendo días presentes, tardanzas y horas totales."""
+    
+    empleado = Empleado.objects.filter(usuario=user_id).first()
+    if not empleado: 
+        return "ERROR: No se encontró el registro de empleado."
+
+    end_date = date.today()
+    start_date = end_date - timedelta(days=30)
+
+    attendances = HistorialAsistencia.objects.filter(
+        empleado=empleado,
+        fecha_asistencia__range=[start_date, end_date]
+    ).order_by('fecha_asistencia')
+
+    if not attendances.exists():
+        return f"😔 No se encontraron registros de asistencia para el período del {start_date.strftime('%d/%m')} al {end_date.strftime('%d/%m')}."
+
+    total_present_days = 0
+    tardiness_days = 0
+    total_seconds_worked = 0
+    
+    for record in attendances:
+        if record.hora_entrada and record.hora_salida:
+            total_present_days += 1
+            
+            datetime_entrada = datetime.combine(record.fecha_asistencia, record.hora_entrada)
+            datetime_salida = datetime.combine(record.fecha_asistencia, record.hora_salida)
+            
+            duration = datetime_salida - datetime_entrada
+            total_seconds_worked += duration.total_seconds()
+            
+            if record.tardanza:
+                tardiness_days += 1
+
+    hours = int(total_seconds_worked // 3600)
+    minutes = int((total_seconds_worked % 3600) // 60)
+    
+    time_worked_display = f"{hours} horas, {minutes} minutos"
+    total_absent_days = 30 - total_present_days
+
+    response_text = (
+        f"📊 **Resumen de Asistencia (Últimos 30 días):**\n\n"
+        f"🗓️ **Período:** {start_date.strftime('%d/%m')} a {end_date.strftime('%d/%m')}\n"
+        f"✅ **Días Presentes:** {total_present_days} días\n"
+        f"🕒 **Horas Totales Trabajadas:** {time_worked_display} horas\n"
+        f"⏰ **Días con Tardanza:** {tardiness_days} días\n"
+        f"❌ **Ausencias/Faltas:** {total_absent_days} días\n\n"
+        f"Si tienes dudas o consultas sobre un día específico, contacta con RRHH."
+    )
+
+    return response_text
+
+
+
+
 HR_TOOLS = [
     get_vacation_days_tool, 
     get_benefits_tool, 
     get_discounts_tool, 
     get_current_role_and_department_tool,
     get_employee_objectives_tool,
+    get_last_payroll_tool,
+    get_last_performance_review_tool,
+    get_current_contract_info_tool,
+    get_internal_job_applications_tool,
+    get_attendance_summary_tool
 
 ]

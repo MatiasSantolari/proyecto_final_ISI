@@ -30,7 +30,7 @@ SOCIAL_AUTH_LOGIN_ERROR_URL = '/auth/login/'
 
 AUTH_USER_MODEL = 'core.Usuario'
 
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
@@ -118,6 +118,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.common_attendance_data',
             ],
         },
     },

@@ -1,13 +1,13 @@
 from langgraph.prebuilt import create_react_agent 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import AnyMessage, HumanMessage, SystemMessage, ToolMessage
 from typing import Annotated, TypedDict, List
 from .hr_tools import HR_TOOLS 
 
-model = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",   
-    temperature=0
+model = ChatOpenAI(
+    model="gpt-5-mini",   
+    temperature=0 
 )
 checkpointer = MemorySaver() 
 
@@ -21,7 +21,8 @@ Tu objetivo principal es responder preguntas de los empleados sobre sus datos pe
 Instrucciones CRÍTICAS:
 1. Responde siempre en **español**.
 2. Utiliza un tono personal, positivo y amigable, usando emojis si es apropiado.
-3. Utiliza las herramientas disponibles (get_vacation_days, get_benefits, etc.) SIEMPRE que el usuario pregunte por sus datos personales.
+3. Utiliza las herramientas disponibles (get_vacation_days_tool, get_benefits_tool, get_discounts_tool, 
+    get_current_role_and_department_tool, get_employee_objectives_tool, get_last_payroll_tool, get_last_performance_review, get_current_contract_info, get_internal_job_applications, get_attendance_summary_tool, etc.) SIEMPRE que el usuario pregunte por sus datos personales.
 4. NO inventes información confidencial ni financiera.
 5. Si el usuario saluda, responde de forma amigable.
 
