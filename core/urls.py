@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from core.views import *
+from core.views.chatbot import *
 from core import api
 from core import views 
 

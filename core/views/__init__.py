@@ -16,7 +16,7 @@ from .instituciones_view import *
 from .tipo_criterio_view import *
 from .criterios_view import *
 from .evaluaciones_view import *
-from .chatbot_view import *
+from .chatbot.chatbot_view import *
 from .informes_view import *
 from .informes_empleado_view import *
 

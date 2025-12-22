@@ -30,6 +30,8 @@ SOCIAL_AUTH_LOGIN_ERROR_URL = '/auth/login/'
 
 AUTH_USER_MODEL = 'core.Usuario'
 
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
@@ -101,6 +103,7 @@ MIDDLEWARE = [
     'core.middleware.requirePersona.RequirePersonaMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'threadlocals.middleware.ThreadLocalMiddleware',
 ]
 
 ROOT_URLCONF = 'app.urls'
