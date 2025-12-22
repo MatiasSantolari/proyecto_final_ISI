@@ -1,4 +1,5 @@
 from django.http import HttpResponse, JsonResponse
+from django.urls import reverse
 from ..models import *
 from ..forms import *
 from django.shortcuts import render, redirect, get_object_or_404
@@ -68,6 +69,8 @@ def registrar_asistencia(request):
     page_number = request.GET.get('page') 
     page_obj = paginator.get_page(page_number)
 
+    next_url = request.META.get('HTTP_REFERER', reverse('home'))
+    
     if request.method == "POST":
         accion = request.POST.get("accion")
         if accion == "entrada":
@@ -93,10 +96,10 @@ def registrar_asistencia(request):
                 asistencia.hora_salida = hora_actual
                 asistencia.save()
                 messages.success(request, "Salida registrada correctamente.")
-        return redirect("registrar_asistencia")
+        return redirect(next_url)
 
     return render(request, "registrar_asistencia.html", {
-        "asistencia": asistencia,
+        "asistencia_hoy": asistencia,
         "hoy": hoy,
         "page_obj": page_obj,
     })

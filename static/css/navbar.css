@@ -183,3 +183,7 @@ body:not(.dark-mode) .table-cargo-objetivos {
 body:not(.dark-mode) .bg-dark-completed {
     background-color: #f3f3f3 !important;
 }
+
+body.dark-mode .badge.bg-warning {
+    color: #fff !important; 
+}
