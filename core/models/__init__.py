@@ -3,8 +3,6 @@ from .beneficio import Beneficio
 from .capacitacion_empleado import Capacitacion
 from .cargo_departamento import CargoDepartamento
 from .cargo import Cargo
-from .competencia_empleado import CompetenciaEmpleado
-from .competencia import Competencia
 from .criterio import Criterio
 from .departamento import Departamento
 from .descuento_empleado_nomina import DescuentoEmpleadoNomina
