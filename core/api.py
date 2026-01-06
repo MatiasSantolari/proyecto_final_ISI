@@ -9,6 +9,7 @@ from dateutil.relativedelta import relativedelta
 from collections import defaultdict
 from django.utils import translation
 from django.db.models import Q
+import calendar
 
 from core.models import (
     Empleado,
@@ -22,7 +23,10 @@ from core.models import (
     CargoDepartamento,
     EmpleadoCargo,
     Objetivo,
-    ObjetivoEmpleado
+    ObjetivoEmpleado,
+    Beneficio,
+    BeneficioEmpleadoNomina,
+    LogroEmpleado,
 )
 
 # Helper to force float for Decimal
@@ -408,18 +412,12 @@ def api_dashboard_empleado(request):
     persona = getattr(request.user, 'persona', None)
     
     if not persona:
-        return JsonResponse(
-            {'error': 'Perfil incompleto'},
-            status=403
-        )
+        return JsonResponse({'error': 'Perfil incompleto'}, status=403)
     empleado = Empleado.objects.get(id=persona.id)
-    
     hoy = timezone.now().date()
     
     qs = ObjetivoEmpleado.objects.filter(empleado=empleado, objetivo__activo=True).select_related('objetivo')
-    
     qs_diarios = qs.filter(objetivo__es_recurrente=True)
-
     qs_cargo_vigentes = qs.filter(objetivo__es_recurrente=False).filter(
         Q(fecha_limite__gte=hoy) | Q(fecha_limite__isnull=True)
     )
@@ -430,18 +428,12 @@ def api_dashboard_empleado(request):
     data = {
         "fecha_formateada": fecha_str,
         "diarios": [
-            {
-                "id": o.id, 
-                "titulo": o.objetivo.titulo, 
-                "descripcion": o.objetivo.descripcion,
-                "completado": o.completado
-            } for o in qs_diarios
+            {"id": o.id, "titulo": o.objetivo.titulo, "descripcion": o.objetivo.descripcion, "completado": o.completado} 
+            for o in qs_diarios
         ],
         "cargo": [
             {
-                "id": o.id, 
-                "titulo": o.objetivo.titulo,
-                "completado": o.completado,
+                "id": o.id, "titulo": o.objetivo.titulo, "completado": o.completado,
                 "descripcion": o.objetivo.descripcion,
                 "fecha_completa": o.fecha_limite.isoformat() if o.fecha_limite else None, 
                 "vence": o.fecha_limite.strftime("%d/%m/%Y") if o.fecha_limite else None,
@@ -451,3 +443,173 @@ def api_dashboard_empleado(request):
         ]   
     }
     return JsonResponse(data)
+
+
+
+@require_GET
+@login_required
+def api_asistencia_empleado(request):
+    persona = getattr(request.user, 'persona', None)
+    if not persona:
+        return JsonResponse({'error': 'Perfil incompleto'}, status=403)
+    empleado = Empleado.objects.get(id=persona.id)
+    
+    hoy = timezone.now().date()
+    primer_dia_mes = hoy.replace(day=1)
+    
+    total_dias_laborables_contados = 0
+    dias_asistidos = 0
+
+    current_day = primer_dia_mes
+    while current_day <= hoy:
+        if current_day.weekday() not in [5, 6]: 
+            total_dias_laborables_contados += 1
+            
+            asistencia_del_dia = HistorialAsistencia.objects.filter(
+                empleado=empleado,
+                fecha_asistencia=current_day,
+                confirmado=True
+            ).exists()
+
+            if asistencia_del_dia:
+                dias_asistidos += 1
+                
+        current_day += timedelta(days=1)
+
+    porcentaje_asistencia = (dias_asistidos / total_dias_laborables_contados * 100) if total_dias_laborables_contados > 0 else 0
+
+    
+    registro_hoy = HistorialAsistencia.objects.filter(empleado=empleado, fecha_asistencia=hoy).first()
+
+    estado_hoy = "Nada marcado"
+    if registro_hoy:
+        if registro_hoy.hora_entrada and not registro_hoy.hora_salida:
+            estado_hoy = "Entrada marcada"
+        elif registro_hoy.hora_entrada and registro_hoy.hora_salida:
+            estado_hoy = "Ambos marcados"
+
+
+    return JsonResponse({
+        "asistencia_mes": round(porcentaje_asistencia, 1),
+        "estado_hoy": estado_hoy,
+    })
+
+
+
+@require_GET
+@login_required
+def api_evaluaciones_empleado(request):
+    persona = getattr(request.user, 'persona', None)
+    if not persona:
+        return JsonResponse({'error': 'Perfil incompleto'}, status=403)
+    empleado = Empleado.objects.get(id=persona.id)
+
+    hoy = timezone.now().date()
+    hace_un_año = hoy - timedelta(days=365)
+    
+    promedio_evaluaciones = EvaluacionEmpleado.objects.filter(
+        empleado=empleado,
+        fecha_registro__gte=hace_un_año
+    ).aggregate(
+        promedio=Avg('calificacion_final')
+    )['promedio']
+
+    evaluaciones_pendientes_qs = EvaluacionEmpleado.objects.filter(
+        empleado=empleado,
+        calificacion_final__isnull=True,
+    ).order_by('-fecha_registro')
+
+    lista_pendientes = [
+        {
+            'id': ev.id,
+            'titulo': str(ev.evaluacion),
+            'fecha_registro': ev.fecha_registro.strftime('%d/%m/%Y'),
+        }
+        for ev in evaluaciones_pendientes_qs
+    ]
+
+    return JsonResponse({
+        "promedio_evaluaciones": round(float(promedio_evaluaciones), 2) if promedio_evaluaciones is not None else 'N/A',
+        "pendientes": lista_pendientes
+    })
+
+
+
+
+@require_GET
+@login_required
+def api_beneficios_empleado(request):
+    persona = getattr(request.user, 'persona', None)
+    if not persona:
+        return JsonResponse({'error': 'Perfil incompleto'}, status=403)
+    empleado = Empleado.objects.get(id=persona.id)
+
+    beneficios_asignados_ids = BeneficioEmpleadoNomina.objects.filter(empleado=empleado).values_list('beneficio_id', flat=True)
+
+    beneficios_asignados = Beneficio.objects.filter(id__in=beneficios_asignados_ids)
+    
+    lista_asignados = [
+        {
+            'id': b.id,
+            'descripcion': b.descripcion,
+            'valor': f"${b.monto}" if b.monto else f"{b.porcentaje}%",
+            'fijo': b.fijo
+        }
+        for b in beneficios_asignados
+    ]
+
+    beneficios_potenciales = Beneficio.objects.filter(
+        activo=True
+    ).exclude(
+        Q(id__in=beneficios_asignados_ids) | Q(fijo=True)
+    )
+
+    lista_potenciales = [
+        {
+            'id': b.id,
+            'descripcion': b.descripcion,
+            'valor': f"${b.monto}" if b.monto else f"{b.porcentaje}%"
+        }
+        for b in beneficios_potenciales
+    ]
+    
+    return JsonResponse({
+        "asignados": lista_asignados,
+        "potenciales": lista_potenciales,
+    })
+
+
+
+
+@require_GET
+@login_required
+def api_logros_empleado(request):
+    persona = getattr(request.user, 'persona', None)
+    if not persona:
+        return JsonResponse({'error': 'Perfil incompleto'}, status=403)
+    empleado = Empleado.objects.get(id=persona.id)
+
+    logros_empleado_qs = LogroEmpleado.objects.filter(
+        empleado=empleado
+    ).order_by('completado', '-fecha_asignacion')
+
+    lista_logros = []
+    for le in logros_empleado_qs:
+        requisito_texto = "" 
+        if le.logro.tipo == 'ASISTENCIA_PERFECTA':
+            requisito_texto = "100% de asistencia en el mes (Lun-Vie, sin feriados)."
+        else:
+            requisito_texto = "Verificar requisitos con RRHH."
+
+        lista_logros.append({
+            'id': le.id,
+            'titulo': le.logro.descripcion,
+            'completado': le.completado,
+            'fecha_asignacion': le.fecha_asignacion.strftime('%d/%m/%Y') if le.fecha_asignacion else None,
+            'tipo': le.logro.tipo,
+            'requisito': requisito_texto
+        })
+    
+    return JsonResponse({
+        "logros": lista_logros,
+    })

@@ -2,16 +2,17 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_empleado.css' %}">
-<div class="container-fluid p-4">
+<div class="container-fluid pt-4 pl-5 pr-5 pb-5 mb-5">
     
-    <div class="row mb-2">
+    <div class="row mb-0">
         <div class="col-12">
-            <h3 class="fw-bolder text-dark">Mi Panel de Trabajo</h3>
+            <h4 class="fw-bolder text-dark">Mi Panel de Trabajo</h4>
             <p class="lead text-muted" id="displayHoy">Fecha actual</p>
         </div>
     </div>
 
     <div class="row g-4">
+
         <div class="col-lg-6">
             <div class="card h-100 shadow-lg border-0 rounded-lg p-2">
                 <div class="card-header bg-light py-3 border-bottom-0">
@@ -52,8 +53,60 @@
             </div>
         </div>
     </div>
+
+    <div class="row g-4 mt-3">
+        <div class="col-lg-6">
+             <div class="card h-100 shadow-lg border-0 rounded-lg p-2 bg-light">
+                <div class="card-header bg-light py-3 border-bottom-0">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-calendar-check me-3 text-primary"></i>Asistencia</h5>
+                </div>
+                <div class="card-body" id="containerAsistenciaCard">
+                   <div class="text-center text-muted">Cargando...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+             <div class="card h-100 shadow-lg border-0 rounded-lg p-2 bg-light">
+                <div class="card-header bg-light py-3 border-bottom-0">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-graph-up me-3 text-info"></i>Evaluaciones</h5>
+                </div>
+                <div class="card-body" id="containerEvaluacionesCard">
+                   <div class="text-center text-muted">Cargando...</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <div class="row g-4 mt-3">
+        <div class="col-lg-6">
+            <div class="card h-100 shadow-lg border-0 rounded-lg p-2 bg-light">
+                <div class="card-header bg-light py-3 border-bottom-0">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-gift me-3 text-success"></i>Beneficios de Empleado</h5>
+                </div>
+                <div class="card-body" id="containerBeneficiosCard">
+                   <div class="text-center text-muted">Cargando beneficios...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card h-100 shadow-lg border-0 rounded-lg p-2 bg-light">
+                <div class="card-header bg-light py-3 border-bottom-0">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-award me-3 text-warning"></i>Mis Logros</h5>
+                </div>
+                <div class="card-body" id="containerLogrosCard">
+                   <div class="text-center text-muted">Cargando logros...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script src="{% static 'dashboard/js/dashboard_empleado.js' %}"></script>
-
+<script>
+    document.cookie = `csrftoken={{ csrf_token }}; path=/`; 
+</script>
 {% endblock %}

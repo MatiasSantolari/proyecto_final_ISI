@@ -35,3 +35,7 @@
 .table-cargo-objetivos th {
     vertical-align: middle !important; 
 }
+
+.alert ul.mb-0 {
+    font-size: 0.9rem;
+}

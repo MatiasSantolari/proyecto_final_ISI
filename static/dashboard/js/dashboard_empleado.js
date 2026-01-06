@@ -1,14 +1,21 @@
 (() => {
     const API = {
         data: '/dashboard/api/empleado/objetivos/',
+        asistencia: '/dashboard/api/empleado/asistencia/',
+        evaluaciones: '/dashboard/api/empleado/evaluaciones/',
+        beneficios: '/dashboard/api/empleado/beneficios/',
+        logros: '/dashboard/api/empleado/logros/',
         marcar: '/dashboard/marcar-objetivo-completado/'
     };
 
 
-    async function safeFetch(url) {
+    async function safeFetch(url, options = {}) {
         try {
-            const res = await fetch(url, { credentials: 'same-origin' });
-            if (!res.ok) throw new Error('Error de red');
+            const res = await fetch(url, { credentials: 'same-origin', ...options });
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({})); 
+                throw new Error(errorData.error || `Error de red: ${res.status}`);
+            }
             return await res.json();
         } catch (err) {
             console.error('Fetch error:', err);
@@ -18,6 +25,15 @@
 
 
     async function loadDashboard() {
+        await loadObjetivos(); 
+        await loadAsistenciaCard(); 
+        await loadEvaluacionesCard();
+        await loadBeneficiosCard();
+        await loadLogrosCard();
+    }
+    
+    
+    async function loadObjetivos() {
         const data = await safeFetch(API.data);
         if (!data) return;
 
@@ -57,7 +73,6 @@
             barraDiaria.style.width = porcDiario + '%';
             barraDiaria.innerText = porcDiario + '%';
         }
-
 
 
         let objetivosCargo = [...data.cargo];
@@ -138,8 +153,193 @@
             if(porcCargo === 100) barraCargo.classList.replace('bg-info', 'bg-success');
             else barraCargo.classList.replace('bg-success', 'bg-info');
         }
-
+    
     }
+
+    
+    
+    async function loadAsistenciaCard() {
+        const cont = document.getElementById('containerAsistenciaCard');
+        cont.innerHTML = '<div class="text-center text-muted py-3">Cargando...</div>';
+
+        const dataAsistencia = await safeFetch(API.asistencia);
+        
+        if (!dataAsistencia) {
+            cont.innerHTML = '<div class="text-center text-danger py-3">Error de carga.</div>';
+            return;
+        }
+
+        const asistencia = dataAsistencia.asistencia_mes;
+        const estadoHoy = dataAsistencia.estado_hoy;
+        
+        let recordatorioHTML = '';
+        if (estadoHoy === "Nada marcado") {
+            recordatorioHTML = `<div class="alert alert-danger p-2 small"><i class="bi bi-clock me-2"></i>Recuerda marcar tu **entrada** hoy.</div>`;
+        } else if (estadoHoy === "Entrada marcada") {
+            recordatorioHTML = `<div class="alert alert-warning p-2 small"><i class="bi bi-clock-history me-2"></i>Recuerda marcar tu **salida** al terminar el día.</div>`;
+        } else if (estadoHoy === "Ambos marcados") {
+            recordatorioHTML = `<div class="alert alert-success p-2 small"><i class="bi bi-check-circle me-2"></i>Asistencia de hoy registrada correctamente.</div>`;
+        }
+
+        cont.innerHTML = `
+            <div class="mb-3">
+                <p class="mb-1 fw-semibold text-muted">Asistencia este mes</p>
+                <div class="d-flex align-items-center">
+                    <h4 class="text-primary fw-bolder me-3">${asistencia}%</h4>
+                    <div class="progress flex-grow-1" style="height: 10px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: ${asistencia}%" aria-valuenow="${asistencia}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <hr>
+            
+            ${recordatorioHTML}
+        `;
+    }
+
+
+
+    async function loadEvaluacionesCard() {
+        const cont = document.getElementById('containerEvaluacionesCard');
+        cont.innerHTML = '<div class="text-center text-muted py-3">Cargando...</div>';
+        
+        const dataEvaluaciones = await safeFetch(API.evaluaciones);
+
+        if (!dataEvaluaciones) {
+            cont.innerHTML = '<div class="text-center text-danger py-3">Error de carga.</div>';
+            return;
+        }
+
+        const evaluaciones = dataEvaluaciones.promedio_evaluaciones;
+        const pendientes = dataEvaluaciones.pendientes;
+
+        let htmlContent = `
+            <div class="mb-1">
+                <p class="mb-1 fw-semibold text-muted">Calificación promedio (último año)</p>
+                <div class="d-flex align-items-center">
+                    <h4 class="text-info fw-bolder me-3">${evaluaciones}</h4>
+                    <span class="text-warning h4 m-0">
+                        ${typeof evaluaciones === 'number' ? '⭐' : ''}
+                    </span>
+                </div>
+            </div>
+            `;
+        
+                if (pendientes && pendientes.length > 0) {
+            let pendientesHtml = `<hr><div class="alert alert-warning shadow-sm" role="alert">
+                <h6 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Evaluaciones Pendientes</h6>
+                <p>Tienes <strong>${pendientes.length}</strong> evaluación(es) pendiente(s). Comunícate con RRHH:</p>
+                
+                <ul class="mb-0 ps-3">`;
+            pendientes.forEach(p => {
+                pendientesHtml += `<li>${p.titulo} (Reg: ${p.fecha_registro})</li>`;
+            });
+
+            pendientesHtml += `</ul></div>`;
+            htmlContent += pendientesHtml;
+        } else {
+             htmlContent += `<hr><div class="alert alert-success shadow-sm" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                ¡Estás al día! No tienes evaluaciones pendientes registradas.
+            </div>`;
+        }
+
+
+        cont.innerHTML = htmlContent;
+    }
+
+
+
+    async function loadBeneficiosCard() {
+        const cont = document.getElementById('containerBeneficiosCard');
+        cont.innerHTML = '<div class="text-center text-muted py-3">Cargando beneficios...</div>';
+
+        const data = await safeFetch(API.beneficios);
+        
+        if (!data) {
+            cont.innerHTML = '<div class="text-center text-danger py-3">Error al cargar beneficios.</div>';
+            return;
+        }
+
+        let htmlContent = '';
+
+        if (data.asignados.length > 0) {
+            htmlContent += `<h6>Tus beneficios actuales (${data.asignados.length}):</h6>
+            <ul class="list-group mb-4">`;
+            data.asignados.forEach(b => {
+                const badgeFijo = b.fijo ? '<span class="badge bg-secondary ms-2">Fijo</span>' : '';
+                htmlContent += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${b.descripcion} ${badgeFijo}
+                    <span class="badge bg-primary rounded-pill">${b.valor}</span>
+                </li>`;
+            });
+            htmlContent += `</ul>`;
+        } else {
+            htmlContent += `<div class="alert alert-info small">Aún no tienes beneficios asignados.</div>`;
+        }
+
+        if (data.potenciales.length > 0) {
+            htmlContent += `<h6 class="mt-4">Beneficios a los que puedes acceder (${data.potenciales.length}):</h6>
+            <ul class="list-group">`;
+            data.potenciales.forEach(b => {
+                htmlContent += `<li class="list-group-item d-flex justify-content-between align-items-center list-group-item-action">
+                    ${b.descripcion}
+                    <span class="badge bg-success rounded-pill">${b.valor}</span>
+                </li>`;
+            });
+            htmlContent += `</ul>`;
+        } else if (data.asignados.length > 0) {
+             htmlContent += `<div class="alert alert-success mt-4 small">¡Ya cuentas con todos los beneficios disponibles!</div>`;
+        }
+
+        cont.innerHTML = htmlContent;
+    }
+
+
+
+     async function loadLogrosCard() {
+        const cont = document.getElementById('containerLogrosCard');
+        cont.innerHTML = '<div class="text-center text-muted py-3">Cargando logros...</div>';
+
+        const data = await safeFetch(API.logros);
+        
+        if (!data) {
+            cont.innerHTML = '<div class="text-center text-danger py-3">Error al cargar logros.</div>';
+            return;
+        }
+
+        if (data.logros.length === 0) {
+            cont.innerHTML = '<div class="alert alert-info m-0">Aún no tienes logros activos o pendientes.</div>';
+            return;
+        }
+
+        let htmlContent = `<div class="list-group">`;
+
+        data.logros.forEach(logro => {
+            const estadoClass = logro.completado ? 'list-group-item-success text-dark' : 'list-group-item-light text-muted';
+            const iconClass = logro.completado ? 'bi-check-circle-fill text-success' : 'bi-award text-secondary opacity-50';
+            const iconBadgeClass = logro.completado ? 'bg-success' : 'bg-light border';
+
+            htmlContent += `
+                <div class="list-group-item d-flex align-items-center justify-content-between ${estadoClass}">
+                    <div class="d-flex align-items-center">
+                        <span class="badge ${iconBadgeClass} rounded-pill p-2 me-3">
+                            <i class="bi ${iconClass} h5 m-0"></i>
+                        </span>
+                        <div>
+                            <p class="mb-0 fw-bold">${logro.titulo}</p>
+                            <small class="text-muted d-block" title="Requisito">${logro.requisito}</small>
+                        </div>
+                    </div>
+                    ${logro.completado ? `<span class="badge bg-success">Completado</span>` : `<span class="badge alert-warning text-dark">Pendiente</span>`}
+                </div>
+            `;
+        });
+        htmlContent += `</div>`;
+        cont.innerHTML = htmlContent;
+    }
+
 
 
     window.toggleObjetivo = async (id, estadoActual) => {
@@ -151,35 +351,26 @@
             return;
         }
 
-        try {
-            const res = await fetch(`${API.marcar}${id}/`, {
-                method: 'POST',
-                headers: { 
-                    'X-CSRFToken': getCookie('csrftoken'), 
-                    'Content-Type': 'application/json' 
-                },
-                body: JSON.stringify({ completado: nuevoEstado })
-            });
+        const res = await fetch(`${API.marcar}${id}/`, {
+            method: 'POST',
+            headers: { 
+                'X-CSRFToken': getCookie('csrftoken'), 
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify({ completado: nuevoEstado })
+        });
 
-            if (res.ok) {
-                loadDashboard();
-            } else {
-                alert("Error al actualizar el objetivo.");
-            }
-        } catch (err) {
-            console.error("Error en la petición:", err);
+        if (data && data.status === 'ok') {
+            loadObjetivos();
+        } else {
+            alert("Error al actualizar el objetivo.");
+            loadDashboard();
         }
     };
 
 
-    window.marcarCompletado = async (id) => {
-        if (!confirm("¿Deseas marcar esta tarea como completada?")) return;
-        const res = await fetch(`${API.marcar}${id}/`, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' }
-        });
-        if (res.ok) loadDashboard();
-    };
+    window.marcarCompletado = window.toggleObjetivo; 
+
 
     function getCookie(name) {
         let cookieValue = null;

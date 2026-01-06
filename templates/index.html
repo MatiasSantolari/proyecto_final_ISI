@@ -20,37 +20,6 @@
             </div>
         
         <!--    
-            <h4 class="mb-5 mt-4">Bienvenido al Sistema</h4>
-            <div class="row" id="user-content">
-                <div class="col-md-4 mb-4">
-                    <div class="card bg-soft-success bg-light text-dark border-start border-4 border-success shadow-sm h-100 rounded-4">
-                        <div class="card-body">
-                            <h5 class="card-title">🎯 Objetivos/Tareas</h5>
-                            <hr>
-                            {% if objetivos_con_estado %}
-                                {% for item in objetivos_con_estado %}
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input objetivo-check" type="checkbox"
-                                            data-id="{{ item.objetivo.id }}"
-                                            {% if item.completado %}checked{% endif %}>
-                                        <label class="form-check-label {% if item.completado %}objetivo-completado{% endif %}">
-                                            {{ item.objetivo.titulo }}
-                                        </label>
-                                    </div>
-                                {% endfor %}
-                            {% else %}
-                                <p>No tienes objetivos asignados.</p>
-                            {% endif %}
-                            <div class="progress mt-4">
-                                <div id="barra-progreso" class="progress-bar bg-success" role="progressbar"
-                                    style="min-width: 30px; width: {{ progreso }}%;">
-                                    {{ progreso }}%
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="col-md-4 mb-4">
                     <div class="card bg-soft-warning bg-light text-dark border-start border-4 border-warning shadow-sm h-100 rounded-4">
                         <div class="card-body">
@@ -58,37 +27,6 @@
                             <p>Último logro: <strong>Empleado del mes</strong></p>
                             <p>¡Sigue así! Próximo logro en 2 tareas.</p>
                         </div>    
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-4">
-                    <div class="card bg-soft-info bg-light text-dark border-start border-4 border-info shadow-sm h-100 rounded-4">
-                        <div class="card-body">
-                            <h5 class="card-title">📅 Tareas Pendientes</h5><hr><hr>
-                            <p>🟢 Evaluar desempeño de tu equipo</p>
-                            <p>🔴 Completar autoevaluación</p>
-                            <p>🟡 Asistir a la reunión mensual</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-4">
-                    <div class="card bg-soft-mint bg-light text-dark border-start border-4 border-mint shadow-sm h-100 rounded-4">
-                        <div class="card-body">
-                            <h5 class="card-title">💰 Beneficios Disponibles</h5><hr><hr>
-                            <p><strong>3 días</strong> de home office acumulados.</p>
-                            <p>Crédito de bienestar: <strong>$500 en cursos</strong></p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-4">
-                    <div class="card bg-soft-primary bg-light text-dark border-start border-4 border-primary shadow-sm h-100 rounded-4">
-                        <div class="card-body">
-                            <h5 class="card-title">📊 Informe Personalizado</h5><hr><hr>
-                            <p><strong>Asistencia:</strong> 95% este mes</p>
-                            <p><strong>Evaluación de desempeño:</strong> 4.5/5 ⭐</p>
-                        </div>
                     </div>
                 </div>
 

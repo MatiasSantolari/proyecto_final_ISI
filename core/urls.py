@@ -161,7 +161,7 @@ urlpatterns = [
     path("chatbot/get_response/", chatbot_view.get_response_chatbot, name="chatbot_response"),
 
 
-    ###### INFORMES ######
+    ###### INFORMES ADM ######
     path('dashboard/', informes_view.dashboard_view, name='dashboard'),
     path('dashboard/api/kpis/', api.api_kpis, name='api_kpis'),
     path('dashboard/api/vacaciones/', api.api_vacaciones, name='api_vacaciones'),
@@ -203,6 +203,10 @@ urlpatterns = [
 ## INFORMES EMPLEADO ##
     path('dashboard/api/empleado/objetivos/', api.api_dashboard_empleado, name='api_dashboard_empleado'),
     path('dashboard/marcar-objetivo-completado/<int:pk>/', informes_empleado_view.marcar_objetivo_completado, name='marcar_objetivo_completado'),
+    path('dashboard/api/empleado/asistencia/', api.api_asistencia_empleado, name='api_asistencia_empleado'),
+    path('dashboard/api/empleado/evaluaciones/', api.api_evaluaciones_empleado, name='api_evaluaciones_empleado'),
+    path('dashboard/api/empleado/beneficios/', api.api_beneficios_empleado, name='api_beneficios_empleado'),
+    path('dashboard/api/empleado/logros/', api.api_logros_empleado, name='api_logros_empleado'),
 
 
     path('mi-panel/', informes_empleado_view.dashboard_empleado, name='dashboard_empleado'),
