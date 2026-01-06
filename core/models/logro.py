@@ -1,10 +1,15 @@
 from datetime import datetime
 from django.db import models
 
+
+TIPO_LOGRO_CHOICES = [
+    ('ASISTENCIA_PERFECTA', 'Asistencia Perfecta Mensual')
+]
+
 class Logro(models.Model):
     descripcion = models.CharField(max_length=255, verbose_name='Descripcion del logro')
-    fecha_inicio = models.DateField(default=datetime.now, verbose_name='Fecha de inicio')
-    fecha_fin = models.DateField(null=True, blank=True, verbose_name='Fecha de fin')
+    fecha_creacion = models.DateField(default=datetime.now, verbose_name='Fecha de creacion')
+    tipo = models.CharField(max_length=50, choices=TIPO_LOGRO_CHOICES, null=True, blank=True)
 
 
     class Meta:

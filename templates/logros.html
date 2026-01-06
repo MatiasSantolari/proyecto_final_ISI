@@ -25,8 +25,8 @@
           <thead class="table-light text-center">
             <tr>
               <th>Descripción</th>
-              <th>Fecha Inicio</th>
-              <th>Fecha Fin</th>
+              <th>Beneficio Asociado</th>
+              <th>Tipo</th>
               <th style="width:15%;">Acciones</th>
             </tr>
           </thead>
@@ -34,16 +34,29 @@
             {% for logro in logros %}
             <tr>
               <td>{{ logro.descripcion }}</td>
-              <td>{{ logro.fecha_inicio }}</td>
-              <td>{{ logro.fecha_fin }}</td>
+              <td>
+                  {% if logro.beneficio_asociado %}
+                      <span class="badge bg-primary">
+                          {{ logro.beneficio_asociado }} 
+                          {% if logro.beneficio_monto %}
+                              (${{ logro.beneficio_monto }})
+                          {% elif logro.beneficio_porcentaje %}
+                              ({{ logro.beneficio_porcentaje }}%)
+                          {% endif %}
+                      </span>
+                  {% else %}
+                      <span class="badge bg-secondary">Ninguno</span>
+                  {% endif %}
+              </td>
+              <td>{{ logro.tipo }}</td> 
               <td>
                 <div class="d-flex justify-content-center gap-2">
                   <button class="btn btn-sm btn-outline-secondary me-1"
                           data-bs-toggle="modal" data-bs-target="#modalLogro"
                           data-id="{{ logro.id }}"
                           data-descripcion="{{ logro.descripcion }}"
-                          data-fechaInicio="{{ logro.fecha_inicio|date:'Y-m-d' }}"
-                          data-fechaFin="{{ logro.fecha_fin|date:'Y-m-d' }}"
+                          data-beneficioId="{{ logro.beneficio_id_asociado|default_if_none:'' }}"
+                          data-tipo="{{ logro.tipo|default_if_none:'' }}"
                           onclick="editarLogro(this)"
                           data-bs-toggle="tooltip" title="Editar">
                     <i class="bi bi-pencil-square"></i>
@@ -66,7 +79,7 @@
             </tr>
             {% empty %}
             <tr>
-              <td colspan="4" class="text-center text-muted">
+              <td colspan="3" class="text-center text-muted">
                 No hay logros registrados.
               </td>
             </tr>
@@ -108,7 +121,7 @@
     </div>
   </div>
 
-  <!-- Modal Crear/Editar -->
+  
   <div class="modal fade" id="modalLogro" tabindex="-1" aria-labelledby="modalLogroLabel" aria-hidden="true">
     <div class="modal-dialog" style="margin-top: 6rem;">
       <div class="modal-content">
@@ -125,12 +138,12 @@
               {{ form.descripcion|add_class:"form-control" }}
             </div>
             <div class="mb-3">
-              <label for="id_fecha_inicio" class="form-label">Fecha Inicio</label>
-              {{ form.fecha_inicio|add_class:"form-control" }}
+              <label for="id_tipo" class="form-label">Tipo de Logro</label>
+              {{ form.tipo|add_class:"form-select" }}
             </div>
             <div class="mb-3">
-              <label for="id_fecha_fin" class="form-label">Fecha Fin</label>
-              {{ form.fecha_fin|add_class:"form-control" }}
+                <label for="id_beneficio" class="form-label">Beneficio Asociado</label>
+                {{ form.beneficio|add_class:"form-select" }}
             </div>
             <div class="modal-footer bg-light">
               <button type="submit" class="btn btn-success w-100 fw-bold">
@@ -143,7 +156,7 @@
     </div>
   </div>
 
-  <!-- Modales Ver -->
+
   {% for logro in logros %}
   <div class="modal fade" id="modalVerLogro{{ logro.id }}" tabindex="-1" aria-labelledby="modalVerLogro{{ logro.id }}Label" aria-hidden="true">
     <div class="modal-dialog" style="margin-top: 6rem;">
@@ -154,8 +167,6 @@
         </div>
         <div class="modal-body">
           <p><strong>Descripción:</strong> {{ logro.descripcion|default:"Sin descripción" }}</p>
-          <p><strong>Fecha Inicio:</strong> {{ logro.fecha_inicio|default:"Sin fecha de inicio" }}</p>
-          <p><strong>Fecha Fin:</strong> {{ logro.fecha_fin|default:"Sin fecha de fin" }}</p>
         </div>
       </div>
     </div>
@@ -188,27 +199,20 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    // Modal de eliminación
     const modalEliminar = document.getElementById('modalEliminarLogro');
     if (modalEliminar) {
       modalEliminar.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
         const logroId = button.getAttribute('data-id');
         const form = document.getElementById('formEliminarLogro');
-        form.action = `/logros/${logroId}/eliminar/`;
+        form.action = `/logros/${logroId}/eliminar/`; 
       });
     }
 
-    // Modal de creación/edición
     const modalCrearEditar = document.getElementById('modalLogro');
     if (modalCrearEditar) {
-      modalCrearEditar.addEventListener('show.bs.modal', function (event) {
-        const triggerButton = event.relatedTarget;
-
-        const esCreacion = !triggerButton.getAttribute('data-id');
-        if (esCreacion) {
-          limpiarFormulario();
-        }
+      modalCrearEditar.addEventListener('hidden.bs.modal', function (event) {
+        limpiarFormulario();
       });
     }
   });
@@ -217,40 +221,41 @@
     const form = document.getElementById('formLogro');
     if (!form) return;
 
-    form.reset();  // Limpia valores antiguos
-
-    const modal = document.getElementById('modalLogro');
-
-    modal.addEventListener('shown.bs.modal', function () {
-      const inputDescripcion = document.getElementById('id_descripcion');
-      const inputFechaInicio = document.getElementById('id_fecha_inicio');
-      const inputFechaFin = document.getElementById('id_fecha_fin');
-      const inputId = document.getElementById('id_logro');
-
-      if (inputNombre) inputNombre.value = '';
-      if (inputDescripcion) inputDescripcion.value = '';
-      if (inputId) inputId.value = '';
-
-      document.getElementById('modalLogroLabel').textContent = 'Crear Nuevo Logro';
-      document.querySelector('#formLogro button[type="submit"]').textContent = 'Guardar';
-    }, { once: true });
+    form.reset();  
+    document.getElementById('modalLogroLabel').textContent = 'Crear Nuevo Logro';
+    document.querySelector('#formLogro button[type="submit"]').textContent = 'Guardar';
+    document.getElementById('id_logro').value = '';
+    
+    const selectBeneficio = document.getElementById('id_beneficio');
+    if (selectBeneficio) {
+        selectBeneficio.value = ''; 
+    }
+    const selectTipo = document.getElementById('id_tipo');
+    if (selectTipo) {
+        selectTipo.value = ''; 
+    }
   }
 
   function editarLogro(button) {
     const id = button.getAttribute('data-id');
     const descripcion = button.getAttribute('data-descripcion');
-    const fecha_inicio = button.getAttribute('data-fechaInicio');
-    const fecha_fin = button.getAttribute('data-fechaFin');
+    const beneficioId = button.getAttribute('data-beneficioId');
+    const tipo = button.getAttribute('data-tipo');
 
-    const inputId = document.getElementById('id_logro');
-    const inputDescripcion = document.getElementById('id_descripcion');
-    const inputFechaInicio = document.getElementById('id_fecha_inicio');
-    const inputFechaFin = document.getElementById('id_fecha_fin');
+    document.getElementById('id_logro').value = id || '';
+    document.getElementById('id_descripcion').value = descripcion || '';
+    
+    const selectTipo = document.getElementById('id_tipo');
+    if (selectTipo && tipo) {
+        selectTipo.value = tipo;
+    }
 
-    if (inputId) inputId.value = id || '';
-    if (inputDescripcion) inputDescripcion.value = descripcion || '';
-    if (inputFechaInicio) inputFechaInicio.value = fecha_inicio || '';
-    if (inputFechaFin) inputFechaFin.value = fecha_fin || '';
+    const selectBeneficio = document.getElementById('id_beneficio');
+    if (selectBeneficio && beneficioId) {
+        selectBeneficio.value = beneficioId;
+    } else if (selectBeneficio) {
+        selectBeneficio.value = ''; 
+    }
 
     document.getElementById('modalLogroLabel').textContent = 'Editar Logro';
     document.querySelector('#formLogro button[type="submit"]').textContent = 'Actualizar';

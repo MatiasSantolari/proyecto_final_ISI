@@ -21,6 +21,7 @@ from .historial_sueldo_base import HistorialSueldoBase
 from .institucion import Institucion
 from .logro_empleado import LogroEmpleado
 from .logro import Logro
+from .logro_beneficio import LogroBeneficio
 from .nomina import Nomina
 from .objetivo_empleado import ObjetivoEmpleado
 from .objetivo import Objetivo

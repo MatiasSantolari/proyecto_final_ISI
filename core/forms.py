@@ -257,14 +257,23 @@ class NominaForm(forms.ModelForm):
 
 ########################
 class LogroForm(forms.ModelForm):
+    beneficio = forms.ModelChoiceField(
+        queryset=Beneficio.objects.filter(activo=True, fijo=False).order_by('descripcion'),
+        required=False,
+        empty_label="Seleccione un beneficio (Opcional)",
+        label="Beneficio asociado"
+    )
+
     class Meta:
         model = Logro
-        fields = ['descripcion', 'fecha_inicio', 'fecha_fin']
+        fields = ['descripcion', 'tipo'] 
         widgets = {
-            'fecha_inicio': forms.DateInput(attrs={'type': 'date'}),
-            'fecha_fin': forms.DateInput(attrs={'type': 'date'}),
+            'descripcion': forms.TextInput(attrs={
+                'class': 'form-control',
+                'id': 'id_descripcion',
+                'placeholder': 'Ingrese la descripción'
+            })
         }
-
 
 ########################
 # Feriados Argentina
