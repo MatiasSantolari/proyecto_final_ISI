@@ -649,3 +649,117 @@ def exportar_evaluaciones_csv(request):
             ev_emp.evaluacion.descripcion or f"Evaluación {ev_emp.evaluacion.id}",
         ])
     return response
+
+
+
+
+##############################################
+            ## VISTA EMPLEADO ##
+##############################################
+@login_required
+def objetivos_detalle_view(request):
+    return render(request, 'informes_vista_empleado/objetivos_detalle.html')
+
+
+@login_required
+def api_objetivos_detalle(request):
+    
+    empleado = None
+    try:
+        empleado = request.user.persona.empleado 
+    except AttributeError:
+        pass 
+    
+    if not empleado:
+         return JsonResponse({
+            'results': [],
+            'pagination': {'total_pages': 0, 'current_page': 1, 'has_next': False, 'has_previous': False,}
+        }, safe=False)
+
+    filtro_tipo = request.GET.get('tipo', 'todos')
+    qs_base = ObjetivoEmpleado.objects.filter(empleado=empleado)
+    
+    resultados_combinados = []
+    hoy = date.today()
+
+    qs_p1 = ObjetivoEmpleado.objects.none()
+    if filtro_tipo in ['todos', 'no-diarios']:
+        qs_p1 = qs_base.filter(
+            fecha_limite__isnull=False,
+            completado=False,
+            fecha_limite__gte=hoy 
+        ).order_by('fecha_limite')
+
+    qs_p2 = ObjetivoEmpleado.objects.none()
+    if filtro_tipo in ['todos', 'diarios']:
+        qs_p2 = qs_base.filter(fecha_limite__isnull=True).order_by('-fecha_asignacion') 
+
+    qs_p3 = ObjetivoEmpleado.objects.none()
+    if filtro_tipo in ['todos', 'no-diarios']:
+        qs_p3 = qs_base.filter(
+            fecha_limite__isnull=False
+        ).exclude(
+            Q(completado=False) & Q(fecha_limite__gte=hoy)
+        ).order_by('-fecha_limite') 
+
+    resultados_combinados = list(qs_p1) + list(qs_p2) + list(qs_p3)
+    
+    page = request.GET.get('page', 1)
+    per_page = request.GET.get('per_page', 20) 
+    
+    try:
+        page_num = int(page)
+        per_page_num = int(per_page)
+        start = (page_num - 1) * per_page_num
+        end = start + per_page_num
+        objetivos_page_list = resultados_combinados[start:end]
+        
+        total_items = len(resultados_combinados)
+        total_pages = (total_items + per_page_num - 1) // per_page_num
+        has_next = end < total_items
+        has_previous = start > 0
+
+    except ValueError:
+        objetivos_page_list = []
+        total_pages = 0
+        page_num = 1
+        has_next = False
+        has_previous = False
+    
+    
+    data = []
+    for emp_objetivo in objetivos_page_list:
+        
+        es_diario = emp_objetivo.fecha_limite is None
+
+        if emp_objetivo.completado:
+            estado_display = 'Completado'
+        else:
+            if es_diario:
+                if emp_objetivo.fecha_asignacion == hoy:
+                    estado_display = 'Pendiente'
+                else:
+                    estado_display = 'No Completado'
+            else:
+                if emp_objetivo.fecha_limite and emp_objetivo.fecha_limite < hoy:
+                     estado_display = 'Vencido'
+                else:
+                    estado_display = 'Pendiente'  
+
+        data.append({
+            'id': emp_objetivo.id,
+            'titulo': emp_objetivo.objetivo.titulo, 
+            'descripcion': emp_objetivo.objetivo.descripcion,
+            'fechaLimite': emp_objetivo.fecha_limite.strftime('%Y-%m-%d') if emp_objetivo.fecha_limite else None,
+            'estado': estado_display, 
+        })
+    
+    return JsonResponse({
+        'results': data,
+        'pagination': {
+            'total_pages': total_pages,
+            'current_page': page_num,
+            'has_next': has_next,
+            'has_previous': has_previous,
+        }
+    }, safe=False)

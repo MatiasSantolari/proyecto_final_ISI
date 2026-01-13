@@ -174,12 +174,12 @@ urlpatterns = [
 
     path('api/departamentos/list/', informes_view.api_departamentos_list, name='api_departamentos_list'),
     
-            #### ASISTENCIAS DETALLE ####
+            #### ASISTENCIAS DETALLE ADMIN ####
     path('asistencias/detalle/', informes_view.asistencias_detalle_view, name='asistencias_detalle'),
     path('api/asistencias/detalle/', informes_view.api_asistencias_detalle, name='api_asistencias_detalle'),
     path('api/asistencias/exportar/csv/', informes_view.exportar_asistencias_csv, name='exportar_asistencias_csv'),
     #path('api/asistencias/exportar/pdf/', informes_view.exportar_asistencias_pdf, name='exportar_asistencias_pdf'),
-            #### EMPLEADOS DETALLE ####
+            #### EMPLEADOS DETALLE ADMIN ####
     path('empleados/detalle/', informes_view.empleados_detalle_view, name='empleados_detalle'),
     path('api/empleados/detalle/', informes_view.api_empleados_detalle, name='api_empleados_detalle'),
     path('api/empleados/exportar/csv/', informes_view.exportar_empleados_csv, name='exportar_empleados_csv'),
@@ -189,17 +189,17 @@ urlpatterns = [
     path('api/empleado/<int:empleado_id>/asistencia/', informes_view.api_empleado_asistencia, name='api_empleado_asistencia'),
     path('api/empleado/<int:empleado_id>/vacaciones/', informes_view.api_empleado_vacaciones, name='api_empleado_vacaciones'),
     path('api/empleado/<int:empleado_id>/objetivos/', informes_view.api_empleado_objetivos, name='api_empleado_objetivos'),
-            #### NOMINAS DETALLE ####
+            #### NOMINAS DETALLE ADMIN ####
     path('nominas/detalle/', informes_view.nominas_detalle_view, name='nominas_detalle'),
     path('api/nominas/detalle/', informes_view.api_nominas_detalle, name='api_nominas_detalle'),
     path('api/nominas/exportar/csv/', informes_view.exportar_nominas_csv, name='exportar_nominas_csv'),
-            #### EVALUACIONES DETALLE ####
+            #### EVALUACIONES DETALLE ADMIN ####
     path('evaluaciones/detalle/', informes_view.evaluaciones_detalle_view, name='evaluaciones_detalle'),
     path('api/evaluaciones/detalle/', informes_view.api_evaluaciones_detalle, name='api_evaluaciones_detalle'),
     path('api/evaluaciones/exportar/csv/', informes_view.exportar_evaluaciones_csv, name='exportar_evaluaciones_csv'),
     path('api/evaluaciones/list/', informes_view.api_evaluaciones_list, name='api_evaluaciones_list'),    
 
-
+#######################
 ## INFORMES EMPLEADO ##
     path('dashboard/api/empleado/objetivos/', api.api_dashboard_empleado, name='api_dashboard_empleado'),
     path('dashboard/marcar-objetivo-completado/<int:pk>/', informes_empleado_view.marcar_objetivo_completado, name='marcar_objetivo_completado'),
@@ -207,6 +207,9 @@ urlpatterns = [
     path('dashboard/api/empleado/evaluaciones/', api.api_evaluaciones_empleado, name='api_evaluaciones_empleado'),
     path('dashboard/api/empleado/beneficios/', api.api_beneficios_empleado, name='api_beneficios_empleado'),
     path('dashboard/api/empleado/logros/', api.api_logros_empleado, name='api_logros_empleado'),
+
+    path('objetivos/detalle/', informes_view.objetivos_detalle_view, name='objetivos_detalle'),
+    path('api/objetivos/detalle/', informes_view.api_objetivos_detalle, name='api_objetivos_detalle'),
 
 
     path('mi-panel/', informes_empleado_view.dashboard_empleado, name='dashboard_empleado'),

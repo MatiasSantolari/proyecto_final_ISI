@@ -174,9 +174,9 @@
         
         let recordatorioHTML = '';
         if (estadoHoy === "Nada marcado") {
-            recordatorioHTML = `<div class="alert alert-danger p-2 small"><i class="bi bi-clock me-2"></i>Recuerda marcar tu **entrada** hoy.</div>`;
+            recordatorioHTML = `<div class="alert alert-danger p-2 small"><i class="bi bi-clock me-2"></i>Recuerda marcar su <strong>**entrada**</strong> hoy (Podras hacerlo en la barra superior de tu interfaz).</div>`;
         } else if (estadoHoy === "Entrada marcada") {
-            recordatorioHTML = `<div class="alert alert-warning p-2 small"><i class="bi bi-clock-history me-2"></i>Recuerda marcar tu **salida** al terminar el día.</div>`;
+            recordatorioHTML = `<div class="alert alert-warning p-2 small"><i class="bi bi-clock-history me-2"></i>Recuerda marcar su <strong>**salida**</strong> al terminar el día (Podras hacerlo en la barra superior interfaz).</div>`;
         } else if (estadoHoy === "Ambos marcados") {
             recordatorioHTML = `<div class="alert alert-success p-2 small"><i class="bi bi-check-circle me-2"></i>Asistencia de hoy registrada correctamente.</div>`;
         }
@@ -229,7 +229,7 @@
                 if (pendientes && pendientes.length > 0) {
             let pendientesHtml = `<hr><div class="alert alert-warning shadow-sm" role="alert">
                 <h6 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Evaluaciones Pendientes</h6>
-                <p>Tienes <strong>${pendientes.length}</strong> evaluación(es) pendiente(s). Comunícate con RRHH:</p>
+                <p>Tienes <strong>${pendientes.length}</strong> evaluación(es) pendiente(s). <strong>Comuníquese con Recursos Humanos:</strong></p>
                 
                 <ul class="mb-0 ps-3">`;
             pendientes.forEach(p => {
@@ -346,24 +346,26 @@
         const nuevoEstado = !estadoActual;
         const accion = nuevoEstado ? "completar" : "reabrir";
 
-        if (!confirm(`¿Deseas ${accion} este objetivo?`)) {
-            loadDashboard(); 
-            return;
-        }
+        try {
+            const res = await fetch(`${API.marcar}${id}/`, {
+                method: 'POST',
+                headers: { 
+                    'X-CSRFToken': getCookie('csrftoken'), 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ completado: nuevoEstado })
+            });
 
-        const res = await fetch(`${API.marcar}${id}/`, {
-            method: 'POST',
-            headers: { 
-                'X-CSRFToken': getCookie('csrftoken'), 
-                'Content-Type': 'application/json' 
-            },
-            body: JSON.stringify({ completado: nuevoEstado })
-        });
-
-        if (data && data.status === 'ok') {
-            loadObjetivos();
-        } else {
-            alert("Error al actualizar el objetivo.");
+            if (res.ok) {
+                setTimeout(() => {
+                    loadDashboard(); 
+                }, 150);     
+            } else {
+                alert("Error al actualizar el objetivo.");
+                loadDashboard();
+            }
+        } catch (err) {
+            console.error("Error en la petición:", err);
             loadDashboard();
         }
     };

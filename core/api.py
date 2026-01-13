@@ -414,10 +414,10 @@ def api_dashboard_empleado(request):
     if not persona:
         return JsonResponse({'error': 'Perfil incompleto'}, status=403)
     empleado = Empleado.objects.get(id=persona.id)
-    hoy = timezone.now().date()
+    hoy = timezone.localtime(timezone.now()).date()
     
     qs = ObjetivoEmpleado.objects.filter(empleado=empleado, objetivo__activo=True).select_related('objetivo')
-    qs_diarios = qs.filter(objetivo__es_recurrente=True)
+    qs_diarios = qs.filter(objetivo__es_recurrente=True, fecha_asignacion=hoy)
     qs_cargo_vigentes = qs.filter(objetivo__es_recurrente=False).filter(
         Q(fecha_limite__gte=hoy) | Q(fecha_limite__isnull=True)
     )

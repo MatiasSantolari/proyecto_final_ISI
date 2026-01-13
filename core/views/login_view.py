@@ -11,17 +11,26 @@ from django.db.models import Q
 import requests
 import os
 from django.core.files.base import ContentFile
+from django.urls import reverse
+from django.contrib.auth import logout
 
 
 @login_required
 @require_POST
 def cambiar_vista(request):
-    if request.method == 'POST':
-        rol = request.POST.get('rol')
-        if rol in ['admin', 'empleado', 'jefe', 'gerente']:
-            request.session['rol_actual'] = rol
-            messages.success(request, f"Vista cambiada a {rol.capitalize()}.")
-    return redirect('home')
+    if not request.user.is_authenticated:
+        logout(request)
+        messages.error(request, "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.")
+        return redirect(reverse('home'))
+    
+    rol = request.POST.get('rol')
+    if rol in ['admin', 'empleado', 'jefe', 'gerente']:
+        request.session['rol_actual'] = rol
+        messages.success(request, f"Vista cambiada a {rol.capitalize()}.")
+        return redirect('home')
+    else:
+        messages.error(request, "Rol seleccionado no válido.")
+        return redirect('home')
 
 
 #
