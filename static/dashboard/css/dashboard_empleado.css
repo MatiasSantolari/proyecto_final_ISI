@@ -39,3 +39,38 @@
 .alert ul.mb-0 {
     font-size: 0.9rem;
 }
+
+
+
+.enlace-header {
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+body:not(.dark-mode) .enlace-header:hover {
+    background-color: #e9ecef !important; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px); 
+}
+
+body:not(.dark-mode) .enlace-header:hover .text-dark {
+    color: #000 !important;
+}
+
+body.dark-mode .enlace-header:hover {
+    background-color: #2b2b2b !important; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3); 
+    transform: translateY(-2px);
+}
+
+body.dark-mode .enlace-header:hover .text-dark,
+body.dark-mode .enlace-header:hover .text-muted {
+    color: #fff !important;
+}
+
+.kpi-link {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    text-decoration: none; 
+}

@@ -751,6 +751,7 @@ def api_objetivos_detalle(request):
             'titulo': emp_objetivo.objetivo.titulo, 
             'descripcion': emp_objetivo.objetivo.descripcion,
             'fechaLimite': emp_objetivo.fecha_limite.strftime('%Y-%m-%d') if emp_objetivo.fecha_limite else None,
+            'fechaAsignacion': emp_objetivo.fecha_asignacion.strftime('%Y-%m-%d'),
             'estado': estado_display, 
         })
     
@@ -761,5 +762,57 @@ def api_objetivos_detalle(request):
             'current_page': page_num,
             'has_next': has_next,
             'has_previous': has_previous,
+        }
+    }, safe=False)
+
+
+
+
+@login_required
+def asistencias_detalle_view(request):
+    return render(request, 'informes_vista_empleado/asistencias_detalle.html')
+
+@login_required
+def api_asistencias_detalle(request):
+    empleado = None
+    try:
+        empleado = request.user.persona.empleado 
+    except AttributeError:
+        pass 
+    
+    if not empleado:
+         return JsonResponse({'results': [], 'pagination': {'total_pages': 0, 'current_page': 1, 'has_next': False, 'has_previous': False,}}, safe=False)
+
+    queryset = HistorialAsistencia.objects.filter(empleado=empleado).order_by('-fecha_asistencia', '-hora_entrada')
+
+    page = request.GET.get('page', 1)
+    per_page = request.GET.get('per_page', 20) 
+    paginator = Paginator(queryset, per_page)
+
+    try:
+        asistencias_page = paginator.page(page)
+    except PageNotAnInteger:
+        asistencias_page = paginator.page(1)
+    except EmptyPage:
+        asistencias_page = paginator.page(paginator.num_pages)
+    
+    
+    data = []
+    for asistencia in asistencias_page:
+        data.append({
+            'fecha_asistencia': asistencia.fecha_asistencia.strftime('%Y-%m-%d'),
+            'hora_entrada': asistencia.hora_entrada.strftime('%H:%M') if asistencia.hora_entrada else None,
+            'hora_salida': asistencia.hora_salida.strftime('%H:%M') if asistencia.hora_salida else None,
+            'confirmado': asistencia.confirmado,
+            'tardanza': asistencia.tardanza,
+        })
+    
+    return JsonResponse({
+        'results': data,
+        'pagination': {
+            'total_pages': paginator.num_pages,
+            'current_page': asistencias_page.number,
+            'has_next': asistencias_page.has_next(),
+            'has_previous': asistencias_page.has_previous(),
         }
     }, safe=False)

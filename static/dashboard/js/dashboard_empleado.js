@@ -215,18 +215,20 @@
         const pendientes = dataEvaluaciones.pendientes;
 
         let htmlContent = `
-            <div class="mb-1">
-                <p class="mb-1 fw-semibold text-muted">Calificación promedio (último año)</p>
-                <div class="d-flex align-items-center">
-                    <h4 class="text-info fw-bolder me-3">${evaluaciones}</h4>
-                    <span class="text-warning h4 m-0">
+            <div class="mb-1 text-center">
+                <p class="mb-1 fw-semibold text-muted">Calificación promedio (último año)</p>    
+                <div class="d-flex align-items-center justify-content-center">
+                    <span class="text-info fw-bolder me-3 fs-4 mt-1 mb-0">
+                        ${evaluaciones} / 10 
+                    </span>            
+                    <span class="text-warning h4 m-0 pt-1">
                         ${typeof evaluaciones === 'number' ? '⭐' : ''}
                     </span>
                 </div>
             </div>
             `;
         
-                if (pendientes && pendientes.length > 0) {
+        if (pendientes && pendientes.length > 0) {
             let pendientesHtml = `<hr><div class="alert alert-warning shadow-sm" role="alert">
                 <h6 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Evaluaciones Pendientes</h6>
                 <p>Tienes <strong>${pendientes.length}</strong> evaluación(es) pendiente(s). <strong>Comuníquese con Recursos Humanos:</strong></p>

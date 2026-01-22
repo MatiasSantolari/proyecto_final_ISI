@@ -1,0 +1,39 @@
+{% extends "base.html"%}
+{% load static %}
+
+{% block title %}Detalle de Asistencias{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'informes_vista_empleado/css/asistencias_detalle.css' %}">
+<div class="container-fluid p-5 mt-3">
+    <h4 class="mb-3">Detalle de Asistencias Registradas</h4>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-sm" id="asistenciasTable">
+                    <thead class="text-center">
+                        <tr>
+                            <th>Fecha Asistencia</th>
+                            <th>Hora Entrada</th>
+                            <th>Hora Salida</th>
+                            <th>Tardanza</th>
+                            <th>Confirmado</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center" id="asistenciasTableBody">
+                        <tr><td colspan="5" class="text-center">Cargando datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+             <div class="card-footer">
+                <nav>
+                    <ul class="pagination justify-content-center" id="paginationControls"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'informes_vista_empleado/js/asistencias_detalle.js' %}"></script>
+{% endblock %}

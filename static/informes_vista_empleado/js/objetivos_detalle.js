@@ -33,6 +33,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    
+    function parseISODateLocal(dateString) {
+        if (!dateString) return null;
+        const parts = dateString.split('-');
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+
 
     function renderTable(data) {
         tbody.innerHTML = ''; 
@@ -47,7 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const esDiario = item.fechaLimite === null || item.fechaLimite === undefined;
             const tipoTexto = esDiario ? 'Recurrente' : 'Por Cargo';
             const tipoBadgeClass = esDiario ? 'badge bg-info text-dark' : 'badge bg-primary';
-            const fechaDisplay = esDiario ? '-' : new Date(item.fechaLimite).toLocaleDateString();
+            const fechaLimiteObj = parseISODateLocal(item.fechaLimite);
+            const fechaAsigObj = parseISODateLocal(item.fechaAsignacion);
+            const fechaDisplay = esDiario ? fechaAsigObj.toLocaleDateString() : fechaLimiteObj.toLocaleDateString();
 
             let estadoBadgeClass;
             switch (item.estado) {
