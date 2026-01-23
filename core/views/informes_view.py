@@ -816,3 +816,53 @@ def api_asistencias_detalle(request):
             'has_previous': asistencias_page.has_previous(),
         }
     }, safe=False)
+
+
+
+
+@login_required
+def evaluaciones_detalle_view(request):
+    return render(request, 'informes_vista_empleado/evaluaciones_detalle.html')
+
+@login_required
+def api_evaluaciones_detalle(request):
+    empleado = None
+    try:
+        empleado = request.user.persona.empleado 
+    except AttributeError:
+        pass 
+    
+    if not empleado:
+         return JsonResponse({'results': [], 'pagination': {'total_pages': 0, 'current_page': 1, 'has_next': False, 'has_previous': False,}}, safe=False)
+
+    queryset = EvaluacionEmpleado.objects.filter(empleado=empleado).order_by('-fecha_registro')
+
+    page = request.GET.get('page', 1)
+    per_page = request.GET.get('per_page', 20) 
+    paginator = Paginator(queryset, per_page)
+
+    try:
+        evaluaciones_page = paginator.page(page)
+    except PageNotAnInteger:
+        evaluaciones_page = paginator.page(1)
+    except EmptyPage:
+        evaluaciones_page = paginator.page(paginator.num_pages)
+    
+    data = []
+    for eval_emp in evaluaciones_page:
+        data.append({
+            'descripcion': eval_emp.evaluacion.descripcion,
+            'fecha_registro': eval_emp.fecha_registro.strftime('%Y-%m-%d'),
+            'comentarios': eval_emp.comentarios,
+            'calificacion_final': str(eval_emp.calificacion_final) if eval_emp.calificacion_final is not None else None,
+        })
+    
+    return JsonResponse({
+        'results': data,
+        'pagination': {
+            'total_pages': paginator.num_pages,
+            'current_page': evaluaciones_page.number,
+            'has_next': evaluaciones_page.has_next(),
+            'has_previous': evaluaciones_page.has_previous(),
+        }
+    }, safe=False)

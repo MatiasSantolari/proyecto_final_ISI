@@ -40,7 +40,7 @@ def _user_es_admin(user, empleado=None):
     if not empleado:
         return False
     
-    hoy = now().date()
+    hoy = timezone.localtime(timezone.now()).date() 
     cargo_act = empleado.empleadocargo_set.filter(
         fecha_inicio__lte=hoy, fecha_fin__isnull=True
     ).order_by('-fecha_inicio').first()
@@ -60,7 +60,8 @@ def registrar_asistencia(request):
         return redirect("home")
 
     hora_actual = timezone.now().astimezone(pytz.timezone('America/Argentina/Buenos_Aires')).time()
-    hoy = now().date()
+    hoy = timezone.localtime(timezone.now()).date()
+
     asistencia = HistorialAsistencia.objects.filter(empleado=empleado, fecha_asistencia=hoy).first()
 
     historial_asistencias = HistorialAsistencia.objects.filter(empleado=empleado).order_by('-fecha_asistencia')
@@ -97,7 +98,7 @@ def registrar_asistencia(request):
                 asistencia.save()
                 messages.success(request, "Salida registrada correctamente.")
         return redirect(next_url)
-
+    
     return render(request, "registrar_asistencia.html", {
         "asistencia_hoy": asistencia,
         "hoy": hoy,
@@ -108,7 +109,7 @@ def registrar_asistencia(request):
 
 @login_required
 def confirmar_asistencias(request):
-    hoy = now().date()
+    hoy = timezone.localtime(timezone.now()).date() 
     departamento_sel = request.GET.get("departamento", "")
     page_number = request.GET.get("page", 1)
     user_empleado = _get_empleado_de_user(request)
@@ -165,7 +166,7 @@ def confirmar_asistencias_accion(request):
     ids = request.POST.getlist("asistencia_ids")
     accion = request.POST.get("accion")
     actualizados = 0
-    hoy = now().date()
+    hoy = timezone.localtime(timezone.now()).date() 
 
     if accion == "registrar_ausentes":
         user_empleado = _get_empleado_de_user(request)

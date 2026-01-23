@@ -210,9 +210,11 @@ urlpatterns = [
 
     path('objetivos/detalle/', informes_view.objetivos_detalle_view, name='objetivos_detalle'),
     path('api/objetivos/detalle/', informes_view.api_objetivos_detalle, name='api_objetivos_detalle'),
-
     path('asistencias/detalle/', informes_view.asistencias_detalle_view, name='asistencias_detalle'),
     path('api/asistencias/detalle/', informes_view.api_asistencias_detalle, name='api_asistencias_detalle'),
+    path('evaluaciones/detalle/', informes_view.evaluaciones_detalle_view, name='evaluaciones_detalle'),
+    path('api/evaluaciones/detalle/', informes_view.api_evaluaciones_detalle, name='api_evaluaciones_detalle'),
+
 
     path('mi-panel/', informes_empleado_view.dashboard_empleado, name='dashboard_empleado'),
     

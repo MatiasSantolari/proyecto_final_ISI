@@ -454,7 +454,7 @@ def api_asistencia_empleado(request):
         return JsonResponse({'error': 'Perfil incompleto'}, status=403)
     empleado = Empleado.objects.get(id=persona.id)
     
-    hoy = timezone.now().date()
+    hoy = timezone.localtime(timezone.now()).date() 
     primer_dia_mes = hoy.replace(day=1)
     
     total_dias_laborables_contados = 0
@@ -504,7 +504,7 @@ def api_evaluaciones_empleado(request):
         return JsonResponse({'error': 'Perfil incompleto'}, status=403)
     empleado = Empleado.objects.get(id=persona.id)
 
-    hoy = timezone.now().date()
+    hoy = timezone.localtime(timezone.now()).date() 
     hace_un_año = hoy - timedelta(days=365)
     
     promedio_evaluaciones = EvaluacionEmpleado.objects.filter(
