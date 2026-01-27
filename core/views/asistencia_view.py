@@ -61,30 +61,17 @@ def registrar_asistencia(request):
 
     hora_actual = timezone.now().astimezone(pytz.timezone('America/Argentina/Buenos_Aires')).time()
     hoy = timezone.localtime(timezone.now()).date()
-
-    asistencia = HistorialAsistencia.objects.filter(empleado=empleado, fecha_asistencia=hoy).first()
-
-    historial_asistencias = HistorialAsistencia.objects.filter(empleado=empleado).order_by('-fecha_asistencia')
-
-    paginator = Paginator(historial_asistencias, 10)
-    page_number = request.GET.get('page') 
-    page_obj = paginator.get_page(page_number)
-
     next_url = request.META.get('HTTP_REFERER', reverse('home'))
-    
+
     if request.method == "POST":
         accion = request.POST.get("accion")
+        asistencia = HistorialAsistencia.objects.filter(empleado=empleado, fecha_asistencia=hoy).first()        
         if accion == "entrada":
             if asistencia and asistencia.hora_entrada:
                 messages.warning(request, "Ya registraste tu entrada hoy.")
             else:
                 if not asistencia:
-                    asistencia = HistorialAsistencia(
-                        empleado=empleado,
-                        fecha_asistencia=hoy,
-                        confirmado=False,
-                        tardanza=False
-                    )
+                    asistencia = HistorialAsistencia(empleado=empleado, fecha_asistencia=hoy)
                 asistencia.hora_entrada = hora_actual
                 asistencia.save()
                 messages.success(request, "Entrada registrada correctamente.")
@@ -97,13 +84,22 @@ def registrar_asistencia(request):
                 asistencia.hora_salida = hora_actual
                 asistencia.save()
                 messages.success(request, "Salida registrada correctamente.")
-        return redirect(next_url)
+        
+        return redirect(next_url) 
     
-    return render(request, "registrar_asistencia.html", {
-        "asistencia_hoy": asistencia,
-        "hoy": hoy,
-        "page_obj": page_obj,
-    })
+    else: 
+        asistencia = HistorialAsistencia.objects.filter(empleado=empleado, fecha_asistencia=hoy).first()
+
+        historial_asistencias = HistorialAsistencia.objects.filter(empleado=empleado).order_by('-fecha_asistencia')
+        paginator = Paginator(historial_asistencias, 10)
+        page_number = request.GET.get('page') 
+        page_obj = paginator.get_page(page_number)
+
+        return render(request, "registrar_asistencia.html", {
+            "asistencia_hoy": asistencia,
+            "hoy": hoy,
+            "page_obj": page_obj,
+        })
 
 
 
