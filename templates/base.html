@@ -178,7 +178,24 @@
   document.addEventListener('DOMContentLoaded', function () {
     const body = document.body;
     const toggleButton = document.querySelector('[data-widget="pushmenu"]');
+    const sidebar = document.getElementById('main-sidebar'); 
 
+    sidebar.addEventListener('mouseleave', function() {
+      sidebar.classList.remove('sidebar-focused');
+      const openTreeviews = sidebar.querySelectorAll('.nav-item.has-treeview.menu-open');
+      openTreeviews.forEach(function(treeviewEl) {
+          treeviewEl.classList.remove('menu-is-opening', 'menu-open');
+          const navTreeviewUL = treeviewEl.querySelector('.nav-treeview');
+            if (navTreeviewUL && navTreeviewUL.style.display === 'block') {
+                navTreeviewUL.style.display = '';
+            }
+      });
+      const focusedElement = document.activeElement;
+        if (focusedElement && sidebar.contains(focusedElement)) {
+            focusedElement.blur();
+        }
+    });
+    
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.forEach(function (tooltipTriggerEl) {
       new bootstrap.Tooltip(tooltipTriggerEl);
