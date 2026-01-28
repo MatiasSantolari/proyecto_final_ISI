@@ -1,5 +1,6 @@
 {% extends "base.html"%}
 {% load static %}
+{% load persona_tags %}
 
   {% block title %}Gestión de Personas{% endblock %}
   
@@ -22,7 +23,7 @@
 
 
         <div class="mb-4">
-          <label>Filtrar por Departamento:</label>
+          <label>Filtrar por Departamento</label>
           <form method="get">
             <select class="form-select" name="departamento" onchange="this.form.submit()">
               <option value="" {% if not request.GET.departamento %}selected{% endif %}>Todos</option>
@@ -37,7 +38,7 @@
 
         <!-- Filtro de Tipo de Usuario -->
         <div class="mb-4">
-          <label for="filtroTipoUsuario" class="form-label">Filtrar por Tipo de Usuario:</label>
+          <label for="filtroTipoUsuario" class="form-label">Filtrar por Tipo de Usuario</label>
           <select class="form-select" id="filtroTipoUsuario">
             <option value="todos" selected>Todos</option>
             <option value="normal">Normal</option>
@@ -76,9 +77,23 @@
                   <td>{{ persona.dni }}</td>
                   <td>{{ persona.email }}</td>
                   <td>{{ persona.telefono_completo }}</td>
-                  <td>{{ persona.tipo_usuario }}</td>
-                  <td>{{ persona.estado }}</td>
-                  <td>{{ persona.nombre_cargo }}</td>
+                  <td>
+                    <span class="badge {{ persona.tipo_usuario|tipo_badge_class }}">
+                      {{ persona.tipo_usuario|tipo_badge_label }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge {{ persona.estado|estado_badge_class }}">
+                      {{ persona.estado|estado_badge_label }}
+                    </span>
+                  </td>                  
+                  <td>
+                    {% if persona.nombre_cargo != "Sin Cargo" %}
+                        {{ persona.nombre_cargo }}
+                    {% else %}
+                        <span class="badge bg-secondary">Sin Cargo</span>
+                    {% endif %}
+                  </td>
                   <td class="text-center">
                     <button class="btn btn-sm btn-editar btn-outline-secondary me-1"
                             data-bs-toggle="modal" data-bs-target="#modalPersona"
@@ -176,8 +191,8 @@
   </div>
 
   <!-- Modal para Crear/Editar Persona -->
-  <div class="modal fade" id="modalPersona" tabindex="-1" aria-labelledby="modalPersonaLabel" aria-hidden="true">
-    <div class="modal-dialog" style="margin-top: 2rem;">
+  <div class="modal position-fixed fade" id="modalPersona" tabindex="-1" aria-labelledby="modalPersonaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" style="margin-top: 4rem;">
       <div class="modal-content">
         <div class="modal-header" style="background-color: #3c8dbc;">
           <h5 class="modal-title text-white" id="modalPersonaLabel">Crear/Editar Persona</h5>
@@ -187,81 +202,115 @@
           <form method="post" action="{% url 'crear_persona' %}" id="formPersona">
             {% csrf_token %}
             <input type="hidden" name="id_persona" id="id_persona">
-            <div class="mb-3">
-              <label for="id_nombre" class="form-label">Nombre</label>
-              {{ form.nombre }}
+            <div class="row g-3">
+              <div class="col-md">
+                <label for="id_nombre" class="form-label">Nombre</label>
+                {{ form.nombre }}
+                {% for error in form.nombre.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md">
+                <label for="id_apellido" class="form-label">Apellido</label>
+                {{ form.apellido }}
+                {% for error in form.apellido.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md">
+                <label for="id_dni" class="form-label">DNI</label>
+                {{ form.dni }}
+                {% for error in form.dni.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="id_apellido" class="form-label">Apellido</label>
-              {{ form.apellido }}
+
+            <div class="row g-3 mt-0">
+              <div class="col-md-4">
+                <label for="id_fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                {{ form.fecha_nacimiento }}
+                {% for error in form.fecha_nacimiento.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md-4">
+                <label for="id_genero" class="form-label">Género</label>
+                {{ form.genero }}
             </div>
-            <div class="mb-3">
-              <label for="id_dni" class="form-label">DNI</label>
-              {{ form.dni }}
-            </div>
-            <div class="mb-3">
+            <div class="col-md-4">
               <label for="id_email" class="form-label">Email</label>
               {{ form.email }}
-              {% if form.email.errors %}
-                <div class="text-danger">{{ form.email.errors }}</div>
-              {% endif %}
+              {% for error in form.email.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="id_prefijo" class="form-label">Prefijo Pais</label>
-              {{ form.prefijo_pais }}
+
+            <div class="row g-3 mt-0">
+              <div class="col-md-8">
+                <label class="form-label" for="id_prefijo_pais">Teléfono</label>
+                <div class="input-group">
+                  <span class="input-group-text">Prefijo</span>
+                  {{ form.prefijo_pais }}
+                  <span class="input-group-text">Número</span>
+                  {{ form.telefono }}
+                </div>
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="id_telefono" class="form-label">Teléfono</label>
-              {{ form.telefono }}
+
+            <div class="row g-3 mt-0">
+              <div class="col-md-4">
+                <label for="id_pais" class="form-label">País</label>
+                {{ form.pais }}
+              </div>
+              <div class="col-md-4">
+                <label for="id_provincia" class="form-label">Provincia</label>
+                {{ form.provincia }}
+              </div>
+              <div class="col-md-4">
+                <label for="id_ciudad" class="form-label">Ciudad</label>
+                {{ form.ciudad }}
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="id_fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
-              {{ form.fecha_nacimiento }}
+
+            <div class="row g-3 mt-0">
+              <div class="col-md-8">
+                <label for="id_calle" class="form-label">Calle</label>
+                {{ form.calle }}
+              </div>
+              <div class="col-md-4">
+                <label for="id_numero" class="form-label">Número</label>
+                {{ form.numero }}
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="id_genero" class="form-label">Genero</label>
-              {{ form.genero }}
-            </div>
-            <div class="mb-3">
-              <label for="id_pais" class="form-label">Pais</label>
-              {{ form.pais }}
-            </div>
-            <div class="mb-3">
-              <label for="id_provincia" class="form-label">Provincia</label>
-              {{ form.provincia }}
-            </div>
-            <div class="mb-3">
-              <label for="id_ciudad" class="form-label">Ciudad</label>
-              {{ form.ciudad }}
-            </div>
-            <div class="mb-3">
-              <label for="id_calle" class="form-label">Calle</label>
-              {{ form.calle }}
-            </div>
-            <div class="mb-3">
-              <label for="id_numero" class="form-label">Numero</label>
-              {{ form.numero }}
-            </div>
-            <div class="mb-3">
+          
+            <div class="mb-3 mt-2">
               <label for="id_tipo_usuario" class="form-label">Tipo de Usuario</label>
               {{ form.tipo_usuario }}
             </div>
 
-              <div id="campoEstado" class="mb-3" style="display: none;">
-                <label for="id_estado" class="form-label">Estado</label>
-                {{ form.estado }}
+            <div id="campoEstado" class="mb-3" style="display: none;" data-personas-target="campoEstado">
+              <label for="id_estado" class="form-label">Estado</label>
+              {{ form.estado }}
+            </div>
+
+            <div class="row g-3">
+              <div class="col-md">
+                <div id="campoDepartamento" class="mb-3" style="display: none;" data-personas-target="campoDepartamento">                  <label for="id_departamento" class="form-label">Departamento</label>
+                  {{ form.departamento }}
+                  {% if form.departamento.errors %}
+                    <div class="text-danger">{{ form.departamento.errors }}</div>
+                  {% endif %}
+                </div>
               </div>
-              <div id="campoDepartamento" class="mb-3" style="display: none;">
-                <label for="id_departamento" class="form-label">Departamento</label>
-                {{ form.departamento }}
-                {% if form.departamento.errors %}
-                  <div class="text-danger">{{ form.departamento.errors }}</div>
-                {% endif %}
+              <div class="col-md">
+                <div id="campoCargo" class="mb-3" style="display: none;" data-personas-target="campoCargo">
+                  <label for="id_cargo" class="form-label">Cargo</label>
+                  {{ form.cargo }}
+                </div>
               </div>
-              <div id="campoCargo" class="mb-3" style="display: none;">
-                <label for="id_cargo" class="form-label">Cargo</label>
-                {{ form.cargo }}
-              </div>
+            </div>
             
               <input type="hidden" name="accion" id="accion_input" value="">
 
@@ -289,18 +338,18 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p><strong>Nombre:</strong> <span>{{ persona.nombre }}</span></p>
-          <p><strong>Apellido:</strong> <span>{{ persona.apellido }}</span></p>
+          <p><strong>Nombre:</strong> <span>{{ persona.nombre|capfirst }}</span></p>
+          <p><strong>Apellido:</strong> <span>{{ persona.apellido|capfirst }}</span></p>
           <p><strong>DNI:</strong> <span>{{ persona.dni }}</span></p>
           <p><strong>Email:</strong> <span>{{ persona.email }}</span></p>
           <p><strong>Teléfono:</strong> <span>{{ persona.telefono_completo }}</span></p>
-          <p><strong>Fecha de Nacimiento:</strong> <span>{{ persona.fecha_nacimiento }}</span></p>
-          <p><strong>Genero:</strong> <span>{{ persona.genero }}</span></p>
+          <p><strong>Fecha de Nacimiento:</strong> <span>{{ persona.fecha_nacimiento|date:"d/m/Y" }}</span></p>
+          <p><strong>Genero:</strong> <span>{{ persona.genero|capfirst }}</span></p>
           <p><strong>Lugar:</strong> <span>{{ persona.pais|add:", "|add:persona.provincia|add:", "|add:persona.ciudad }}</span></p>
           <p><strong>Dirección:</strong> <span>{{ persona.calle|add:" "|add:persona.numero }}</span></p>
-          <p><strong>Tipo de Usuario:</strong> <span>{{ persona.tipo_usuario }}</span></p>
-          {% if persona.tipo_persona != 'normal' %}
-            <p><strong>Estado del Empleado:</strong> <span>{{ persona.estado }}</span></p>
+          <p><strong>Tipo de Usuario:</strong> <span>{{ persona.tipo_usuario|capfirst }}</span></p>
+          {% if persona.tipo_usuario != 'normal' %}
+            <p><strong>Estado del Empleado:</strong> <span>{{ persona.estado|capfirst }}</span></p>
             <p><strong>Departamento:</strong> <span>{{ persona.departamento_nombre }}</span></p>
             <p><strong>Cargo:</strong> <span>{{ persona.nombre_cargo }}</span></p>
         {% endif %}

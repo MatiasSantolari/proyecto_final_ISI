@@ -148,6 +148,38 @@ class PersonaForm(forms.ModelForm):
             for field in ADMIN_FIELDS:
                 self.fields.pop(field, None)
             return
+        
+        # Añade atributos para integrar Stimulus en el formulario modal
+        if "tipo_usuario" in self.fields:
+            self.fields["tipo_usuario"].widget.attrs.update(
+                {
+                    "data-personas-target": "tipoUsuario",
+                    "data-action": "change->personas#onTipoUsuarioChange",
+                }
+            )
+
+        if "departamento" in self.fields:
+            self.fields["departamento"].widget.attrs.update(
+                {
+                    "data-personas-target": "departamento",
+                    "data-action": "change->personas#onDepartamentoChange",
+                }
+            )
+
+        if "cargo" in self.fields:
+            self.fields["cargo"].widget.attrs.update(
+                {
+                    "data-personas-target": "cargo",
+                }
+            )
+
+        if "estado" in self.fields:
+            self.fields["estado"].widget.attrs.update(
+                {
+                    "data-personas-target": "estado",
+                }
+            )
+
 
         tipo_usuario = None
         if self.data:

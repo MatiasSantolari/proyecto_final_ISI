@@ -30,10 +30,10 @@
             <strong>Dirección:</strong> <span>{{ persona.calle|add:" "|add:persona.numero }}</span>
           </p>
           <p><strong>Tipo de Usuario:</strong> <span>{{ persona.tipo_usuario }}</span></p>
-          {% if persona.tipo_persona != 'normal' %}
+          {% if persona.tipo_usuario != 'normal' %}
             <p><strong>Estado del Empleado:</strong> <span>{{ persona.estado }}</span></p>
-            <p><strong>Departamento:</strong> <span>{{ persona.departamento_nombre }}</span></p>
-            <p><strong>Cargo:</strong> <span>{{ persona.nombre_cargo }}</span></p>
+            <p><strong>Departamento:</strong> <span>{{ persona.empleado.departamento_actual_nombre }}</span></p>
+            <p><strong>Cargo:</strong> <span>{{ persona.empleado.cargo_actual_nombre }}</span></p>
           {% endif %}
         </div>
       </div>

@@ -1,15 +1,21 @@
 <div class="modal position-fixed fade" id="modalPersona" tabindex="-1" aria-labelledby="modalPersonaLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" style="margin-top: 5rem;">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" style="margin-top: 4rem;">
     <div class="modal-content">
       <div class="modal-header" style="background-color: #3c8dbc;">
-        <h5 class="modal-title text-white" id="modalPersonaLabel">Crear/Editar Persona</h5>
+        <h5 class="modal-title text-white" id="modalPersonaLabel" data-personas-target="modalLabel">Crear/Editar Persona</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form method="post" action="{% url 'crear_persona' %}" id="formPersona" enctype="multipart/form-data">
+        <form
+          method="post"
+          action="{% url 'crear_persona' %}"
+          id="formPersona"
+          enctype="multipart/form-data"
+          data-personas-target="form"
+        >
           {% csrf_token %}
           {{ form.non_field_errors }}
-          <input type="hidden" name="id_persona" id="id_persona" />
+          <input type="hidden" name="id_persona" id="id_persona" data-personas-target="personaId" />
 
             <div class="row g-3">
               <div class="col-md">
@@ -46,11 +52,11 @@
               <div class="col-md-4">
                 <label for="id_genero" class="form-label">Género</label>
                 {{ form.genero }}
-              </div>
-              <div class="col-md-4">
-                <label for="id_email" class="form-label">Email</label>
-                {{ form.email }}
-                {% for error in form.email.errors %}
+            </div>
+            <div class="col-md-4">
+              <label for="id_email" class="form-label">Email</label>
+              {{ form.email }}
+              {% for error in form.email.errors %}
                   <div class="text-danger small">{{ error }}</div>
                 {% endfor %}
               </div>
@@ -99,15 +105,14 @@
               {{ form.tipo_usuario }}
             </div>
 
-            <div id="campoEstado" class="mb-3" style="display: none;">
+            <div id="campoEstado" class="mb-3" style="display: none;" data-personas-target="campoEstado">
               <label for="id_estado" class="form-label">Estado</label>
               {{ form.estado }}
             </div>
 
             <div class="row g-3">
               <div class="col-md">
-                <div id="campoDepartamento" class="mb-3" style="display: none;">
-                  <label for="id_departamento" class="form-label">Departamento</label>
+                <div id="campoDepartamento" class="mb-3" style="display: none;" data-personas-target="campoDepartamento">                  <label for="id_departamento" class="form-label">Departamento</label>
                   {{ form.departamento }}
                   {% if form.departamento.errors %}
                     <div class="text-danger">{{ form.departamento.errors }}</div>
@@ -115,23 +120,30 @@
                 </div>
               </div>
               <div class="col-md">
-                <div id="campoCargo" class="mb-3" style="display: none;">
+                <div id="campoCargo" class="mb-3" style="display: none;" data-personas-target="campoCargo">
                   <label for="id_cargo" class="form-label">Cargo</label>
                   {{ form.cargo }}
                 </div>
               </div>
             </div>
 
-          <input type="hidden" name="accion" id="accion_input" value="" />
+          <input type="hidden" name="accion" id="accion_input" value="" data-personas-target="accionInput" />
 
           <div class="modal-footer bg-light">
-            <button type="submit" class="btn btn-success fw-bold" onclick="setAccion('guardar')">
+            <button
+              type="submit"
+              class="btn btn-success fw-bold"
+              data-personas-target="submitButton"
+              data-personas-accion="guardar"
+              data-action="click->personas#setAccion"
+            >
               <i class="bi bi-save"></i> Guardar
             </button>
             <button
               type="submit"
               class="btn btn-primary fw-bold"
-              onclick="setAccion('guardar_crear_contrato')"
+              data-personas-accion="guardar_crear_contrato"
+              data-action="click->personas#setAccion"
             >
               <i class="bi bi-file-earmark-text"></i> Guardar y Crear Contrato
             </button>

@@ -328,7 +328,7 @@
                 input.disabled = true;
             });
             
-            fetch(form.action || '/personas/perfil/save/', { 
+            fetch(form.action || '/perfil/save/', { 
                 method: 'POST',
                 body: formData,
                 headers: { 'X-CSRFToken': getCookie('csrftoken') }
@@ -501,7 +501,7 @@
 
 
   function cargarDatosAcademicos() {
-      fetch('/personas/perfil/datos-academicos/list/')
+      fetch('/perfil/datos-academicos/list/')
           .then(res => res.json())
           .then(data => {
               const container = document.getElementById('academicosContainer');
@@ -556,7 +556,7 @@
             formData.append('fecha_inicio', card.querySelector('.fechaInicioAcademico').value);
             formData.append('fecha_fin', card.querySelector('.fechaFinAcademico').value);
 
-            fetch('/personas/perfil/datos-academicos/save/', {
+            fetch('/perfil/datos-academicos/save/', {
                 method: 'POST',
                 body: formData,
                 headers: {'X-CSRFToken': getCookie('csrftoken')}
@@ -596,7 +596,7 @@
           const formData = new FormData();
           formData.append('id', id);
 
-          fetch('/personas/perfil/datos-academicos/delete/', {
+          fetch('/perfil/datos-academicos/delete/', {
               method: 'POST',
               body: formData,
               headers: {'X-CSRFToken': getCookie('csrftoken')}
@@ -741,7 +741,7 @@ if (document.getElementById('addAcademicoBtn')) {
   }
 
   function cargarCertificaciones() {
-      fetch('/personas/perfil/certificaciones/list/')
+      fetch('/perfil/certificaciones/list/')
           .then(res => res.json())
           .then(data => {
               const container = document.getElementById('certificacionesContainer');
@@ -769,7 +769,7 @@ if (document.getElementById('addAcademicoBtn')) {
               formData.append('fecha_inicio', card.querySelector('.fechaInicioCertificacion').value);
               formData.append('fecha_fin', card.querySelector('.fechaFinCertificacion').value);
 
-              fetch('/personas/perfil/certificaciones/save/', {
+              fetch('/perfil/certificaciones/save/', {
                   method: 'POST',
                   body: formData,
                   headers: { 'X-CSRFToken': getCookie('csrftoken') }
@@ -808,7 +808,7 @@ if (document.getElementById('addAcademicoBtn')) {
               const formData = new FormData();
               formData.append('id', id);
 
-              fetch('/personas/perfil/certificaciones/delete/', {
+              fetch('/perfil/certificaciones/delete/', {
                   method: 'POST',
                   body: formData,
                   headers: { 'X-CSRFToken': getCookie('csrftoken') }
@@ -984,7 +984,7 @@ if (document.getElementById('addAcademicoBtn')) {
               formData.append('fecha_fin', card.querySelector('.fechaFinExperiencia').value);
               formData.append('actualidad', card.querySelector('.actualidadExperiencia').checked ? 'true' : 'false');
 
-              fetch('/personas/perfil/experiencias/save/', {
+              fetch('/perfil/experiencias/save/', {
                   method: 'POST',
                   body: formData,
                   headers: {'X-CSRFToken': getCookie('csrftoken')}
@@ -1021,7 +1021,7 @@ if (document.getElementById('addAcademicoBtn')) {
               const formData = new FormData();
               formData.append('id', id);
 
-              fetch('/personas/perfil/experiencias/delete/', {
+              fetch('/perfil/experiencias/delete/', {
                   method: 'POST',
                   body: formData,
                   headers: {'X-CSRFToken': getCookie('csrftoken')}
@@ -1101,7 +1101,7 @@ if (document.getElementById('addAcademicoBtn')) {
 
   
   function cargarExperiencias() {
-      fetch('/personas/perfil/experiencias/list/')
+      fetch('/perfil/experiencias/list/')
           .then(res => res.json())
           .then(data => {
               const container = document.getElementById('experienciasContainer');

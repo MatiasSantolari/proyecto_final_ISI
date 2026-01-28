@@ -19,6 +19,7 @@ from .evaluaciones_view import *
 from .chatbot.chatbot_view import *
 from .informes_view import *
 from .informes_empleado_view import *
+from .personas_view import *
 
 
 def agregar_sueldo_base(request): return render(request, 'agregar_sueldo_base.html')
