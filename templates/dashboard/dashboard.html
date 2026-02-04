@@ -66,9 +66,15 @@
       <div class="col-lg-4">
         <div class="card p-3 chart-card">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <div><strong>Solicitudes de vacaciones (estado)</strong></div>
+            <div class="d-flex align-items-center">
+              <a href="{% url 'gestionar_vacaciones'%}" class="kpi-link d-flex align-items-center">
+                <strong>Solicitudes de vacaciones</strong>
+                <i class="bi bi-chevron-right ms-2 text-muted"></i>
+              </a>
+              <span id="vacationDateRange" class="text-muted small ms-3"></span>
+            </div>
             <select id="vacationPeriodSelector" class="form-select form-select-sm" style="width: 155px;">
-              <option value="1m">Último mes</option>
+              <option value="1m">Mes actual</option>
               <option value="2m">Últimos 2 meses</option>
               <option value="3m">Últimos 3 meses</option>
               <option value="6m">Últimos 6 meses</option>

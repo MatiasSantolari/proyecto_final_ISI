@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const paginationControls = document.getElementById('paginationControls');
 
     let currentPage = 1;
-    const itemsPerPage = 20; 
+    const itemsPerPage = 15; 
 
     function parseISODateLocal(dateString) {
         if (!dateString) return null;
@@ -63,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderPagination(pagination) {
         paginationControls.innerHTML = '';
 
-        if (pagination.total_pages <= 1) return;
         const prevItem = document.createElement('li');
         prevItem.className = `page-item ${!pagination.has_previous ? 'disabled' : ''}`;
         prevItem.innerHTML = `<a class="page-link" href="#" aria-label="Previous">«</a>`;

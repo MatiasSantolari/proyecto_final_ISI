@@ -111,6 +111,14 @@
     const vac = await safeFetch(apiUrl);
 
     if(vac){
+      const dateRangeEl = document.getElementById('vacationDateRange');
+      if (dateRangeEl && vac.start_date_formatted && vac.end_date_formatted) {
+          const rangeText = `${vac.start_date_formatted} - ${vac.end_date_formatted}`;
+          dateRangeEl.textContent = `(${rangeText})`;
+      } else if (dateRangeEl) {
+          dateRangeEl.textContent = '';
+      }
+
       const totalCount = vac.total ?? '—';
       document.getElementById('vacChart').dataset.totalVacations = totalCount;
       

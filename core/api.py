@@ -95,6 +95,9 @@ def api_vacaciones(request):
     
     qs = VacacionesSolicitud.objects.filter(fecha_solicitud__gte=start_date)
 
+    start_date_formatted = start_date.strftime('%d %b %Y')
+    end_date_formatted = today.strftime('%d %b %Y')
+
     approved = qs.filter(estado__iexact='aprobado').count()
     pending = qs.filter(estado__iexact='pendiente').count()
     rejected = qs.filter(estado__iexact='rechazado').count()
@@ -105,7 +108,9 @@ def api_vacaciones(request):
         "approved": approved,
         "pending": pending,
         "rejected": rejected,
-        "cancelled": cancelled
+        "cancelled": cancelled,
+        "start_date_formatted": start_date_formatted,
+        "end_date_formatted": end_date_formatted,
     })
 
 

@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const paginationControls = document.getElementById('paginationControls');
 
     let currentPage = 1;
-    const itemsPerPage = 20; 
+    const itemsPerPage = 13; 
 
     async function loadObjetivosData(page = 1) {
         currentPage = page; 
@@ -52,8 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = document.createElement('tr');
             
             const esDiario = item.fechaLimite === null || item.fechaLimite === undefined;
-            const tipoTexto = esDiario ? 'Recurrente' : 'Por Cargo';
-            const tipoBadgeClass = esDiario ? 'badge bg-info text-dark' : 'badge bg-primary';
+            const tipoTexto = esDiario ? 'Recurrente' : 'No Recurrente';
+            const tipoBadgeClass = esDiario ? 'badge bg-info text-dark' : 'badge bg-primary text-dark';
             const fechaLimiteObj = parseISODateLocal(item.fechaLimite);
             const fechaAsigObj = parseISODateLocal(item.fechaAsignacion);
             const fechaDisplay = esDiario ? fechaAsigObj.toLocaleDateString() : fechaLimiteObj.toLocaleDateString();
@@ -88,8 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderPagination(pagination) {
         paginationControls.innerHTML = '';
-
-        if (pagination.total_pages <= 1) return;
 
         const prevItem = document.createElement('li');
         prevItem.className = `page-item ${!pagination.has_previous ? 'disabled' : ''}`;

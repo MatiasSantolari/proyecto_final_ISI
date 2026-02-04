@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     
     let currentPage = 1;
-    const itemsPerPage = 50;
+    const itemsPerPage = 10;
 
     async function loadEmpleadosData(page = 1) {
         currentPage = page; 
@@ -82,8 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderPagination(pagination) {
         paginationControls.innerHTML = '';
-
-        if (pagination.total_pages <= 1) return;
 
         const prevItem = document.createElement('li');
         prevItem.className = `page-item ${!pagination.has_previous ? 'disabled' : ''}`;

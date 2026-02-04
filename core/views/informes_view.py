@@ -70,7 +70,7 @@ def api_asistencias_detalle(request):
     queryset = get_asistencias_queryset(request) 
     
     page = request.GET.get('page', 1)
-    per_page = request.GET.get('per_page', 50)
+    per_page = request.GET.get('per_page', 10)
     
     paginator = Paginator(queryset, per_page)
 
@@ -184,7 +184,7 @@ def api_empleados_detalle(request):
     queryset = get_empleados_queryset(request)
     
     page = request.GET.get('page', 1)
-    per_page = request.GET.get('per_page', 50)
+    per_page = request.GET.get('per_page', 10)
     paginator = Paginator(queryset, per_page)
 
     try:
@@ -475,7 +475,7 @@ def api_nominas_detalle(request):
     queryset = get_nominas_queryset(request)
     
     page = request.GET.get('page', 1)
-    per_page = request.GET.get('per_page', 50)
+    per_page = request.GET.get('per_page', 10)
     paginator = Paginator(queryset, per_page)
 
     try:
@@ -596,7 +596,7 @@ def api_evaluaciones_detalle(request):
     queryset = get_evaluaciones_queryset(request)
     
     page = request.GET.get('page', 1)
-    per_page = request.GET.get('per_page', 50)
+    per_page = request.GET.get('per_page', 10)
     paginator = Paginator(queryset, per_page)
 
     try:
@@ -705,7 +705,7 @@ def api_objetivos_detalle_emp(request):
     resultados_combinados = list(qs_p1) + list(qs_p2) + list(qs_p3)
     
     page = request.GET.get('page', 1)
-    per_page = request.GET.get('per_page', 20) 
+    per_page = request.GET.get('per_page', 13) 
     
     try:
         page_num = int(page)
@@ -786,7 +786,7 @@ def api_asistencias_detalle_emp(request):
     queryset = HistorialAsistencia.objects.filter(empleado=empleado).order_by('-fecha_asistencia', '-hora_entrada')
 
     page = request.GET.get('page', 1)
-    per_page = request.GET.get('per_page', 20) 
+    per_page = request.GET.get('per_page', 15) 
     paginator = Paginator(queryset, per_page)
 
     try:
@@ -838,7 +838,7 @@ def api_evaluaciones_detalle_emp(request):
     queryset = EvaluacionEmpleado.objects.filter(empleado=empleado).order_by('-fecha_registro')
 
     page = request.GET.get('page', 1)
-    per_page = request.GET.get('per_page', 20) 
+    per_page = request.GET.get('per_page', 15) 
     paginator = Paginator(queryset, per_page)
 
     try:
