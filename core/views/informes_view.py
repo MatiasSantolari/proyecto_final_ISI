@@ -657,12 +657,12 @@ def exportar_evaluaciones_csv(request):
             ## VISTA EMPLEADO ##
 ##############################################
 @login_required
-def objetivos_detalle_view(request):
+def objetivos_detalle_view_emp(request):
     return render(request, 'informes_vista_empleado/objetivos_detalle.html')
 
 
 @login_required
-def api_objetivos_detalle(request):
+def api_objetivos_detalle_emp(request):
     
     empleado = None
     try:
@@ -769,11 +769,11 @@ def api_objetivos_detalle(request):
 
 
 @login_required
-def asistencias_detalle_view(request):
+def asistencias_detalle_view_emp(request):
     return render(request, 'informes_vista_empleado/asistencias_detalle.html')
 
 @login_required
-def api_asistencias_detalle(request):
+def api_asistencias_detalle_emp(request):
     empleado = None
     try:
         empleado = request.user.persona.empleado 
@@ -821,11 +821,11 @@ def api_asistencias_detalle(request):
 
 
 @login_required
-def evaluaciones_detalle_view(request):
+def evaluaciones_detalle_view_emp(request):
     return render(request, 'informes_vista_empleado/evaluaciones_detalle.html')
 
 @login_required
-def api_evaluaciones_detalle(request):
+def api_evaluaciones_detalle_emp(request):
     empleado = None
     try:
         empleado = request.user.persona.empleado 

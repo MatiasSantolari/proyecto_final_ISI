@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tipoParam = `&tipo=${tipoSeleccionado}`; 
         }
 
-        const apiUrl = `/api/objetivos/detalle/?page=${currentPage}&per_page=${itemsPerPage}${tipoParam}`;
+        const apiUrl = `/api/objetivos/detalle/emp/?page=${currentPage}&per_page=${itemsPerPage}${tipoParam}`;
 
         try {
             const response = await fetch(apiUrl);

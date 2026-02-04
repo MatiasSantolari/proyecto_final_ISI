@@ -1,0 +1,92 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+body {
+    background-color: #f8f9fa;
+    font-family: "Segoe UI", sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.content-wrapper {
+    flex: 1 0 auto;
+    padding: 20px;
+    background-color: #f4f6f9;
+    margin-top: 0 !important; 
+}
+
+footer.app-footer {
+    background-color: #e6e5e5;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #555;
+    flex-shrink: 0;
+}
+
+.main-sidebar {
+    z-index: 1200;
+    background-color: #27324a;
+}
+
+.bg-soft-success   { background-color: #d4edda !important; }
+.bg-soft-warning   { background-color: #fff3cd !important; }
+.bg-soft-info      { background-color: #d1ecf1 !important; }
+.bg-soft-primary   { background-color: #cce5ff !important; }
+.bg-soft-danger    { background-color: #f8d7da !important; }
+.bg-soft-secondary { background-color: #e2e3e5 !important; }
+.bg-soft-mint      { background-color: #d1f2eb !important; }
+.border-mint       { border-color: #1abc9c !important;}
+
+.table thead th {
+    background-color: #e9ecef;
+    font-weight: 700;
+    color: #212529;
+    border-bottom: 2px solid #adb5bd;
+}
+
+.modal-content {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
+}
+
+.toast-custom-animate {
+    animation: slideFadeIn 0.6s ease-out;
+}
+
+@keyframes slideFadeIn {
+    0% {
+    opacity: 0;
+    transform: translateY(-20px);
+    }
+    100% {
+    opacity: 1;
+    transform: translateY(0);
+    }
+}
+
+.toast.fade-out {
+    animation: slideFadeOut 0.6s ease-in forwards;
+}
+
+@keyframes slideFadeOut {
+    0% {
+    opacity: 1;
+    transform: translateY(0);
+    }
+    100% {
+    opacity: 0;
+    transform: translateY(-20px);
+    }
+}

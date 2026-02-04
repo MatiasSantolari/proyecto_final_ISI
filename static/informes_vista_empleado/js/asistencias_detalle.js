@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadAsistenciasData(page = 1) {
         currentPage = page; 
 
-        const apiUrl = `/api/asistencias/detalle/?page=${currentPage}&per_page=${itemsPerPage}`;
+        const apiUrl = `/api/asistencias/detalle/emp/?page=${currentPage}&per_page=${itemsPerPage}`;
 
         try {
             const response = await fetch(apiUrl);

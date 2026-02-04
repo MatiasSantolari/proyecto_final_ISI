@@ -307,7 +307,7 @@ document.addEventListener("DOMContentLoaded", function() {
             </li>
 
             <hr class="my-2 border-secondary">            
-            <li class="nav-header">Accesos Rápidos</li>
+            <li class="nav-header" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107;">Accesos Rápidos</li>
             <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-sign-in-alt"></i><p>Registrar Asistencia</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="fas fa-check-circle nav-icon"></i> <p>Confirmar Asistencia</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="fas fa-suitcase-rolling nav-icon"></i> <p>Gestionar Vacaciones</p></a></li>
@@ -332,7 +332,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         {% if request.session.rol_actual == 'gerente' %}
             <hr class="my-2 border-secondary">    
-            <li class="nav-header">Accesos Rápidos</li>
+            <li class="nav-header" style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107;">Accesos Rápidos</li>
             <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-sign-in-alt"></i><p>Registrar Asistencia</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="fas fa-check-circle nav-icon"></i> <p>Confirmar Asistencia</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="fas fa-suitcase-rolling nav-icon"></i> <p>Gestionar Vacaciones</p></a></li>
@@ -343,7 +343,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         {% if request.session.rol_actual == 'jefe' %}
             <hr class="my-2 border-secondary">            
-            <li class="nav-header">Accesos Rápidos</li>
+            <li class="nav-header" style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107;">Accesos Rápidos</li>
             <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-sign-in-alt"></i><p>Registrar Asistencia</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="fas fa-check-circle nav-icon"></i> <p>Confirmar Asistencia</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="fas fa-suitcase-rolling nav-icon"></i> <p>Gestionar Vacaciones</p></a></li>
