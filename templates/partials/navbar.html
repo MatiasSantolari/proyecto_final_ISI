@@ -10,11 +10,20 @@
         </li>
       </ul>
      <ul class="navbar-nav align-items-center">
-        <li class="nav-item">
-            <a class="nav-link fs-5" href="{% url 'home' %}"><i class="bi bi-house-door me-2"></i>RRHH System </a>
-        </li>
+        {% if request.session.rol_actual != 'normal' %}
+          <li class="nav-item">
+              <a class="nav-link fs-5" href="{% url 'home' %}"><i class="bi bi-house-door fs-5 me-2"></i>Inicio </a>
+          </li>
+        {% else %}
+          <li>
+            <a class="nav-link fs-5 fw-bold d-flex ml-5" href="{% url 'user_perfil' %}">
+              <i class="bi bi-person fs-5 me-2"></i> Perfil
+            </a>
+          </li>
+        {% endif %}
       </ul>
       <ul class="navbar-nav mb-2 mb-lg-0 ms-auto align-items-center">
+      {% if request.session.rol_actual != 'normal' %}
         <li class="nav-item me-2">
           <span id="container-btn-entrada-navbar" title="Registrar Entrada de Hoy">
               <button 
@@ -63,6 +72,7 @@
             </ul>
           {% endif %}
         </li>
+      {% endif %}  
 
         <li>
           <button id="theme-toggle" class="btn nav-item">
@@ -89,9 +99,11 @@
             <i class="fas fa-user-circle me-0"></i> {{ request.user.nombre_usuario }}
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
+          <!--
             <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Configuración</a></li>
             
             <li><hr class="dropdown-divider"></li>
+          -->
             <li>
               <form action="{% url 'logout' %}" method="post" style="display: block; margin: 0;">
                 {% csrf_token %}

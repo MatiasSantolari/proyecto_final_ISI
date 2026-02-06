@@ -1,13 +1,50 @@
 {% include 'auth/partials/base_head2.html' %}
 {% load widget_tweaks %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+
+<style>
+  body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: url('{% static "img/fondo_login.png" %}') no-repeat center center;
+      background-size: cover;
+    }
+
+    .card-header-styled {
+      padding: 1rem 1rem; 
+    }
+
+    #theme-toggle {
+        background: rgba(255, 255, 255, 0.1); /* Fondo sutil */
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s;
+    }
+
+    #theme-toggle:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+</style>
 
 <body class="bg-info-subtle text-dark"> 
   <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
     <div class="card shadow p-4 w-100" style="max-width: 800px;">
       
-      <div class="card-header-styled text-center">
+      <div class="card-header-styled text-center position-relative">
         <h2 class="mt-0 text-white">Crear Perfil</h2>
         <p class="text-white-50 mb-0">Completá tus datos personales para continuar.</p>
+        <button id="theme-toggle" class="btn nav-item position-absolute top-0 end-0 m-3">
+          <span id="theme-icon">🌙</span> 
+        </button>
       </div>
       
       <form method="POST" enctype="multipart/form-data" class="text-start">
@@ -178,6 +215,37 @@
   {% include 'auth/partials/base_scripts.html' %}
 
   <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleBtn = document.getElementById("theme-toggle");
+        const themeIcon = document.getElementById("theme-icon");
+        const savedTheme = localStorage.getItem("theme");
+
+        function applyTheme(theme) {
+            if (theme === "dark") {
+                document.body.classList.add("dark-mode");
+                themeIcon.textContent = "☀️"; 
+            } else {
+                document.body.classList.remove("dark-mode");
+                themeIcon.textContent = "🌙"; 
+            }
+        }
+        
+        if (savedTheme) {
+        applyTheme(savedTheme);
+        } else {
+            applyTheme("light"); 
+        }
+
+        toggleBtn.addEventListener("click", function () {
+            const isDarkMode = document.body.classList.contains("dark-mode");
+            
+            const newTheme = isDarkMode ? "light" : "dark";
+
+            applyTheme(newTheme);
+            localStorage.setItem("theme", newTheme);
+        });
+    });
+
     const avatarContainer = document.getElementById('avatarContainer');
     const avatarInput = document.getElementById('id_avatar');
     const previewAvatar = document.getElementById('previewAvatar');

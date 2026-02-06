@@ -6,13 +6,13 @@
 <div class="content">
     <div class="container-fluid ml-0 mt-3"><hr>
 
-        {% if request.session.rol_actual == 'admin'%}
+        {% if request.session.rol_actual == 'admin' or request.session.rol_actual == 'gerente' or request.session.rol_actual == 'jefe'%}
             <div class="d-flex gap-1 flex-wrap">    
                 {% include "dashboard/dashboard.html" %}                
             </div>
         {% elif request.session.rol_actual == 'normal'%}
             <div class="d-flex gap-1 flex-wrap mt-5">
-                <h2>Test Usuario NORMAL</h2>  
+                <meta http-equiv="refresh" content="0; url={% url 'user_perfil' %}">
             </div>
         {% else %}
             <div class="d-flex gap-1 flex-wrap">    

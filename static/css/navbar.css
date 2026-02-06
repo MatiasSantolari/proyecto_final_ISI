@@ -187,3 +187,28 @@ body:not(.dark-mode) .bg-dark-completed {
 body.dark-mode .badge.bg-warning {
     color: #fff !important; 
 }
+
+.dark-mode .input-group-text {
+    background-color: #333 !important; 
+    color: #fff !important;           
+    border-color: #555 !important;     
+}
+
+body:not(.dark-mode) .input-group-text {
+    background-color: #e9ecef;
+    color: #495057;
+    border-color: #ced4da;
+}
+
+.dark-mode .form-control::placeholder,
+.dark-mode .form-select::placeholder {
+    color: #aaa !important;  
+    opacity: 1;              
+}
+
+.dark-mode .form-control::-webkit-input-placeholder { color: #aaa !important; }
+.dark-mode .form-control::-moz-placeholder { color: #aaa !important; }
+
+.dark-mode .text-danger {
+    color: #ff6b6b !important; 
+}

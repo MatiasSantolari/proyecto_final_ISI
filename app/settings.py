@@ -102,6 +102,7 @@ MIDDLEWARE = [
     'core.middleware.profileCompletion.ProfileCompletionMiddleware',
     'core.middleware.requirePersona.RequirePersonaMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'core.middleware.roleRestriction.RoleRestrictionMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'threadlocals.middleware.ThreadLocalMiddleware',
 ]

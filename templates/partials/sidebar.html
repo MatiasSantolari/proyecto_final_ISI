@@ -310,9 +310,13 @@ document.addEventListener("DOMContentLoaded", function() {
             <li class="nav-header" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107;">Accesos Rápidos</li>
             <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-sign-in-alt"></i><p>Registrar Asistencia</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="fas fa-check-circle nav-icon"></i> <p>Confirmar Asistencia</p></a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'objetivos' %}"><i class="fas fa-bullseye nav-icon"></i><p>Gestor de Objetivos</p></a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'evaluaciones' %}"><i class="fas fa-clipboard-check nav-icon"></i><p>Administrar Evaluaciones</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="fas fa-suitcase-rolling nav-icon"></i> <p>Gestionar Vacaciones</p></a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}"><i class="fas fa-gift nav-icon"></i><p>Asignar Benef/Desc</p></a></li>       
             <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-id-card"></i><p>Mis Nóminas</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-briefcase nav-icon"></i><p>Ofertas de Empleo</p></a></li>
 
           <hr class="my-2 border-secondary">
           <li class="nav-header" style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107;">
@@ -335,10 +339,13 @@ document.addEventListener("DOMContentLoaded", function() {
             <li class="nav-header" style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107;">Accesos Rápidos</li>
             <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-sign-in-alt"></i><p>Registrar Asistencia</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="fas fa-check-circle nav-icon"></i> <p>Confirmar Asistencia</p></a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'objetivos' %}"><i class="fas fa-bullseye nav-icon"></i><p>Gestor de Objetivos</p></a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'evaluaciones' %}"><i class="fas fa-clipboard-check nav-icon"></i><p>Administrar Evaluaciones</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="fas fa-suitcase-rolling nav-icon"></i> <p>Gestionar Vacaciones</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}"><i class="far fa-circle nav-icon"></i><p>Asignar Ben/Desc</p></a></li>       
+            <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}"><i class="fas fa-gift nav-icon"></i><p>Asignar Benef/Desc</p></a></li>       
             <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-id-card"></i><p>Mis Nóminas</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-briefcase nav-icon"></i><p>Ofertas de Empleo</p></a></li>
         {% endif %}
 
         {% if request.session.rol_actual == 'jefe' %}
@@ -346,9 +353,13 @@ document.addEventListener("DOMContentLoaded", function() {
             <li class="nav-header" style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107;">Accesos Rápidos</li>
             <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-sign-in-alt"></i><p>Registrar Asistencia</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="fas fa-check-circle nav-icon"></i> <p>Confirmar Asistencia</p></a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'objetivos' %}"><i class="fas fa-bullseye nav-icon"></i><p>Gestor de Objetivos</p></a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'evaluaciones' %}"><i class="fas fa-clipboard-check nav-icon"></i><p>Administrar Evaluaciones</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="fas fa-suitcase-rolling nav-icon"></i> <p>Gestionar Vacaciones</p></a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}"><i class="fas fa-gift nav-icon"></i><p>Asignar Benef/Desc</p></a></li>       
             <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-id-card"></i><p>Mis Nóminas</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-briefcase nav-icon"></i><p>Ofertas de Empleo</p></a></li>
         {% endif %}
 
         {% if request.session.rol_actual == 'normal' %}

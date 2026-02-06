@@ -1,5 +1,17 @@
 from django.http import HttpResponseForbidden
 from functools import wraps
+from django.shortcuts import redirect
+from django.core.exceptions import PermissionDenied
+from django.contrib import messages
+
+def admin_required(view_func):
+    def _wrapped_view(request, *args, **kwargs):
+        if request.session.get('rol_actual') == 'admin':
+            return view_func(request, *args, **kwargs)
+        messages.error(request, "Acceso denegado. No tenés permisos de administrador para ver esta sección.")
+        return redirect('home')
+    return _wrapped_view
+
 
 def rol_requerido(*roles_permitidos):
     def decorator(view_func):
