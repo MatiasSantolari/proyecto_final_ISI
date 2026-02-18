@@ -34,32 +34,41 @@ def beneficios(request):
 @require_POST
 def crear_beneficio(request):
     id_beneficio = request.POST.get('id_beneficio')
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
 
-    if request.method == 'POST':
-        if id_beneficio:
-            beneficio = get_object_or_404(Beneficio, pk=id_beneficio)
-            form = BeneficioForm(request.POST, instance=beneficio)
-        else:
-            form = BeneficioForm(request.POST)
-
-        if form.is_valid():
-            form.save()
-            if id_beneficio:
-                messages.success(request, "El beneficio se actualizó correctamente.")
-            else:
-                messages.success(request, "El beneficio se creó correctamente.")
-            return redirect('beneficios')
-        else:
-            messages.error(request, "Hubo un error al guardar el beneficio. Verifique los datos ingresados.")
-
+    if id_beneficio:
+        beneficio = get_object_or_404(Beneficio, pk=id_beneficio)
+        form = BeneficioForm(request.POST, instance=beneficio)
     else:
-        form = BeneficioForm()
+        form = BeneficioForm(request.POST)
 
-    beneficiosList = Beneficio.objects.all()
-    return render(request, 'beneficios.html', {
-        'form': form,
-        'beneficios': beneficiosList
-    })
+    if form.is_valid():
+        beneficio_guardado = form.save()
+        
+        if is_ajax:
+            return JsonResponse({
+                "success": True,
+                "id": beneficio_guardado.id,
+                "descripcion": beneficio_guardado.descripcion
+            })
+
+        if id_beneficio:
+            messages.success(request, "El beneficio se actualizó correctamente.")
+        else:
+            messages.success(request, "El beneficio se creó correctamente.")
+        return redirect('beneficios')
+    
+    else:
+        if is_ajax:
+            return JsonResponse({"success": False, "errors": form.errors})
+        
+        messages.error(request, "Hubo un error al guardar el beneficio. Verifique los datos ingresados.")
+        beneficiosList = Beneficio.objects.all()
+        return render(request, 'beneficios.html', {
+            'form': form,
+            'beneficios': beneficiosList
+        })
+
 
 
 @login_required

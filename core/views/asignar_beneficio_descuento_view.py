@@ -78,7 +78,6 @@ def asignador_view(request):
     user_empleado = _get_empleado_de_user(request.user)
     rol_actual = request.session.get("rol_actual", None)
 
-    # --- Si es admin ---
     if rol_actual == "admin":
         if departamento_sel:
             empleados_qs = empleados_qs.filter(
@@ -87,7 +86,6 @@ def asignador_view(request):
             ).distinct()
         mostrar_filtro_departamentos = True
 
-    # --- Si es jefe ---
     elif rol_actual == "jefe" and user_empleado:
         cargo_act = user_empleado.empleadocargo_set.filter(
             fecha_inicio__lte=hoy, fecha_fin__isnull=True
@@ -99,11 +97,9 @@ def asignador_view(request):
                 empleadocargo__cargo__cargodepartamento__departamento_id__in=dept_ids,
                 empleadocargo__fecha_fin__isnull=True
             ).distinct()
-            # forzar el filtro por el depto del jefe
             departamento_sel = cargo_act.cargo.cargodepartamento_set.first().departamento.nombre if cargo_act.cargo.cargodepartamento_set.exists() else ''
         mostrar_filtro_departamentos = False
 
-    # --- Si es empleado normal ---
     else:
         if user_empleado:
             empleados_qs = Empleado.objects.filter(id=user_empleado.id)
@@ -135,7 +131,7 @@ def asignar_a_empleados(request):
     if request.method != "POST":
         return HttpResponseBadRequest("Método inválido")
 
-    tipo = request.POST.get('tipo')  # 'descuento' o 'beneficio'
+    tipo = request.POST.get('tipo')  
     item_id = request.POST.get('item_id')
     empleado_ids = request.POST.getlist('empleado_ids[]') or request.POST.getlist('empleado_ids') or []
 

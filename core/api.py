@@ -27,6 +27,7 @@ from core.models import (
     Beneficio,
     BeneficioEmpleadoNomina,
     LogroEmpleado,
+    Logro
 )
 
 # Helper to force float for Decimal
@@ -592,29 +593,50 @@ def api_logros_empleado(request):
     persona = getattr(request.user, 'persona', None)
     if not persona:
         return JsonResponse({'error': 'Perfil incompleto'}, status=403)
-    empleado = Empleado.objects.get(id=persona.id)
+    
+    try:
+        empleado = Empleado.objects.get(id=persona.id)
+    except Empleado.DoesNotExist:
+        return JsonResponse({'error': 'Empleado no encontrado'}, status=404)
 
-    logros_empleado_qs = LogroEmpleado.objects.filter(
-        empleado=empleado
-    ).order_by('completado', '-fecha_asignacion')
+    todos_los_logros = Logro.objects.all()
+    
+    logros_del_empleado = {le.logro_id: le for le in LogroEmpleado.objects.filter(empleado=empleado)}
+
+    anios_map = {
+        'ANTIGUEDAD_1': '1 año', 'ANTIGUEDAD_3': '3 años', 'ANTIGUEDAD_5': '5 años',
+        'ANTIGUEDAD_10': '10 años', 'ANTIGUEDAD_15': '15 años', 'ANTIGUEDAD_20': '20 años',
+        'ANTIGUEDAD_25': '25 años', 'ANTIGUEDAD_30': '30 años', 'ANTIGUEDAD_40': '40 años'
+    }
 
     lista_logros = []
-    for le in logros_empleado_qs:
-        requisito_texto = "" 
-        if le.logro.tipo == 'ASISTENCIA_PERFECTA':
+    
+    for logro in todos_los_logros:
+        # Buscamos si existe un registro para este empleado y este logro específico
+        registro_usuario = logros_del_empleado.get(logro.id)
+        
+        tipo = logro.tipo
+        requisito_texto = ""
+
+        if tipo == 'ASISTENCIA_PERFECTA':
             requisito_texto = "100% de asistencia en el mes (Lun-Vie, sin feriados)."
+        elif tipo in anios_map:
+            requisito_texto = f"Haber cumplido {anios_map[tipo]} de antigüedad total en la empresa."
         else:
-            requisito_texto = "Verificar requisitos con RRHH."
+            requisito_texto = "Consultar los requisitos con el área de RRHH."
 
         lista_logros.append({
-            'id': le.id,
-            'titulo': le.logro.descripcion,
-            'completado': le.completado,
-            'fecha_asignacion': le.fecha_asignacion.strftime('%d/%m/%Y') if le.fecha_asignacion else None,
-            'tipo': le.logro.tipo,
+            'id': logro.id,
+            'titulo': logro.descripcion,
+            'completado': registro_usuario.completado if registro_usuario else False,
+            'fecha_asignacion': registro_usuario.fecha_asignacion.strftime('%d/%m/%Y') if (registro_usuario and registro_usuario.fecha_asignacion) else None,
+            'tipo': tipo,
             'requisito': requisito_texto
         })
     
+    # Opcional: Ordenar la lista para que aparezcan primero los completados o por tipo
+    lista_logros.sort(key=lambda x: (not x['completado'], x['titulo']))
+
     return JsonResponse({
         "logros": lista_logros,
     })

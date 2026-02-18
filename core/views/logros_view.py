@@ -15,6 +15,7 @@ from django.db import transaction
 @login_required
 def logros(request):
     form = LogroForm()
+    formB = BeneficioForm()
     logrosList = Logro.objects.all().order_by('descripcion').annotate(
         beneficio_asociado=models.Subquery(
             LogroBeneficio.objects.filter(logro_id=models.OuterRef('pk')).values('beneficio__descripcion')[:1]
@@ -36,6 +37,7 @@ def logros(request):
 
     return render(request, 'logros.html', {
         'form': form,
+        'formB': formB,
         'logros': page_obj
     })
 

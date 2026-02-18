@@ -3,7 +3,16 @@ from django.db import models
 
 
 TIPO_LOGRO_CHOICES = [
-    ('ASISTENCIA_PERFECTA', 'Asistencia Perfecta Mensual')
+    ('ASISTENCIA_PERFECTA', 'Asistencia Perfecta Mensual'),
+    ('ANTIGUEDAD_1', 'Antiguedad de 1 año'),
+    ('ANTIGUEDAD_3', 'Antiguedad de 3 años'),
+    ('ANTIGUEDAD_5', 'Antiguedad de 5 años'),
+    ('ANTIGUEDAD_10', 'Antiguedad de 10 años'),
+    ('ANTIGUEDAD_15', 'Antiguedad de 15 años'),
+    ('ANTIGUEDAD_20', 'Antiguedad de 20 años'),
+    ('ANTIGUEDAD_25', 'Antiguedad de 25 años'),
+    ('ANTIGUEDAD_30', 'Antiguedad de 30 años'),
+    ('ANTIGUEDAD_40', 'Antiguedad de 40 años')
 ]
 
 class Logro(models.Model):

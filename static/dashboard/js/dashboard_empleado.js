@@ -300,7 +300,7 @@
 
 
 
-     async function loadLogrosCard() {
+    async function loadLogrosCard() {
         const cont = document.getElementById('containerLogrosCard');
         cont.innerHTML = '<div class="text-center text-muted py-3">Cargando logros...</div>';
 
@@ -316,11 +316,68 @@
             return;
         }
 
+        const configAntiguedad = {
+            'ANTIGUEDAD_1':  { nivel: 1, icon: 'bi-star' },
+            'ANTIGUEDAD_3':  { nivel: 2, icon: 'bi-star-fill' },
+            'ANTIGUEDAD_5':  { nivel: 3, icon: 'bi-award' },
+            'ANTIGUEDAD_10': { nivel: 4, icon: 'bi-award-fill' },
+            'ANTIGUEDAD_15': { nivel: 5, icon: 'bi-patch-check' }, 
+            'ANTIGUEDAD_20': { nivel: 6, icon: 'bi-medal-fill' },
+            'ANTIGUEDAD_25': { nivel: 7, icon: 'bi-trophy' },
+            'ANTIGUEDAD_30': { nivel: 8, icon: 'bi-trophy-fill' },
+            'ANTIGUEDAD_40': { nivel: 9, icon: 'bi-gem' }
+        };
+
+        let maxNivelAlcanzado = 0;
+        data.logros.forEach(l => {
+            if (l.completado && configAntiguedad[l.tipo]) {
+                if (configAntiguedad[l.tipo].nivel > maxNivelAlcanzado) {
+                    maxNivelAlcanzado = configAntiguedad[l.tipo].nivel;
+                }
+            }
+        });
+
+        let logrosProcesados = data.logros.map(logro => {
+            const hito = configAntiguedad[logro.tipo];
+            let esCompletado = logro.completado;
+            
+            if (hito && hito.nivel <= maxNivelAlcanzado) {
+                esCompletado = true;
+            }
+
+            return { 
+                ...logro, 
+                completado: esCompletado, 
+                esAntiguedad: !!hito,
+                nivelAntiguedad: hito ? hito.nivel : 0 
+            };
+        });
+
+        logrosProcesados.sort((a, b) => {
+            if (a.completado !== b.completado) return a.completado ? -1 : 1;
+
+            if (a.esAntiguedad !== b.esAntiguedad) return a.esAntiguedad ? 1 : -1;
+
+            if (a.esAntiguedad && b.esAntiguedad) {
+                return a.nivelAntiguedad - b.nivelAntiguedad;
+            }
+
+            return 0;
+        });
+
         let htmlContent = `<div class="list-group">`;
 
-        data.logros.forEach(logro => {
+        logrosProcesados.forEach(logro => {
+            let iconBase = 'bi-award'; 
+
+            if (configAntiguedad[logro.tipo]) {
+                iconBase = configAntiguedad[logro.tipo].icon;
+            } else if (logro.tipo === 'ASISTENCIA_PERFECTA') {
+                iconBase = 'bi-calendar-check';
+            }
+
             const estadoClass = logro.completado ? 'list-group-item-success text-dark' : 'list-group-item-light text-muted';
-            const iconClass = logro.completado ? 'bi-check-circle-fill text-success' : 'bi-award text-secondary opacity-50';
+            const iconClass = logro.completado ? `${iconBase}-fill text-success` : `${iconBase} text-secondary opacity-50`;
             const iconBadgeClass = logro.completado ? 'bg-success' : 'bg-light border';
 
             htmlContent += `
@@ -338,6 +395,7 @@
                 </div>
             `;
         });
+        
         htmlContent += `</div>`;
         cont.innerHTML = htmlContent;
     }

@@ -29,14 +29,15 @@ class RoleRestrictionMiddleware:
             '/evaluaciones/detalle/emp/','/api/evaluaciones/detalle/emp/','/mi-panel/', '/asistencia/registrar/',
             '/mis-nominas/', '/cambiar_vista/',
         ]
-        if any(request.path.startswith(ruta) for ruta in RUTAS_SOLO_GESTION):
-            if rol not in ['admin', 'jefe', 'gerente']:
-                return self.denegar(request)
             
-        if any(path.startswith(ruta) for ruta in RUTAS_TODOS_MENOS_NORMAL):
+        if any(request.path.startswith(ruta) for ruta in RUTAS_TODOS_MENOS_NORMAL):
             if rol == 'normal' or not rol:
                 return self.denegar(request)
-
+            
+        elif any(request.path.startswith(ruta) for ruta in RUTAS_SOLO_GESTION):
+            if rol not in ['admin', 'jefe', 'gerente']:
+                return self.denegar(request)
+        
         return self.get_response(request)
 
     def denegar(self, request):
