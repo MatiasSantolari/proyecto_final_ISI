@@ -1,140 +1,617 @@
-{% extends "base.html"%}
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% load static %}
 
-  {% block title %}Gestión de Capacitaciones{% endblock %}
+{% block title %}Gestión de Capacitaciones{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+
+<div class="container-fluid p-5 my-2">
+  <h4 class="mb-3" style="color: var(--color-primario);">Gestión de Capacitaciones y Cursos</h4>
+
+  <div class="card mb-2">
+      <div class="card-header d-flex justify-content-between align-items-center mb-0">
+          <button type="button" class="btn mb-0 btn-primary" data-bs-toggle="modal" data-bs-target="#modalCapacitacion" onclick="limpiarFormularioCap()">
+              <i class="bi bi-plus-circle"></i> Crear Nueva Capacitación
+          </button>
+      </div>
+  </div>
+
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1100px; font-size: 0.95rem;">
+          <thead class="table-light text-center">
+              <tr>
+                  <th>Nombre</th>
+                  <th>Institución</th>
+                  <th>Tipo</th>
+                  <th>Estado</th>
+                  <th>Inicio</th>
+                  <th>Cupo</th>
+                  <th style="width:15%;">Acciones</th>
+              </tr>
+          </thead>
+          <tbody class="text-center">
+              {% for cap in capacitaciones %}
+              <tr>
+                  <td class="text-start ps-3 font-weight-bold">{{ cap.nombre }}</td>
+                  <td>{{ cap.institucion.nombre|default:"-" }}</td>
+                  <td>
+                      {% if cap.es_externo %}
+                      <span class="badge bg-info text-dark"><i class="bi bi-globe"></i> Externo</span>
+                      {% else %}
+                      <span class="badge bg-secondary"><i class="bi bi-building"></i> Interno</span>
+                      {% endif %}
+                  </td>
+                  <td>
+                      {% if cap.activo %}
+                      <span class="badge bg-success">Activo</span>
+                      {% else %}
+                      <span class="badge bg-danger">Inactivo</span>
+                      {% endif %}
+                  </td>
+                  <td>{{ cap.fecha_inicio|date:"Y-m-d"|default:"-" }}</td>
+                  <td>{{ cap.cupo|default:"Ilimitado" }}</td>
+                  <td>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" 
+                                data-bs-toggle="modal" data-bs-target="#modalCapacitacion"
+                                data-id="{{ cap.id }}"
+                                data-institucion="{{ cap.institucion.id|default:'' }}"
+                                data-nombre="{{ cap.nombre }}"
+                                data-descripcion="{{ cap.descripcion|default:'' }}"
+                                data-es-externo="{{ cap.es_externo|yesno:'true,false' }}"
+                                data-url="{{ cap.url_sitio|default:'' }}"
+                                data-fecha-inicio="{{ cap.fecha_inicio|date:'Y-m-d' }}"
+                                data-fecha-fin="{{ cap.fecha_fin|date:'Y-m-d' }}"
+                                data-cupo="{{ cap.cupo }}"
+                                data-presencial="{{ cap.presencial|yesno:'true,false' }}"
+                                data-origen="{{ cap.contenido_interno|yesno:'true,false' }}"
+                                data-imagen="{% if cap.imagen_publicitaria %}{{ cap.imagen_publicitaria.url }}{% endif %}"
+                                onclick="editarCapacitacion(this)" title="Editar">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-info me-1"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalVerCapacitacion{{ cap.id }}"
+                                data-bs-toggle="tooltip" title="Ver Detalle Completo">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        {% if cap.activo %}
+                        <form method="post" action="{% url 'desactivar_capacitacion' cap.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-warning" title="Desactivar">
+                                <i class="bi bi-toggle-on"></i>
+                            </button>
+                        </form>
+                        {% else %}
+                        <form method="post" action="{% url 'activar_capacitacion' cap.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-success" title="Activar">
+                                <i class="bi bi-toggle-off"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <button class="btn btn-sm btn-outline-danger" 
+                                data-bs-toggle="modal" data-bs-target="#modalEliminarCapacitacion"
+                                data-id="{{ cap.id }}" title="Eliminar">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                  </td>
+              </tr>
+              {% empty %}
+              <tr>
+                  <td colspan="6" class="text-center text-muted p-4">No hay capacitaciones registradas.</td>
+              </tr>
+              {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% if capacitaciones.paginator.num_pages > 1 %}
+  <nav aria-label="Paginación">
+      <ul class="pagination justify-content-center mt-4">
+          {% if capacitaciones.has_previous %}
+              <li class="page-item"><a class="page-link" href="?page={{ capacitaciones.previous_page_number }}">&laquo;</a></li>
+          {% endif %}
+          {% for num in capacitaciones.paginator.page_range %}
+              <li class="page-item {% if capacitaciones.number == num %}active{% endif %}">
+                  <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+              </li>
+          {% endfor %}
+          {% if capacitaciones.has_next %}
+              <li class="page-item"><a class="page-link" href="?page={{ capacitaciones.next_page_number }}">&raquo;</a></li>
+          {% endif %}
+      </ul>
+  </nav>
+  {% endif %}
+
+
+  <div class="modal fade" id="modalCapacitacion" tabindex="-1" aria-labelledby="modalCapacitacionLabel" aria-hidden="true" style="z-index: 2000;">
+      <div class="modal-dialog modal-lg" style="margin-top: 1rem;">
+          <div class="modal-content">
+              <form method="post" action="{% url 'guardar_capacitacion' %}" id="formCapacitacion" enctype="multipart/form-data" autocomplete="off">
+                  {% csrf_token %}
+                  <div class="modal-header" style="background-color: #3c8dbc;">
+                      <h5 class="modal-title text-white" id="modalCapacitacionLabel">Gestionar Capacitación</h5>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                  </div>
+                  <input type="hidden" name="id_capacitacion" id="id_capacitacion">
+                  
+                  <div class="modal-body">
+                      <div class="row">
+                          <div class="col-md-9 mb-3">
+                              <label class="form-label fw-bold">Título de la Capacitación</label>
+                              {{ form.nombre|add_class:"form-control" }}
+                          </div>
+                          <div class="col-md-3 mb-3 text-center">
+                              <label class="form-label fw-bold">¿Es Externo?</label>
+                              <div class="form-check form-switch d-flex justify-content-center">
+                                  {{ form.es_externo|add_class:"form-check-input" }}
+                              </div>
+                          </div>
+                          <div class="col-12 mb-3">
+                              <label class="form-label fw-bold">Descripción</label>
+                              {{ form.descripcion|add_class:"form-control"|attr:"rows:1" }}
+                          </div>
+                          <div class="mb-3">
+                              <label for="id_institucion" class="form-label">Institución</label>
+                              <div class="input-group">
+                                  {{ form.institucion|add_class:"form-select" }}
+                                  <button type="button" class="btn btn-outline-primary" id="btnAbrirInstitucion">
+                                      <i class="bi bi-plus-lg"></i>
+                                  </button>
+                              </div>
+                          </div>
+                          <div id="seccion_externa" class="col-12" style="display: none;">
+                            <div class="row">
+                              <div class="col-md-12 mb-3">
+                                  <label class="form-label fw-bold text-primary">URL del Curso (Sitio Web)</label>
+                                  {{ form.url_sitio|add_class:"form-control border-primary"|attr:"placeholder:https://..." }}
+                              </div>
+
+                              <div class="col-md-12 mb-3">
+                                  <label class="form-label fw-bold text-primary">Imagen Publicitaria</label>
+                                  <div class="row align-items-center">
+                                      <div id="preview_imagen_cont" class="col-auto" style="display: none;">
+                                          <img id="preview_imagen" src="" class="img-thumbnail bg-dark" 
+                                             style="height: 100px; width: 160px; object-fit: contain; background-color: #f8f9fa;">
+                                          <small class="d-block text-center text-muted" style="font-size: 0.7rem;">Actual</small>
+                                      </div>
+                                      <div class="col">
+                                          {{ form.imagen_publicitaria|add_class:"form-control"|attr:"id:id_imagen_publicitaria" }}
+                                          <small class="text-muted small">Cargue una imagen para promocionar el curso.</small>
+                                      </div>
+                                  </div>
+                              </div>
+                            </div>
+                        </div>
+
+                          <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label fw-bold mb-0">Fecha Inicio</label>
+                                    <div class="form-check form-switch mb-0 mr-5">
+                                        <input class="form-check-input" type="checkbox" id="check_sin_inicio">
+                                        <label class="form-check-label small text-muted" for="check_sin_inicio">Sin fecha</label>
+                                    </div>
+                                </div>
+                                {{ form.fecha_inicio|add_class:"form-control"|attr:"id:id_fecha_inicio" }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label fw-bold mb-0">Fecha Fin</label>
+                                    <div class="form-check form-switch mb-0 mr-5">
+                                        <input class="form-check-input" type="checkbox" id="check_sin_fin">
+                                        <label class="form-check-label small text-muted" for="check_sin_fin">Sin fecha</label>
+                                    </div>
+                                </div>
+                                {{ form.fecha_fin|add_class:"form-control"|attr:"id:id_fecha_fin" }}
+                            </div>
+                          </div>
+                          <div class="col-md-4 mb-3">
+                              <div class="d-flex justify-content-between align-items-center mb-2">
+                                  <label class="form-label fw-bold mb-0">Cupo</label>
+                                  <div class="form-check form-switch mb-0 mr-5">
+                                      <input class="form-check-input" type="checkbox" id="check_ilimitado">
+                                      <label class="form-check-label small text-muted" for="check_ilimitado">Ilimitado</label>
+                                  </div>
+                              </div>
+                              {{ form.cupo|add_class:"form-control"|attr:"id:id_cupo" }}
+                          </div>
+                          <div class="col-md-4 mb-3">
+                              <label class="form-label fw-bold">Presencial</label>
+                              {{ form.presencial|add_class:"form-check-input d-block mx-auto" }}
+                          </div>
+                          <div class="col-md-4 mb-3" id="div_capacitacion_propia">
+                              <label class="form-label fw-bold">Capacitacion Propia</label>
+                              {{ form.contenido_interno|add_class:"form-check-input d-block mx-auto" }}
+                          </div>
+                      </div>
+                  </div>
+                  <div class="modal-footer bg-light">
+                      <button type="submit" class="btn btn-success w-100 fw-bold">
+                          <i class="bi bi-save"></i> Guardar Capacitación
+                      </button>
+                  </div>
+              </form>
+          </div>
+      </div>
+  </div>
+
   
-  {% block content %}
-
-  <div class="container my-5">
-    <h1 class="mb-4" style="color: var(--color-primario);">Gestión de Capacitaciones</h1>
-
-    <!-- Botón para Crear -->
-    <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalCapacitacion">
-      + Crear Nueva Capacitacion
-    </button>
-
-    <!-- Tabla de Capacitaciones -->
-    <div class="table-responsive">
-      <table class="table table-bordered text-center">
-        <thead style="background-color: var(--color-suave);">
-          <tr>
-            <th style="width: 15%;">Nombre</th>
-            <th style="width: 32%;">Descripcion</th>
-            <th style="width: 11%;">Fecha de Inicio</th>
-            <th style="width: 10%;">Fecha de Fin</th>
-            <th style="width: 15%;">Institucion</th>
-            <th style="width: 15%;">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Comunicación Efectiva en el Trabajo</td>
-            <td>Taller práctico para mejorar habilidades de comunicación interpersonal y manejo de conflictos en entornos laborales.</td>
-            <td>01-02-2025</td>
-            <td>01-04-2025</td>
-            <td>Centro de Desarrollo Profesional y Liderazgo (CDPL)</td>
-            <td>
-              <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#modalCapacitacion">Editar</button>
-              <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalVerCapacitacion">Ver</button>
-              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarCapacitacion">Eliminar</button>
-            </td>
-          </tr>
-          <!-- Ejemplo adicional -->
-          <tr>
-            <td>Certificación en Gestión de Proyectos Ágiles</td>
-            <td>Curso avanzado sobre principios y prácticas de metodologías ágiles, incluyendo Scrum y Kanban, orientado a la gestión de proyectos.</td>
-            <td>10-03-2025</td>
-            <td>30-07-2025</td>
-            <td>Academia Internacional de Gestión Ágil (AIGA)</td>
-            <td>
-              <button class="btn btn-sm" style="background-color: var(--color-secundario); color: white;" data-bs-toggle="modal" data-bs-target="#modalCapacitacion">Editar</button>
-              <button class="btn btn-sm" style="background-color: var(--color-enfasis); color: white;" data-bs-toggle="modal" data-bs-target="#modalVerCapacitacion">Ver</button>
-              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarCapacitacion">Eliminar</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Modal para Crear/Editar Capacitacion -->
-  <div class="modal fade" id="modalCapacitacion" tabindex="-1" aria-labelledby="modalCapacitacionLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalCapacitacionLabel">Crear/Editar Capacitacion</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  {% for cap in capacitaciones %}
+  <div class="modal fade" id="modalVerCapacitacion{{ cap.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="margin-top: 5rem;">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header text-white" style="background-color: #17a2b8;">
+            <h5 class="modal-title"><i class="bi bi-info-circle"></i> Detalle de la Capacitación</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <form>
-            <div class="mb-3">
-              <label for="nombreCapacitacion" class="form-label">Nombre de la Capacitacion</label>
-              <input type="text" class="form-control" id="nombreCapacitacion"  placeholder="Ingresa el nombre de la Capacitacion" required></input>
+          <div class="row">
+            {% if cap.imagen_publicitaria %}
+            <div class="col-md-4 mb-3">
+                <img src="{{ cap.imagen_publicitaria.url }}" class="img-fluid rounded shadow-sm" alt="Publicidad">
             </div>
-            <div class="mb-3">
-              <label for="descripcionCapacitacion" class="form-label">Descripción de la Capacitacion</label>
-              <textarea class="form-control" id="descripcionCapacitacion" rows="3" placeholder="Ingresa la descripcion de la Capacitacion" required></textarea>
+            {% endif %}
+            <div class="col-md-{% if cap.imagen_publicitaria %}8{% else %}12{% endif %}">
+              <h4 class="text-primary">{{ cap.nombre }}</h4>
+              <p class="text-muted">{{ cap.descripcion|default:"Sin descripción disponible." }}</p>
+              <hr>
+              <div class="row">
+                  <div class="col-6 mb-2">
+                      <strong>Institución:</strong> 
+                      <span class="text-muted">{{ cap.institucion.nombre|default:"No especificada" }}</span>
+                  </div>
+                  <div class="col-6 mb-2">
+                      <strong>Tipo:</strong> 
+                      {% if cap.es_externo %} <span class="badge bg-info text-dark">Externo</span> {% else %} <span class="badge bg-secondary">Interno</span> {% endif %}
+                  </div>
+                  <div class="col-6 mb-2">
+                      <strong>Estado:</strong> 
+                      {% if cap.activo %} <span class="badge bg-success">Activo</span> {% else %} <span class="badge bg-danger">Inactivo</span> {% endif %}
+                  </div>
+                  <div class="col-6 mb-2">
+                      <strong>Fecha Inicio:</strong> {{ cap.fecha_inicio|date:"d/m/Y"|default:"No definida" }}
+                  </div>
+                  <div class="col-6 mb-2">
+                      <strong>Fecha Fin:</strong> {{ cap.fecha_fin|date:"d/m/Y"|default:"No definida" }}
+                  </div>
+                  <div class="col-6 mb-2">
+                      <strong>Cupo:</strong> {{ cap.cupo|default:"Ilimitado" }}
+                  </div>
+                  <div class="col-6 mb-2">
+                      <strong>Presencial:</strong> {{ cap.presencial|yesno:"Sí,No" }}
+                  </div>
+                  {% if not cap.es_externo %}
+                  <div class="col-6 mb-2">
+                      <strong>Contenido Propio:</strong> {{ cap.contenido_interno|yesno:"Empresa,Tercero" }}
+                  </div>
+                  {% endif %}
+              </div>
+
+              {% if cap.es_externo and cap.url_sitio %}
+              <div class="mt-3 p-3 rounded border" style="background-color: rgba(0, 123, 255, 0.05); border-color: rgba(0, 123, 255, 0.2) !important;">
+                  <strong class="text-primary d-block mb-1"><i class="bi bi-link-45deg"></i> URL del Curso:</strong>
+                  <a href="{{ cap.url_sitio }}" target="_blank" class="text-break fw-bold text-info" style="text-decoration: underline;">
+                      {{ cap.url_sitio }}
+                  </a>
+                  <small class="d-block text-muted mt-2 italic">
+                      <i class="bi bi-info-circle"></i> Haz clic en el enlace para abrir en una pestaña nueva.
+                  </small>
+              </div>
+              {% endif %}
             </div>
-            <div class="mb-3">
-              <label for="fechaInicioCapacitacion" class="form-label">Fecha de Inicio</label>
-              <input type="date" class="form-control" id="fechaInicioCapacitacion" required>
-            </div>
-            <div class="mb-3">
-              <label for="fechaFinCapacitacion" class="form-label">Fecha de Fin</label>
-              <input type="date" class="form-control" id="fechaFinCapacitacion" required>
-            </div>
-            <div class="mb-3">
-              <label for="institucionCapacitacion" class="form-label">Institucion</label>
-              <select class="form-select" id="institucionCapacitacion" required>
-                <option value="" disabled selected>Selecciona la institucion</option>
-                <option value="1">Centro de Desarrollo Profesional y Liderazgo (CDPL)</option>
-                <option value="2">Academia Internacional de Gestión Ágil (AIGA)</option>
-              </select>
-            </div>
-            <button type="submit" class="btn w-100" style="background-color: var(--color-primario); color: white;">Guardar</button>
-          </form>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-outline-danger fw-bold px-4" data-bs-dismiss="modal">
+                <i class="bi bi-x-lg"></i> Cerrar
+            </button>
         </div>
       </div>
     </div>
   </div>
+  {% endfor %}
 
-  <!-- Modal para Ver Detalles -->
-  <div class="modal fade" id="modalVerCapacitacion" tabindex="-1" aria-labelledby="modalVerCapacitacionLabel" aria-hidden="true">
-    <div class="modal-dialog">
+
+  <div class="modal fade" id="modalEliminarCapacitacion" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog" style="margin-top: 12rem;">
+          <div class="modal-content">
+              <div class="modal-header bg-danger text-white">
+                  <h5 class="modal-title">Confirmar Eliminación</h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                  <p>¿Estás seguro de eliminar esta capacitación? Esta acción borrará también el historial de los empleados inscritos.</p>
+              </div>
+              <div class="modal-footer">
+                  <form id="formEliminarCapacitacion" method="post">
+                      {% csrf_token %}
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                      <button type="submit" class="btn btn-danger">Eliminar Definitivamente</button>
+                  </form>
+              </div>
+          </div>
+      </div>
+  </div>
+
+
+  <div class="modal fade" id="modalInstitucion" tabindex="-1" aria-labelledby="modalInstitucionLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 6rem;">
       <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-primario); color: white;">
-          <h5 class="modal-title" id="modalVerCapacitacionLabel">Detalles de la Capacitacion</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p><strong>Nombre:</strong> Comunicación Efectiva en el Trabajo</p>
-          <p><strong>Descripcion:</strong> Taller práctico para mejorar habilidades de comunicación interpersonal y manejo de conflictos en entornos laborales.</p>
-          <p><strong>Fecha de Inicio:</strong> 01-02-2025</p>
-          <p><strong>Fecha de Fin:</strong> 01-04-2025</p>
-        </div>
+        <form method="post" action="{% url 'crear_institucion' %}" id="formInstitucion" autocomplete="off">
+          {% csrf_token %}
+          <div class="modal-header" style="background-color: #3c8dbc;">
+            <h5 class="modal-title text-white" id="modalInstitucionLabel">Crear Institucion</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <input type="hidden" name="id_institucion" id="id_institucion">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="id_nombre" class="form-label">Nombre</label>
+              {{ form_institucion.nombre|add_class:"form-control" }}
+            </div>
+            <div class="mb-3">
+              <label for="id_direccion" class="form-label">Direccion</label>
+              {{ form_institucion.direccion|add_class:"form-control" }}
+            </div>
+            <div class="mb-3">
+              <label for="id_telefono" class="form-label">Telefono</label>
+              {{ form_institucion.telefono|add_class:"form-control" }}
+            </div>
+            <div class="mb-3">
+              <label for="id_email" class="form-label">Email</label>
+              {{ form_institucion.email|add_class:"form-control" }}
+            </div>
+            <div class="modal-footer bg-light">
+              <button type="submit" class="btn btn-success w-100 fw-bold">
+                <i class="bi bi-save"></i> Guardar
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 
-  <!-- Modal para Confirmar Eliminación -->
-  <div class="modal fade" id="modalEliminarCapacitacion" tabindex="-1" aria-labelledby="modalEliminarCapacitacionLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: var(--color-enfasis); color: white;">
-          <h5 class="modal-title" id="modalEliminarCapacitacionLabel">Confirmar Eliminación</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>¿Estás seguro de que deseas eliminar esta Capacitacion?</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger">Eliminar</button>
-        </div>
-      </div>
-    </div>
-  </div>
- 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  {% endblock %}
-</body>
-</html>
+
+</div>
+
+<script>
+    function manejarFecha(input, checkbox) {
+        if (!input || !checkbox) return;
+        if (checkbox.checked) {
+            input.value = ""; 
+            input.readOnly = true;
+            input.style.backgroundColor = "#e9ecef";
+            input.style.pointerEvents = "none";
+        } else {
+            input.readOnly = false;
+            input.style.backgroundColor = "#fff";
+            input.style.pointerEvents = "auto";
+        }
+    }
+
+    function aplicarBloqueoIlimitado(isIlimitado) {
+        const inputCupo = document.getElementById('id_cupo');
+        if (!inputCupo) return;
+        if (isIlimitado) {
+            inputCupo.value = ""; 
+            inputCupo.readOnly = true; 
+            inputCupo.style.backgroundColor = "#e9ecef"; 
+            inputCupo.style.pointerEvents = "none"; 
+        } else {
+            inputCupo.readOnly = false;
+            inputCupo.style.backgroundColor = "#fff";
+            inputCupo.style.pointerEvents = "auto";
+        }
+    }
+
+    function toggleCamposExternos(esExterno) {
+        const seccion = document.getElementById('seccion_externa');
+        const divCapacitacionProp = document.getElementById('div_capacitacion_propia');
+        const checkCapacitacionProp = document.getElementById('id_contenido_interno');
+        const divCupo = document.getElementById('id_cupo')?.closest('.col-md-4');
+        
+        if (seccion) seccion.style.display = esExterno ? 'flex' : 'none';
+        
+        if (esExterno) {
+            if (divCupo) divCupo.style.display = 'none'; 
+            document.getElementById('id_cupo').value = '';
+            if (divCapacitacionProp) divCapacitacionProp.style.display = 'none';          
+            if (checkCapacitacionProp) checkCapacitacionProp.checked = false;
+        } else {
+            document.getElementById('id_url_sitio').value = '';
+            if (divCupo) divCupo.style.display = 'block';
+            if (divCapacitacionProp) divCapacitacionProp.style.display = 'block';
+        }
+    }
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const inputUrl = document.getElementById('id_url_sitio');
+      if (inputUrl) {
+          inputUrl.addEventListener('blur', function() {
+              let valor = this.value.trim();
+              if (valor !== "" && !valor.match(/^[a-zA-Z]+:\/\//)) {
+                  this.value = 'https://' + valor;
+              }
+          });
+      }
+
+      const checkExterno = document.getElementById('id_es_externo');
+      if (checkExterno) {
+          checkExterno.addEventListener('change', function() {
+              toggleCamposExternos(this.checked);
+          });
+      }
+
+      const inputInicio = document.getElementById('id_fecha_inicio');
+      const inputFin = document.getElementById('id_fecha_fin');
+      const checkSinInicio = document.getElementById('check_sin_inicio');
+      const checkSinFin = document.getElementById('check_sin_fin');
+
+      if (checkSinInicio) checkSinInicio.addEventListener('change', () => manejarFecha(inputInicio, checkSinInicio));
+      if (checkSinFin) checkSinFin.addEventListener('change', () => manejarFecha(inputFin, checkSinFin));
+
+      const checkIlimitado = document.getElementById('check_ilimitado');
+      if (checkIlimitado) {
+          checkIlimitado.addEventListener('change', function() {
+              aplicarBloqueoIlimitado(this.checked);
+          });
+      }
+
+      const modalEliminar = document.getElementById('modalEliminarCapacitacion');
+      if (modalEliminar) {
+          modalEliminar.addEventListener('show.bs.modal', function (event) {
+              const button = event.relatedTarget;
+              const capId = button.getAttribute('data-id');
+              const form = document.getElementById('formEliminarCapacitacion');
+              form.action = `/capacitaciones/${capId}/eliminar/`;
+          });
+      }
+      
+      const btnAbrirInstitucion = document.getElementById('btnAbrirInstitucion');
+      const modalInstEl = document.getElementById('modalInstitucion');
+      const formInst = document.getElementById('formInstitucion');
+      const selectCapacitacion = document.querySelector('select[name="institucion"]');
+
+      const modalInst = new bootstrap.Modal(modalInstEl);
+
+      if (btnAbrirInstitucion) {
+          btnAbrirInstitucion.addEventListener('click', function () {
+              formInst.reset(); 
+              document.getElementById('id_institucion').value = ''; 
+              modalInst.show();
+          });
+      }
+
+      if (formInst) {
+          formInst.addEventListener('submit', function(e) {
+              if (selectCapacitacion) {
+                  e.preventDefault();
+                  const formData = new FormData(formInst);
+
+                  fetch(formInst.action, {
+                      method: 'POST',
+                      body: formData,
+                      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                  })
+                  .then(response => response.json())
+                  .then(data => {
+                      if (data.success) {
+                          const newOption = new Option(data.nombre, data.id, true, true);
+                          selectCapacitacion.add(newOption);
+                          
+                          modalInst.hide();
+                          formInst.reset();
+                      } else {
+                          alert("Error al guardar: " + JSON.stringify(data.errors));
+                      }
+                  })
+                  .catch(error => console.error('Error:', error));
+              }
+          });
+      }        
+    });
+
+
+    function limpiarFormularioCap() {
+        const form = document.getElementById('formCapacitacion');
+        if (!form) return;
+
+        form.reset(); 
+        document.getElementById('id_institucion').value = '';
+        document.getElementById('id_capacitacion').value = ''; 
+        document.getElementById('modalCapacitacionLabel').textContent = 'Crear Nueva Capacitación';
+        
+        const btnSubmit = form.querySelector('button[type="submit"]');
+        if (btnSubmit) btnSubmit.innerHTML = '<i class="bi bi-save"></i> Guardar Capacitación';
+
+        toggleCamposExternos(false);
+
+        document.getElementById('check_ilimitado').checked = false;
+        document.getElementById('check_sin_inicio').checked = false;
+        document.getElementById('check_sin_fin').checked = false;
+
+        aplicarBloqueoIlimitado(false);
+        manejarFecha(document.getElementById('id_fecha_inicio'), {checked: false});
+        manejarFecha(document.getElementById('id_fecha_fin'), {checked: false});
+    }
+
+
+    function editarCapacitacion(button) {
+      const d = button.dataset;
+
+      document.getElementById('id_capacitacion').value = d.id;
+      document.getElementById('id_institucion').value = d.institucion || '';
+      document.getElementById('id_nombre').value = d.nombre;
+      document.getElementById('id_descripcion').value = d.descripcion;
+      document.getElementById('id_url_sitio').value = d.url || '';
+
+      document.getElementById('id_es_externo').checked = (d.esExterno === 'true');
+      document.getElementById('id_presencial').checked = (d.presencial === 'true');
+      document.getElementById('id_contenido_interno').checked = (d.origen === 'true');
+
+      const checkIlimitado = document.getElementById('check_ilimitado');
+      const inputCupo = document.getElementById('id_cupo');
+      const cupoVal = d.cupo;
+      if (!cupoVal || cupoVal === 'None' || cupoVal === '' || cupoVal === '0') {
+          checkIlimitado.checked = true;
+          aplicarBloqueoIlimitado(true);
+      } else {
+          checkIlimitado.checked = false;
+          inputCupo.value = cupoVal;
+          aplicarBloqueoIlimitado(false);
+      }
+
+      const checkSinInicio = document.getElementById('check_sin_inicio');
+      const inputInicio = document.getElementById('id_fecha_inicio');
+      const fechaIni = d.fechaInicio;
+      if (!fechaIni || fechaIni === 'None' || fechaIni === '') {
+          checkSinInicio.checked = true;
+          manejarFecha(inputInicio, checkSinInicio);
+      } else {
+          checkSinInicio.checked = false;
+          inputInicio.value = fechaIni;
+          manejarFecha(inputInicio, checkSinInicio);
+      }
+
+      const checkSinFin = document.getElementById('check_sin_fin');
+      const inputFin = document.getElementById('id_fecha_fin');
+      const fechaFin = d.fechaFin;
+      if (!fechaFin || fechaFin === 'None' || fechaFin === '') {
+          checkSinFin.checked = true;
+          manejarFecha(inputFin, checkSinFin);
+      } else {
+          checkSinFin.checked = false;
+          inputFin.value = fechaFin;
+          manejarFecha(inputFin, checkSinFin);
+      }
+
+      const previewCont = document.getElementById('preview_imagen_cont');
+      const previewImg = document.getElementById('preview_imagen');
+      if (d.imagen && d.imagen !== '') {
+          if (previewImg) previewImg.src = d.imagen;
+          if (previewCont) previewCont.style.display = 'block';
+      } else {
+          if (previewCont) previewCont.style.display = 'none';
+      }
+
+      toggleCamposExternos(d.esExterno === 'true');
+      
+      document.getElementById('modalCapacitacionLabel').textContent = 'Editar Capacitación';
+      document.querySelector('#formCapacitacion button[type="submit"]').innerHTML = '<i class="bi bi-pencil"></i> Actualizar Capacitación';
+  }
+
+</script>
+
+{% endblock %}

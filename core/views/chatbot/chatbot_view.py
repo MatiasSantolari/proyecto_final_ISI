@@ -159,19 +159,24 @@ def get_response_chatbot(request):
         '''
         if not response_text:        
             try:
-                config = {"configurable": {"thread_id": f"hr_chat_intention_{user_id}"}}
-                input_message = HumanMessage(content=text)
-            
-                final_state = hr_agent.invoke({"messages": [input_message]}, config=config)            
+                config = {"configurable": {"thread_id": f"hr_chat_{user_id}"}}
+                
+                input_data = {
+                    "messages": [HumanMessage(content=text)],
+                    "user_id": user_id
+                }
+
+                final_state = hr_agent.invoke(input_data, config=config)            
                 last_message = final_state['messages'][-1]
+
                 if last_message.type == 'ai':
                     response_text = last_message.content
                 else:
-                    response_text = "Hubo un problema con la respuesta de la IA. Intenta de nuevo."
+                    response_text = "Lo siento, no pude procesar la respuesta."
 
             except Exception as e:
-                print(f"Error executing HR Agent as fallback: {e}")
-                response_text = "Lo siento, hubo un error general al procesar tu consulta."
+                print(f"Error AI: {e}")
+                response_text = "Lo siento, hubo un error al consultar a la IA."
         ''' 
     return JsonResponse({"response": response_text or "No tengo información sobre ese tema específico."})
 

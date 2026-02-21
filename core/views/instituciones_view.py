@@ -26,6 +26,7 @@ def instituciones(request):
     })
 
 
+
 @login_required
 def crear_institucion(request):
     id_institucion = request.POST.get('id_institucion')
@@ -38,14 +39,25 @@ def crear_institucion(request):
             form = InstitucionForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            nueva_inst = form.save()
+            
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'id': nueva_inst.id,
+                    'nombre': nueva_inst.nombre,
+                    'mensaje': "Institución guardada correctamente."
+                })
+
             if id_institucion:
                 messages.success(request, "La institucion se actualizó correctamente.")
             else:
                 messages.success(request, "La institucion se creó correctamente.")
             return redirect('instituciones')
         else:
-            messages.error(request, "Hubo un error al guardar la institucion. Verifique los datos ingresados.")
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'errors': form.errors})
+            messages.error(request, "Hubo un error al guardar la institucion.")
 
     else:
         form = InstitucionForm()
@@ -54,12 +66,12 @@ def crear_institucion(request):
     return render(request, 'instituciones.html', {'form': form, 'instituciones': institucionesList})
 
 
+
 @login_required
 @require_POST
 def eliminar_institucion(request, id_institucion):
     try:
         institucion = get_object_or_404(Institucion, id=id_institucion)
-        InstitucionCapacitacion.objects.filter(institucion=institucion).delete() # Elimina todas las relaciones de capacitaciones con esta institucion
         institucion.delete()
         messages.success(request, "institucion eliminada correctamente.")
     except Institucion.DoesNotExist:

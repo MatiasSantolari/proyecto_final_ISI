@@ -13,6 +13,7 @@ checkpointer = MemorySaver()
 
 class HRAgentState(TypedDict):
     messages: Annotated[List[AnyMessage], lambda x, y: x + y]
+    user_id: int
 
 HR_PROMPT = """
 Eres un asistente virtual de Recursos Humanos amable, profesional y servicial llamado 'RRHH Bot'. 
@@ -27,11 +28,15 @@ Instrucciones CRÍTICAS:
 5. Si el usuario saluda, responde de forma amigable.
 
 6. **REGLA DE FALLO:** Si no puedes determinar la respuesta usando tus herramientas o tu conocimiento general, usa esta frase exacta: "Lo siento, no entendí bien a qué te refieres. ¿Podrías reformular tu pregunta?"
+7. Si necesitas un ID de usuario para usar una herramienta, utilizalo del CONTEXTO proporcionado. No lo pidas al usuario bajo ninguna circunstancia; si el contexto no está presente, informa que hay un error de sesión.
+
 """
 
 def prompt_builder(state: HRAgentState):
-    system_msg = SystemMessage(content=HR_PROMPT)
-    return [system_msg] + state["messages"]
+    historial_recortado = state["messages"][-6:] 
+    instruccion_contexto = f"\n\n[CONTEXTO DE SESIÓN]: El ID del usuario actual es {state['user_id']}."
+    system_msg = SystemMessage(content=HR_PROMPT + instruccion_contexto)
+    return [system_msg] + historial_recortado
 
 hr_agent = create_react_agent(
     model,

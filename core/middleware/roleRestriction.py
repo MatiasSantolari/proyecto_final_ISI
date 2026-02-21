@@ -20,6 +20,7 @@ class RoleRestrictionMiddleware:
             '/departamentos/list/', '/asistencias/detalle/', '/api/asistencias/detalle/',
             '/api/asistencias/exportar/csv/', '/empleados/detalle/', '/api/empleados/', '/api/empleado/',
             '/nominas/detalle/', '/api/nominas/', '/evaluaciones/detalle/', '/api/evaluaciones/', 
+            '/capacitaciones/'
             ]
         
         RUTAS_TODOS_MENOS_NORMAL = [

@@ -816,8 +816,51 @@ class InstitucionForm(forms.ModelForm):
             }),
         }
 
-
 ######################
+
+class CapacitacionForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.pk:
+            self.initial['presencial'] = False
+
+    class Meta:
+        model = Capacitacion
+        fields = [
+            'nombre', 'descripcion', 'es_externo', 'url_sitio', 
+            'imagen_publicitaria', 'fecha_inicio', 'fecha_fin', 
+            'contenido_interno', 'presencial', 'institucion', 'cupo'
+        ]
+        widgets = {
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'fecha_fin': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'url_sitio': forms.URLInput(attrs={'class': 'form-control border-primary', 
+                                               'placeholder': 'https://...', 'id': 'id_url_sitio'}),
+            'institucion': forms.Select(attrs={'class': 'form-select', 'id': 'id_institucion'}),
+            'cupo': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        es_externo = cleaned_data.get("es_externo")
+        url_sitio = cleaned_data.get("url_sitio")
+
+        if es_externo and not url_sitio:
+            self.add_error('url_sitio', "Para cursos externos, la URL del sitio es obligatoria.")
+        
+        return cleaned_data
+
+    def clean_url_sitio(self):
+        url = self.cleaned_data.get('url_sitio')
+        if url and not url.startswith(('http://', 'https://')):
+            url = 'https://' + url
+        return url
+    
+######################
+
+
 class TipoCriterioForm(forms.ModelForm):
     class Meta:
         model = TipoCriterio

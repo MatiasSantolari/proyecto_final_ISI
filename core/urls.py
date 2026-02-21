@@ -52,11 +52,21 @@ urlpatterns = [
     path('habilidades/crear/', habilidades_view.crear_habilidad, name='crear_habilidad'),
     path('habilidades/<int:id_habilidad>/eliminar/', habilidades_view.eliminar_habilidad, name='eliminar_habilidad'),
 
+
     ## INSTITUCION ##
     path('instituciones/', instituciones_view.instituciones, name='instituciones'),
     path('instituciones/crear/', instituciones_view.crear_institucion, name='crear_institucion'),
     path('instituciones/<int:id_institucion>/eliminar/', instituciones_view.eliminar_institucion, name='eliminar_institucion'),
-    
+
+
+    ## CAPACITACION ##
+    path('capacitaciones/', capacitaciones_view.capacitaciones, name='capacitaciones'),
+    path('capacitaciones/guardar/', capacitaciones_view.guardar_capacitacion, name='guardar_capacitacion'),
+    path('capacitaciones/activar/<int:id_cap>/', capacitaciones_view.activar_capacitacion, name='activar_capacitacion'),
+    path('capacitaciones/desactivar/<int:id_cap>/', capacitaciones_view.desactivar_capacitacion, name='desactivar_capacitacion'),
+    path('capacitaciones/<int:id_cap>/eliminar/', capacitaciones_view.eliminar_capacitacion, name='eliminar_capacitacion'),
+
+
     ## LOGRO ##
     path('logros/', logros_view.logros, name='logros'),
     path('logros/crear/', logros_view.crear_logro, name='crear_logro'),
@@ -146,7 +156,7 @@ urlpatterns = [
     path("tipos_contrato/<int:id_tipo>/eliminar/", contratos_view.eliminar_tipo_contrato, name="eliminar_tipo_contrato"),
 
 
-    ## INSTITUCION ##
+    ## TIPOS DE CRITERIOS ##
     path('tipos_criterios/', tipo_criterio_view.tiposCriterios, name='tiposCriterios'),
     path('tipos_criterios/crear/', tipo_criterio_view.crear_tipoCriterio, name='crear_tipoCriterio'),
     path('tipos_criterios/<int:id_tipoCriterio>/eliminar/', tipo_criterio_view.eliminar_tipoCriterio, name='eliminar_tipoCriterio'),
@@ -234,15 +244,5 @@ urlpatterns = [
 
 
     path('mi-panel/', informes_empleado_view.dashboard_empleado, name='dashboard_empleado'),
-    
-
-
-
-##############################################
-##############################################
-########## FALTA ##############
-    path('capacitaciones/', views.capacitaciones, name='capacitaciones'),
-
-
 
 ]

@@ -2,15 +2,19 @@ from django.db import models
 from .institucion import Institucion
 
 class Capacitacion(models.Model):
+    institucion = models.ForeignKey(Institucion, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Institucion")
     nombre = models.CharField(max_length=100, verbose_name='Nombre de la capacitacion')
-    descripcion = models.CharField(max_length=255, null=True, blank=True, verbose_name='Descripcion de la capacitacion')
-    fecha_inicio = models.DateField(verbose_name='Fecha de inicio')
-    fecha_fin = models.DateField(verbose_name='Fecha de fin')
-    origen_org = models.BooleanField(default=False, verbose_name='Origen Capacitacion')
-    presencial = models.BooleanField(default=True, verbose_name='Es presencial')
-    cupo = models.PositiveIntegerField(default=0, verbose_name='Cantidad de cupos')
+    descripcion = models.TextField(null=True, blank=True, verbose_name='Descripcion de la capacitacion')
+    es_externo = models.BooleanField(default=False, verbose_name="¿Es curso externo?")
+    url_sitio = models.URLField(null=True, blank=True, verbose_name="Link al curso")
+    imagen_publicitaria = models.ImageField(upload_to='cursos/%Y/%m/%d', null=True, blank=True)
+    fecha_inicio = models.DateField(null=True, blank=True, verbose_name='Fecha de inicio')
+    fecha_fin = models.DateField(null=True, blank=True, verbose_name='Fecha de fin')
+    activo = models.BooleanField(default=True, verbose_name="¿Esta activo el curso?")
+    contenido_interno = models.BooleanField(default=False, verbose_name='¿Contenido propio de la empresa?')
+    presencial = models.BooleanField(default=False, verbose_name='Es presencial')
+    cupo = models.PositiveIntegerField(null=True, blank=True, verbose_name='Cantidad de cupos')
     
-
     class Meta:
         verbose_name = 'capacitacion'
         verbose_name_plural = 'Capacitaciones'
