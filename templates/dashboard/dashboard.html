@@ -6,7 +6,7 @@
 <body>
   <div class="container-fluid p-0" id="app-root">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-1">
       <div class="d-flex gap-2 align-items-center">
         <div class="form-check form-switch">
         </div>
@@ -14,7 +14,7 @@
     </div>
 
     <!-- KPIs -->
-    <div class="row g-3 kpi-deck mb-2">
+    <div class="row g-2 kpi-deck mb-0">
       <div class="col-6 col-md-3">
         <a href="{% url 'empleados_detalle'%}" class="card p-3 kpi-link">
           <div class="d-flex justify-content-between align-items-center">
@@ -62,9 +62,9 @@
     </div>
 
     <!-- Row: Vacaciones + Asistencias -->
-    <div class="row g-3 mb-2">
+    <div class="row g-2 mb-3">
       <div class="col-lg-4">
-        <div class="card p-3 chart-card">
+        <div class="card p-4 chart-card h-100">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div class="d-flex align-items-center">
               <a href="{% url 'gestionar_vacaciones'%}" class="kpi-link d-flex align-items-center">
@@ -82,11 +82,13 @@
               <option value="24m">Últimos 24 meses</option>
             </select>
           </div>
-          <canvas id="vacChart"></canvas>
+          <div style="height: 300px; position: relative;">
+            <canvas id="vacChart"></canvas>
+          </div>
         </div>
       </div>
       <div class="col-lg-8">
-        <div class="card p-3 chart-card">
+        <div class="card p-4 chart-card h-100">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div class="d-flex align-items-center">
               <a href="{% url 'asistencias_detalle'%}" class="kpi-link d-flex align-items-center">
@@ -103,64 +105,65 @@
                 <option value="12m">Últimos 12 meses (por mes)</option>
             </select>
           </div>
-          <canvas id="attendanceChart"></canvas>
+          <div style="height: 300px; position: relative;">
+            <canvas id="attendanceChart"></canvas>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Row: Evaluaciones + Costo Laboral Comp + Nómina -->
-    <div class="row g-3 mb-3">
-      <div class="col-lg-6">
-        <div class="row g-1">          
-          <div class="col-12">
-            <div class="card p-3 chart-card">
-              <div class="d-flex justify-content-between mb-2">
-                <div class="d-flex align-items-center">
-                  <a href="{% url 'evaluaciones_detalle'%}" class="kpi-link d-flex align-items-center">
-                      <strong>Distribución de calificaciones</strong>
-                    <i class="bi bi-chevron-right ms-2 text-muted"></i>
-                  </a>
-                  <span id="evalDateRange" class="text-muted small ml-2"></span>
-                </div>
-                <select id="evalPeriodSelector" class="form-select form-select-sm" style="width: 155px;">
-                    <option value="3m">Últimos 3 meses</option>
-                    <option value="6m">Últimos 6 meses</option>
-                    <option value="12m">Último año</option>
-                    <option value="24m">Últimos 2 años</option>
-                </select>
-              </div>
-              <canvas id="evalChart"></canvas>
+    <!-- Comparativa Coste Laboral Anual -->
+    <div class="row g-2 mb-1">
+      <div class="col-12">
+        <div class="card p-4 chart-card"> 
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <div><strong>Comparativa Coste Laboral Anual</strong></div>
+            <div class="d-flex gap-2">
+                <select id="yearSelector1" class="form-select form-select-sm" style="width: 120px;"></select>
+                <select id="yearSelector2" class="form-select form-select-sm" style="width: 120px;"></select>
             </div>
           </div>
+          <div style="height: 350px; position: relative;">
+            <canvas id="laborCostComparisonChart"></canvas>
+          </div>
+          <div id="noComparisonDataMessage" style="display: none; padding: 20px; text-align: center; color: gray;">
+              No hay datos suficientes para la comparación de años.
+          </div>
+        </div>
+      </div>
+    </div>
 
-          <div class="col-12">
-            <div class="card p-3 chart-card">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <div><strong>Comparativa Coste Laboral Anual</strong></div>
-                <div class="d-flex gap-2">
-                    <select id="yearSelector1" class="form-select form-select-sm" style="width: 120px;"></select>
-                    <select id="yearSelector2" class="form-select form-select-sm" style="width: 120px;"></select>
-                </div>
-              </div>
-              <canvas id="laborCostComparisonChart"></canvas>
-              <div id="noComparisonDataMessage" style="display: none; padding: 20px; text-align: center; color: gray;">
-                  No hay datos suficientes para la comparación de años.
-              </div>
-            </div>
+    <!-- Distribucion de calificaciones + Nomina -->
+    <div class="row g-2 mb-3">
+      <div class="col-lg-6">
+        <div class="card p-4 chart-card h-100">
+          <div class="d-flex justify-content-between mb-1">
+              <a href="{% url 'evaluaciones_detalle'%}" class="kpi-link d-flex align-items-center">
+                  <strong>Distribución de calificaciones</strong>
+                <i class="bi bi-chevron-right ms-2 text-muted"></i>
+              </a>
+              <span id="evalDateRange" class="text-muted small ml-2"></span>
+            <select id="evalPeriodSelector" class="form-select form-select-sm" style="width: 155px;">
+                <option value="3m">Últimos 3 meses</option>
+                <option value="6m">Últimos 6 meses</option>
+                <option value="12m">Último año</option>
+                <option value="24m">Últimos 2 años</option>
+            </select>
+          </div>
+          <div style="height: 350px; position: relative;">
+            <canvas id="evalChart"></canvas>
           </div>
         </div>
       </div>
 
       <div class="col-lg-6">
-        <div class="card p-3 chart-card">
+        <div class="card p-4 chart-card h-100">
           <div class="d-flex justify-content-between mb-2">
-            <div class="d-flex align-items-center">
               <a href="{% url 'nominas_detalle'%}" class="kpi-link d-flex align-items-center">
                 <strong>Nómina: costos desglosados</strong>
                 <i class="bi bi-chevron-right ms-2 text-muted"></i>
               </a>
               <span id="payrollDateRange" class="text-muted small ml-2"></span>
-            </div>
             <select id="payrollPeriodSelector" class="form-select form-select-sm" style="width: 180px;">
                 <option value="1m">Último período</option>
                 <option value="3m">Últimos 3 períodos</option>
@@ -168,23 +171,25 @@
                 <option value="12m">Últimos 12 períodos</option>
             </select>
           </div>
-          <canvas id="payrollChart"></canvas>
+          <div style="height: 350px; position: relative;">
+            <canvas id="payrollChart"></canvas>
+          </div>
         </div>
       </div>
     </div>
 
     
     <!-- Row: Estructura + Objetivos -->
-    <div class="row g-3 mb-3">
+    <div class="row g-2 mb-0">
       <div class="col-lg-6">
-        <div class="card p-3">
+        <div class="card p-4 chart-card">
           <div class="mb-2"><strong>Estructura: empleados por departamento</strong></div>
           <canvas id="deptChart" style="min-height:260px"></canvas>
         </div>
       </div>
 
       <div class="col-lg-6">
-        <div class="card p-3">
+        <div class="card p-4 chart-card">
           <div class="mb-2 d-flex justify-content-between align-items-center">
             <div><strong>Objetivos: % cumplimiento</strong></div>
             <select id="departmentSelector" class="form-select form-select-sm" style="width: 150px;">
@@ -195,6 +200,36 @@
             </select>
           </div>
           <div id="objectivesList" class="d-flex flex-column gap-2" style="min-height:260px; max-height:320px; overflow:auto;"></div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Capacitaciones -->
+    <div class="row g-2 mb-2">
+      <div class="col-12">
+        <div class="card p-4 chart-card">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="d-flex align-items-center">
+              <a href="{% url 'capacitaciones_detalle' %}" class="kpi-link d-flex align-items-center text-decoration-none">
+                <strong>Impacto de Capacitaciones</strong>
+                <i class="bi bi-chevron-right ms-2 text-muted"></i>
+              </a>
+              <span id="capDateRange" class="text-muted small ms-3"></span>
+            </div>
+            <select id="capPeriodSelector" class="form-select form-select-sm" style="width: 180px;">
+              <option value="1m">Mes actual</option>
+              <option value="2m">Últimos 2 meses</option>
+              <option value="3m">Últimos 3 meses</option>
+              <option value="4m">Últimos 4 meses</option>
+              <option value="6m" selected>Últimos 6 meses</option>
+              <option value="12m">Último año</option>
+              <option value="24m">Últimos 2 años</option>
+            </select>
+          </div>
+          <div style="height: 300px;">
+            <canvas id="capChart"></canvas>
+          </div>
         </div>
       </div>
     </div>

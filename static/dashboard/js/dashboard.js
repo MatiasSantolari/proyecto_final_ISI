@@ -7,14 +7,15 @@
     payroll: '/dashboard/api/nominas/',
     laboral_cost: '/dashboard/api/costo_laboral_comp/',
     structure: '/dashboard/api/estructura/',
-    objectives: '/dashboard/api/objetivos/'
+    objectives: '/dashboard/api/objetivos/',
+    capacitaciones: '/dashboard/api/capacitaciones/', 
   };
 
   // theme handling
   const root = document.documentElement;
 
   // Chart instances
-  let vacChart=null, attendanceChart, evalChart=null, payrollChart, deptChart, laborCostChart = null;
+  let vacChart=null, attendanceChart, evalChart=null, payrollChart, deptChart, laborCostChart = null, capChart = null;
 
   // helper to fetch json and safe fallback
   async function safeFetch(url){
@@ -40,39 +41,58 @@
 
 
 
-    // structure (departments)
+    // Para generar una paleta de colores aleatoria
+    function generateDynamicColors(count) {
+        const colors = [];
+        for (let i = 0; i < count; i++) {
+            const hue = (i * (360 / count)) % 360; 
+            colors.push(`hsl(${hue}, 65%, 50%)`);
+        }
+        return colors;
+    }
+
+    // Structure (departments)
     const structure = await safeFetch(API.structure);
-    if(structure){
-      const ctx = document.getElementById('deptChart').getContext('2d');
-      const labels = structure.labels || [];
-      const data = structure.counts || [];
-      if(!deptChart){
-        deptChart = new Chart(ctx, {
-          type: 'bar',
-          data: { labels, datasets:[{ label: 'Empleados', data }]},
-          options:{ 
-            indexAxis: 'y',
-            scales: {
-              x: { 
-                ticks: {
-                  stepSize: 1, 
-                  callback: function(value, index, values) {
-                    if (Number.isInteger(value)) {
-                      return value;
-                    }
-                  }
+    if (structure) {
+        const ctx = document.getElementById('deptChart').getContext('2d');
+        const labels = structure.labels || [];
+        const data = structure.counts || [];
+        
+        const dynamicColors = generateDynamicColors(labels.length);
+
+        if (!deptChart) {
+            deptChart = new Chart(ctx, {
+                type: 'bar',
+                data: { 
+                    labels, 
+                    datasets: [{ 
+                        label: 'Empleados', 
+                        data,
+                        backgroundColor: dynamicColors, 
+                        borderColor: dynamicColors.map(c => c.replace('50%', '40%')), 
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
                 },
-                min: 0
-              }
-            },
-            plugins:{
-              legend:{
-                display:false
-              }
-            }
-          }
-        });
-      } else { deptChart.data.labels = labels; deptChart.data.datasets[0].data = data; deptChart.update(); }
+                options: { 
+                    indexAxis: 'y',
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { 
+                            ticks: {
+                                stepSize: 1,
+                                callback: (value) => Number.isInteger(value) ? value : null
+                            }
+                        }
+                    }
+                }
+            });
+        } else { 
+            deptChart.data.labels = labels; 
+            deptChart.data.datasets[0].data = data; 
+            deptChart.data.datasets[0].backgroundColor = dynamicColors;
+            deptChart.update(); 
+        }
     }
     
   }
@@ -140,10 +160,12 @@
               data, 
               backgroundColor: customColors,
               hoverOffset:6, 
-              radius: '85%',
+              radius: '90%',
             }]
           },
           options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
             plugins:{
               legend:{
                 position:'bottom'
@@ -197,6 +219,8 @@
             ]
           },
           options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
             scales: { 
               x:{ 
                 stacked:true 
@@ -256,7 +280,10 @@
         evalChart = new Chart(ctx, {
           type: 'bar',
           data: { labels, datasets: [{ label: 'Cantidad', data }]},
-          options:{ plugins:{legend:{display:false}}}
+          options:{ 
+            responsive: true,          
+            maintainAspectRatio: false,
+            plugins:{legend:{display:false}}}
         });
       } else { 
         evalChart.data.labels = labels;
@@ -297,11 +324,11 @@
       if(!payrollChart){
         payrollChart = new Chart(ctx, {
           type: 'pie',
-          data: { labels, datasets:[{ 
-            data,
-            radius: '80%' 
-          }]},
-          options:{ plugins:{legend:{position:'bottom'}}}
+          data: { labels, datasets:[{ data, radius: '90%' }]},
+          options:{ 
+            responsive: true,    
+            maintainAspectRatio: false,
+            plugins:{legend:{position:'bottom'}}}
         });
       } else { 
         payrollChart.data.datasets[0].data = data; 
@@ -393,20 +420,10 @@
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Costo Monetario ($)'
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Mes del Año'
-                    }
-                }
+              y: {beginAtZero: true, title: {display: true, text: 'Costo Monetario ($)'}},
+              x: {title: {display: true, text: 'Mes del Año'}}
             },
             plugins: {
                 legend: {
@@ -472,6 +489,48 @@
     }
   }
 
+
+  // Capacitaicones
+  async function loadCapacitaciones() {
+      const periodSelector = document.getElementById('capPeriodSelector');
+      const selectedPeriod = periodSelector ? periodSelector.value : '6m';
+      const apiUrl = `${API.capacitaciones}?periodo=${selectedPeriod}`;
+
+      const data = await safeFetch(apiUrl);
+      if(data) {
+          const dateRangeEl = document.getElementById('capDateRange');
+          if (dateRangeEl) dateRangeEl.textContent = `(${data.start_date_formatted} - ${data.end_date_formatted})`;
+
+          const ctx = document.getElementById('capChart').getContext('2d');
+          if(!capChart) {
+              capChart = new Chart(ctx, {
+                  type: 'bar',
+                  data: {
+                      labels: data.labels,
+                      datasets: [
+                          { label: 'Inscripciones Internas', data: data.internas, backgroundColor: '#3c8dbc', borderRadius: 4 },
+                          { label: 'Interés Externo', data: data.externas, backgroundColor: '#28a745', borderRadius: 4 }
+                      ]
+                  },
+                  options: {
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: { legend: { position: 'bottom' } },
+                      scales: {
+                          y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                          x: { grid: { display: false } }
+                      }
+                  }
+              });
+          } else {
+              capChart.data.labels = data.labels;
+              capChart.data.datasets[0].data = data.internas;
+              capChart.data.datasets[1].data = data.externas;
+              capChart.update();
+          }
+      }
+  }
+
   document.addEventListener('DOMContentLoaded', (event) => {
     loadAll();
     loadObjectives();
@@ -481,7 +540,7 @@
     loadEvaluations();
     populateYearSelectors();
     loadLaborCostComparison(); 
-
+    loadCapacitaciones();
     
     const selectorYear1 = document.getElementById('yearSelector1');
     const selectorYear2 = document.getElementById('yearSelector2');
@@ -511,6 +570,8 @@
     if (selectorObjetives) {
         selectorObjetives.addEventListener('change', loadObjectives);
     }
+    const selectorCap = document.getElementById('capPeriodSelector');
+    if (selectorCap) selectorCap.addEventListener('change', loadCapacitaciones);
   });
 
 })();

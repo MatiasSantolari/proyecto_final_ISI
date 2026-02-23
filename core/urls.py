@@ -200,6 +200,7 @@ urlpatterns = [
     path('dashboard/api/costo_laboral_comp/', api.api_labor_cost_comparison, name='api_costo_laboral_comp'),
     path('dashboard/api/estructura/', api.api_estructura, name='api_estructura'),
     path('dashboard/api/objetivos/', api.api_objetivos, name='api_objetivos'),
+    path('dashboard/api/capacitaciones/', api.api_capacitaciones, name='api_capacitaciones'),
 
     path('api/departamentos/list/', informes_view.api_departamentos_list, name='api_departamentos_list'),
     
@@ -227,6 +228,13 @@ urlpatterns = [
     path('api/evaluaciones/detalle/', informes_view.api_evaluaciones_detalle, name='api_evaluaciones_detalle'),
     path('api/evaluaciones/exportar/csv/', informes_view.exportar_evaluaciones_csv, name='exportar_evaluaciones_csv'),
     path('api/evaluaciones/list/', informes_view.api_evaluaciones_list, name='api_evaluaciones_list'),    
+            #### CAPACITACIONES DETALLE ADMIN ####
+    path('capacitaciones/detalle/', views.capacitaciones_detalle_view, name='capacitaciones_detalle'),
+    path('api/capacitaciones/list/', views.api_capacitaciones_list, name='api_capacitaciones_list'),
+    path('api/capacitaciones/detalle/', views.api_capacitaciones_detalle, name='api_capacitaciones_detalle'),
+    path('api/capacitaciones/exportar/csv/', views.exportar_capacitaciones_csv, name='exportar_capacitaciones_csv'),
+
+
 
 #######################
 ## INFORMES EMPLEADO ##
@@ -236,6 +244,8 @@ urlpatterns = [
     path('dashboard/api/empleado/evaluaciones/', api.api_evaluaciones_empleado, name='api_evaluaciones_empleado'),
     path('dashboard/api/empleado/beneficios/', api.api_beneficios_empleado, name='api_beneficios_empleado'),
     path('dashboard/api/empleado/logros/', api.api_logros_empleado, name='api_logros_empleado'),
+    path('dashboard/api/empleado/capacitaciones/', api.api_capacitaciones_empleado, name='api_capacitaciones_empleado'),
+
 
     path('objetivos/detalle/emp/', informes_view.objetivos_detalle_view_emp, name='objetivos_detalle_emp'),
     path('api/objetivos/detalle/emp/', informes_view.api_objetivos_detalle_emp, name='api_objetivos_detalle_emp'),
@@ -243,6 +253,8 @@ urlpatterns = [
     path('api/asistencias/detalle/emp/', informes_view.api_asistencias_detalle_emp, name='api_asistencias_detalle_emp'),
     path('evaluaciones/detalle/emp/', informes_view.evaluaciones_detalle_view_emp, name='evaluaciones_detalle_emp'),
     path('api/evaluaciones/detalle/emp/', informes_view.api_evaluaciones_detalle_emp, name='api_evaluaciones_detalle_emp'),
+    path('capacitaciones/detalle/emp/', informes_view.capacitaciones_detalle_view_emp, name='capacitaciones_detalle_emp'),
+    path('api/capacitaciones/detalle/emp/', informes_view.api_capacitaciones_detalle_emp, name='api_capacitaciones_detalle_emp'),
 
 
     path('mi-panel/', informes_empleado_view.dashboard_empleado, name='dashboard_empleado'),

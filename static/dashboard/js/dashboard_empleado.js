@@ -5,7 +5,8 @@
         evaluaciones: '/dashboard/api/empleado/evaluaciones/',
         beneficios: '/dashboard/api/empleado/beneficios/',
         logros: '/dashboard/api/empleado/logros/',
-        marcar: '/dashboard/marcar-objetivo-completado/'
+        marcar: '/dashboard/marcar-objetivo-completado/',
+        capacitaciones: '/dashboard/api/empleado/capacitaciones/',
     };
 
 
@@ -30,6 +31,7 @@
         await loadEvaluacionesCard();
         await loadBeneficiosCard();
         await loadLogrosCard();
+        await loadCapacitacionesCard();
     }
     
     
@@ -400,6 +402,64 @@
         cont.innerHTML = htmlContent;
     }
 
+
+        // Capacitaciones 
+    async function loadCapacitacionesCard() {
+        const cont = document.getElementById('containerCapacitacionesCard');
+        const data = await safeFetch(API.capacitaciones);
+        
+        if (!data) return;
+
+        if (!data.mis_capacitaciones || data.mis_capacitaciones.length === 0) {
+            cont.innerHTML = '<div class="alert alert-info m-0 small"><i class="bi bi-info-circle me-2"></i>No tienes capacitaciones activas o pendientes.</div>';
+            return;
+        }
+
+        let htmlContent = `<div class="list-group list-group-flush">`;
+
+        data.mis_capacitaciones.forEach(item => {
+            const textoFecha = item.fecha_inicio 
+                ? `<i class="bi bi-calendar3 me-1"></i>Inicia: ${item.fecha_inicio}` 
+                : `<i class="bi bi-clock-history me-1"></i>A tu ritmo`;
+
+            const iconBase = item.es_externo ? 'bi-globe' : 'bi-building';
+            const iconBadgeClass = item.es_externo ? 'bg-info' : 'bg-success';
+            const iconColorClass = item.es_externo ? 'text-dark' : 'text-white';
+            const borderClass = item.es_externo ? 'border-info' : 'border-success';
+
+            let accionHtml = '';
+            if (item.es_externo && item.url_curso) {
+                accionHtml = `
+                    <a href="${item.url_curso}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>Ir al curso
+                    </a>`;
+            } else {
+                accionHtml = `<span class="badge border text-muted fw-normal p-2">Inscripto</span>`;
+            }
+
+            htmlContent += `
+                <div class="list-group-item d-flex align-items-center justify-content-between mb-2 rounded shadow-sm border-start border-4 ${borderClass} list-group-item-light text-dark">
+                    <div class="d-flex align-items-center">
+                        <span class="badge ${iconBadgeClass} rounded-pill p-2 me-3">
+                            <i class="bi ${iconBase} ${iconColorClass} h5 m-0"></i>
+                        </span>
+                        <div>
+                            <p class="mb-0 fw-bold">${item.titulo}</p>
+                            <small class="text-muted d-block">
+                                ${textoFecha} | <strong>${item.estado}</strong>
+                            </small>
+                        </div>
+                    </div>
+                    <div class="ms-2">
+                        ${accionHtml}
+                    </div>
+                </div>
+            `;
+        });
+        
+        htmlContent += `</div>`;
+        cont.innerHTML = htmlContent;
+    }
 
 
     window.toggleObjetivo = async (id, estadoActual) => {

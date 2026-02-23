@@ -651,6 +651,115 @@ def exportar_evaluaciones_csv(request):
     return response
 
 
+## CAPACITACIONES
+##################
+@login_required
+def api_capacitaciones_list(request):
+    cursos = Capacitacion.objects.filter(activo=True).order_by('-fecha_inicio').values('id', 'nombre', 'fecha_inicio')
+    data = []
+    for curso in cursos:
+        fecha_str = curso['fecha_inicio'].strftime('%Y-%m-%d') if curso['fecha_inicio'] else "S/F"
+        data.append({
+            'id': curso['id'],
+            'nombre': f"{curso['nombre']} ({fecha_str})"
+        })
+    return JsonResponse(data, safe=False)
+
+
+def get_capacitaciones_queryset(request):
+    queryset = CapacitacionEmpleado.objects.select_related(
+        'empleado', 
+        'capacitacion'
+    ).order_by('-fecha_inscripcion', 'empleado__apellido')
+    
+    dni = request.GET.get('dni')
+    curso_id = request.GET.get('curso_id')
+    estado = request.GET.get('estado')
+    tipo = request.GET.get('tipo')
+    
+    if dni:
+        queryset = queryset.filter(empleado__dni__icontains=dni)
+    if curso_id:
+        queryset = queryset.filter(capacitacion__id=curso_id)
+    if estado:
+        queryset = queryset.filter(estado=estado)
+    if tipo == 'interna':
+        queryset = queryset.filter(capacitacion__es_externo=False)
+    elif tipo == 'externa':
+        queryset = queryset.filter(capacitacion__es_externo=True)
+
+    return queryset
+
+
+@login_required
+def capacitaciones_detalle_view(request):
+    return render(request, 'informes/capacitaciones_detalle.html')
+
+
+@login_required
+def api_capacitaciones_detalle(request):
+    queryset = get_capacitaciones_queryset(request)
+    
+    page = request.GET.get('page', 1)
+    per_page = request.GET.get('per_page', 10)
+    paginator = Paginator(queryset, per_page)
+
+    try:
+        capacitaciones_page = paginator.page(page)
+    except (PageNotAnInteger, EmptyPage):
+        capacitaciones_page = paginator.page(1)
+
+    data = []
+    for cap_emp in capacitaciones_page:
+        url_perfil = reverse('empleado_perfil_detalle', args=[cap_emp.empleado.id])
+        
+        data.append({
+            'id': cap_emp.id,
+            'nombre_completo': f"{cap_emp.empleado.nombre} {cap_emp.empleado.apellido}",
+            'dni': cap_emp.empleado.dni,
+            'curso_nombre': cap_emp.capacitacion.nombre,
+            'es_externo': cap_emp.capacitacion.es_externo,
+            'estado': cap_emp.get_estado_display(),
+            'estado_raw': cap_emp.estado,
+            'fecha_inscripcion': cap_emp.fecha_inscripcion.strftime('%d-%m-%Y'),
+            'tiene_certificado': bool(cap_emp.comprobante),
+            'url_perfil': url_perfil
+        })
+    
+    return JsonResponse({
+        'results': data,
+        'pagination': {
+            'total_pages': paginator.num_pages,
+            'current_page': capacitaciones_page.number,
+            'has_next': capacitaciones_page.has_next(),
+            'has_previous': capacitaciones_page.has_previous(),
+        }
+    }, safe=False)
+
+
+@login_required
+def exportar_capacitaciones_csv(request):
+    queryset = get_capacitaciones_queryset(request)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="capacitaciones_filtradas.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Empleado', 'DNI', 'Curso', 'Tipo', 'Estado', 'Fecha Inscripción'])
+    
+    for cap_emp in queryset:
+        tipo = "Externa" if cap_emp.capacitacion.es_externo else "Interna"
+        writer.writerow([
+            f"{cap_emp.empleado.nombre} {cap_emp.empleado.apellido}",
+            cap_emp.empleado.dni,
+            cap_emp.capacitacion.nombre,
+            tipo,
+            cap_emp.get_estado_display(),
+            cap_emp.fecha_inscripcion.strftime('%d-%m-%Y'),
+        ])
+    return response
+
+
+
 
 
 ##############################################
@@ -864,5 +973,60 @@ def api_evaluaciones_detalle_emp(request):
             'current_page': evaluaciones_page.number,
             'has_next': evaluaciones_page.has_next(),
             'has_previous': evaluaciones_page.has_previous(),
+        }
+    }, safe=False)
+
+
+
+
+@login_required
+def capacitaciones_detalle_view_emp(request):
+    return render(request, 'informes_vista_empleado/capacitaciones_detalle.html')
+
+@login_required
+def api_capacitaciones_detalle_emp(request):
+    try:
+        empleado = request.user.persona.empleado 
+    except AttributeError:
+        return JsonResponse({'results': [], 'pagination': {'total_pages': 0}}, safe=False)
+
+    queryset = CapacitacionEmpleado.objects.filter(empleado=empleado).select_related('capacitacion').order_by('-fecha_inscripcion')
+
+    page = request.GET.get('page', 1)
+    per_page = request.GET.get('per_page', 15) 
+    paginator = Paginator(queryset, per_page)
+
+    try:
+        page_obj = paginator.page(page)
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.page(1)
+    
+    data = []
+    for cap_emp in page_obj:
+        es_externo = cap_emp.capacitacion.es_externo
+        
+        estado_display = cap_emp.get_estado_display()
+        if cap_emp.estado == 'INSCRIPTO':
+            estado_display = "Interesado" if es_externo else "Inscripto"
+
+        data.append({
+            'curso': cap_emp.capacitacion.nombre,
+            'tipo': "Externo" if cap_emp.capacitacion.es_externo else "Interno",
+            'es_externo': cap_emp.capacitacion.es_externo,
+            'fecha_inscripcion': cap_emp.fecha_inscripcion.strftime('%Y-%m-%d'),
+            'fecha_inicio': cap_emp.capacitacion.fecha_inicio.strftime('%Y-%m-%d') if cap_emp.capacitacion.fecha_inicio else None,
+            'estado': cap_emp.get_estado_display(),
+            'estado_raw': cap_emp.estado,
+            'url_curso': cap_emp.capacitacion.url_sitio if cap_emp.capacitacion.es_externo else None,
+            'fecha_completado': cap_emp.fecha_completado.strftime('%Y-%m-%d') if cap_emp.fecha_completado else None
+        })
+    
+    return JsonResponse({
+        'results': data,
+        'pagination': {
+            'total_pages': paginator.num_pages,
+            'current_page': page_obj.number,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
         }
     }, safe=False)

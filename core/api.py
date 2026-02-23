@@ -27,7 +27,8 @@ from core.models import (
     Beneficio,
     BeneficioEmpleadoNomina,
     LogroEmpleado,
-    Logro
+    Logro,
+    CapacitacionEmpleado,
 )
 
 # Helper to force float for Decimal
@@ -400,6 +401,48 @@ def api_objetivos(request):
 
 
 
+@require_GET
+@login_required
+def api_capacitaciones(request):
+    today = timezone.localdate()
+    period = request.GET.get('periodo', '6m') 
+    
+    try:
+        num_months = int(period.replace('m', ''))
+    except ValueError:
+        num_months = 6
+
+    start_date = (today.replace(day=1) - relativedelta(months=num_months - 1))
+    
+    qs = CapacitacionEmpleado.objects.filter(
+        fecha_inscripcion__gte=start_date, 
+        fecha_inscripcion__lte=today
+    )
+
+    labels, internas, externas = [], [], []
+
+    current_date = start_date
+    while current_date <= today:
+        month_qs = qs.filter(
+            fecha_inscripcion__month=current_date.month, 
+            fecha_inscripcion__year=current_date.year
+        )
+        
+        labels.append(current_date.strftime('%b %y').capitalize())
+        internas.append(month_qs.filter(capacitacion__es_externo=False).count())
+        externas.append(month_qs.filter(capacitacion__es_externo=True).count())
+        
+        current_date += relativedelta(months=1)
+
+    return JsonResponse({
+        "labels": labels,
+        "internas": internas,
+        "externas": externas,
+        "start_date_formatted": start_date.strftime('%d %b %Y'),
+        "end_date_formatted": today.strftime('%d %b %Y'),
+    })
+
+
 ###########################################################
 ###########################################################
 ###########################################################
@@ -612,7 +655,6 @@ def api_logros_empleado(request):
     lista_logros = []
     
     for logro in todos_los_logros:
-        # Buscamos si existe un registro para este empleado y este logro específico
         registro_usuario = logros_del_empleado.get(logro.id)
         
         tipo = logro.tipo
@@ -634,9 +676,46 @@ def api_logros_empleado(request):
             'requisito': requisito_texto
         })
     
-    # Opcional: Ordenar la lista para que aparezcan primero los completados o por tipo
     lista_logros.sort(key=lambda x: (not x['completado'], x['titulo']))
 
     return JsonResponse({
         "logros": lista_logros,
+    })
+
+
+
+
+@login_required
+@require_GET
+def api_capacitaciones_empleado(request):
+    try:
+        empleado = request.user.persona.empleado 
+    except AttributeError:
+        return JsonResponse({'error': 'Perfil incompleto'}, status=403)
+
+    capacitaciones_activas = CapacitacionEmpleado.objects.filter(
+        empleado=empleado
+    ).exclude(
+        estado__in=['COMPLETADO', 'CANCELADO']
+    ).select_related('capacitacion').order_by('capacitacion__fecha_inicio')
+
+    lista_capacitaciones = []
+    for cap in capacitaciones_activas:
+        es_externo = cap.capacitacion.es_externo
+        
+        estado_display = cap.get_estado_display()
+        if cap.estado == 'INSCRIPTO':
+            estado_display = "Interesado" if es_externo else "Inscripto"
+
+        lista_capacitaciones.append({
+            'id': cap.id,
+            'titulo': cap.capacitacion.nombre,
+            'fecha_inicio': cap.capacitacion.fecha_inicio.strftime('%d/%m/%Y') if cap.capacitacion.fecha_inicio else None,
+            'estado': estado_display,
+            'es_externo': es_externo,
+            'url_curso': cap.capacitacion.url_sitio if es_externo else None,
+        })
+
+    return JsonResponse({
+        "mis_capacitaciones": lista_capacitaciones
     })

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mi Historial de Capacitaciones{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-5 mt-2">
+    <h4 class="mb-3">Historial de Capacitaciones y Cursos</h4>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body pb-1">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-sm" id="capacitacionesTable">
+                    <thead class="text-center">
+                        <tr>
+                            <th>Curso / Capacitación</th>
+                            <th>Tipo</th>
+                            <th>Inicio / Ritmo</th>
+                            <th>Inscripción</th>
+                            <th>Estado</th>
+                            <th>Finalización</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center" id="capacitacionesTableBody">
+                        <tr><td colspan="7" class="text-center">Cargando datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+             <div class="card-footer border-top-0 p-1">
+                <nav>
+                    <ul class="pagination justify-content-center" id="paginationControls"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'informes_vista_empleado/js/capacitaciones_detalle.js' %}"></script>
+{% endblock %}
