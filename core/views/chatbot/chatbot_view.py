@@ -14,7 +14,8 @@ from .hr_tools import (
     get_last_performance_review_tool,
     get_current_contract_info_tool,
     get_internal_job_applications_tool,
-    get_attendance_summary_tool
+    get_attendance_summary_tool,
+    get_recommended_courses_tool
 )
 
 
@@ -122,6 +123,9 @@ def get_response_chatbot(request):
         "ingreso", "salida", "mi horario", "registro horario", "checador", "fichaje", "mis asistencias"
     ]
     
+    kw_capacitaciones = [
+        "curso", "cursos", "capacitaciones", "capacitacion", "capacitar", "inscripcion", "inscripciones"
+    ]
 
     if any(saludo in text for saludo in saludos_entrada):
         response_text = f"¡Hola {user.persona.nombre}! 👋 Soy tu asistente virtual de RRHH. ¿En qué puedo ayudarte hoy?"
@@ -147,6 +151,8 @@ def get_response_chatbot(request):
         response_text = get_internal_job_applications_tool.invoke({"user_id": user_id})
     elif any(kw in text for kw in kw_asistencia):
         response_text = get_attendance_summary_tool.invoke({"user_id": user_id})
+    elif any(kw in text for kw in kw_capacitaciones):
+        response_text = get_recommended_courses_tool.invoke({"user_id": user_id})
   
 
     if not response_text:        

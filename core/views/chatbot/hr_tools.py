@@ -357,6 +357,43 @@ def get_attendance_summary_tool(user_id: int) -> str:
 
 
 
+@tool("get_recommended_courses", args_schema=GenericUserIDInput)
+def get_recommended_courses_tool(user_id: int) -> str:
+    """Analiza el cargo actual del empleado y recomienda cursos de la cartelera en los que aún no esté inscripto."""
+    
+    empleado = Empleado.objects.filter(usuario_id=user_id).first()
+    if not empleado: return "ERROR: No se encontró el registro de empleado."
+
+    cargo_actual = EmpleadoCargo.objects.filter(empleado=empleado, fecha_fin__isnull=True).select_related('cargo').first()
+    
+    if not cargo_actual:
+        return "No tienes un cargo activo asignado, por lo que no puedo personalizar las recomendaciones. ¡Consulta con RRHH!"
+
+    relacion = CargoDepartamento.objects.filter(cargo=cargo_actual.cargo).select_related('departamento').first()
+    depto_nombre = relacion.departamento.nombre if relacion else "General"
+    cargo_nombre = cargo_actual.cargo.nombre
+
+    inscripciones_ids = CapacitacionEmpleado.objects.filter(empleado=empleado).values_list('capacitacion_id', flat=True)
+
+    cursos_disponibles = Capacitacion.objects.filter(activo=True).exclude(id__in=inscripciones_ids)
+
+    if not cursos_disponibles.exists():
+        return f"¡Hola! Actualmente no hay cursos nuevos en la cartelera que no hayas tomado ya. ¡Vuelve pronto!"
+
+    lista_texto = ""
+    for c in cursos_disponibles:
+        tipo = "Externo" if c.es_externo else "Interno"
+        lista_texto += f"- [{tipo}] {c.nombre}: {c.descripcion[:120]}...\n"
+
+    prompt_para_ia = (
+        f"El empleado trabaja como '{cargo_nombre}' en el departamento de '{depto_nombre}'.\n"
+        f"Cursos disponibles:\n{lista_texto}\n"
+        f"Por favor, selecciona los 2 o 3 más afines a su perfil y explica brevemente por qué le servirán."
+    )
+    
+    return prompt_para_ia
+
+
 
 HR_TOOLS = [
     get_vacation_days_tool, 
@@ -368,6 +405,6 @@ HR_TOOLS = [
     get_last_performance_review_tool,
     get_current_contract_info_tool,
     get_internal_job_applications_tool,
-    get_attendance_summary_tool
-
+    get_attendance_summary_tool,
+    get_recommended_courses_tool,
 ]
