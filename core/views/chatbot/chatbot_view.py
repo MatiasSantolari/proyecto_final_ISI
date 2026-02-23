@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 import json
+from langchain_core.messages import HumanMessage
 from .hr_agent import hr_agent, AnyMessage, HumanMessage
 from .hr_tools import (
     get_vacation_days_tool, 
@@ -148,37 +149,25 @@ def get_response_chatbot(request):
         response_text = get_attendance_summary_tool.invoke({"user_id": user_id})
   
 
-    if not response_text:
-        response_text = "Lo siento, no entendí tu consulta. Por favor, sé mas específico con palabras clave."
+    if not response_text:        
+        try:
+            config = {"configurable": {"thread_id": f"hr_chat_{user_id}"}}
+            
+            input_data = {
+                "messages": [HumanMessage(content=text)],
+                "user_id": user_id
+            }
 
+            final_state = hr_agent.invoke(input_data, config=config)            
+            last_message = final_state['messages'][-1]
 
-    ## Esto se implementaria para utilizar el modo agente AI pro
-    ## Cuando el metodo manual no puede dar una respuesta, se produce un fallback y llama al modo agente
-    ## (Para activarlo hay que pagar la API, igual que creo es barata)
-    ## Se reemplaza el "response_text = "Lo siento, no entendí...." por el codigo comentado de abajo
-        '''
-        if not response_text:        
-            try:
-                config = {"configurable": {"thread_id": f"hr_chat_{user_id}"}}
-                
-                input_data = {
-                    "messages": [HumanMessage(content=text)],
-                    "user_id": user_id
-                }
+            if last_message.type == 'ai':
+                response_text = last_message.content
+            else:
+                response_text = "Lo siento, no pude procesar la respuesta."
 
-                final_state = hr_agent.invoke(input_data, config=config)            
-                last_message = final_state['messages'][-1]
+        except Exception as e:
+            print(f"Error AI/Tokens: {e}")
+            response_text = "Lo siento, no entendí tu consulta. Por favor, sé más específico con palabras clave."
 
-                if last_message.type == 'ai':
-                    response_text = last_message.content
-                else:
-                    response_text = "Lo siento, no pude procesar la respuesta."
-
-            except Exception as e:
-                print(f"Error AI: {e}")
-                response_text = "Lo siento, hubo un error al consultar a la IA."
-        ''' 
     return JsonResponse({"response": response_text or "No tengo información sobre ese tema específico."})
-
-
-

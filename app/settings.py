@@ -30,7 +30,7 @@ SOCIAL_AUTH_LOGIN_ERROR_URL = '/auth/login/'
 
 AUTH_USER_MODEL = 'core.Usuario'
 
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
