@@ -66,6 +66,8 @@ urlpatterns = [
     path('capacitaciones/desactivar/<int:id_cap>/', capacitaciones_view.desactivar_capacitacion, name='desactivar_capacitacion'),
     path('capacitaciones/<int:id_cap>/eliminar/', capacitaciones_view.eliminar_capacitacion, name='eliminar_capacitacion'),
 
+    path('cartelera_capacitaciones/', capacitaciones_view.cartelera_capacitaciones, name='cartelera_capacitaciones'),
+    path('cartelera_capacitaciones/inscribir/<int:cap_id>/', capacitaciones_view.inscribir_capacitacion, name='inscribir_capacitacion'),
 
     ## LOGRO ##
     path('logros/', logros_view.logros, name='logros'),

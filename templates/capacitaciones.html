@@ -169,26 +169,25 @@
                                   </button>
                               </div>
                           </div>
+                          <div class="col-md-12 mb-3">
+                            <label class="form-label fw-bold text-primary">Imagen Publicitaria</label>
+                            <div class="row align-items-center">
+                                <div id="preview_imagen_cont" class="col-auto" style="display: none;">
+                                    <img id="preview_imagen" src="" class="img-thumbnail bg-dark" 
+                                        style="height: 100px; width: 160px; object-fit: contain; background-color: #f8f9fa;">
+                                    <small class="d-block text-center text-muted" style="font-size: 0.7rem;">Actual</small>
+                                </div>
+                                <div class="col">
+                                    {{ form.imagen_publicitaria|add_class:"form-control"|attr:"id:id_imagen_publicitaria" }}
+                                    <small class="text-muted small">Cargue una imagen para promocionar el curso.</small>
+                                </div>
+                            </div>
+                          </div>
                           <div id="seccion_externa" class="col-12" style="display: none;">
                             <div class="row">
                               <div class="col-md-12 mb-3">
                                   <label class="form-label fw-bold text-primary">URL del Curso (Sitio Web)</label>
                                   {{ form.url_sitio|add_class:"form-control border-primary"|attr:"placeholder:https://..." }}
-                              </div>
-
-                              <div class="col-md-12 mb-3">
-                                  <label class="form-label fw-bold text-primary">Imagen Publicitaria</label>
-                                  <div class="row align-items-center">
-                                      <div id="preview_imagen_cont" class="col-auto" style="display: none;">
-                                          <img id="preview_imagen" src="" class="img-thumbnail bg-dark" 
-                                             style="height: 100px; width: 160px; object-fit: contain; background-color: #f8f9fa;">
-                                          <small class="d-block text-center text-muted" style="font-size: 0.7rem;">Actual</small>
-                                      </div>
-                                      <div class="col">
-                                          {{ form.imagen_publicitaria|add_class:"form-control"|attr:"id:id_imagen_publicitaria" }}
-                                          <small class="text-muted small">Cargue una imagen para promocionar el curso.</small>
-                                      </div>
-                                  </div>
                               </div>
                             </div>
                         </div>
@@ -416,12 +415,12 @@
     }
 
     function toggleCamposExternos(esExterno) {
-        const seccion = document.getElementById('seccion_externa');
+        const seccionURL = document.getElementById('seccion_externa');
         const divCapacitacionProp = document.getElementById('div_capacitacion_propia');
         const checkCapacitacionProp = document.getElementById('id_contenido_interno');
         const divCupo = document.getElementById('id_cupo')?.closest('.col-md-4');
         
-        if (seccion) seccion.style.display = esExterno ? 'flex' : 'none';
+        if (seccionURL) seccionURL.style.display = esExterno ? 'block' : 'none';
         
         if (esExterno) {
             if (divCupo) divCupo.style.display = 'none'; 

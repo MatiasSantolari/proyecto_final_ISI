@@ -10,6 +10,7 @@ class Capacitacion(models.Model):
     imagen_publicitaria = models.ImageField(upload_to='cursos/%Y/%m/%d', null=True, blank=True)
     fecha_inicio = models.DateField(null=True, blank=True, verbose_name='Fecha de inicio')
     fecha_fin = models.DateField(null=True, blank=True, verbose_name='Fecha de fin')
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Creacion')
     activo = models.BooleanField(default=True, verbose_name="¿Esta activo el curso?")
     contenido_interno = models.BooleanField(default=False, verbose_name='¿Contenido propio de la empresa?')
     presencial = models.BooleanField(default=False, verbose_name='Es presencial')

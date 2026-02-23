@@ -8,6 +8,8 @@ from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
 
 
 @login_required
@@ -91,3 +93,46 @@ def eliminar_capacitacion(request, id_cap):
     capacitacion.delete()
     messages.success(request, "Capacitación eliminada definitivamente.")
     return redirect('capacitaciones')
+
+
+
+@login_required
+def cartelera_capacitaciones(request):
+    query = Capacitacion.objects.filter(activo=True).order_by('-fecha_creacion')
+    
+    mis_inscripciones = CapacitacionEmpleado.objects.filter(
+        empleado__usuario=request.user
+    ).values_list('capacitacion_id', flat=True)
+
+    paginator = Paginator(query, 6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'capacitaciones_cartelera.html', {
+        'capacitaciones': page_obj,
+        'mis_inscripciones': mis_inscripciones,
+    })
+
+
+
+@login_required
+def inscribir_capacitacion(request, cap_id):
+    capacitacion = get_object_or_404(Capacitacion, id=cap_id)
+    empleado = get_object_or_404(Empleado, usuario=request.user)
+
+    inscripcion, created = CapacitacionEmpleado.objects.get_or_create(
+        capacitacion=capacitacion,
+        empleado=empleado,
+        defaults={'estado': 'INSCRIPTO'}
+    )
+
+    if capacitacion.url_sitio:
+        return redirect(capacitacion.url_sitio)
+
+    if created:
+        messages.success(request, f"Te has inscripto correctamente a: {capacitacion.nombre}")
+    else:
+        messages.info(request, "Ya te encuentras inscripto en esta capacitación.")
+
+    return redirect('cartelera_capacitaciones')
+
