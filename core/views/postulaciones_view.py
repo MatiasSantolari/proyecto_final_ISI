@@ -18,7 +18,10 @@ from django.core.paginator import Paginator
 def listar_ofertas(request):
     persona = request.user.persona  
     cargos_departamento_list = CargoDepartamento.objects.select_related('cargo', 'departamento')\
-        .filter(visible=True)\
+        .filter(
+            visible=True,
+            vacante__gt=0
+        )\
         .exclude(cargo__nombre="ADMIN")\
         .exclude(departamento__nombre="ADMIN")\
         .order_by('departamento__nombre', 'cargo__nombre')

@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Administración de Solicitudes{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-5 my-2">
+    <h4 class="mb-4" style="color: var(--color-primario);">Gestor Solicitudes de Cargos</h4>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover table-striped table-bordered align-middle text-center">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Departamento</th>
+                            <th>Solicitante</th>
+                            <th>Cargo</th>
+                            <th>Cupos</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in solicitudes %}
+                        <tr>
+                            <td>{{ s.fecha_solicitud|date:"d/m/y" }}</td>
+                            <td><span class="badge border text-reset">{{ s.departamento.nombre }}</span></td>
+                            <td>{{ s.solicitante.persona.nombre }} {{ s.solicitante.persona.apellido }}</td>
+                            <td class="fw-bold">
+                                {% if s.tipo == 'EXISTENTE' %}{{ s.cargo_existente.nombre }}{% else %}{{ s.nombre_cargo_nuevo }}{% endif %}
+                            </td>
+                            <td>{{ s.cupos }}</td>
+                            <td>
+                                <span class="badge {% if s.estado == 'PENDIENTE' %}bg-warning text-dark{% elif s.estado == 'APROBADA' %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ s.get_estado_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalDetalle{{ s.id }}">
+                                    <i class="bi bi-search"></i> Revisar
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% for s in solicitudes %}
+<div class="modal fade" id="modalDetalle{{ s.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="margin-top: 6rem;">
+        <div class="modal-content">
+            <div class="modal-header text-white" style="background-color: #3c8dbc;">
+                <h5 class="modal-title">Detalles de Solicitud #{{ s.id }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h4 class="mb-3 text-primary">
+                    {% if s.tipo == 'EXISTENTE' %}{{ s.cargo_existente.nombre }}{% else %}{{ s.nombre_cargo_nuevo }}{% endif %}
+                </h4>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Solicitante:</strong> {{ s.solicitante.persona.nombre }} {{ s.solicitante.persona.apellido }}</p>
+                        <p class="mb-1"><strong>Departamento:</strong> {{ s.departamento.nombre }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Tipo:</strong> <span class="badge border text-reset">{{ s.get_tipo_display }}</span></p>
+                        <p class="mb-1"><strong>Cantidad de Cupos:</strong> <span class="badge bg-info text-dark">{{ s.cupos }}</span></p>
+                    </div>
+                </div>
+
+                <hr>
+                
+                <p><strong>Perfil Detallado / Requisitos:</strong></p>
+                <div class="p-3 border rounded bg-transparent mb-3" style="color: inherit;">
+                    {{ s.perfil_detallado|linebreaks }}
+                </div>
+
+                {% if s.tipo == 'NUEVO' and s.descripcion_cargo_nuevo %}
+                <p><strong>Descripción Base del Cargo:</strong></p>
+                <div class="p-3 border rounded bg-transparent mb-3">
+                    {{ s.descripcion_cargo_nuevo }}
+                </div>
+                {% endif %}
+
+                {% if s.motivo_admin %}
+                <div class="alert alert-danger mt-3">
+                    <strong>Motivo del Rechazo:</strong><br>
+                    {{ s.motivo_admin }}
+                </div>
+                {% endif %}
+
+                {% if s.estado == 'PENDIENTE' %}
+                <div class="d-flex gap-2 mt-4">
+                    <button class="btn btn-success flex-fill fw-bold" data-bs-toggle="modal" data-bs-target="#modalAprobar{{ s.id }}" data-bs-dismiss="modal">
+                        Aprobar
+                    </button>
+                    <button class="btn btn-danger flex-fill fw-bold" data-bs-toggle="modal" data-bs-target="#modalRechazar{{ s.id }}" data-bs-dismiss="modal">
+                        Rechazar
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAprobar{{ s.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" action="{% url 'aprobar_solicitud' s.id %}">
+                {% csrf_token %}
+                <div class="modal-body text-center p-4">
+                    <i class="bi bi-question-circle text-success" style="font-size: 3rem;"></i>
+                    <h4 class="mt-3">¿Confirmar Aprobación?</h4>
+                    <p>Se aprobará la solicitud para el departamento de <strong>{{ s.departamento.nombre }}</strong>.</p>
+                    
+                    {% if s.tipo == 'NUEVO' %}
+                    <div class="mt-3 text-start">
+                        <label class="form-label fw-bold">Sueldo Base Inicial (Opcional):</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" name="sueldo_base" class="form-control" step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <small class="text-muted text-center d-block mt-1">Si no ingresa nada, se guardará como 0.</small>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary flex-fill" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success flex-fill">Sí, Aprobar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalRechazar{{ s.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" action="{% url 'rechazar_solicitud' s.id %}">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="text-center mb-3">
+                        <i class="bi bi-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
+                        <h4 class="mt-2">Rechazar Solicitud</h4>
+                    </div>
+                    <label class="form-label fw-bold">Motivo del Rechazo (Obligatorio):</label>
+                    <textarea name="motivo_admin" class="form-control" rows="3" required placeholder="Escriba aqui por que se rechaza esta solicitud..."></textarea>
+                    
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary flex-fill" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger flex-fill">Confirmar Rechazo</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

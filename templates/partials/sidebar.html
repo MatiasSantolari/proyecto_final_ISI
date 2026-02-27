@@ -240,6 +240,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 <ul class="nav nav-treeview">
                     <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-bullhorn nav-icon"></i><p>Ofertas de Empleo</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'admin_postulaciones' %}"><i class="fas fa-user-check nav-icon"></i><p>Administrar Postulaciones</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'gestion_solicitudes' %}"><i class="fas fa-clipboard-list nav-icon"></i><p>Gestionar Solicitudes Cargo</p></a></li>
                 </ul>
             </li>
 
@@ -286,7 +287,8 @@ document.addEventListener("DOMContentLoaded", function() {
             <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-search-plus nav-icon"></i><p>Ofertas de Empleo</p></a></li>
-        {% endif %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_cargos' %}"><i class="nav-icon fas fa-user-plus"></i><p>Solicitar Nuevo Personal</p></a></li>
+            {% endif %}
 
         {% if request.session.rol_actual == 'empleado' %}
             <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-clock"></i><p>Registrar Asistencia</p></a></li>
@@ -305,6 +307,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <li class="nav-item"><a class="nav-link" href="{% url 'evaluaciones' %}"><i class="fas fa-user-graduate nav-icon"></i><p>Administrar Evaluaciones</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="fas fa-plane-departure nav-icon"></i> <p>Gestionar Vacaciones</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}"><i class="fas fa-hand-holding-heart nav-icon"></i><p>Asignar Benef/Desc</p></a></li>       
+            <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_cargos' %}"><i class="nav-icon fas fa-user-plus"></i><p>Solicitar Nuevo Personal</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Mis Nóminas</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
@@ -320,6 +323,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <li class="nav-item"><a class="nav-link" href="{% url 'evaluaciones' %}"><i class="fas fa-user-graduate nav-icon"></i><p>Administrar Evaluaciones</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="fas fa-plane-departure nav-icon"></i> <p>Gestionar Vacaciones</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}"><i class="fas fa-hand-holding-heart nav-icon"></i><p>Asignar Benef/Desc</p></a></li>       
+            <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_cargos' %}"><i class="nav-icon fas fa-user-plus"></i><p>Solicitar Nuevo Personal</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Mis Nóminas</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>

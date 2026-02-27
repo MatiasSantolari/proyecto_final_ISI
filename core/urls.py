@@ -37,9 +37,14 @@ urlpatterns = [
 
     ## CARGO ##
     path('cargos/', cargos_view.cargos, name='cargos'),
-    path('cargos/crear/', cargos_view.crear_cargo, name='crear_cargo'), ## Sirve para editar tambien
+    path('cargos/crear/', cargos_view.crear_cargo, name='crear_cargo'),
     path('cargos/<int:id_cargo>/eliminar/', cargos_view.eliminar_cargo, name='eliminar_cargo'),
-    
+    path('solicitar-cargos/', solicitud_cargo_view.solicitar_cargos, name='solicitar_cargos'),
+    path('solicitar-cargos/crear/', solicitud_cargo_view.crear_solicitud, name='crear_solicitud'),
+    path('gestion-solicitudes/', solicitud_cargo_view.gestion_solicitudes, name='gestion_solicitudes'),
+    path('gestion-solicitudes/<int:id_solicitud>/aprobar/', solicitud_cargo_view.aprobar_solicitud, name='aprobar_solicitud'),
+    path('gestion-solicitudes/<int:id_solicitud>/rechazar/', solicitud_cargo_view.rechazar_solicitud, name='rechazar_solicitud'),
+
 
     ## DEPARTAMENTO ##
     path('departamentos/', departamentos_view.departamentos, name='departamentos'),
