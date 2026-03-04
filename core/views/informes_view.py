@@ -760,6 +760,139 @@ def exportar_capacitaciones_csv(request):
 
 
 
+########### OBJETIVOS #########
+######################
+def get_objetivos_queryset(request):
+    queryset = ObjetivoEmpleado.objects.select_related(
+        'empleado', 
+        'objetivo', 
+        'objetivo__departamento',
+        'cargo'
+    ).order_by('-fecha_asignacion', '-id')
+    
+    dni = request.GET.get('dni')
+    completado = request.GET.get('completado') 
+    departamento_id = request.GET.get('departamento_id')
+    tipo_recurrencia = request.GET.get('tipo_recurrencia')
+    
+    if dni:
+        queryset = queryset.filter(empleado__dni__icontains=dni)
+    
+    if completado != '' and completado is not None:
+        valor_bool = True if completado.lower() == 'true' else False
+        queryset = queryset.filter(completado=valor_bool)
+        
+    if departamento_id:
+        queryset = queryset.filter(objetivo__departamento_id=departamento_id)
+
+    if tipo_recurrencia == 'recurrente':
+        queryset = queryset.filter(objetivo__es_recurrente=True)
+    elif tipo_recurrencia == 'aislado':
+        queryset = queryset.filter(objetivo__es_recurrente=False)
+
+    return queryset
+
+
+
+@login_required
+def objetivos_detalle_view(request):
+    departamentos = Departamento.objects.all().order_by('nombre')
+    return render(request, 'informes/objetivos_detalle.html', {
+        'departamentos': departamentos
+    })
+
+
+
+@login_required
+def api_objetivos_detalle(request):
+    queryset = get_objetivos_queryset(request)
+    
+    page = request.GET.get('page', 1)
+    per_page = request.GET.get('per_page', 12)
+    paginator = Paginator(queryset, per_page)
+
+    try:
+        objs_page = paginator.page(page)
+    except (PageNotAnInteger, EmptyPage):
+        objs_page = paginator.page(1)
+
+    data = []
+    for rel in objs_page:
+        cargo_nombre = rel.cargo.nombre if rel.cargo else "Asignación Manual"        
+        f_asignacion = rel.fecha_asignacion.strftime('%d-%m-%Y') if rel.fecha_asignacion else "N/A"
+
+        if rel.objetivo.es_recurrente:
+            f_limite = f_asignacion
+        else:
+            f_limite = rel.fecha_limite.strftime('%d-%m-%Y') if rel.fecha_limite else "Sin fecha"
+
+        data.append({
+            'id': rel.id,
+            'empleado': f"{rel.empleado.nombre} {rel.empleado.apellido}",
+            'dni': rel.empleado.dni,
+            'objetivo_titulo': rel.objetivo.titulo,
+            'objetivo_descripcion': rel.objetivo.descripcion,
+            'es_recurrente': rel.objetivo.es_recurrente, 
+            'departamento': rel.objetivo.departamento.nombre if rel.objetivo.departamento else 'General',
+            'cargo_nombre': cargo_nombre,
+            'fecha_asignacion': f_asignacion,
+            'fecha_limite': f_limite, 
+            'completado': rel.completado,
+            'url_perfil': reverse('empleado_perfil_detalle', args=[rel.empleado.id]),
+        })
+    
+    return JsonResponse({
+        'results': data,
+        'pagination': {
+            'total_pages': paginator.num_pages,
+            'current_page': objs_page.number,
+            'has_next': objs_page.has_next(),
+            'has_previous': objs_page.has_previous(),
+        }
+    })
+
+
+@login_required
+def exportar_objetivos_csv(request):
+    queryset = get_objetivos_queryset(request)
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="reporte_objetivos.csv"'
+    
+    response.write(u'\ufeff'.encode('utf8'))
+    writer = csv.writer(response)
+    
+    writer.writerow([
+        'Empleado', 'DNI', 'Objetivo', 'Tipo', 'Departamento', 
+        'Cargo en Asignación', 'Fecha Asignación', 'Fecha Límite', 'Estado'
+    ])
+    
+    for rel in queryset:
+        tipo = "Recurrente (Diario)" if rel.objetivo.es_recurrente else "Aislado (Único)"
+        
+        if rel.objetivo.es_recurrente:
+            f_limite = rel.fecha_asignacion
+        else:
+            f_limite = rel.fecha_limite if rel.fecha_limite else 'Sin límite'
+            
+        estado = "Completado" if rel.completado else "Pendiente"
+        dep = rel.objetivo.departamento.nombre if rel.objetivo.departamento else 'General'
+        
+        writer.writerow([
+            f"{rel.empleado.nombre} {rel.empleado.apellido}",
+            rel.empleado.dni,
+            rel.objetivo.titulo,
+            tipo,
+            dep,
+            rel.cargo.nombre if rel.cargo else "Manual",
+            rel.fecha_asignacion,
+            f_limite,  
+            estado
+        ])
+        
+    return response
+
+
 
 
 ##############################################

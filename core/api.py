@@ -39,80 +39,101 @@ def to_float(value):
         return 0.0
 
 
+import locale
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models import Sum, Avg
+
+# Intentar establecer idioma en español para los nombres de meses
+try:
+    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+except:
+    locale.setlocale(locale.LC_TIME, '')
+
 @require_GET
 @login_required
 def api_kpis(request):
     today = timezone.localdate()
-
-    first_day_of_current_month = today.replace(day=1)
-    last_day_of_previous_month = first_day_of_current_month - timedelta(days=1)
-    first_day_of_previous_month = last_day_of_previous_month.replace(day=1)
-
-    start_date_payroll = first_day_of_previous_month
-    end_date_payroll = last_day_of_previous_month
-
-    start_date_evaluations = today - timedelta(days=365) 
-
-    employees_total = Empleado.objects.count()
-    absences_month = HistorialAsistencia.objects.filter(
-        fecha_asistencia__gte=start_date_payroll, 
-        fecha_asistencia__lte=end_date_payroll,
+    
+    nombre_mes_actual = today.strftime('%B %Y').capitalize()
+    absences_count = HistorialAsistencia.objects.filter(
+        fecha_asistencia__month=today.month,
+        fecha_asistencia__year=today.year,
         confirmado=False
-        ).count()
-    payroll_cost_month = Nomina.objects.filter(
-        fecha_generacion__gte=start_date_payroll,
-        fecha_generacion__lte=end_date_payroll,
-        ).aggregate(total=Sum('monto_neto'))['total'] or 0
+    ).count()
 
-    eval_avg = EvaluacionEmpleado.objects.filter(fecha_registro__gte=start_date_evaluations
-                                                 ).aggregate(avg=Avg('calificacion_final'))['avg'] or 0  
+    ultima_nomina = Nomina.objects.order_by('-fecha_generacion').first()
+    
+    if ultima_nomina:
+        fecha_datos = ultima_nomina.fecha_generacion
+        nombre_mes_costo = fecha_datos.strftime('%B %Y').capitalize()
+        payroll_cost = Nomina.objects.filter(
+            fecha_generacion__month=fecha_datos.month,
+            fecha_generacion__year=fecha_datos.year
+        ).aggregate(total=Sum('monto_neto'))['total'] or 0
+    else:
+        nombre_mes_costo = "Sin datos"
+        payroll_cost = 0
+
+    start_eval = today - timedelta(days=365)
+    rango_eval = f"{start_eval.strftime('%b %Y')} - {today.strftime('%b %Y')}".capitalize()
+    
+    eval_avg = EvaluacionEmpleado.objects.filter(
+        fecha_registro__gte=start_eval
+    ).aggregate(avg=Avg('calificacion_final'))['avg'] or 0
 
     return JsonResponse({
-        "employees_total": employees_total,
-        "absences_month": absences_month,
-        "payroll_cost_month": to_float(payroll_cost_month),
-        "eval_avg": float(eval_avg)
+        "employees_total": Empleado.objects.count(),
+        "absences_count": absences_count,
+        "absences_month_name": nombre_mes_actual,
+        "payroll_cost": float(payroll_cost),
+        "payroll_month_name": nombre_mes_costo,
+        "eval_avg": float(eval_avg),
+        "eval_range": rango_eval
     })
 
 
-@require_GET
+
 @login_required
 def api_vacaciones(request):
-    today = timezone.localdate()
-
-    period = request.GET.get('periodo', '1m') 
+    hoy = timezone.now().date()
+    periodo_solicitado = request.GET.get('periodo')
     
-    start_date = today.replace(day=1)
+    periodos_map = {
+        '1m': 0, '2m': 2, '3m': 3, '6m': 6, '12m': 12
+    }
 
-    if period == '2m':
-        start_date = today + relativedelta(months=-1, day=1)
-    elif period == '3m':
-        start_date = today + relativedelta(months=-3, day=1)
-    elif period == '6m':
-        start_date = today + relativedelta(months=-6, day=1)
-    elif period == '12m':
-        start_date = today + relativedelta(years=-1, day=1)
-    elif period == '24m':
-        start_date = today + relativedelta(years=-2, day=1)
+    def obtener_rango(p_code):
+        meses = periodos_map.get(p_code, 0)
+        s_date = (hoy - relativedelta(months=meses)).replace(day=1) if meses > 0 else hoy.replace(day=1)
+        return s_date, hoy
+
+    if periodo_solicitado:
+        start_date, end_date = obtener_rango(periodo_solicitado)
+        periodo_final = periodo_solicitado
     
-    qs = VacacionesSolicitud.objects.filter(fecha_solicitud__gte=start_date)
+    else:
+        periodo_final = '1m' 
+        for p_code in ['1m', '2m', '3m', '6m', '12m']:
+            sd, ed = obtener_rango(p_code)
+            if VacacionesSolicitud.objects.filter(fecha_solicitud__range=[sd, ed]).exists():
+                start_date, end_date = sd, ed
+                periodo_final = p_code
+                break
+        else:
+            start_date, end_date = obtener_rango('1m')
 
-    start_date_formatted = start_date.strftime('%d %b %Y')
-    end_date_formatted = today.strftime('%d %b %Y')
-
-    approved = qs.filter(estado__iexact='aprobado').count()
-    pending = qs.filter(estado__iexact='pendiente').count()
-    rejected = qs.filter(estado__iexact='rechazado').count()
-    cancelled = qs.filter(estado__iexact='cancelado').count()
+    qs = VacacionesSolicitud.objects.filter(fecha_solicitud__range=[start_date, end_date])
 
     return JsonResponse({
         "total": qs.count(),
-        "approved": approved,
-        "pending": pending,
-        "rejected": rejected,
-        "cancelled": cancelled,
-        "start_date_formatted": start_date_formatted,
-        "end_date_formatted": end_date_formatted,
+        "approved": qs.filter(estado='aprobado').count(),
+        "pending": qs.filter(estado='pendiente').count(),
+        "rejected": qs.filter(estado='rechazado').count(),
+        "cancelled": qs.filter(estado='cancelado').count(),
+        "start_date_formatted": start_date.strftime('%d %b %Y'),
+        "end_date_formatted": end_date.strftime('%d %b %Y'),
+        "active_period": periodo_final
     })
 
 
@@ -251,51 +272,42 @@ def api_evaluaciones(request):
 
 
 
+
 @require_GET
 @login_required
 def api_nominas(request):
-    today = timezone.localdate()
-    current_month_start = today.replace(day=1)
-    period = request.GET.get('periodo', '1m') 
-    
     ultima_nomina = Nomina.objects.order_by('-fecha_generacion').first()
+    
+    if not ultima_nomina:
+        return JsonResponse({
+            "base": 0, "benefits": 0, "discounts": 0, "extras": 0,
+            "start_date_formatted": "Sin datos", "end_date_formatted": ""
+        })
 
-    if ultima_nomina and ultima_nomina.fecha_generacion >= current_month_start:
-        end_date = today.replace(day=1) + relativedelta(months=+1, days=-1)
-        months_to_go_back = 1 
-    else:
-        end_date = current_month_start + relativedelta(days=-1) 
-        months_to_go_back = 0 
-
-
+    ultimo_mes_con_datos = ultima_nomina.fecha_generacion.replace(day=1)
+    period = request.GET.get('periodo', '1m') 
     num_months = int(period.replace('m', ''))
     
-    start_date = (end_date + relativedelta(day=1)) + relativedelta(months=-(num_months - 1))
+    end_date = ultimo_mes_con_datos + relativedelta(months=+1, days=-1)
+    start_date = ultimo_mes_con_datos - relativedelta(months=(num_months - 1))
 
     qs = Nomina.objects.filter(fecha_generacion__gte=start_date, fecha_generacion__lte=end_date)
 
     start_date_formatted = start_date.strftime('%b. %Y').capitalize()
     end_date_formatted = end_date.strftime('%b. %Y').capitalize()
 
-    if period == '1m':
-        range_display_end = start_date_formatted
-    else:
-        range_display_end = end_date_formatted
-
     base = qs.aggregate(total=Sum('monto_bruto'))['total'] or 0
     benefits = qs.aggregate(total=Sum('total_beneficios'))['total'] or 0
     discounts = qs.aggregate(total=Sum('total_descuentos'))['total'] or 0
     extras = qs.aggregate(total=Sum('monto_extra_pactado'))['total'] or 0
-    state_counts_qs = qs.values('estado').annotate(count=Count('id'))
-    state_counts = {item['estado']: item['count'] for item in state_counts_qs}
+    
     return JsonResponse({
-        "base": to_float(base-extras),
-        "benefits": to_float(benefits),
-        "discounts": to_float(discounts),
-        "extras": to_float(extras),
-        "state_counts": state_counts,
+        "base": float(base - extras),
+        "benefits": float(benefits),
+        "discounts": float(discounts),
+        "extras": float(extras),
         "start_date_formatted": start_date_formatted,
-        "end_date_formatted": range_display_end,
+        "end_date_formatted": end_date_formatted if num_months > 1 else start_date_formatted,
     })
 
 
@@ -324,7 +336,7 @@ def api_labor_cost_comparison(request):
     data_year1 = get_monthly_costs(year1)
     data_year2 = get_monthly_costs(year2)
     
-    months_labels = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+    months_labels = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
 
     return JsonResponse({
         "labels": months_labels,

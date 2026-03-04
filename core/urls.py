@@ -234,10 +234,14 @@ urlpatterns = [
     path('api/evaluaciones/exportar/csv/', informes_view.exportar_evaluaciones_csv, name='exportar_evaluaciones_csv'),
     path('api/evaluaciones/list/', informes_view.api_evaluaciones_list, name='api_evaluaciones_list'),    
             #### CAPACITACIONES DETALLE ADMIN ####
-    path('capacitaciones/detalle/', views.capacitaciones_detalle_view, name='capacitaciones_detalle'),
-    path('api/capacitaciones/list/', views.api_capacitaciones_list, name='api_capacitaciones_list'),
-    path('api/capacitaciones/detalle/', views.api_capacitaciones_detalle, name='api_capacitaciones_detalle'),
-    path('api/capacitaciones/exportar/csv/', views.exportar_capacitaciones_csv, name='exportar_capacitaciones_csv'),
+    path('capacitaciones/detalle/', informes_view.capacitaciones_detalle_view, name='capacitaciones_detalle'),
+    path('api/capacitaciones/list/', informes_view.api_capacitaciones_list, name='api_capacitaciones_list'),
+    path('api/capacitaciones/detalle/', informes_view.api_capacitaciones_detalle, name='api_capacitaciones_detalle'),
+    path('api/capacitaciones/exportar/csv/', informes_view.exportar_capacitaciones_csv, name='exportar_capacitaciones_csv'),
+            #### OBJETIVOS DETALLE ADMIN ####
+    path('objetivos/detalle/', informes_view.objetivos_detalle_view, name='objetivos_detalle'),
+    path('api/objetivos/detalle/', informes_view.api_objetivos_detalle, name='api_objetivos_detalle'),
+    path('api/objetivos/exportar/csv/', informes_view.exportar_objetivos_csv, name='exportar_objetivos_csv'),
 
 
 
