@@ -391,7 +391,6 @@ def eliminar_nomina(request, id_nomina):
 def ver_nomina(request, id_nomina):
     nomina = get_object_or_404(Nomina, id=id_nomina)
 
-    # Descuentos asignados a la nómina
     descuentos = DescuentoEmpleadoNomina.objects.filter(nomina=nomina)
     descuentos_detalle = [
         {"descripcion": d.descuento.descripcion, 
@@ -400,7 +399,6 @@ def ver_nomina(request, id_nomina):
         for d in descuentos
     ]
 
-    # Agregar descuentos fijos
     descuentos_fijos = Descuento.objects.filter(fijo=True)
     for df in descuentos_fijos:
         descuentos_detalle.append({
@@ -409,7 +407,6 @@ def ver_nomina(request, id_nomina):
             "porcentaje": float(df.porcentaje*nomina.monto_bruto/100) if df.porcentaje else 0
         })
 
-    # Beneficios asignados a la nómina
     beneficios = BeneficioEmpleadoNomina.objects.filter(nomina=nomina)
     beneficios_detalle = [
         {"descripcion": b.beneficio.descripcion, 
@@ -418,7 +415,6 @@ def ver_nomina(request, id_nomina):
         for b in beneficios
     ]
 
-    # Agregar beneficios fijos
     beneficios_fijos = Beneficio.objects.filter(fijo=True)
     for be in beneficios_fijos:
         beneficios_detalle.append({

@@ -17,7 +17,7 @@ class RoleRestrictionMiddleware:
             '/tipos_criterios/', '/criterios/', '/evaluaciones/', '/dashboard/api/kpis/', '/dashboard/api/vacaciones/',
             '/dashboard/api/asistencias/', '/dashboard/api/evaluaciones/', '/dashboard/api/nominas/', 
             '/dashboard/api/costo_laboral_comp/', '/dashboard/api/estructura/', '/dashboard/api/objetivos/', 
-             '/dashboard/api/capacitaciones/',
+            '/dashboard/api/capacitaciones/',
             '/departamentos/list/', '/asistencias/detalle/', '/api/asistencias/detalle/',
             '/api/asistencias/exportar/csv/', '/empleados/detalle/', '/api/empleados/', '/api/empleado/',
             '/nominas/detalle/', '/api/nominas/', '/evaluaciones/detalle/', '/api/evaluaciones/', 
@@ -29,7 +29,8 @@ class RoleRestrictionMiddleware:
             '/dashboard/api/empleado/', '/dashboard/marcar-objetivo-completado/', '/objetivos/detalle/emp/',
             '/api/objetivos/detalle/emp/','/asistencias/detalle/emp/','/api/asistencias/detalle/emp/',
             '/evaluaciones/detalle/emp/','/api/evaluaciones/detalle/emp/','/mi-panel/', '/asistencia/registrar/',
-            '/mis-nominas/', '/cambiar_vista/', '/capacitaciones/detalle/emp/', '/api/capacitaciones/detalle/emp/'
+            '/mis-nominas/', '/cambiar_vista/', '/capacitaciones/detalle/emp/', '/api/capacitaciones/detalle/emp/', 
+            '/nominas/ver/', '/vacaciones/solicitar/'
         ]
             
         if any(request.path.startswith(ruta) for ruta in RUTAS_TODOS_MENOS_NORMAL):
