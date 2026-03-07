@@ -30,7 +30,7 @@ class RoleRestrictionMiddleware:
             '/api/objetivos/detalle/emp/','/asistencias/detalle/emp/','/api/asistencias/detalle/emp/',
             '/evaluaciones/detalle/emp/','/api/evaluaciones/detalle/emp/','/mi-panel/', '/asistencia/registrar/',
             '/mis-nominas/', '/cambiar_vista/', '/capacitaciones/detalle/emp/', '/api/capacitaciones/detalle/emp/', 
-            '/nominas/ver/', '/vacaciones/solicitar/'
+            '/nominas/ver/', '/vacaciones/solicitar/', '/asistencias/detalle/emp/', '/capacitaciones/detalle/emp/'
         ]
             
         if any(request.path.startswith(ruta) for ruta in RUTAS_TODOS_MENOS_NORMAL):
