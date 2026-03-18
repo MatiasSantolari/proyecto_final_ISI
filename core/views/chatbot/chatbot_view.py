@@ -43,8 +43,7 @@ def get_response_chatbot(request):
     saludos_entrada = [
         "hola", "buenas", "buenos dias", "que tal", "que onda", "hey", "q onda", "q tal", "holis", 
         "hi", "hello", "como va", "que hay", "saludos", "q paso", "que paso", "buen dia", "buena", "que onda pa", 
-        "che", "che que tal", "che hola", "ayuda", "necesito ayuda", "asistente", "bot", "rhrr", "rrhh bot",
-        "ayuda"
+        "che", "che que tal", "che hola", "ayuda", "necesito ayuda", "asistente", "bot", "rhrr", "rrhh bot"
     ]
     
     saludos_salida = [
@@ -66,7 +65,7 @@ def get_response_chatbot(request):
     kw_beneficios = [
         "beneficio", "beneficios", "obra social", "obra", "social", "salud", "prepaga", "prepagada", "medicina prepaga", 
         "que me dan", "que recibo", "plan de salud", "cobertura", "beneficio medico", "beneficio salud", 
-        "gimnasio", "descuento gimnasio", "capacitacion", "capacitaciones", "estudio", "estudios", "bono", "bonos",
+        "gimnasio", "descuento gimnasio", "estudio", "estudios", "bono", "bonos",
         "plus", "premios", "aguinaldo", "obra social familiar", "afiliados", "familiares", "beneficios extras", "ticket canasta",
         "comida", "beneficio comida", "transporte", "ayuda transporte", "guarderia", "cheque guarderia", 
         "cuanto es el bono", "que beneficios tengo", "ver beneficios", "mis beneficios", "beneficios obra social", "plan salud"
@@ -103,8 +102,8 @@ def get_response_chatbot(request):
     ]
 
     kw_objetivos = [
-        "objetivo", "objetivos", "metas", "meta", "performance", "rendimiento", "que tengo asignado",
-        "review", "mis objetivos", "mis metas", "que tengo que hacer", "tareas", "tarea", "asignacion", 
+        "objetivo", "objetivos", "metas", "meta", "que tengo asignado",
+        "mis objetivos", "mis metas", "que tengo que hacer", "tareas", "tarea", "asignacion", 
         "asignaciones", "objetivo anual", "objetivos del mes", "que se espera de mi", "completado", 
         "pendiente", "estado objetivos", "mis tareas"
     ]
@@ -113,8 +112,8 @@ def get_response_chatbot(request):
         "nomina", "nómina", "recibo sueldo", "recibo de sueldo", "sueldo", "salario", 
         "pago", "cobro", "monto neto", "monto bruto", "mi pago", "cuanto cobré", 
         "ver sueldo", "ultima nomina", "nomina mes", "liquidación", "liquidacion sueldo",
-        "monto bruto", "monto neto", "cuanto gano", "neto", "bruto", "sueldo neto",
-        "sueldo bruto", "ver sueldo", "ver pago", "cuando pagan", "fecha de pago", "transferencia sueldo"
+        "cuanto gano", "neto", "bruto", "sueldo neto",
+        "sueldo bruto", "ver pago", "cuando pagan", "fecha de pago", "transferencia sueldo"
     ]
 
     kw_evaluaciones = [
