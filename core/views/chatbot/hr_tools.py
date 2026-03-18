@@ -85,7 +85,7 @@ def get_discounts_tool(user_id: int) -> str:
 @tool("get_current_role_and_department", args_schema=GenericUserIDInput)
 def get_current_role_and_department_tool(user_id: int) -> str:
     """Obtiene el cargo y departamento actual del empleado."""
-    empleado = Empleado.objects.filter(usuario_id=user_id).first()
+    empleado = Empleado.objects.filter(usuario=user_id).first()
     if not empleado: return "ERROR: No se encontró el registro de empleado."
 
     cargo_actual = EmpleadoCargo.objects.filter(empleado=empleado, fecha_fin__isnull=True).select_related('cargo').first()
@@ -361,7 +361,7 @@ def get_attendance_summary_tool(user_id: int) -> str:
 def get_recommended_courses_tool(user_id: int) -> str:
     """Analiza el cargo actual del empleado y recomienda cursos de la cartelera en los que aún no esté inscripto."""
     
-    empleado = Empleado.objects.filter(usuario_id=user_id).first()
+    empleado = Empleado.objects.filter(usuario=user_id).first()
     if not empleado: return "ERROR: No se encontró el registro de empleado."
 
     cargo_actual = EmpleadoCargo.objects.filter(empleado=empleado, fecha_fin__isnull=True).select_related('cargo').first()
@@ -393,7 +393,79 @@ def get_recommended_courses_tool(user_id: int) -> str:
     
     return prompt_para_ia
 
+@tool("get_boss_and_manager_info", args_schema=GenericUserIDInput)
+def get_boss_and_manager_info_tool(user_id: int) -> str:
+    """Obtiene el nombre y mail del Jefe y del Gerente del departamento del usuario."""
+    
+    empleado = Empleado.objects.filter(usuario=user_id).first()
+    if not empleado: return "ERROR: No se encontró el registro de empleado."
 
+    cargo_actual = EmpleadoCargo.objects.filter(empleado=empleado, fecha_fin__isnull=True).select_related('cargo').first()
+
+    if cargo_actual:
+        relacion = CargoDepartamento.objects.filter(cargo=cargo_actual.cargo).select_related('departamento').first()
+        depto_obj = relacion.departamento
+
+        jefe_emp = Empleado.objects.filter(
+            empleadocargo__cargo__cargodepartamento__departamento=depto_obj,
+            empleadocargo__cargo__es_jefe=True, 
+            empleadocargo__fecha_fin__isnull=True
+        ).select_related('persona_ptr').first() # uso persona_ptr por la herencia
+
+        gerente_emp = Empleado.objects.filter(
+            empleadocargo__cargo__cargodepartamento__departamento=depto_obj,
+            empleadocargo__cargo__es_gerente=True,
+            empleadocargo__fecha_fin__isnull=True
+        ).select_related('persona_ptr').first()
+
+        res = f"🏢 **Departamento:** {depto_obj.nombre}\n\n"
+        
+        if jefe_emp:
+            res += f"👤 **Jefe:** {jefe_emp.nombre} {jefe_emp.apellido}\n"
+            res += f"📧 **Mail:** {jefe_emp.email or 'No disponible'}\n\n"
+        else:
+            res += "👤 **Jefe:** Sin jefe asignado en este departamento.\n\n"
+
+        if gerente_emp:
+            res += f"👔 **Gerente:** {gerente_emp.nombre} {gerente_emp.apellido}\n"
+            res += f"📧 **Mail:** {gerente_emp.email or 'No disponible'}\n"
+        else:
+            res += "👔 **Gerente:** Sin gerente asignado en este departamento."
+
+        return res
+    
+    return "😔 No se encontró un cargo o departamento asignado actualmente en el sistema."
+    
+    
+@tool("get_team_members", args_schema=GenericUserIDInput)
+def get_team_members_tool(user_id: int) -> str:
+    """Obtiene la lista de compañeros de equipo (mismo departamento) y sus correos."""
+    
+    empleado = Empleado.objects.filter(usuario=user_id).first()
+    if not empleado: return "ERROR: No se encontró el registro de empleado."
+
+    cargo_actual = EmpleadoCargo.objects.filter(empleado=empleado, fecha_fin__isnull=True).select_related('cargo').first()
+
+    if cargo_actual:
+        relacion = CargoDepartamento.objects.filter(cargo=cargo_actual.cargo).select_related('departamento').first()
+        depto_obj = relacion.departamento
+
+        companeros = Empleado.objects.filter(
+            empleadocargo__cargo__cargodepartamento__departamento=depto_obj,
+            empleadocargo__fecha_fin__isnull=True
+        ).exclude(id=empleado.id).distinct().select_related('persona_ptr')
+
+        if not companeros.exists():
+            return f"Actualmente eres el único integrante activo en el departamento de **{depto_obj.nombre}**."
+
+        res = f"👥 **Tus compañeros en {depto_obj.nombre}:**\n\n"
+        for c in companeros:
+            email = c.email or "Sin email registrado"
+            res += f"• **{c.nombre} {c.apellido}** — 📧 {email}\n"
+        
+        return res
+    
+    return "😔 No se encontró un cargo o departamento asignado actualmente en el sistema."
 
 HR_TOOLS = [
     get_vacation_days_tool, 
@@ -407,4 +479,6 @@ HR_TOOLS = [
     get_internal_job_applications_tool,
     get_attendance_summary_tool,
     get_recommended_courses_tool,
+    get_boss_and_manager_info_tool,
+    get_team_members_tool,
 ]
