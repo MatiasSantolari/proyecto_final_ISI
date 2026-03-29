@@ -238,7 +238,6 @@ document.addEventListener("DOMContentLoaded", function() {
             <li class="nav-item has-treeview">
                 <a href="#" class="nav-link"><i class="nav-icon fas fa-user-tie"></i><p>Reclutamiento<i class="right fas fa-angle-left"></i></p></a>
                 <ul class="nav nav-treeview">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-bullhorn nav-icon"></i><p>Ofertas de Empleo</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'admin_postulaciones' %}"><i class="fas fa-user-check nav-icon"></i><p>Administrar Postulaciones</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'gestion_solicitudes' %}"><i class="fas fa-clipboard-list nav-icon"></i><p>Gestionar Solicitudes Cargo</p></a></li>
                 </ul>
@@ -248,8 +247,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 <a href="#" class="nav-link"><i class="nav-icon fas fa-file-contract"></i><p>Compensaciones<i class="right fas fa-angle-left"></i></p></a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item"><a class="nav-link" href="{% url 'nominas' %}"><i class="fas fa-file-invoice-dollar nav-icon"></i><p>Administrar Nóminas</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'contratos' %}"><i class="fas fa-signature nav-icon"></i><p>Contratos</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'tipos_contrato' %}"><i class="fas fa-copy nav-icon"></i><p>Tipos de Contrato</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'contratos' %}"><i class="fas fa-signature nav-icon"></i><p>Contratos</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'beneficios' %}"><i class="fas fa-gift nav-icon"></i><p>Beneficios</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'descuentos' %}"><i class="fas fa-percentage nav-icon"></i><p>Descuentos</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}"><i class="fas fa-hand-holding-usd nav-icon"></i><p>Asignar Ben/Desc</p></a></li>
@@ -259,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <li class="nav-item has-treeview">
                 <a href="#" class="nav-link"><i class="nav-icon fas fa-chart-line"></i><p>Desarrollo y Eval.<i class="right fas fa-angle-left"></i></p></a>
                 <ul class="nav nav-treeview">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'capacitaciones' %}"><i class="fas fa-chalkboard-teacher nav-icon"></i><p>Capacitaciones</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'evaluaciones' %}"><i class="fas fa-poll nav-icon"></i><p>Administrar Evaluaciones</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'tiposCriterios' %}"><i class="fas fa-tags nav-icon"></i><p>Tipos de Criterios</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'criterios' %}"><i class="fas fa-list-ul nav-icon"></i><p>Criterios Evaluación</p></a></li>
@@ -285,7 +284,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cartelera Cursos</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-file-pdf"></i><p>Mis Nóminas</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-search-plus nav-icon"></i><p>Ofertas de Empleo</p></a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_cargos' %}"><i class="nav-icon fas fa-user-plus"></i><p>Solicitar Nuevo Personal</p></a></li>
             {% endif %}

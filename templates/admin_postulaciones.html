@@ -2,8 +2,8 @@
 {% block title %}Postulaciones por Cargo{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-  <h2 class="text-center mb-4" style="color: var(--color-primario);">Postulaciones Recibidas</h2>
+<div class="container mt-5 mb-5">
+  <h3 class="text-center mb-1" style="color: var(--color-primario);">Postulaciones Recibidas</h3>
     <div class="text-end mb-3">
     <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalHistoricoPostulaciones">
         Ver histórico de postulaciones
@@ -130,7 +130,7 @@
             <!-- CARGOS CERRADOS -->
             {% if cargos_no_visibles_por_dpto %}
             <hr class="my-4 border-2 border">
-            <h4 class="mt-5 text-danger">Cargos con búsqueda cerrada</h4>
+            <h4 class="mt-2 text-danger">Cargos con búsqueda cerrada</h4>
             {% for departamento, relaciones in cargos_no_visibles_por_dpto.items %}
                 <h5 class="mt-4 ps-2 border-start border-3 border-danger">{{ departamento }}</h5>
                 <div class="accordion mb-4 shadow-sm border-start border-3 border-danger" id="accordionNoVisibles-{{ forloop.counter }}">
@@ -283,7 +283,7 @@
 
 
     <!-- Modal de Historico -->
-    <div class="modal fade" id="modalHistoricoPostulaciones" tabindex="-1" aria-labelledby="modalHistoricoPostulacionesLabel" aria-hidden="true">
+    <div class="modal fade" id="modalHistoricoPostulaciones" tabindex="-1" aria-labelledby="modalHistoricoPostulacionesLabel" aria-hidden="true" style="z-index: 9999">
     <div class="modal-dialog modal-xl modal-dialog-scrollable mt-5">
         <div class="modal-content">
         <div class="modal-header bg-secondary text-white">
