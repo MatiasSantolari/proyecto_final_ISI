@@ -15,7 +15,9 @@ from .hr_tools import (
     get_current_contract_info_tool,
     get_internal_job_applications_tool,
     get_attendance_summary_tool,
-    get_recommended_courses_tool
+    get_recommended_courses_tool,
+    get_boss_and_manager_info_tool,
+    get_team_members_tool
 )
 
 
@@ -41,8 +43,7 @@ def get_response_chatbot(request):
     saludos_entrada = [
         "hola", "buenas", "buenos dias", "que tal", "que onda", "hey", "q onda", "q tal", "holis", 
         "hi", "hello", "como va", "que hay", "saludos", "q paso", "que paso", "buen dia", "buena", "que onda pa", 
-        "che", "che que tal", "che hola", "ayuda", "necesito ayuda", "asistente", "bot", "rhrr", "rrhh bot",
-        "ayuda"
+        "che", "che que tal", "che hola", "ayuda", "necesito ayuda", "asistente", "bot", "rhrr", "rrhh bot"
     ]
     
     saludos_salida = [
@@ -64,7 +65,7 @@ def get_response_chatbot(request):
     kw_beneficios = [
         "beneficio", "beneficios", "obra social", "obra", "social", "salud", "prepaga", "prepagada", "medicina prepaga", 
         "que me dan", "que recibo", "plan de salud", "cobertura", "beneficio medico", "beneficio salud", 
-        "gimnasio", "descuento gimnasio", "capacitacion", "capacitaciones", "cursos", "estudio", "estudios", "bono", "bonos",
+        "gimnasio", "descuento gimnasio", "estudio", "estudios", "bono", "bonos",
         "plus", "premios", "aguinaldo", "obra social familiar", "afiliados", "familiares", "beneficios extras", "ticket canasta",
         "comida", "beneficio comida", "transporte", "ayuda transporte", "guarderia", "cheque guarderia", 
         "cuanto es el bono", "que beneficios tengo", "ver beneficios", "mis beneficios", "beneficios obra social", "plan salud"
@@ -76,17 +77,33 @@ def get_response_chatbot(request):
         "impuesto a las ganancias", "ganancias", "ingresos brutos"
     ]
     
+    kw_jefe = [
+        "jefe", "mi jefe", "supervisor", "gerente", "quien es mi jefe", "quien es mi supervisor", 
+        "a quien reporto", "quien me supervisa", "mi superior", "jefatura", "quien es el encargado", 
+        "quien manda", "jefe directo", "mi jefe directo", "mi gerencia", "quien es el jefe", 
+        "quien me lidera", "lider de equipo", "mi lider", "mi responsable", "responsable de area",
+        "coordinador", "reportar a", "gerencia", "gerente de", "director", "directora"
+    ]
+
+    kw_equipo = [
+        "equipo", "mi equipo", "compañeros", "compañero", "compañera", "compañeras", "mis compañeros", 
+        "colegas", "colega", "mis colegas", "con quien trabajo", "quienes trabajan conmigo", 
+        "quien trabaja conmigo", "mi team", "team", "miembros", "integrantes", "quienes somos", 
+        "quienes estan en mi area", "quien mas esta", "gente de mi sector", "mis pares", 
+        "mi grupo", "grupo de trabajo", "quien esta en mi depto", "compañeros de oficina",
+        "con quien comparto", "gente de mi equipo", "quien mas trabaja aca", "sector"
+    ]
+    
     kw_rol_depto = [
-        "cargo", "puesto", "departamento", "depto", "mi puesto", "mi cargo", "en que area estoy", "mi area", 
-        "mi departamento", "soy de", "trabajo en", "jefe", "supervisor", "gerente", "coordinador", "puesto actual", 
-        "mi rol", "posicion", "categoría", "escalafon", "seniority", "fecha ingreso", "cuando entre", "antiguedad",
-        "quien es mi jefe", "jefatura", "reportar a", "a quien reporto", "estructura", "organigrama", "donde trabajo", 
-        "equipo", "sector", "division", "gerencia", "gerente de", "director", "directora", "mi jefe directo", "quien manda"
+        "cargo", "puesto", "departamento", "depto", "mi puesto", "mi cargo", "en que area estoy", 
+        "mi area", "mi departamento", "soy de", "trabajo en", "puesto actual", "mi rol", 
+        "posicion", "categoría", "escalafon", "seniority", "fecha ingreso", "cuando entre", 
+        "antiguedad", "estructura", "organigrama", "donde trabajo", "division"
     ]
 
     kw_objetivos = [
-        "objetivo", "objetivos", "metas", "meta", "performance", "rendimiento", "que tengo asignado",
-        "review", "mis objetivos", "mis metas", "que tengo que hacer", "tareas", "tarea", "asignacion", 
+        "objetivo", "objetivos", "metas", "meta", "que tengo asignado",
+        "mis objetivos", "mis metas", "que tengo que hacer", "tareas", "tarea", "asignacion", 
         "asignaciones", "objetivo anual", "objetivos del mes", "que se espera de mi", "completado", 
         "pendiente", "estado objetivos", "mis tareas"
     ]
@@ -95,8 +112,8 @@ def get_response_chatbot(request):
         "nomina", "nómina", "recibo sueldo", "recibo de sueldo", "sueldo", "salario", 
         "pago", "cobro", "monto neto", "monto bruto", "mi pago", "cuanto cobré", 
         "ver sueldo", "ultima nomina", "nomina mes", "liquidación", "liquidacion sueldo",
-        "monto bruto", "monto neto", "cuanto gano", "neto", "bruto", "sueldo neto",
-        "sueldo bruto", "ver sueldo", "ver pago", "cuando pagan", "fecha de pago", "transferencia sueldo"
+        "cuanto gano", "neto", "bruto", "sueldo neto",
+        "sueldo bruto", "ver pago", "cuando pagan", "fecha de pago", "transferencia sueldo"
     ]
 
     kw_evaluaciones = [
@@ -136,7 +153,11 @@ def get_response_chatbot(request):
     elif any(kw in text for kw in kw_beneficios):
         response_text = get_benefits_tool.invoke({"user_id": user_id})   
     elif any(kw in text for kw in kw_descuentos):
-        response_text = get_discounts_tool.invoke({"user_id": user_id})   
+        response_text = get_discounts_tool.invoke({"user_id": user_id})
+    elif any(kw in text for kw in kw_jefe):
+        response_text = get_boss_and_manager_info_tool.invoke({"user_id": user_id})
+    elif any(kw in text for kw in kw_equipo):
+        response_text = get_team_members_tool.invoke({"user_id": user_id}) 
     elif any(kw in text for kw in kw_rol_depto):
         response_text = get_current_role_and_department_tool.invoke({"user_id": user_id}) 
     elif any(kw in text for kw in kw_objetivos):
