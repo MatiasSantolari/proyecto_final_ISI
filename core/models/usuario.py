@@ -1,7 +1,7 @@
 
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-from core.constants import ROL_USUARIO_CHOICES
+from core.constants import ROL_USUARIO_CHOICES2
 
 class UsuarioManager(BaseUserManager):
     def create_user(self, username, email, password=None, persona=None, rol='normal'):
@@ -41,7 +41,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=100, unique=True)
     password = models.CharField(max_length=255)
 
-    rol = models.CharField(max_length=10, choices=ROL_USUARIO_CHOICES, default='normal')
+    rol = models.CharField(max_length=10, choices=ROL_USUARIO_CHOICES2, default='normal')
 
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)

@@ -79,11 +79,12 @@ def api_kpis(request):
     rango_eval = f"{start_eval.strftime('%b %Y')} - {today.strftime('%b %Y')}".capitalize()
     
     eval_avg = EvaluacionEmpleado.objects.filter(
-        fecha_registro__gte=start_eval
+        fecha_registro__gte=start_eval,
+        empleado__estado='activo'
     ).aggregate(avg=Avg('calificacion_final'))['avg'] or 0
 
     return JsonResponse({
-        "employees_total": Empleado.objects.count(),
+        "employees_total": Empleado.objects.filter(estado='activo').count(),
         "absences_count": absences_count,
         "absences_month_name": nombre_mes_actual,
         "payroll_cost": float(payroll_cost),

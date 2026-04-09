@@ -11,17 +11,17 @@
 <div class="row g-4 align-items-center mb-3">
     
     <div class="col-md-2 d-flex justify-content-center">
-        <div id="avatarContainerEdit">
+        <div id="avatarContainerEdit" style="cursor: pointer; position: relative;">
             {% if request.user.persona.avatar %}
-              <img id="previewAvatarEdit" src="{{ request.user.persona.avatar.url }}" alt="Avatar">
+                <img id="previewAvatarEdit" src="{{ request.user.persona.avatar.url }}" alt="Avatar" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;">
             {% else %}
-              <div id="defaultAvatarIcon" class="bg-secondary d-flex justify-content-center align-items-center text-white">
-                <i class="bi bi-person-circle" style="font-size: 3rem;"></i>
-              </div>
+                <div id="defaultAvatarIcon" class="bg-secondary d-flex justify-content-center align-items-center text-white" style="width: 100px; height: 100px; border-radius: 50%;">
+                    <i class="bi bi-person-circle" style="font-size: 3rem;"></i>
+                </div>
             {% endif %}
             <div id="avatarPlus"><i class="bi bi-plus"></i></div>
             
-             <div id="hiddenAvatarInputFields">
+            <div id="hiddenAvatarInputFields" style="display: none;">
                 {{ form.avatar }} 
             </div>
         </div>
@@ -178,3 +178,50 @@
   </form>
   </div>
 </div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const avatarContainer = document.getElementById('avatarContainerEdit');
+    const avatarInput = document.querySelector('#hiddenAvatarInputFields input[type="file"]');
+    
+    avatarContainer.addEventListener('click', function(e) {
+        if (e.target !== avatarInput) {
+            avatarInput.click();
+        }
+    });
+
+    avatarInput.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    avatarInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let previewImg = document.getElementById('previewAvatarEdit');
+                
+                if (!previewImg) {
+                    const defaultIcon = document.getElementById('defaultAvatarIcon');
+                    if (defaultIcon) {
+                        previewImg = document.createElement('img');
+                        previewImg.id = 'previewAvatarEdit';
+                        previewImg.style.width = '100px'; 
+                        previewImg.style.height = '100px';
+                        previewImg.style.objectFit = 'cover';
+                        previewImg.style.borderRadius = '50%';
+                        defaultIcon.parentNode.replaceChild(previewImg, defaultIcon);
+                    }
+                }
+                
+                if (previewImg) {
+                    previewImg.src = e.target.result;
+                }
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+  });
+</script>

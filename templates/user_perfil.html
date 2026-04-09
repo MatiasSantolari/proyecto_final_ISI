@@ -336,12 +336,12 @@
             .then(response => response.json()) 
             .then(data => {
                 if (data.success) {
-                  if (typeof mostrarToast === 'function') {
-                      mostrarToast(data.toast_message || 'Acción exitosa', data.toast_type || 'success');
-                  } else {
-                      alert(data.toast_message || '¡Datos guardados exitosamente!');
-                  }
-                  mostrarMiPerfil(); 
+                    mostrarMiPerfil(); 
+                    if (typeof mostrarToast === 'function') {
+                        mostrarToast(data.toast_message || 'Acción exitosa', data.toast_type || 'success');
+                    } else {
+                        alert(data.toast_message || '¡Datos guardados exitosamente!');
+                    }                    
                 } else {
                     alert('Error al guardar: ' + (data.errors ? JSON.stringify(data.errors) : ''));
                 }

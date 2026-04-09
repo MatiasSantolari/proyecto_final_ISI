@@ -17,17 +17,17 @@ from django.views.decorators.csrf import csrf_exempt
 @login_required
 def personas(request):
     personas_qs = Persona.objects.select_related('empleado', 'usuario').order_by('apellido', 'nombre')
-    
+
     departamentos = Departamento.objects.all()
     dep_id = request.GET.get("departamento")
-    
+
     if dep_id:
         personas_qs = personas_qs.filter(
             empleado__empleadocargo__fecha_fin__isnull=True,
             empleado__empleadocargo__cargo__cargodepartamento__departamento_id=dep_id
         ).distinct()
-    
-    
+
+
     paginator = Paginator(personas_qs, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -38,11 +38,13 @@ def personas(request):
         estado = ""
         cargo_id = ""
         nombre_cargo = ""
+        email_persona = ""
         tipo_usuario = ""
         departamento_id = ""
         departamento_nombre = ""
 
         if hasattr(persona, 'usuario'):
+            email_persona = persona.usuario.email
             tipo_usuario = persona.usuario.rol
 
             if tipo_usuario in ['empleado', 'jefe', 'gerente', 'admin'] and hasattr(persona, 'empleado'):
@@ -67,7 +69,7 @@ def personas(request):
             'nombre': persona.nombre,
             'apellido': persona.apellido,
             'dni': persona.dni,
-            'email': persona.usuario.email,
+            'email': email_persona,
             'prefijo_pais': persona.prefijo_pais,
             'telefono': persona.telefono,
             'fecha_nacimiento': persona.fecha_nacimiento,
@@ -89,10 +91,11 @@ def personas(request):
     return render(request, 'personas.html', {
         'personas': personas_con_datos,
         'page_obj': page_obj,
-        'form': form, 
+        'form': form,
         'departamentos': departamentos,
         'departamento_seleccionado': dep_id
         })
+
 
 
 
@@ -103,6 +106,7 @@ def crear_persona(request):
         id_persona = request.POST.get('id_persona')
         persona = get_object_or_404(Persona, id=id_persona) if id_persona else None
         departamento_id = request.POST.get('departamento')
+        if departamento_id == '': departamento_id = None
 
         form = PersonaForm(request.POST, request.FILES, instance=persona, departamento_id=departamento_id)
 
@@ -201,8 +205,11 @@ def crear_persona(request):
                 if rol == 'admin':
                     try:
                         cargo = Cargo.objects.get(nombre="ADMIN")
+                        dep_admin, _ = Departamento.objects.get_or_create(nombre="ADMIN")
+                        departamento_id = dep_admin.id
                     except Cargo.DoesNotExist:
-                        cargo = None  
+                        cargo = None
+
 
                 if rol in ['empleado', 'jefe', 'gerente', 'admin'] and cargo:
                     try:
@@ -227,7 +234,7 @@ def crear_persona(request):
                             cvitae=persona.cvitae,
                             fecha_creacion=persona.fecha_creacion,
                             fecha_actualizacion=persona.fecha_actualizacion,
-                            estado=estado_empleado,
+                            estado="activo",
                             cargo=cargo,
                             cantidad_dias_disponibles=0
                         )
@@ -249,16 +256,19 @@ def crear_persona(request):
                                 cargo=cargo,
                                 fecha_inicio=date.today()
                             )
-                            try:
-                                relacion_nueva = CargoDepartamento.objects.get(
-                                    cargo=cargo,
-                                    departamento=departamento_id
-                                )
-                                if relacion_nueva.vacante > 0:
-                                    relacion_nueva.vacante -= 1
-                                    relacion_nueva.save()
-                            except CargoDepartamento.DoesNotExist:
-                                pass
+
+                            if departamento_id: 
+                                try:
+                                    relacion_nueva = CargoDepartamento.objects.get(
+                                        cargo=cargo,
+                                        departamento=departamento_id
+                                    )
+                                    if relacion_nueva.vacante > 0:
+                                        relacion_nueva.vacante -= 1
+                                        relacion_nueva.save()
+                                except CargoDepartamento.DoesNotExist:
+                                    pass
+
                     
 
                         elif ultimo_cargo.cargo != cargo:
@@ -276,16 +286,18 @@ def crear_persona(request):
                                 cargo=cargo,
                                 fecha_inicio=date.today()
                             )
-                            try:
-                                relacion_nueva = CargoDepartamento.objects.get(
-                                    cargo=cargo,
-                                    departamento=departamento_id
-                                )
-                                if relacion_nueva.vacante > 0:
-                                    relacion_nueva.vacante -= 1
-                                    relacion_nueva.save()
-                            except CargoDepartamento.DoesNotExist:
-                                pass
+
+                            if departamento_id: 
+                                try:
+                                    relacion_nueva = CargoDepartamento.objects.get(
+                                        cargo=cargo,
+                                        departamento=departamento_id
+                                    )
+                                    if relacion_nueva.vacante > 0:
+                                        relacion_nueva.vacante -= 1
+                                        relacion_nueva.save()
+                                except CargoDepartamento.DoesNotExist:
+                                    pass
 
                         else:
                             pass
