@@ -12,7 +12,11 @@ def crear_datos_iniciales_admin(sender, **kwargs):
 
     cargo_admin, created_car = Cargo.objects.get_or_create(
         nombre="ADMIN",
-        defaults={'descripcion': 'Cargo de administrador general'}
+        defaults={
+            'descripcion': 'Cargo de administrador general',
+            'es_jefe': True,
+            'es_gerente': True      
+        }
     )
 
     rel, created_rel = CargoDepartamento.objects.get_or_create(
