@@ -591,7 +591,7 @@ def api_evaluaciones_empleado(request):
     ]
 
     return JsonResponse({
-        "promedio_evaluaciones": round(float(promedio_evaluaciones), 2) if promedio_evaluaciones is not None else 'N/A',
+        "promedio_evaluaciones": round(float(promedio_evaluaciones), 2) if promedio_evaluaciones is not None else None,
         "pendientes": lista_pendientes
     })
 

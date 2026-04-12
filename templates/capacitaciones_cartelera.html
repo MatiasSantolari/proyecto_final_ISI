@@ -5,84 +5,88 @@
 
 {% block content %}
 <div class="container-fluid p-5 my-2">
-    <h4 class="mb-4" style="color: var(--color-primario);">Cursos y Capacitaciones</h4>
+    <h4 class="mb-3" style="color: var(--color-primario);">Cursos y Capacitaciones</h4>
 
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        {% for cap in capacitaciones %}
-        <div class="col">
-            <div class="card h-100 shadow-sm border-0" style="border-radius: 8px; overflow: hidden;">
-                {% if cap.imagen_publicitaria %}
-                    <img src="{{ cap.imagen_publicitaria.url }}" class="card-img-top" style="height: 200px; object-fit: cover;">
-                {% else %}
-                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px; background-color: #f8f9fa !important;">
-                        <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
-                    </div>
-                {% endif %}
-
-                <div class="card-body d-flex flex-column p-4">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <span class="badge" style="background-color: #3c8dbc;">
-                            {{ cap.institucion.nombre|default:"Institución Propia" }}
-                        </span>
-                        {% if cap.es_externo %}
-                            <span class="badge bg-info text-dark">Externo</span>
-                        {% endif %}
-                    </div>
-                    
-                    <h5 class="card-title fw-bold" style="color: #333;">{{ cap.nombre }}</h5>
-                    <p class="card-text text-muted small flex-grow-1">
-                        {{ cap.descripcion|truncatechars:120 }}
-                            <a href="#" class="text-decoration-none fw-bold" 
-                            data-bs-toggle="modal" data-bs-target="#modalDetalle{{ cap.id }}"
-                            style="color: #3c8dbc; font-size: 0.85rem;">Ver más...</a>
-                    </p>
-
-
-                    <div class="border-top pt-3 mt-3">
-                        <div class="row g-0 mb-3">
-                            <div class="col-6 small text-muted">
-                                <i class="bi bi-calendar-event me-1"></i> {{ cap.fecha_inicio|date:"d/m/Y"|default:"-" }}
-                            </div>
-                            <div class="col-6 small text-muted text-end">
-                                <i class="bi bi-people me-1"></i> Cupo: {{ cap.cupo|default:"-" }}
-                            </div>
+    {% if capacitaciones %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for cap in capacitaciones %}
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0" style="border-radius: 8px; overflow: hidden;">
+                    {% if cap.imagen_publicitaria %}
+                        <img src="{{ cap.imagen_publicitaria.url }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px; background-color: #f8f9fa !important;">
+                            <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
                         </div>
-                        
-                        {% if cap.url_sitio %}
-                            <form action="{% url 'inscribir_capacitacion' cap.id %}" method="post" target="_blank">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-success w-100 fw-bold shadow-sm">
-                                    <i class="bi bi-box-arrow-up-right me-1"></i> Ver Información Externa
-                                </button>
-                            </form>
+                    {% endif %}
 
-                        {% else %}
-                            {% if cap.id in mis_inscripciones %}
-                                <button class="btn btn-secondary w-100 fw-bold shadow-sm" disabled>
-                                    <i class="bi bi-check-circle-fill me-1"></i> Ya estoy inscripto
-                                </button>
-                            {% else %}
-                                <form action="{% url 'inscribir_capacitacion' cap.id %}" method="post">
+                    <div class="card-body d-flex flex-column p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge" style="background-color: #3c8dbc;">
+                                {{ cap.institucion.nombre|default:"Institución Propia" }}
+                            </span>
+                            {% if cap.es_externo %}
+                                <span class="badge bg-info text-dark">Externo</span>
+                            {% endif %}
+                        </div>
+
+                        <h5 class="card-title fw-bold" style="color: #333;">{{ cap.nombre }}</h5>
+                        <p class="card-text text-muted small flex-grow-1">
+                            {{ cap.descripcion|truncatechars:120 }}
+                                <a href="#" class="text-decoration-none fw-bold"
+                                data-bs-toggle="modal" data-bs-target="#modalDetalle{{ cap.id }}"
+                                style="color: #3c8dbc; font-size: 0.85rem;">Ver más...</a>
+                        </p>
+
+
+                        <div class="border-top pt-3 mt-3">
+                            <div class="row g-0 mb-3">
+                                <div class="col-6 small text-muted">
+                                    <i class="bi bi-calendar-event me-1"></i> {{ cap.fecha_inicio|date:"d/m/Y"|default:"-" }}
+                                </div>
+                                <div class="col-6 small text-muted text-end">
+                                    <i class="bi bi-people me-1"></i> Cupo: {{ cap.cupo|default:"-" }}
+                                </div>
+                            </div>
+
+                            {% if cap.url_sitio %}
+                                <form action="{% url 'inscribir_capacitacion' cap.id %}" method="post" target="_blank">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm" style="background-color: #3c8dbc; border-color: #3c8dbc;">
-                                        <i class="bi bi-pencil-square me-1"></i> Inscribirme ahora
+                                    <button type="submit" class="btn btn-success w-100 fw-bold shadow-sm">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i> Ver Información Externa
                                     </button>
                                 </form>
-                            {% endif %}
-                        {% endif %}
 
+                            {% else %}
+                                {% if cap.id in mis_inscripciones %}
+                                    <button class="btn btn-secondary w-100 fw-bold shadow-sm" disabled>
+                                        <i class="bi bi-check-circle-fill me-1"></i> Ya estoy inscripto
+                                    </button>
+                                {% else %}
+                                    <form action="{% url 'inscribir_capacitacion' cap.id %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm" style="background-color: #3c8dbc; border-color: #3c8dbc;">
+                                            <i class="bi bi-pencil-square me-1"></i> Inscribirme ahora
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+
+                        </div>
                     </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% empty %}
-        <div class="col-12 text-center py-5">
-            <div class="card shadow-sm p-5">
-                <p class="text-muted mb-0">No hay capacitaciones activas en la cartelera en este momento.</p>
+    {% else %}
+            <div class="d-flex flex-column justify-content-center align-items-center" style="min-height: 50vh; width: 100%;">
+                <div class="p-4 bg-white rounded-circle shadow-sm mb-3 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                     <i class="bi bi-megaphone text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h5 class="text-muted fw-bold">Cartelera vacía</h5>
+                <p class="text-muted fw-light">Próximamente publicaremos nuevas capacitaciones.</p>
             </div>
-        </div>
-        {% endfor %}
-    </div>
+    {% endif %}
 
     {% if capacitaciones.paginator.num_pages > 1 %}
     <nav aria-label="Paginación">

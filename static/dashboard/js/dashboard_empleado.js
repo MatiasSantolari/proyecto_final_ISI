@@ -216,19 +216,32 @@
         const evaluaciones = dataEvaluaciones.promedio_evaluaciones;
         const pendientes = dataEvaluaciones.pendientes;
 
-        let htmlContent = `
-            <div class="mb-1 text-center">
-                <p class="mb-1 fw-semibold text-muted">Calificación promedio (último año)</p>    
-                <div class="d-flex align-items-center justify-content-center">
-                    <span class="text-info fw-bolder me-3 fs-4 mt-1 mb-0">
-                        ${evaluaciones} / 10 
-                    </span>            
-                    <span class="text-warning h4 m-0 pt-1">
-                        ${typeof evaluaciones === 'number' ? '⭐' : ''}
-                    </span>
+        const tieneDatos = evaluaciones !== null && evaluaciones !== undefined && !isNaN(parseFloat(evaluaciones));
+
+        let htmlContent = '';
+
+        if (tieneDatos) {
+            htmlContent = `
+                <div class="mb-1 text-center">
+                    <p class="mb-1 fw-semibold text-muted">Calificación promedio (último año)</p>
+                    <div class="d-flex align-items-center justify-content-center">
+                        <span class="text-info fw-bolder me-3 fs-4 mt-1 mb-0">
+                            ${evaluaciones} <span class="fs-6 text-muted">/ 10</span>
+                        </span>
+                        <span class="text-warning h4 m-0 pt-1">⭐</span>
+                    </div>
                 </div>
-            </div>
             `;
+        } else {
+            htmlContent = `
+                <div class="text-center py-2">
+                    <p class="text-muted mb-0 fs-6 italic">
+                        <i class="bi bi-info-circle me-1"></i> No se registran evaluaciones en el último año.
+                    </p>
+                </div>
+            `;
+        }
+
         
         if (pendientes && pendientes.length > 0) {
             let pendientesHtml = `<hr><div class="alert alert-warning shadow-sm" role="alert">
@@ -280,7 +293,7 @@
             });
             htmlContent += `</ul>`;
         } else {
-            htmlContent += `<div class="alert alert-info small">Aún no tienes beneficios asignados.</div>`;
+            htmlContent += `<div class="alert alert-info fs-6">Aún no tienes beneficios asignados.</div>`;
         }
 
         if (data.potenciales.length > 0) {
@@ -294,7 +307,7 @@
             });
             htmlContent += `</ul>`;
         } else if (data.asignados.length > 0) {
-             htmlContent += `<div class="alert alert-success mt-4 small">¡Ya cuentas con todos los beneficios disponibles!</div>`;
+             htmlContent += `<div class="alert alert-success mt-4 fs-6">¡Ya cuentas con todos los beneficios disponibles!</div>`;
         }
 
         cont.innerHTML = htmlContent;
@@ -314,7 +327,7 @@
         }
 
         if (data.logros.length === 0) {
-            cont.innerHTML = '<div class="alert alert-info m-0">Aún no tienes logros activos o pendientes.</div>';
+            cont.innerHTML = '<div class="alert alert-info fs-6">Aún no tienes logros activos o pendientes.</div>';
             return;
         }
 

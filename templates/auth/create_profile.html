@@ -218,76 +218,52 @@
     document.addEventListener("DOMContentLoaded", function () {
         const toggleBtn = document.getElementById("theme-toggle");
         const themeIcon = document.getElementById("theme-icon");
-        const savedTheme = localStorage.getItem("theme");
-
+        const savedTheme = localStorage.getItem("theme") || "light";
+    
         function applyTheme(theme) {
             if (theme === "dark") {
                 document.body.classList.add("dark-mode");
-                themeIcon.textContent = "☀️"; 
+                themeIcon.textContent = "☀️";
             } else {
                 document.body.classList.remove("dark-mode");
-                themeIcon.textContent = "🌙"; 
+                themeIcon.textContent = "🌙";
             }
         }
-        
-        if (savedTheme) {
+    
         applyTheme(savedTheme);
-        } else {
-            applyTheme("light"); 
-        }
-
+    
         toggleBtn.addEventListener("click", function () {
             const isDarkMode = document.body.classList.contains("dark-mode");
-            
             const newTheme = isDarkMode ? "light" : "dark";
-
             applyTheme(newTheme);
             localStorage.setItem("theme", newTheme);
         });
+    
+        const avatarContainer = document.getElementById('avatarContainer');
+        const avatarInput = document.getElementById('id_avatar');
+        const previewAvatar = document.getElementById('previewAvatar');
+        const defaultAvatarIcon = document.getElementById('defaultAvatarIcon');
+    
+        if (avatarContainer && avatarInput) {
+            avatarContainer.addEventListener('click', () => {
+                avatarInput.click();
+            });
+    
+            avatarInput.addEventListener('change', () => {
+                const file = avatarInput.files[0]; 
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                        previewAvatar.src = e.target.result;
+                        previewAvatar.style.display = 'block';
+                        if (defaultAvatarIcon) defaultAvatarIcon.style.display = 'none';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
     });
-
-    const avatarContainer = document.getElementById('avatarContainer');
-    const avatarInput = document.getElementById('id_avatar');
-    const previewAvatar = document.getElementById('previewAvatar');
-    const defaultAvatarIcon = document.getElementById('defaultAvatarIcon');
-
-    avatarContainer.addEventListener('click', () => {
-      avatarInput.click();
-    });
-
-    avatarInput.addEventListener('change', () => {
-      const file = avatarInput.files;
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = e => {
-          previewAvatar.src = e.target.result;
-          previewAvatar.style.display = 'block';
-          defaultAvatarIcon.style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-      } else {
-        previewAvatar.src = '';
-        previewAvatar.style.display = 'none';
-        defaultAvatarIcon.style.display = 'flex';
-      }
-    });
-  </script>
-
-
-{% if avatar_url %}
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const preview = document.getElementById('previewAvatar');
-  const icon = document.getElementById('defaultAvatarIcon');
-  if ("{{ avatar_url|default:'' }}".length > 0) {
-      preview.src = "{{ avatar_url }}";
-      preview.style.display = 'block';
-      icon.style.display = 'none';
-  }
-});
 </script>
-{% endif %}
-
 
 </body>
 </html>
