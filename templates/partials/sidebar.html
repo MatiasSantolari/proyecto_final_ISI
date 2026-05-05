@@ -174,167 +174,219 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 <aside id="main-sidebar" class="main-sidebar sidebar-dark-primary elevation-4" style="height: 100vh; overflow-y: auto;">
-  <a href="#" class="brand-link">
-    <i class="fas fa-user-cog mx-2"></i>
-    <span class="brand-text font-weight-light">RRHH System</span>
-  </a>
+    <a href="{% url 'home' %}" class="brand-link">
+        <i class="bi bi-house-door-fill fs-5 me-2 ms-2"></i>
+        <span class="brand-text font-weight-bold" style="letter-spacing: 0.5px;">Home</span>
+    </a>
 
-  <div class="sidebar">
-    <nav class="mt-2">
-      <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
-          <li class="nav-item text-center mb-2 mt-0">
-            <a href="{% url 'user_perfil' %}" class="d-block text-decoration-none">
-              
-              <div id="avatarContainer" class="d-inline-block position-relative">
-                {% if request.user.persona.avatar %}
-                    <img id="previewAvatar" src="{{ request.user.persona.avatar.url }}" 
-                        class="img-circle elevation-2" style="width: 90px; height: 90px; object-fit: cover;">
-                {% else %}
-                    <div id="defaultAvatarIcon" class="bg-secondary img-circle d-flex justify-content-center align-items-center text-white elevation-2" style="width: 70px; height: 70px;">
-                      <i class="fas fa-user" style="font-size: 2rem;"></i>
+
+    <div class="sidebar">
+        <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+                <li class="nav-item text-center mb-2 mt-0">
+                    <a href="{% url 'user_perfil' %}" class="d-block text-decoration-none">
+                    
+                    <div id="avatarContainer" class="d-inline-block position-relative">
+                        {% if request.user.persona.avatar %}
+                            <img id="previewAvatar" src="{{ request.user.persona.avatar.url }}" 
+                                class="img-circle elevation-2" style="width: 90px; height: 90px; object-fit: cover;">
+                        {% else %}
+                            <div id="defaultAvatarIcon" class="bg-secondary img-circle d-flex justify-content-center align-items-center text-white elevation-2" style="width: 70px; height: 70px;">
+                            <i class="fas fa-user" style="font-size: 2rem;"></i>
+                            </div>
+                        {% endif %}
                     </div>
+
+                    <h6 class="brand-text mt-0 text-white">{{ request.user.persona.nombre }} {{ request.user.persona.apellido }}</h6>
+                    </a>
+                </li>
+
+                <!-- CALENDARIO -->
+                <li class="nav-item px-2 brand-text">
+                    <div class="calendar-container bg-white rounded p-2 text-dark shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <button id="prevMonth" class="btn btn-xs btn-link p-0"><i class="fas fa-chevron-left"></i></button>
+                            <small id="monthYear" class="fw-bold text-primary"></small>
+                            <button id="nextMonth" class="btn btn-xs btn-link p-0"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <table class="table table-sm table-borderless text-center mb-0" style="font-size: 0.7rem;">
+                            <thead class="border-bottom">
+                                <tr><th>Lu</th><th>Ma</th><th>Mi</th><th>Ju</th><th>Vi</th><th>Sa</th><th>Do</th></tr>
+                            </thead>
+                            <tbody id="calendarBody"></tbody>
+                        </table>
+                    </div>
+                </li>
+                
+                <hr class="my-3 border-secondary brand-text ">
+
+                {% if request.session.rol_actual == 'admin' %}
+                    <li class="nav-header" style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #28a745;">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Módulos Admin
+                    </li>
+
+                    <li class="nav-item has-treeview">
+                        <a href="#" class="nav-link"><i class="nav-icon fas fa-building"></i><p>Estructura<i class="right fas fa-angle-left"></i></p></a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item"><a class="nav-link" href="{% url 'personas' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-user-friends nav-icon"></i><p>Personas</p></a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'cargos' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-id-badge nav-icon"></i><p>Cargos</p></a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'departamentos' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-sitemap nav-icon"></i><p>Departamentos</p></a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'instituciones' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-university nav-icon"></i><p>Instituciones Educativas</p></a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item has-treeview">
+                        <a href="#" class="nav-link"><i class="nav-icon fas fa-user-tie"></i><p>Reclutamiento<i class="right fas fa-angle-left"></i></p></a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item"><a class="nav-link" href="{% url 'admin_postulaciones' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-user-check nav-icon"></i><p>Administrar Postulaciones</p></a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'gestion_solicitudes' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-clipboard-list nav-icon"></i><p>Gestionar Solicitudes Cargo</p></a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item has-treeview">
+                        <a href="#" class="nav-link"><i class="nav-icon fas fa-file-contract"></i><p>Compensaciones<i class="right fas fa-angle-left"></i></p></a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item"><a class="nav-link" href="{% url 'nominas' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-file-invoice-dollar nav-icon"></i><p>Administrar Nóminas</p></a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'tipos_contrato' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-copy nav-icon"></i><p>Tipos de Contrato</p></a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'contratos' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-signature nav-icon"></i><p>Contratos</p></a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'beneficios' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-gift nav-icon"></i><p>Beneficios</p></a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'descuentos' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-percentage nav-icon"></i><p>Descuentos</p></a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-hand-holding-usd nav-icon"></i><p>Asignar Ben/Desc</p></a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item has-treeview">
+                        <a href="#" class="nav-link"><i class="nav-icon fas fa-chart-line"></i><p>Desarrollo y Eval.<i class="right fas fa-angle-left"></i></p></a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item"><a class="nav-link" href="{% url 'capacitaciones' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'evaluaciones' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-poll nav-icon"></i><p>Administrar Evaluaciones</p></a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'tiposCriterios' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-tags nav-icon"></i><p>Tipos de Criterios</p></a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'criterios' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-list-ul nav-icon"></i><p>Criterios Evaluación</p></a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'objetivos' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-tasks nav-icon"></i><p>Objetivos</p></a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'logros' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-trophy nav-icon"></i><p>Logros</p></a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'habilidades' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-star nav-icon"></i><p>Habilidades</p></a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item has-treeview">
+                        <a href="#" class="nav-link"><i class="nav-icon fas fa-cogs"></i><p>Operaciones<i class="right fas fa-angle-left"></i></p></a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-calendar-check nav-icon"></i><p>Confirmar Asistencia</p></a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}" style="padding-left: 2.5rem !important;"><i class="fas fa-plane-departure nav-icon"></i><p>Gestionar Vacaciones</p></a></li>
+                        </ul>
+                    </li>
+
+                    <hr class="my-2 border-secondary">            
+                    <li id="header-accesos-rapidos" class="nav-header" style="font-size: 0.95rem; color: #ffc107; cursor: pointer; user-select: none;">
+                        <i class="fas fa-bolt me-1"></i> Accesos Rápidos
+                    </li>
+
+                        <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-clock"></i><p>Registrar Asistencia</p></a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="fas fa-check-double nav-icon"></i> <p>Confirmar Asistencia</p></a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cartelera Cursos</p></a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-file-pdf"></i><p>Mis Nóminas</p></a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-search-plus nav-icon"></i><p>Ofertas de Empleo</p></a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_cargos' %}"><i class="nav-icon fas fa-user-plus"></i><p>Solicitar Nuevo Personal</p></a></li>
+
                 {% endif %}
-              </div>
 
-              <h6 class="brand-text mt-0 text-white">{{ request.user.persona.nombre }} {{ request.user.persona.apellido }}</h6>
-            </a>
-          </li>
 
-          <!-- CALENDARIO -->
-          <li class="nav-item px-2 brand-text">
-            <div class="calendar-container bg-white rounded p-2 text-dark shadow-sm">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <button id="prevMonth" class="btn btn-xs btn-link p-0"><i class="fas fa-chevron-left"></i></button>
-                    <small id="monthYear" class="fw-bold text-primary"></small>
-                    <button id="nextMonth" class="btn btn-xs btn-link p-0"><i class="fas fa-chevron-right"></i></button>
-                </div>
-                <table class="table table-sm table-borderless text-center mb-0" style="font-size: 0.7rem;">
-                    <thead class="border-bottom">
-                        <tr><th>Lu</th><th>Ma</th><th>Mi</th><th>Ju</th><th>Vi</th><th>Sa</th><th>Do</th></tr>
-                    </thead>
-                    <tbody id="calendarBody"></tbody>
-                </table>
-            </div>
-          </li>
-          
-          <hr class="my-3 border-secondary brand-text ">
+                {% if request.session.rol_actual == 'empleado' %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-clock"></i><p>Registrar Asistencia</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Mis Nóminas</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="nav-icon fas fa-bullhorn"></i><p>Ofertas de Empleo</p></a></li>        
+                {% endif %}
 
-        {% if request.session.rol_actual == 'admin' %}
-            <li class="nav-header" style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #28a745;">
-                <i class="fas fa-check-circle me-2"></i>
-                Módulos Admin
-            </li>
+                {% if request.session.rol_actual == 'gerente' %}
+                    <hr class="my-2 border-secondary">    
+                    <li id="header-accesos-rapidos" class="nav-header" style="font-size: 0.95rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107; cursor: pointer; user-select: none;">
+                        <i class="fas fa-bolt me-1"></i> Accesos Rápidos
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-clock"></i><p>Registrar Asistencia</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="fas fa-calendar-check nav-icon"></i> <p>Confirmar Asistencia</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'objetivos' %}"><i class="fas fa-tasks nav-icon"></i><p>Gestor de Objetivos</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'evaluaciones' %}"><i class="fas fa-user-graduate nav-icon"></i><p>Administrar Evaluaciones</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="fas fa-plane-departure nav-icon"></i> <p>Gestionar Vacaciones</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}"><i class="fas fa-hand-holding-heart nav-icon"></i><p>Asignar Benef/Desc</p></a></li>       
+                    <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_cargos' %}"><i class="nav-icon fas fa-user-plus"></i><p>Solicitar Nuevo Personal</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Mis Nóminas</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-bullhorn nav-icon"></i><p>Ofertas de Empleo</p></a></li>
+                {% endif %}
 
-            <li class="nav-item has-treeview">
-                <a href="#" class="nav-link"><i class="nav-icon fas fa-building"></i><p>Estructura<i class="right fas fa-angle-left"></i></p></a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'personas' %}"><i class="fas fa-user-friends nav-icon"></i><p>Personas</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'cargos' %}"><i class="fas fa-id-badge nav-icon"></i><p>Cargos</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'departamentos' %}"><i class="fas fa-sitemap nav-icon"></i><p>Departamentos</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'instituciones' %}"><i class="fas fa-university nav-icon"></i><p>Instituciones Educativas</p></a></li>
-                </ul>
-            </li>
+                {% if request.session.rol_actual == 'jefe' %}
+                    <hr class="my-2 border-secondary">            
+                    <li id="header-accesos-rapidos" class="nav-header" style="font-size: 0.95rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107; cursor: pointer; user-select: none;">
+                        <i class="fas fa-bolt me-1"></i> Accesos Rápidos
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-clock"></i><p>Registrar Asistencia</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="fas fa-calendar-check nav-icon"></i> <p>Confirmar Asistencia</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'objetivos' %}"><i class="fas fa-tasks nav-icon"></i><p>Gestor de Objetivos</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'evaluaciones' %}"><i class="fas fa-user-graduate nav-icon"></i><p>Administrar Evaluaciones</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="fas fa-plane-departure nav-icon"></i> <p>Gestionar Vacaciones</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}"><i class="fas fa-hand-holding-heart nav-icon"></i><p>Asignar Benef/Desc</p></a></li>       
+                    <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_cargos' %}"><i class="nav-icon fas fa-user-plus"></i><p>Solicitar Nuevo Personal</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Mis Nóminas</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-bullhorn nav-icon"></i><p>Ofertas de Empleo</p></a></li>
+                {% endif %}
 
-            <li class="nav-item has-treeview">
-                <a href="#" class="nav-link"><i class="nav-icon fas fa-user-tie"></i><p>Reclutamiento<i class="right fas fa-angle-left"></i></p></a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'admin_postulaciones' %}"><i class="fas fa-user-check nav-icon"></i><p>Administrar Postulaciones</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'gestion_solicitudes' %}"><i class="fas fa-clipboard-list nav-icon"></i><p>Gestionar Solicitudes Cargo</p></a></li>
-                </ul>
-            </li>
+                {% if request.session.rol_actual == 'normal' %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="nav-icon fas fa-bullhorn"></i><p>Ofertas de Empleo</p></a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>    
+                {% endif %}
 
-            <li class="nav-item has-treeview">
-                <a href="#" class="nav-link"><i class="nav-icon fas fa-file-contract"></i><p>Compensaciones<i class="right fas fa-angle-left"></i></p></a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'nominas' %}"><i class="fas fa-file-invoice-dollar nav-icon"></i><p>Administrar Nóminas</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'tipos_contrato' %}"><i class="fas fa-copy nav-icon"></i><p>Tipos de Contrato</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'contratos' %}"><i class="fas fa-signature nav-icon"></i><p>Contratos</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'beneficios' %}"><i class="fas fa-gift nav-icon"></i><p>Beneficios</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'descuentos' %}"><i class="fas fa-percentage nav-icon"></i><p>Descuentos</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}"><i class="fas fa-hand-holding-usd nav-icon"></i><p>Asignar Ben/Desc</p></a></li>
-                </ul>
-            </li>
+                
+                <div style="height: 100px;"></div>
 
-            <li class="nav-item has-treeview">
-                <a href="#" class="nav-link"><i class="nav-icon fas fa-chart-line"></i><p>Desarrollo y Eval.<i class="right fas fa-angle-left"></i></p></a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'evaluaciones' %}"><i class="fas fa-poll nav-icon"></i><p>Administrar Evaluaciones</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'tiposCriterios' %}"><i class="fas fa-tags nav-icon"></i><p>Tipos de Criterios</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'criterios' %}"><i class="fas fa-list-ul nav-icon"></i><p>Criterios Evaluación</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'objetivos' %}"><i class="fas fa-tasks nav-icon"></i><p>Objetivos</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'logros' %}"><i class="fas fa-trophy nav-icon"></i><p>Logros</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'habilidades' %}"><i class="fas fa-star nav-icon"></i><p>Habilidades</p></a></li>
-                </ul>
-            </li>
 
-            <li class="nav-item has-treeview">
-                <a href="#" class="nav-link"><i class="nav-icon fas fa-cogs"></i><p>Operaciones<i class="right fas fa-angle-left"></i></p></a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="fas fa-calendar-check nav-icon"></i><p>Confirmar Asistencia</p></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="fas fa-plane-departure nav-icon"></i><p>Gestionar Vacaciones</p></a></li>
-                </ul>
-            </li>
+                <script>
+                    function scrollToElementWithPadding(element) {
+                        const sidebar = document.querySelector('.sidebar');
+                        if (!sidebar) return;
 
-            <hr class="my-2 border-secondary">            
-            <li class="nav-header" style="color: #ffc107;">Accesos Rápidos</li>
+                        const extraPadding = 100;
+                        const elementBottom = element.offsetTop + element.offsetHeight;
+                        
+                        sidebar.scrollTo({
+                            top: (elementBottom + extraPadding) - sidebar.clientHeight,
+                            behavior: 'smooth'
+                        });
+                    }
 
-            <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-clock"></i><p>Registrar Asistencia</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="fas fa-check-double nav-icon"></i> <p>Confirmar Asistencia</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cartelera Cursos</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-file-pdf"></i><p>Mis Nóminas</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-search-plus nav-icon"></i><p>Ofertas de Empleo</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_cargos' %}"><i class="nav-icon fas fa-user-plus"></i><p>Solicitar Nuevo Personal</p></a></li>
-            {% endif %}
+                    document.querySelectorAll('.has-treeview > a').forEach(item => {
+                        item.addEventListener('click', function() {
+                            setTimeout(() => {
+                                const parent = this.parentElement;
+                                if (parent.classList.contains('menu-open') || parent.classList.contains('menu-is-opening')) {
+                                    scrollToElementWithPadding(parent);
+                                }
+                            }, 350);
+                        });
+                    });
 
-        {% if request.session.rol_actual == 'empleado' %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-clock"></i><p>Registrar Asistencia</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Mis Nóminas</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="nav-icon fas fa-bullhorn"></i><p>Ofertas de Empleo</p></a></li>        
-        {% endif %}
+                    const fastAccessHeader = document.getElementById('header-accesos-rapidos');
+                    if (fastAccessHeader) {
+                        fastAccessHeader.addEventListener('click', function() {
+                            const sidebar = document.querySelector('.sidebar');
+                            if (sidebar) {
+                                sidebar.scrollTo({
+                                    top: sidebar.scrollHeight,
+                                    behavior: 'smooth'
+                                });
+                            }
+                        });
+                    }
+                </script>
 
-        {% if request.session.rol_actual == 'gerente' %}
-            <hr class="my-2 border-secondary">    
-            <li class="nav-header" style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107;">Accesos Rápidos</li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-clock"></i><p>Registrar Asistencia</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="fas fa-calendar-check nav-icon"></i> <p>Confirmar Asistencia</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'objetivos' %}"><i class="fas fa-tasks nav-icon"></i><p>Gestor de Objetivos</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'evaluaciones' %}"><i class="fas fa-user-graduate nav-icon"></i><p>Administrar Evaluaciones</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="fas fa-plane-departure nav-icon"></i> <p>Gestionar Vacaciones</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}"><i class="fas fa-hand-holding-heart nav-icon"></i><p>Asignar Benef/Desc</p></a></li>       
-            <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_cargos' %}"><i class="nav-icon fas fa-user-plus"></i><p>Solicitar Nuevo Personal</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Mis Nóminas</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-bullhorn nav-icon"></i><p>Ofertas de Empleo</p></a></li>
-        {% endif %}
-
-        {% if request.session.rol_actual == 'jefe' %}
-            <hr class="my-2 border-secondary">            
-            <li class="nav-header" style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107;">Accesos Rápidos</li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-clock"></i><p>Registrar Asistencia</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="fas fa-calendar-check nav-icon"></i> <p>Confirmar Asistencia</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'objetivos' %}"><i class="fas fa-tasks nav-icon"></i><p>Gestor de Objetivos</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'evaluaciones' %}"><i class="fas fa-user-graduate nav-icon"></i><p>Administrar Evaluaciones</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="fas fa-plane-departure nav-icon"></i> <p>Gestionar Vacaciones</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}"><i class="fas fa-hand-holding-heart nav-icon"></i><p>Asignar Benef/Desc</p></a></li>       
-            <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_cargos' %}"><i class="nav-icon fas fa-user-plus"></i><p>Solicitar Nuevo Personal</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Mis Nóminas</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-bullhorn nav-icon"></i><p>Ofertas de Empleo</p></a></li>
-        {% endif %}
-
-        {% if request.session.rol_actual == 'normal' %}
-          <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="nav-icon fas fa-bullhorn"></i><p>Ofertas de Empleo</p></a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>    
-        {% endif %}
-
-      </ul>
-    </nav>
-  </div>
+            </ul>
+        </nav>
+    </div>
 </aside>
