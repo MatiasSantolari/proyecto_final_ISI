@@ -50,24 +50,64 @@ try:
 except:
     locale.setlocale(locale.LC_TIME, '')
 
+
+
 @require_GET
 @login_required
 def api_kpis(request):
     today = timezone.localdate()
+    rol_actual = request.session.get('rol_actual', request.user.rol)
     
+    empleados_qs = Empleado.objects.filter(estado='activo')
+    asistencias_qs = HistorialAsistencia.objects.all()
+    nominas_qs = Nomina.objects.all()
+    evaluaciones_qs = EvaluacionEmpleado.objects.all()
+
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            empleado_usuario = request.user.persona.empleado
+            
+            departamento = empleado_usuario.departamento_actual()
+            
+            if departamento:
+                empleados_qs = empleados_qs.filter(
+                    empleadocargo__cargo__cargodepartamento__departamento=departamento
+                ).distinct()
+                
+                asistencias_qs = asistencias_qs.filter(
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento=departamento
+                ).distinct()
+                
+                nominas_qs = nominas_qs.filter(
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento=departamento
+                ).distinct()
+                
+                evaluaciones_qs = evaluaciones_qs.filter(
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento=departamento
+                ).distinct()
+            else:
+                empleados_qs = empleados_qs.none()
+                asistencias_qs = asistencias_qs.none()
+                nominas_qs = nominas_qs.none()
+                evaluaciones_qs = evaluaciones_qs.none()
+                
+        except (AttributeError, Empleado.DoesNotExist):
+            return JsonResponse({"error": "Usuario sin perfil de empleado"}, status=403)
+
+
     nombre_mes_actual = today.strftime('%B %Y').capitalize()
-    absences_count = HistorialAsistencia.objects.filter(
+    absences_count = asistencias_qs.filter(
         fecha_asistencia__month=today.month,
         fecha_asistencia__year=today.year,
         confirmado=False
-    ).count()
+    ).distinct().count()
 
-    ultima_nomina = Nomina.objects.order_by('-fecha_generacion').first()
+    ultima_nomina = nominas_qs.order_by('-fecha_generacion').first()
     
     if ultima_nomina:
         fecha_datos = ultima_nomina.fecha_generacion
         nombre_mes_costo = fecha_datos.strftime('%B %Y').capitalize()
-        payroll_cost = Nomina.objects.filter(
+        payroll_cost = nominas_qs.filter(
             fecha_generacion__month=fecha_datos.month,
             fecha_generacion__year=fecha_datos.year
         ).aggregate(total=Sum('monto_neto'))['total'] or 0
@@ -78,18 +118,18 @@ def api_kpis(request):
     start_eval = today - timedelta(days=365)
     rango_eval = f"{start_eval.strftime('%b %Y')} - {today.strftime('%b %Y')}".capitalize()
     
-    eval_avg = EvaluacionEmpleado.objects.filter(
+    eval_avg = evaluaciones_qs.filter(
         fecha_registro__gte=start_eval,
         empleado__estado='activo'
     ).aggregate(avg=Avg('calificacion_final'))['avg'] or 0
 
     return JsonResponse({
-        "employees_total": Empleado.objects.filter(estado='activo').count(),
+        "employees_total": empleados_qs.distinct().count(),
         "absences_count": absences_count,
         "absences_month_name": nombre_mes_actual,
         "payroll_cost": float(payroll_cost),
         "payroll_month_name": nombre_mes_costo,
-        "eval_avg": float(eval_avg),
+        "eval_avg": round(float(eval_avg), 2),
         "eval_range": rango_eval
     })
 
@@ -99,32 +139,45 @@ def api_kpis(request):
 def api_vacaciones(request):
     hoy = timezone.now().date()
     periodo_solicitado = request.GET.get('periodo')
+    rol_actual = request.session.get('rol_actual', request.user.rol)
     
-    periodos_map = {
-        '1m': 0, '2m': 2, '3m': 3, '6m': 6, '12m': 12
-    }
+    periodos_map = {'1m': 0, '2m': 2, '3m': 3, '6m': 6, '12m': 12}
 
     def obtener_rango(p_code):
         meses = periodos_map.get(p_code, 0)
         s_date = (hoy - relativedelta(months=meses)).replace(day=1) if meses > 0 else hoy.replace(day=1)
         return s_date, hoy
 
+    base_qs = VacacionesSolicitud.objects.all()
+    
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            depto = request.user.persona.empleado.departamento_actual()
+            if depto:
+                base_qs = base_qs.filter(
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento=depto,
+                    empleado__empleadocargo__fecha_fin__isnull=True
+                ).distinct()
+            else:
+                base_qs = base_qs.none()
+        except (AttributeError, Empleado.DoesNotExist):
+            base_qs = base_qs.none()
+
     if periodo_solicitado:
         start_date, end_date = obtener_rango(periodo_solicitado)
         periodo_final = periodo_solicitado
-    
     else:
-        periodo_final = '1m' 
+        periodo_final = '1m'
         for p_code in ['1m', '2m', '3m', '6m', '12m']:
             sd, ed = obtener_rango(p_code)
-            if VacacionesSolicitud.objects.filter(fecha_solicitud__range=[sd, ed]).exists():
+            if base_qs.filter(fecha_solicitud__range=[sd, ed]).exists():
                 start_date, end_date = sd, ed
                 periodo_final = p_code
                 break
         else:
             start_date, end_date = obtener_rango('1m')
 
-    qs = VacacionesSolicitud.objects.filter(fecha_solicitud__range=[start_date, end_date])
+    qs = base_qs.filter(fecha_solicitud__range=[start_date, end_date])
 
     return JsonResponse({
         "total": qs.count(),
@@ -138,36 +191,55 @@ def api_vacaciones(request):
     })
 
 
+
 @require_GET
 @login_required
 def api_asistencias(request):
     today = timezone.localdate()
-    period = request.GET.get('periodo', '30d') 
+    periodo_solicitado = request.GET.get('periodo')
+    rol_actual = request.session.get('rol_actual', request.user.rol)
 
-    if period == '2m':
-        days_back = 60
-        group_by = 'week'
-    elif period == '3m':
-        days_back = 90
-        group_by = 'week'
-    elif period == '6m':
-        days_back = 180
-        group_by = 'month'
-    elif period == '12m':
-        days_back = 365
-        group_by = 'month'
+    base_qs = HistorialAsistencia.objects.all()
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            depto = request.user.persona.empleado.departamento_actual()
+            if depto:
+                base_qs = base_qs.filter(
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento=depto,
+                    empleado__empleadocargo__fecha_fin__isnull=True
+                ).distinct()
+            else:
+                base_qs = base_qs.none()
+        except (AttributeError, Empleado.DoesNotExist):
+            base_qs = base_qs.none()
+
+    periodos_config = {
+        '30d': {'days': 30, 'group': 'day'},
+        '2m':  {'days': 60, 'group': 'week'},
+        '3m':  {'days': 90, 'group': 'week'},
+        '6m':  {'days': 180, 'group': 'month'},
+        '12m': {'days': 365, 'group': 'month'},
+    }
+
+    if periodo_solicitado and periodo_solicitado in periodos_config:
+        periodo_final = periodo_solicitado
+        conf = periodos_config[periodo_final]
     else:
-        days_back = 30
-        group_by = 'day'
-    
-    start_date = today - timedelta(days=days_back - 1)
+        periodo_final = '30d' 
+        for p_code, p_data in periodos_config.items():
+            sd = today - timedelta(days=p_data['days'] - 1)
+            if base_qs.filter(fecha_asistencia__range=[sd, today]).exists():
+                periodo_final = p_code
+                break
+        conf = periodos_config[periodo_final]
 
-    qs = HistorialAsistencia.objects.filter(fecha_asistencia__gte=start_date, fecha_asistencia__lte=today)
+    days_back = conf['days']
+    group_by = conf['group']
+    start_date = today - timedelta(days=days_back - 1)
     
-    labels = []
-    present = []
-    ausent = []
-    late = []
+    qs = base_qs.filter(fecha_asistencia__range=[start_date, today])
+
+    labels, present, ausent, late = [], [], [], []
     
     if group_by == 'day':
         for i in range(days_back):
@@ -181,53 +253,32 @@ def api_asistencias(request):
     elif group_by == 'month':
         current_date = start_date
         while current_date <= today:
-            month_end = current_date + relativedelta(months=1, days=-1)
             month_qs = qs.filter(fecha_asistencia__month=current_date.month, fecha_asistencia__year=current_date.year)
             labels.append(current_date.strftime('%b %Y'))
             present.append(month_qs.filter(confirmado=True).count())
             late.append(month_qs.filter(tardanza=True).count())
             ausent.append(month_qs.filter(confirmado=False).count())
-            current_date = month_end + timedelta(days=1)
+            current_date += relativedelta(months=1)
 
     elif group_by == 'week':
         current_date = start_date
-        
         while current_date <= today:
-            week_start = current_date
-            week_end = current_date + timedelta(days=6)
-            
-            if week_end > today:
-                week_end = today
-
-            week_qs = qs.filter(fecha_asistencia__range=[week_start, week_end])
-            
-            start_label = week_start.strftime('%d %b')
-            end_label = week_end.strftime('%d %b')
-
-            if start_label == end_label: 
-                 labels.append(f"Día {start_label}")
-            else:
-                 labels.append(f"{start_label} - {end_label}")
-
+            week_end = min(current_date + timedelta(days=6), today)
+            week_qs = qs.filter(fecha_asistencia__range=[current_date, week_end])
+            labels.append(f"{current_date.strftime('%d %b')} - {week_end.strftime('%d %b')}" if current_date != week_end else f"Día {current_date.strftime('%d %b')}")
             present.append(week_qs.filter(confirmado=True).count())
             late.append(week_qs.filter(tardanza=True).count())
             ausent.append(week_qs.filter(confirmado=False).count())
-
             current_date = week_end + timedelta(days=1)
-
-            if current_date > today + timedelta(days=7): 
-                break
-            
-    start_date_formatted = start_date.strftime('%d %b %Y')
-    end_date_formatted = today.strftime('%d %b %Y')
 
     return JsonResponse({
         "labels": labels, 
         "present": present, 
         "late": late, 
         "ausent": ausent,
-        "start_date_formatted": start_date_formatted,
-        "end_date_formatted": end_date_formatted,
+        "start_date_formatted": start_date.strftime('%d %b %Y'),
+        "end_date_formatted": today.strftime('%d %b %Y'),
+        "active_period": periodo_final 
     })
 
 
@@ -237,7 +288,7 @@ def api_asistencias(request):
 @login_required
 def api_evaluaciones(request):
     today = timezone.localdate()
-
+    rol_actual = request.session.get('rol_actual', request.user.rol)
     period = request.GET.get('periodo', '12m') 
     
     if period == '3m':
@@ -249,27 +300,42 @@ def api_evaluaciones(request):
     else:
         start_date = today + relativedelta(years=-1) 
 
-    counts = [0,0,0,0,0,0,0,0,0,0]
-    evals = EvaluacionEmpleado.objects.exclude(calificacion_final__isnull=True).filter(
-        fecha_registro__gte=start_date).values_list('calificacion_final', flat=True)
-    for v in evals:
+    evals_qs = EvaluacionEmpleado.objects.exclude(calificacion_final__isnull=True).filter(
+        fecha_registro__gte=start_date
+    )
+
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            empleado_usuario = request.user.persona.empleado
+            departamento = empleado_usuario.departamento_actual()
+            
+            if departamento:
+                evals_qs = evals_qs.filter(
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento=departamento,
+                    empleado__empleadocargo__fecha_fin__isnull=True
+                ).distinct()
+            else:
+                evals_qs = evals_qs.none()
+        except (AttributeError, Empleado.DoesNotExist):
+            evals_qs = evals_qs.none()
+
+    counts = [0] * 10
+    calificaciones = evals_qs.values_list('calificacion_final', flat=True)
+    
+    for v in calificaciones:
         try:
             i = int(round(float(v)))
             if 1 <= i <= 10:
                 counts[i-1] += 1
-        except:
+        except (ValueError, TypeError):
             continue
-
-    start_date_formatted = start_date.strftime('%b %Y')
-    end_date_formatted = today.strftime('%b %Y')
 
     return JsonResponse({
         "labels": ["1","2","3","4","5","6","7","8","9","10"], 
         "counts": counts,
-        "start_date_formatted": start_date_formatted,
-        "end_date_formatted": end_date_formatted,
-        })
-
+        "start_date_formatted": start_date.strftime('%b %Y'),
+        "end_date_formatted": today.strftime('%b %Y'),
+    })
 
 
 
@@ -277,7 +343,26 @@ def api_evaluaciones(request):
 @require_GET
 @login_required
 def api_nominas(request):
-    ultima_nomina = Nomina.objects.order_by('-fecha_generacion').first()
+    rol_actual = request.session.get('rol_actual', request.user.rol)
+    
+    qs_base = Nomina.objects.all()
+
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            empleado_usuario = request.user.persona.empleado
+            departamento = empleado_usuario.departamento_actual()
+            
+            if departamento:
+                qs_base = qs_base.filter(
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento=departamento,
+                    empleado__empleadocargo__fecha_fin__isnull=True
+                ).distinct()
+            else:
+                qs_base = qs_base.none()
+        except (AttributeError, Empleado.DoesNotExist):
+            qs_base = qs_base.none()
+
+    ultima_nomina = qs_base.order_by('-fecha_generacion').first()
     
     if not ultima_nomina:
         return JsonResponse({
@@ -287,20 +372,22 @@ def api_nominas(request):
 
     ultimo_mes_con_datos = ultima_nomina.fecha_generacion.replace(day=1)
     period = request.GET.get('periodo', '1m') 
-    num_months = int(period.replace('m', ''))
+    try:
+        num_months = int(period.replace('m', ''))
+    except ValueError:
+        num_months = 1
     
     end_date = ultimo_mes_con_datos + relativedelta(months=+1, days=-1)
     start_date = ultimo_mes_con_datos - relativedelta(months=(num_months - 1))
 
-    qs = Nomina.objects.filter(fecha_generacion__gte=start_date, fecha_generacion__lte=end_date)
+    qs_final = qs_base.filter(fecha_generacion__range=[start_date, end_date])
 
+    base = qs_final.aggregate(total=Sum('monto_bruto'))['total'] or 0
+    benefits = qs_final.aggregate(total=Sum('total_beneficios'))['total'] or 0
+    discounts = qs_final.aggregate(total=Sum('total_descuentos'))['total'] or 0
+    extras = qs_final.aggregate(total=Sum('monto_extra_pactado'))['total'] or 0
+    
     start_date_formatted = start_date.strftime('%b. %Y').capitalize()
-    end_date_formatted = end_date.strftime('%b. %Y').capitalize()
-
-    base = qs.aggregate(total=Sum('monto_bruto'))['total'] or 0
-    benefits = qs.aggregate(total=Sum('total_beneficios'))['total'] or 0
-    discounts = qs.aggregate(total=Sum('total_descuentos'))['total'] or 0
-    extras = qs.aggregate(total=Sum('monto_extra_pactado'))['total'] or 0
     
     return JsonResponse({
         "base": float(base - extras),
@@ -308,7 +395,7 @@ def api_nominas(request):
         "discounts": float(discounts),
         "extras": float(extras),
         "start_date_formatted": start_date_formatted,
-        "end_date_formatted": end_date_formatted if num_months > 1 else start_date_formatted,
+        "end_date_formatted": end_date.strftime('%b. %Y').capitalize() if num_months > 1 else start_date_formatted,
     })
 
 
@@ -317,12 +404,29 @@ def api_nominas(request):
 @login_required
 def api_labor_cost_comparison(request):
     today = timezone.localdate()
+    rol_actual = request.session.get('rol_actual', request.user.rol)
     year1 = int(request.GET.get('year1', today.year - 1))
     year2 = int(request.GET.get('year2', today.year))
 
+    depto_filter = {}
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            empleado_usuario = request.user.persona.empleado
+            departamento = empleado_usuario.departamento_actual()
+            if departamento:
+                depto_filter = {
+                    'empleado__empleadocargo__cargo__cargodepartamento__departamento': departamento,
+                    'empleado__empleadocargo__fecha_fin__isnull': True
+                }
+            else:
+                depto_filter = {'id__isnull': True}
+        except (AttributeError, Empleado.DoesNotExist):
+            depto_filter = {'id__isnull': True}
+
     def get_monthly_costs(year):
         costs = Nomina.objects.filter(
-            fecha_generacion__year=year
+            fecha_generacion__year=year,
+            **depto_filter 
         ).annotate(
             month=ExtractMonth('fecha_generacion')
         ).values('month').annotate(
@@ -331,8 +435,7 @@ def api_labor_cost_comparison(request):
         
         monthly_data = {item['month']: float(item['total_cost'] or 0) for item in costs}
         
-        full_year_data = [monthly_data.get(month, 0) for month in range(1, 13)]
-        return full_year_data
+        return [monthly_data.get(month, 0) for month in range(1, 13)]
 
     data_year1 = get_monthly_costs(year1)
     data_year2 = get_monthly_costs(year2)
@@ -352,14 +455,34 @@ def api_labor_cost_comparison(request):
 @require_GET
 @login_required
 def api_estructura(request):
-    depts = Departamento.objects.all()
+    rol_actual = request.session.get('rol_actual', request.user.rol)
+    
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            empleado_usuario = request.user.persona.empleado
+            depto_usuario = empleado_usuario.departamento_actual()
+            if depto_usuario:
+                depts = Departamento.objects.filter(id=depto_usuario.id)
+            else:
+                depts = Departamento.objects.none()
+        except (AttributeError, Empleado.DoesNotExist):
+            depts = Departamento.objects.none()
+    else:
+        depts = Departamento.objects.all()
+
     labels = []
     counts = []
+
     for d in depts:
         cargos_ids = CargoDepartamento.objects.filter(departamento=d).values_list('cargo_id', flat=True)
-        emp_count = EmpleadoCargo.objects.filter(cargo_id__in=cargos_ids, fecha_fin__isnull=True).values('empleado').distinct().count()
+        emp_count = EmpleadoCargo.objects.filter(
+            cargo_id__in=cargos_ids, 
+            fecha_fin__isnull=True
+        ).values('empleado').distinct().count()
+        
         labels.append(d.nombre)
         counts.append(emp_count)
+
     return JsonResponse({"labels": labels, "counts": counts})
 
 
@@ -368,17 +491,32 @@ def api_estructura(request):
 @require_GET
 @login_required
 def api_objetivos(request):
+    rol_actual = request.session.get('rol_actual', request.user.rol)
     department_id = request.GET.get('departamento_id')
 
-    items = []
-    objs_queryset = Objetivo.objects.filter(activo=True).select_related('departamento', 'creado_por__persona').order_by('-fecha_creacion')
+    objs_queryset = Objetivo.objects.filter(activo=True).select_related(
+        'departamento', 'creado_por__persona'
+    ).order_by('-fecha_creacion')
 
-    if department_id and department_id != 'todos':
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            empleado_usuario = request.user.persona.empleado
+            depto_usuario = empleado_usuario.departamento_actual()
+            
+            if depto_usuario:
+                objs_queryset = objs_queryset.filter(departamento=depto_usuario)
+            else:
+                objs_queryset = objs_queryset.none()
+        except (AttributeError, Empleado.DoesNotExist):
+            objs_queryset = objs_queryset.none()
+            
+    elif department_id and department_id != 'todos':
         try:
             objs_queryset = objs_queryset.filter(departamento__id=int(department_id))
         except ValueError:
-            pass 
-            
+            pass
+
+    items = []
     objs = objs_queryset[:50] 
 
     for o in objs:
@@ -418,6 +556,7 @@ def api_objetivos(request):
 @login_required
 def api_capacitaciones(request):
     today = timezone.localdate()
+    rol_actual = request.session.get('rol_actual', request.user.rol)
     period = request.GET.get('periodo', '6m') 
     
     try:
@@ -432,8 +571,22 @@ def api_capacitaciones(request):
         fecha_inscripcion__lte=today
     )
 
-    labels, internas, externas = [], [], []
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            empleado_usuario = request.user.persona.empleado
+            departamento = empleado_usuario.departamento_actual()
+            
+            if departamento:
+                qs = qs.filter(
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento=departamento,
+                    empleado__empleadocargo__fecha_fin__isnull=True
+                ).distinct()
+            else:
+                qs = qs.none()
+        except (AttributeError, Empleado.DoesNotExist):
+            qs = qs.none()
 
+    labels, internas, externas = [], [], []
     current_date = start_date
     while current_date <= today:
         month_qs = qs.filter(

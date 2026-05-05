@@ -29,6 +29,7 @@ def dashboard_view(request):
 
 def get_asistencias_queryset(request):
     queryset = HistorialAsistencia.objects.order_by('-fecha_asistencia', 'hora_entrada')
+    rol_actual = request.session.get('rol_actual', request.user.rol)
 
     dni = request.GET.get('dni')
     confirmado = request.GET.get('confirmado')
@@ -37,17 +38,29 @@ def get_asistencias_queryset(request):
     
     queryset = queryset.filter(empleado__empleadocargo__fecha_fin__isnull=True)
 
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            depto_usuario = request.user.persona.empleado.departamento_actual()
+            if depto_usuario:
+                queryset = queryset.filter(
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento=depto_usuario
+                )
+            else:
+                return HistorialAsistencia.objects.none()
+        except (AttributeError, Empleado.DoesNotExist):
+            return HistorialAsistencia.objects.none()
+    
+    elif departamento_id and departamento_id != 'todos':
+        queryset = queryset.filter(
+            empleado__empleadocargo__cargo__cargodepartamento__departamento__id=departamento_id
+        )
+
     if dni:
         queryset = queryset.filter(empleado__dni__icontains=dni)
-
     if confirmado in ['true', 'false']:
         queryset = queryset.filter(confirmado=(confirmado == 'true'))
     if tardanza in ['true', 'false']:
         queryset = queryset.filter(tardanza=(tardanza == 'true'))
-    
-    if departamento_id:
-        queryset = queryset.filter(empleado__empleadocargo__cargo__cargodepartamento__departamento__id=departamento_id,
-                                    empleado__empleadocargo__fecha_fin__isnull=True)
     
     return queryset.distinct()
 
@@ -60,7 +73,20 @@ def asistencias_detalle_view(request):
 
 @login_required
 def api_departamentos_list(request):
-    departamentos = Departamento.objects.all().values('id', 'nombre')
+    rol_actual = request.session.get('rol_actual', request.user.rol)
+    
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            depto = request.user.persona.empleado.departamento_actual()
+            if depto:
+                departamentos = Departamento.objects.filter(id=depto.id).values('id', 'nombre')
+            else:
+                departamentos = []
+        except (AttributeError, Empleado.DoesNotExist):
+            departamentos = []
+    else:
+        departamentos = Departamento.objects.all().values('id', 'nombre')
+        
     return JsonResponse(list(departamentos), safe=False)
 
 
@@ -117,7 +143,6 @@ def api_asistencias_detalle(request):
 
 
 
-
 @login_required
 def exportar_asistencias_csv(request):
     queryset = get_asistencias_queryset(request) 
@@ -149,28 +174,46 @@ def exportar_asistencias_pdf(request):
 ## EMPLEADOS
 ########################
 def get_empleados_queryset(request):
+    rol_actual = request.session.get('rol_actual', request.user.rol)
+    
     estado_order = Case(
         When(estado='activo', then=Value(0)),      
         default=Value(100),                        
         output_field=IntegerField(),
     )
-    queryset = Empleado.objects.all().order_by(estado_order,'apellido')
+    
+    queryset = Empleado.objects.all().order_by(estado_order, 'apellido')
     
     dni = request.GET.get('dni')
     estado = request.GET.get('estado')
     departamento_id = request.GET.get('departamento_id')
 
-    if dni:
-        queryset = queryset.filter(dni__icontains=dni)
-    if estado:
-        queryset = queryset.filter(estado=estado)
-    if departamento_id:
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            depto_usuario = request.user.persona.empleado.departamento_actual()
+            if depto_usuario:
+                queryset = queryset.filter(
+                    empleadocargo__cargo__cargodepartamento__departamento=depto_usuario,
+                    empleadocargo__fecha_fin__isnull=True
+                )
+            else:
+                return Empleado.objects.none()
+        except (AttributeError, Empleado.DoesNotExist):
+            return Empleado.objects.none()
+            
+    elif departamento_id:
         queryset = queryset.filter(
             empleadocargo__cargo__cargodepartamento__departamento__id=departamento_id,
             empleadocargo__fecha_fin__isnull=True
         )
 
+    if dni:
+        queryset = queryset.filter(dni__icontains=dni)
+    if estado:
+        queryset = queryset.filter(estado=estado)
+
     return queryset.distinct()
+
 
 
 @login_required
@@ -255,7 +298,6 @@ def exportar_empleados_csv(request):
 
 
 
-
 @login_required
 def empleado_perfil_detalle_view(request, empleado_id):
     empleado = get_object_or_404(Empleado.objects.all(), id=empleado_id)
@@ -270,17 +312,36 @@ def empleado_perfil_detalle_view(request, empleado_id):
         'departamento_activo': departamento_activo,
     })
 
+
+
 @login_required
 def api_empleado_nominas(request, empleado_id):
+    rol_actual = request.session.get('rol_actual', request.user.rol)
+    
+    if rol_actual in ['jefe', 'gerente']:
+        depto_usuario = request.user.persona.empleado.departamento_actual()
+    
+        es_de_su_equipo = EmpleadoCargo.objects.filter(
+            empleado_id=empleado_id,
+            cargo__cargodepartamento__departamento=depto_usuario,
+            fecha_fin__isnull=True
+        ).exists()
+        
+        if not es_de_su_equipo:
+            return JsonResponse({'error': 'No tiene permiso para ver este empleado'}, status=403)
+    
+    
     nominas = Nomina.objects.filter(empleado_id=empleado_id).order_by('-fecha_generacion')
+    
     page = request.GET.get('page', 1)
     per_page = request.GET.get('per_page', 15)
     paginator = Paginator(nominas, per_page)
-
+    
     try:
         items_page = paginator.page(page)
     except (PageNotAnInteger, EmptyPage):
         items_page = paginator.page(1)
+        
     data = [{
         'fecha': n.fecha_generacion.strftime('%d-%m-%Y'),
         'neto': float(n.monto_neto),
@@ -300,17 +361,32 @@ def api_empleado_nominas(request, empleado_id):
     }, safe=False)
 
 
+
 @login_required
 def api_empleado_evaluaciones(request, empleado_id):
+    rol_actual = request.session.get('rol_actual', request.user.rol)
+    
+    if rol_actual in ['jefe', 'gerente']:
+        depto_usuario = request.user.persona.empleado.departamento_actual()
+        es_de_su_equipo = EmpleadoCargo.objects.filter(
+            empleado_id=empleado_id,
+            cargo__cargodepartamento__departamento=depto_usuario,
+            fecha_fin__isnull=True
+        ).exists()
+        
+        if not es_de_su_equipo:
+            return JsonResponse({'error': 'No tiene permiso para ver este empleado'}, status=403)
+  
+  
     evaluaciones = EvaluacionEmpleado.objects.filter(empleado_id=empleado_id).order_by('-fecha_registro')
     page = request.GET.get('page', 1)
     per_page = request.GET.get('per_page', 15)
     paginator = Paginator(evaluaciones, per_page)
-
     try:
         items_page = paginator.page(page)
     except (PageNotAnInteger, EmptyPage):
         items_page = paginator.page(1)
+
     data = [{
         'fecha': e.fecha_registro.strftime('%d-%m-%Y'),
         'calificacion': float(e.calificacion_final) if e.calificacion_final is not None else 'N/A',
@@ -329,9 +405,31 @@ def api_empleado_evaluaciones(request, empleado_id):
     }, safe=False)
 
 
+
+def es_subordinado(user, empleado_id, rol):
+    """Auxiliar para verificar si un jefe tiene acceso a un empleado."""
+    if rol in ['admin']: return True
+    try:
+        depto_usuario = user.persona.empleado.departamento_actual()
+        if not depto_usuario: return False
+        return EmpleadoCargo.objects.filter(
+            empleado_id=empleado_id,
+            cargo__cargodepartamento__departamento=depto_usuario,
+            fecha_fin__isnull=True
+        ).exists()
+    except:
+        return False
+
+
+
 @login_required
 def api_empleado_asistencia(request, empleado_id):
+    rol = request.session.get('rol_actual', request.user.rol)
+    if not es_subordinado(request.user, empleado_id, rol):
+        return JsonResponse({'error': 'Acceso denegado'}, status=403)
+
     asistencias = HistorialAsistencia.objects.filter(empleado_id=empleado_id).order_by('-fecha_asistencia')[:180]
+
     page = request.GET.get('page', 1)
     per_page = request.GET.get('per_page', 15)
     paginator = Paginator(asistencias, per_page)
@@ -361,7 +459,12 @@ def api_empleado_asistencia(request, empleado_id):
 
 @login_required
 def api_empleado_vacaciones(request, empleado_id):
+    rol = request.session.get('rol_actual', request.user.rol)
+    if not es_subordinado(request.user, empleado_id, rol):
+        return JsonResponse({'error': 'Acceso denegado'}, status=403)
+
     solicitudes = VacacionesSolicitud.objects.filter(empleado_id=empleado_id).order_by('-fecha_solicitud')
+
     page = request.GET.get('page', 1)
     per_page = request.GET.get('per_page', 15)
     paginator = Paginator(solicitudes, per_page)
@@ -393,8 +496,11 @@ def api_empleado_vacaciones(request, empleado_id):
 
 @login_required
 def api_empleado_objetivos(request, empleado_id):
+    rol = request.session.get('rol_actual', request.user.rol)
+    if not es_subordinado(request.user, empleado_id, rol):
+        return JsonResponse({'error': 'Acceso denegado'}, status=403)
+
     tipo_filtro = request.GET.get('tipo', 'todos')
-    
     queryset = ObjetivoEmpleado.objects.filter(empleado_id=empleado_id).select_related(
         'objetivo', 'objetivo__departamento', 'cargo'
     ).order_by('-fecha_asignacion')
@@ -443,25 +549,40 @@ def api_empleado_objetivos(request, empleado_id):
 ## NOMINAS
 ############
 def get_nominas_queryset(request):
-    queryset = Nomina.objects.select_related(
-        'empleado',
-    ).order_by('-fecha_generacion')
+    rol_actual = request.session.get('rol_actual', request.user.rol)
+    
+    queryset = Nomina.objects.select_related('empleado').order_by('-fecha_generacion')
     
     dni = request.GET.get('dni')
     estado = request.GET.get('estado')
     departamento_id = request.GET.get('departamento_id')
-    
-    if dni:
-        queryset = queryset.filter(empleado__dni__icontains=dni)
-    if estado:
-        queryset = queryset.filter(estado=estado)
-    if departamento_id:
+
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            depto_usuario = request.user.persona.empleado.departamento_actual()
+            if depto_usuario:
+                queryset = queryset.filter(
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento=depto_usuario,
+                    empleado__empleadocargo__fecha_fin__isnull=True
+                )
+            else:
+                return Nomina.objects.none()
+        except (AttributeError, Empleado.DoesNotExist):
+            return Nomina.objects.none()
+            
+    elif departamento_id:
         queryset = queryset.filter(
             empleado__empleadocargo__cargo__cargodepartamento__departamento__id=departamento_id,
             empleado__empleadocargo__fecha_fin__isnull=True
         )
 
+    if dni:
+        queryset = queryset.filter(empleado__dni__icontains=dni)
+    if estado:
+        queryset = queryset.filter(estado=estado)
+
     return queryset.distinct()
+
 
 
 @login_required
@@ -569,6 +690,8 @@ def api_evaluaciones_list(request):
 
 
 def get_evaluaciones_queryset(request):
+    rol_actual = request.session.get('rol_actual', request.user.rol)
+    
     queryset = EvaluacionEmpleado.objects.select_related(
         'empleado',
         'evaluacion'
@@ -576,13 +699,26 @@ def get_evaluaciones_queryset(request):
     
     dni = request.GET.get('dni')
     evaluacion_id = request.GET.get('evaluacion_id')
-    
+
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            depto_usuario = request.user.persona.empleado.departamento_actual()
+            if depto_usuario:
+                queryset = queryset.filter(
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento=depto_usuario,
+                    empleado__empleadocargo__fecha_fin__isnull=True
+                )
+            else:
+                return EvaluacionEmpleado.objects.none()
+        except (AttributeError, Empleado.DoesNotExist):
+            return EvaluacionEmpleado.objects.none()
+
     if dni:
         queryset = queryset.filter(empleado__dni__icontains=dni)
     if evaluacion_id:
         queryset = queryset.filter(evaluacion__id=evaluacion_id)
 
-    return queryset
+    return queryset.distinct()
 
 
 
@@ -651,6 +787,8 @@ def exportar_evaluaciones_csv(request):
     return response
 
 
+
+
 ## CAPACITACIONES
 ##################
 @login_required
@@ -666,7 +804,10 @@ def api_capacitaciones_list(request):
     return JsonResponse(data, safe=False)
 
 
+
 def get_capacitaciones_queryset(request):
+    rol_actual = request.session.get('rol_actual', request.user.rol)
+    
     queryset = CapacitacionEmpleado.objects.select_related(
         'empleado', 
         'capacitacion'
@@ -676,7 +817,20 @@ def get_capacitaciones_queryset(request):
     curso_id = request.GET.get('curso_id')
     estado = request.GET.get('estado')
     tipo = request.GET.get('tipo')
-    
+
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            depto_usuario = request.user.persona.empleado.departamento_actual()
+            if depto_usuario:
+                queryset = queryset.filter(
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento=depto_usuario,
+                    empleado__empleadocargo__fecha_fin__isnull=True
+                )
+            else:
+                return CapacitacionEmpleado.objects.none()
+        except (AttributeError, Empleado.DoesNotExist):
+            return CapacitacionEmpleado.objects.none()
+
     if dni:
         queryset = queryset.filter(empleado__dni__icontains=dni)
     if curso_id:
@@ -688,7 +842,8 @@ def get_capacitaciones_queryset(request):
     elif tipo == 'externa':
         queryset = queryset.filter(capacitacion__es_externo=True)
 
-    return queryset
+    return queryset.distinct()
+
 
 
 @login_required
@@ -763,6 +918,8 @@ def exportar_capacitaciones_csv(request):
 ########### OBJETIVOS #########
 ######################
 def get_objetivos_queryset(request):
+    rol_actual = request.session.get('rol_actual', request.user.rol)
+    
     queryset = ObjetivoEmpleado.objects.select_related(
         'empleado', 
         'objetivo', 
@@ -774,32 +931,53 @@ def get_objetivos_queryset(request):
     completado = request.GET.get('completado') 
     departamento_id = request.GET.get('departamento_id')
     tipo_recurrencia = request.GET.get('tipo_recurrencia')
-    
+
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            depto_usuario = request.user.persona.empleado.departamento_actual()
+            if depto_usuario:
+                queryset = queryset.filter(objetivo__departamento=depto_usuario)
+            else:
+                return ObjetivoEmpleado.objects.none()
+        except (AttributeError, Empleado.DoesNotExist):
+            return ObjetivoEmpleado.objects.none()
+            
+    elif departamento_id:
+        queryset = queryset.filter(objetivo__departamento_id=departamento_id)
+
     if dni:
         queryset = queryset.filter(empleado__dni__icontains=dni)
     
     if completado != '' and completado is not None:
         valor_bool = True if completado.lower() == 'true' else False
         queryset = queryset.filter(completado=valor_bool)
-        
-    if departamento_id:
-        queryset = queryset.filter(objetivo__departamento_id=departamento_id)
 
     if tipo_recurrencia == 'recurrente':
         queryset = queryset.filter(objetivo__es_recurrente=True)
     elif tipo_recurrencia == 'aislado':
         queryset = queryset.filter(objetivo__es_recurrente=False)
 
-    return queryset
+    return queryset.distinct()
 
 
 
 @login_required
 def objetivos_detalle_view(request):
-    departamentos = Departamento.objects.all().order_by('nombre')
+    rol_actual = request.session.get('rol_actual', request.user.rol)
+    
+    if rol_actual in ['jefe', 'gerente']:
+        try:
+            depto = request.user.persona.empleado.departamento_actual()
+            departamentos = Departamento.objects.filter(id=depto.id) if depto else Departamento.objects.none()
+        except (AttributeError, Empleado.DoesNotExist):
+            departamentos = Departamento.objects.none()
+    else:
+        departamentos = Departamento.objects.all().order_by('nombre')
+
     return render(request, 'informes/objetivos_detalle.html', {
         'departamentos': departamentos
     })
+
 
 
 
