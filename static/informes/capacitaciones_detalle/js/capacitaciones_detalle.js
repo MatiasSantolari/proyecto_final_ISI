@@ -116,7 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     }
 
-    // --- Eventos ---
     [filterDni, filterCurso, filterTipo, filterEstado].forEach(el => {
         el.addEventListener('change', () => loadCapacitacionesData(1));
     });
@@ -131,6 +130,45 @@ document.addEventListener('DOMContentLoaded', () => {
         const params = new URLSearchParams({ dni: filterDni.value, curso_id: filterCurso.value, tipo: filterTipo.value, estado: filterEstado.value });
         window.location.href = `/api/capacitaciones/exportar/csv/?${params.toString()}`;
     });
+
+
+     if (downloadPdfBtn) {
+        downloadPdfBtn.addEventListener('click', async () => {
+            const params = new URLSearchParams({
+                dni: filterDni.value,
+                curso_id: filterCurso.value,
+                tipo: filterTipo.value,
+                estado: filterEstado.value,
+                page: 1,
+                per_page: 5000 
+            });
+
+            const originalContent = downloadPdfBtn.innerHTML;
+            downloadPdfBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+            downloadPdfBtn.disabled = true;
+
+            try {
+                const response = await fetch(`/api/capacitaciones/detalle/?${params.toString()}`);
+                if (!response.ok) throw new Error('Error al compilar listado masivo');
+                const result = await response.json();
+
+                if (paginationControls) paginationControls.innerHTML = '';
+
+                renderTable(result.results, true);
+
+                window.print();
+
+            } catch (err) {
+                console.error("Fallo la descarga de registros de capacitación:", err);
+                alert("No se pudieron recopilar todos los registros filtrados para el PDF.");
+            } finally {
+                downloadPdfBtn.innerHTML = originalContent;
+                downloadPdfBtn.disabled = false;
+                
+                loadCapacitacionesData(currentPage);
+            }
+        });
+    }
 
     populateCursosSelector();
     loadCapacitacionesData(1);

@@ -134,6 +134,42 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = `/api/empleados/exportar/csv/?${params.toString()}`;
     });
 
+
+    if (downloadPdfBtn) {
+        downloadPdfBtn.addEventListener('click', async () => {
+            const dni = filterDni.value;
+            const estado = filterEstado.value;
+            const departamento_id = filterDepartamento.value;
+
+            const originalContent = downloadPdfBtn.innerHTML;
+            downloadPdfBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+            downloadPdfBtn.disabled = true;
+
+            const exportUrl = `/api/empleados/detalle/?dni=${dni}&estado=${estado}&departamento_id=${departamento_id}&page=1&per_page=5000`;
+            
+            try {
+                const response = await fetch(exportUrl);
+                if (!response.ok) throw new Error('Error al compilar listado masivo');
+                const result = await response.json();
+
+                if (paginationControls) paginationControls.innerHTML = '';
+
+                renderTable(result.results, true);
+
+                window.print();
+
+            } catch (err) {
+                console.error("Fallo la descarga de registros de empleados:", err);
+                alert("No se pudieron recopilar todos los registros filtrados para el PDF.");
+            } finally {
+                downloadPdfBtn.innerHTML = originalContent;
+                downloadPdfBtn.disabled = false;
+                
+                loadEmpleadosData(currentPage);
+            }
+        });
+    }
+
     populateDepartamentosSelector();
     loadEmpleadosData(1);
 });

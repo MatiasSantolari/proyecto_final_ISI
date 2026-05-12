@@ -17,8 +17,8 @@
   // Chart instances
   let vacChart=null, attendanceChart, evalChart=null, payrollChart, deptChart, laborCostChart = null, capChart = null;
 
-  // helper to fetch json and safe fallback
   async function safeFetch(url){
+  // helper to fetch json and safe fallback
     try{
       const res = await fetch(url, { credentials: 'same-origin' });
       if(!res.ok) throw new Error('Network response not ok');
@@ -946,5 +946,37 @@
     const selectorCap = document.getElementById('capPeriodSelector');
     if (selectorCap) selectorCap.addEventListener('change', loadCapacitaciones);
   });
+    
+  function ejecutarInforme() {
+        const charts = [vacChart, attendanceChart, evalChart, payrollChart, deptChart, laborCostChart, capChart];
+        
+        charts.forEach(chart => {
+            if (chart && typeof chart.options !== 'undefined') {
+                chart.options.responsive = false;
+                chart.update('none');
+            }
+        });
 
+        window.print();
+
+        setTimeout(() => {
+            charts.forEach(chart => {
+                if (chart && typeof chart.options !== 'undefined') {
+                    chart.options.responsive = true;
+                    chart.update();
+                }
+            });
+        }, 500);
+    }
+
+    const btnDownloadPDF = document.getElementById('btnDownloadPDF');
+    if (btnDownloadPDF) {
+        btnDownloadPDF.addEventListener('click', ejecutarInforme);
+    }
+
+    const btnPrintScreen = document.querySelector('button[onclick="window.print()"]');
+    if (btnPrintScreen) {
+        btnPrintScreen.removeAttribute('onclick');
+        btnPrintScreen.addEventListener('click', ejecutarInforme);
+    }
 })();

@@ -43,3 +43,95 @@ body { background: var(--bg); color: var(--text); }
 .ml-1 {
     margin-left: 0.25rem;
 }
+
+
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 12mm 15mm 12mm 15mm;
+  }
+
+  html, body, #app-root, .container-fluid {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-y: visible !important;
+    position: static !important; 
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #app-root, #app-root * {
+    visibility: visible;
+  }
+
+  #app-root {
+    position: static !important; 
+    width: 100% !important;
+    display: block !important; 
+    background: #fff !important;
+    
+    margin: 0 !important;
+    padding: 0 !important;
+    
+    float: none !important;
+  }
+
+  .row {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .kpi-deck .col-6 {
+    width: 25% !important;
+  }
+
+  .col-lg-4 { width: 33.333% !important; padding-left: 5px !important; padding-right: 5px !important; }
+  .col-lg-6 { width: 50% !important; padding-left: 5px !important; padding-right: 5px !important; }
+  .col-lg-8 { width: 66.666% !important; padding-left: 5px !important; padding-right: 5px !important; }
+  .col-12   { width: 100% !important; padding-left: 5px !important; padding-right: 5px !important; }
+
+  .card, .chart-card {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    height: auto !important; 
+    box-shadow: none !important;
+    border: 1px solid #dee2e6 !important;
+    margin-bottom: 15px !important;
+  }
+
+  .kpi-deck .card {
+    background-color: #f8f9fa !important;
+    border: 1px solid #e3e6f0 !important;
+  }
+
+  .bi-chevron-right {
+    display: none !important;
+  }
+
+  #objectivesList, .custom-scrollbar, #deptChartParent {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .form-select, .dropdown, button, #dropdownMenuReport, .dropdown-menu {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  canvas {
+    max-width: 100% !important;
+    height: 250px !important; 
+  }
+}

@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentPage = 1;
     const itemsPerPage = 10;
+    let backupData = [];
 
     async function populateDepartamentosSelector() {
         const apiUrl = '/api/departamentos/list/';
@@ -47,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const result = await response.json();
             
+            backupData = result.results; 
             renderTable(result.results);
             renderPagination(result.pagination);
 
@@ -146,6 +148,43 @@ document.addEventListener('DOMContentLoaded', () => {
         
         window.location.href = exportUrl;
     });
+
+
+    if (downloadPdfBtn) {
+        downloadPdfBtn.addEventListener('click', async () => {
+            const dni = filterDni.value;
+            const confirmado = filterConfirmado.value;
+            const tardanza = filterTardanza.value;
+            const departamento_id = filterDepartamento.value;
+
+            const originalContent = downloadPdfBtn.innerHTML;
+            downloadPdfBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+            downloadPdfBtn.disabled = true;
+
+            const exportUrl = `/api/asistencias/detalle/?dni=${dni}&confirmado=${confirmado}&tardanza=${tardanza}&departamento_id=${departamento_id}&page=1&per_page=5000`;
+            
+            try {
+                const response = await fetch(exportUrl);
+                if (!response.ok) throw new Error('Error al recopilar el historial completo');
+                const result = await response.json();
+
+                if (paginationControls) paginationControls.innerHTML = '';
+
+                renderTable(result.results, true);
+
+                window.print();
+
+            } catch (err) {
+                console.error("Falló la compilación de datos para PDF:", err);
+                alert("No se pudieron recopilar todos los registros filtrados para el PDF.");
+            } finally {
+                downloadPdfBtn.innerHTML = originalContent;
+                downloadPdfBtn.disabled = false;
+                
+                loadAsistenciasData(currentPage);
+            }
+        });
+    }
 
     populateDepartamentosSelector();
     loadAsistenciasData(1);

@@ -1,3 +1,80 @@
 .align-bottom-buttons {
     min-height: 80px;
 }
+
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm 12mm 15mm 12mm;
+  }
+
+  html, body, .container-fluid, .card, .card-body {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-y: visible !important;
+    position: static !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  h4,
+  .card-header,
+  #filterForm,
+  .card-footer,
+  #paginationControls,
+  nav,
+  .btn,
+  #clearFiltersBtn {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .card {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .table-responsive {
+    overflow: visible !important;
+    overflow-x: visible !important;
+    width: 100% !important;
+  }
+
+  table {
+    width: 100% !important;
+    table-layout: auto !important;
+    border-collapse: collapse !important;
+  }
+
+  th {
+    background-color: #f1f3f5 !important;
+    color: #000 !important;
+    font-weight: bold !important;
+    border-bottom: 2px solid #dee2e6 !important;
+    text-transform: uppercase;
+    font-size: 0.75rem !important;
+  }
+
+  td {
+    font-size: 0.8rem !important; 
+    padding: 6px 4px !important;
+    border-bottom: 1px solid #dee2e6 !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}

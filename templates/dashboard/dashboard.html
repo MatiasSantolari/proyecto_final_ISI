@@ -2,20 +2,22 @@
 
 {% block content %}
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.12.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-  <div class="container-fluid p-0" id="app-root">
+  <div  id="app-root" class="container-fluid p-0 bg-transparent">
 
-    <div class="d-flex justify-content-between align-items-center mb-1">
+    <div class="d-flex justify-content-between align-items-center mb-2">
       <div class="d-flex gap-2 align-items-center">
         <div class="form-check form-switch">
         </div>
       </div>
     </div>
 
+    
     <!-- KPIs -->
     <div class="row g-2 kpi-deck mb-1">
-      <div class="col-6 col-md-3">
+      <div class="col-6 col-md-2">
         <a href="{% url 'empleados_detalle'%}" class="card kpi-link border-0 shadow-sm" style="min-height: 80px;">
           <div class="card-body py-2 px-3 d-flex flex-column justify-content-center">
             <div class="mb-1 fw-semibold" style="font-size: 0.85rem;">
@@ -48,7 +50,7 @@
         </a>
       </div>
 
-      <div class="col-6 col-md-3">
+      <div class="col-6 col-md-4 d-flex align-items-center gap-2">
         <a href="{% url 'evaluaciones_detalle'%}" class="card kpi-link border-0 shadow-sm" style="min-height: 80px;">
           <div class="card-body py-2 px-3 d-flex flex-column justify-content-center">
             <div class="mb-1 fw-semibold" style="font-size: 0.85rem;">
@@ -57,9 +59,22 @@
             <div id="kpiEvalAvg" class="fw-bold" style="font-size: 1.5rem; line-height: 1;">—</div>
           </div>
         </a>
+    
+        <div class="dropdown ms-4">
+          <button class="btn btn-link text-muted p-1" type="button" id="dropdownMenuReport" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 2rem; line-height: 1;">
+            <i class="bi bi-three-dots-vertical"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="dropdownMenuReport">
+            <li>
+              <button class="dropdown-item d-flex align-items-center gap-2 py-2" type="button" id="btnDownloadPDF">
+                <i class="bi bi-file-earmark-pdf text-danger"></i>
+                <span>Descargar Dashboard en PDF</span>
+              </button>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
-
 
     <!-- Row: Vacaciones + Asistencias -->
     <div class="row g-2 mb-3">

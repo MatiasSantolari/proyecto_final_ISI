@@ -128,6 +128,45 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = `/api/objetivos/exportar/csv/?${params.toString()}`;
     });
 
+
+    if (downloadPdfBtn) {
+        downloadPdfBtn.addEventListener('click', async () => {
+            const params = new URLSearchParams({
+                dni: filterDni.value,
+                completado: filterEstado.value,
+                tipo_recurrencia: filterRecurrencia.value,
+                departamento_id: filterDepartamento.value,
+                page: 1,
+                per_page: 5000 
+            });
+
+            const originalContent = downloadPdfBtn.innerHTML;
+            downloadPdfBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+            downloadPdfBtn.disabled = true;
+            
+            try {
+                const response = await fetch(`/api/objetivos/detalle/?${params.toString()}`);
+                if (!response.ok) throw new Error('Error al compilar listado masivo');
+                const result = await response.json();
+
+                if (paginationControls) paginationControls.innerHTML = '';
+
+                renderTable(result.results, true);
+
+                window.print();
+
+            } catch (err) {
+                console.error("Fallo la descarga de registros de objetivos:", err);
+                alert("No se pudieron recopilar todos los registros filtrados para el PDF.");
+            } finally {
+                downloadPdfBtn.innerHTML = originalContent;
+                downloadPdfBtn.disabled = false;
+                
+                loadObjectivesData(currentPage);
+            }
+        });
+    }
+
     populateDepartamentosSelector();
     loadObjectivesData(1);
 });

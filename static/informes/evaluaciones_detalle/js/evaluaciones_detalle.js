@@ -139,6 +139,43 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = `/api/evaluaciones/exportar/csv/?${params.toString()}`;
     });
 
+
+    if (downloadPdfBtn) {
+        downloadPdfBtn.addEventListener('click', async () => {
+            const params = new URLSearchParams({
+                dni: filterDni.value,
+                evaluacion_id: filterEvaluacion.value,
+                page: 1,
+                per_page: 5000 
+            });
+
+            const originalContent = downloadPdfBtn.innerHTML;
+            downloadPdfBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+            downloadPdfBtn.disabled = true;
+            
+            try {
+                const response = await fetch(`/api/evaluaciones/detalle/?${params.toString()}`);
+                if (!response.ok) throw new Error('Error al compilar listado masivo');
+                const result = await response.json();
+
+                if (paginationControls) paginationControls.innerHTML = '';
+
+                renderTable(result.results, true);
+
+                window.print();
+
+            } catch (err) {
+                console.error("Fallo la descarga de registros de evaluaciones:", err);
+                alert("No se pudieron recopilar todos los registros filtrados para el PDF.");
+            } finally {
+                downloadPdfBtn.innerHTML = originalContent;
+                downloadPdfBtn.disabled = false;
+                
+                loadEvaluacionesData(currentPage);
+            }
+        });
+    }
+
     populateEvaluacionesSelector(); 
     loadEvaluacionesData(1);
 });
