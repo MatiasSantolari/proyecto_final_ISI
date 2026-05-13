@@ -5,9 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterDni = document.getElementById('filterDni');
     const filterEstado = document.getElementById('filterEstado');
     const filterDepartamento = document.getElementById('filterDepartamento');
+    const filterFechaDesde = document.getElementById('filterFechaDesde');
+    const filterFechaHasta = document.getElementById('filterFechaHasta');    
     const clearFiltersBtn = document.getElementById('clearFiltersBtn');
     const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
 
+    let backupData = [];
 
     async function populateDepartamentosSelector() {
         const apiUrl = '/api/departamentos/list/';
@@ -27,7 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-
     let currentPage = 1;
     const itemsPerPage = 10;
     
@@ -37,8 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const dni = filterDni.value;
         const estado = filterEstado.value;
         const departamento_id = filterDepartamento.value;
+        const fecha_desde = filterFechaDesde ? filterFechaDesde.value : '';
+        const fecha_hasta = filterFechaHasta ? filterFechaHasta.value : '';
 
-        const apiUrl = `/api/nominas/detalle/?dni=${dni}&estado=${estado}&departamento_id=${departamento_id}&page=${currentPage}&per_page=${itemsPerPage}`;
+        const apiUrl = `/api/nominas/detalle/?dni=${dni}&estado=${estado}&departamento_id=${departamento_id}&fecha_desde=${fecha_desde}&fecha_hasta=${fecha_hasta}&page=${currentPage}&per_page=${itemsPerPage}`;
 
         try {
             const response = await fetch(apiUrl); 
@@ -46,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const result = await response.json();
             
+            backupData = result.results;
             renderTable(result.results);
             renderPagination(result.pagination);
 
@@ -55,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function renderTable(data) {
+    function renderTable(data, isPrinting = false) {
         tbody.innerHTML = ''; 
         if (data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="10" class="text-center">No se encontraron nóminas.</td></tr>`;
@@ -65,13 +71,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = document.createElement('tr');
             const formatCurrency = (value) => `$${value.toFixed(2)}`;
             const estadoClass = item.estado === 'pagado' ? 'success' : item.estado === 'pendiente' ? 'warning' : 'danger';
-            const nombreHtml = `<a href="${item.url_perfil}">${item.nombre_completo}</a>`;
+            
+            const nombreHtml = isPrinting 
+                ? `<span>${item.nombre_completo}</span>` 
+                : `<a href="${item.url_perfil}">${item.nombre_completo}</a>`;
+            
             let fechaPagoHtml;
             if (item.fecha_pago) {
                 fechaPagoHtml = item.fecha_pago;
             } else {
-                const urlConParametro = `${item.url_pago}?from_detalle=1`;
-                fechaPagoHtml = `<a href="${urlConParametro}" class="btn btn-sm btn-primary">Ir a pagar</a>`;
+                if (isPrinting) {
+                    fechaPagoHtml = `<span class="text-muted fw-semibold" style="font-size: 0.75rem;">Pendiente de Pago</span>`;
+                } else {
+                    const urlConParametro = `${item.url_pago}?from_detalle=1`;
+                    fechaPagoHtml = `<a href="${urlConParametro}" class="btn btn-sm btn-primary">Ir a pagar</a>`;
+                }
             }
             row.innerHTML = `
                 <td>${nombreHtml}</td>
@@ -91,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderPagination(pagination) {
         paginationControls.innerHTML = '';
+        if (!pagination) return;
 
         const prevItem = document.createElement('li');
         prevItem.className = `page-item ${!pagination.has_previous ? 'disabled' : ''}`;
@@ -125,23 +140,30 @@ document.addEventListener('DOMContentLoaded', () => {
     filterDni.addEventListener('input', () => loadNominasData(1)); 
     filterEstado.addEventListener('change', () => loadNominasData(1));
     filterDepartamento.addEventListener('change', () => loadNominasData(1));
+    if (filterFechaDesde) filterFechaDesde.addEventListener('change', () => loadNominasData(1));
+    if (filterFechaHasta) filterFechaHasta.addEventListener('change', () => loadNominasData(1));
 
     clearFiltersBtn.addEventListener('click', () => {
         filterDni.value = '';
         filterEstado.value = '';
         filterDepartamento.value = '';
+        if (filterFechaDesde) filterFechaDesde.value = '';
+        if (filterFechaHasta) filterFechaHasta.value = '';
+
         loadNominasData(1);
         if (typeof mostrarToast === 'function') mostrarToast('Filtros restablecidos.', 'info');
     });
 
     downloadCsvBtn.addEventListener('click', () => {
         const params = new URLSearchParams({
-            dni: filterDni.value, estado: filterEstado.value,
-            departamento_id: filterDepartamento.value
+            dni: filterDni.value, 
+            estado: filterEstado.value,
+            departamento_id: filterDepartamento.value,
+            fecha_desde: filterFechaDesde ? filterFechaDesde.value : '',
+            fecha_hasta: filterFechaHasta ? filterFechaHasta.value : ''
         });
         window.location.href = `/api/nominas/exportar/csv/?${params.toString()}`;
     });
-
 
     if (downloadPdfBtn) {
         downloadPdfBtn.addEventListener('click', async () => {
@@ -149,6 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 dni: filterDni.value,
                 estado: filterEstado.value,
                 departamento_id: filterDepartamento.value,
+                fecha_desde: filterFechaDesde ? filterFechaDesde.value : '',
+                fecha_hasta: filterFechaHasta ? filterFechaHasta.value : '',
                 page: 1,
                 per_page: 5000 
             });
@@ -175,6 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 downloadPdfBtn.innerHTML = originalContent;
                 downloadPdfBtn.disabled = false;
                 
+                renderTable(backupData, false);
                 loadNominasData(currentPage);
             }
         });

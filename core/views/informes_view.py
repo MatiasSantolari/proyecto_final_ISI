@@ -36,6 +36,10 @@ def get_asistencias_queryset(request):
     tardanza = request.GET.get('tardanza')
     departamento_id = request.GET.get('departamento_id')
     
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+    ausencia = request.GET.get('ausencia')
+    
     queryset = queryset.filter(empleado__empleadocargo__fecha_fin__isnull=True)
 
     if rol_actual in ['jefe', 'gerente']:
@@ -61,6 +65,16 @@ def get_asistencias_queryset(request):
         queryset = queryset.filter(confirmado=(confirmado == 'true'))
     if tardanza in ['true', 'false']:
         queryset = queryset.filter(tardanza=(tardanza == 'true'))
+        
+    if fecha_desde:
+        queryset = queryset.filter(fecha_asistencia__gte=fecha_desde)
+    if fecha_hasta:
+        queryset = queryset.filter(fecha_asistencia__lte=fecha_hasta)
+        
+    if ausencia == 'true':
+        queryset = queryset.filter(hora_entrada__isnull=True, hora_salida__isnull=True)
+    elif ausencia == 'false':
+        queryset = queryset.filter(hora_entrada__isnull=False) | queryset.filter(hora_salida__isnull=False)
     
     return queryset.distinct()
 
@@ -96,7 +110,7 @@ def api_asistencias_detalle(request):
     queryset = get_asistencias_queryset(request) 
     
     page = request.GET.get('page', 1)
-    per_page = request.GET.get('per_page', 10)
+    per_page = request.GET.get('per_page', 12)
     
     paginator = Paginator(queryset, per_page)
 
@@ -151,17 +165,24 @@ def exportar_asistencias_csv(request):
     response['Content-Disposition'] = 'attachment; filename="asistencias_filtradas.csv"'
     
     writer = csv.writer(response)
-    writer.writerow(['Nombre Completo', 'DNI', 'Fecha Asistencia', 'Hora Entrada', 'Hora Salida', 'Confirmado', 'Tardanza'])
+    writer.writerow(['Nombre Completo', 'DNI', 'Departamento', 'Fecha Asistencia', 'Hora Entrada', 'Hora Salida', 'Confirmado', 'Tardanza'])
     
     for asistencia in queryset:
+        cargo_activo = asistencia.empleado.empleadocargo_set.filter(fecha_fin__isnull=True).first()
+        if cargo_activo:
+            nombre_dep = cargo_activo.cargo.cargodepartamento_set.first().departamento.nombre if cargo_activo.cargo.cargodepartamento_set.first() else 'N/A'
+        else:
+            nombre_dep = 'Sin Cargo Activo'
+
         writer.writerow([
             f"{asistencia.empleado.nombre} {asistencia.empleado.apellido}",
             asistencia.empleado.dni,
+            nombre_dep, 
             asistencia.fecha_asistencia,
-            asistencia.hora_entrada if asistencia.hora_entrada else 'N/A',
-            asistencia.hora_salida if asistencia.hora_salida else 'N/A',
-            'Si' if asistencia.confirmado else 'No',
-            'Si' if asistencia.tardanza else 'No',
+            asistencia.hora_entrada if asistencia.hora_entrada else 'Ausencia', 
+            asistencia.hora_salida if asistencia.hora_salida else 'Ausencia',
+            'Sí' if asistencia.confirmado else 'No',
+            'Sí' if asistencia.tardanza else 'No',
         ])
     return response
 
@@ -556,6 +577,9 @@ def get_nominas_queryset(request):
     dni = request.GET.get('dni')
     estado = request.GET.get('estado')
     departamento_id = request.GET.get('departamento_id')
+    
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
 
     if rol_actual in ['jefe', 'gerente']:
         try:
@@ -581,7 +605,13 @@ def get_nominas_queryset(request):
     if estado:
         queryset = queryset.filter(estado=estado)
 
+    if fecha_desde:
+        queryset = queryset.filter(fecha_generacion__gte=fecha_desde)
+    if fecha_hasta:
+        queryset = queryset.filter(fecha_generacion__lte=fecha_hasta)
+
     return queryset.distinct()
+
 
 
 
@@ -699,6 +729,9 @@ def get_evaluaciones_queryset(request):
     
     dni = request.GET.get('dni')
     evaluacion_id = request.GET.get('evaluacion_id')
+    
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
 
     if rol_actual in ['jefe', 'gerente']:
         try:
@@ -717,6 +750,11 @@ def get_evaluaciones_queryset(request):
         queryset = queryset.filter(empleado__dni__icontains=dni)
     if evaluacion_id:
         queryset = queryset.filter(evaluacion__id=evaluacion_id)
+
+    if fecha_desde and fecha_desde.strip():
+        queryset = queryset.filter(fecha_registro__gte=fecha_desde)
+    if fecha_hasta and fecha_hasta.strip():
+        queryset = queryset.filter(fecha_registro__lte=fecha_hasta)
 
     return queryset.distinct()
 
@@ -931,6 +969,9 @@ def get_objetivos_queryset(request):
     completado = request.GET.get('completado') 
     departamento_id = request.GET.get('departamento_id')
     tipo_recurrencia = request.GET.get('tipo_recurrencia')
+    
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
 
     if rol_actual in ['jefe', 'gerente']:
         try:
@@ -956,6 +997,18 @@ def get_objetivos_queryset(request):
         queryset = queryset.filter(objetivo__es_recurrente=True)
     elif tipo_recurrencia == 'aislado':
         queryset = queryset.filter(objetivo__es_recurrente=False)
+
+    if fecha_desde:
+        queryset = queryset.filter(
+            (Q(objetivo__es_recurrente=False) & Q(fecha_limite__gte=fecha_desde)) |
+            (Q(objetivo__es_recurrente=True) & Q(fecha_asignacion__gte=fecha_desde))
+        )
+        
+    if fecha_hasta:
+        queryset = queryset.filter(
+            (Q(objetivo__es_recurrente=False) & Q(fecha_limite__lte=fecha_hasta)) |
+            (Q(objetivo__es_recurrente=True) & Q(fecha_asignacion__lte=fecha_hasta))
+        )
 
     return queryset.distinct()
 

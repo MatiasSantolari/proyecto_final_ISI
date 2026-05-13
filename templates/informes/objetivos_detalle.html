@@ -7,26 +7,26 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'informes/objetivos_detalle/css/objetivos_detalle.css' %}">
 <div class="container-fluid p-5 mt-2">
-    <h4 class="mb-2 text-body">Detalle de Objetivos de Desempeño</h4>
+    <h4 class="mb-2 text-body">Detalle de Objetivos</h4>
 
-    <div class="card mb-0 shadow-sm border-0 bg-body-tertiary">
-        <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
-            <span class="text-body">Filtros y Exportación</span>
+    <div class="card mb-2">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>Filtros y Exportación</div>
             <div class="ms-auto">
-                <button type="button" id="downloadCsvBtn" class="btn btn-success me-0">
-                    <i class="bi bi-file-earmark-arrow-down"></i> CSV
-                </button>
-                <button type="button" id="downloadPdfBtn" class="btn btn-danger">
+                <button type="button" id="downloadPdfBtn" class="btn btn-danger mr-2">
                     <i class="bi bi-file-earmark-pdf"></i> PDF
+                </button>
+                <button type="button" id="downloadCsvBtn" class="btn btn-success me-2">
+                    <i class="bi bi-file-earmark-arrow-down"></i> CSV
                 </button>
             </div>
         </div>
         <div class="card-body pt-0 pb-2">
             <form id="filterForm" class="row g-3 align-items-center">
                 
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <label for="filterDni" class="form-label">Buscar DNI</label>
-                    <input type="text" id="filterDni" class="form-control" placeholder="DNI del empleado">
+                    <input type="text" id="filterDni" class="form-control" placeholder="DNI Emp.">
                 </div>
 
                 <div class="col-md-2">
@@ -45,7 +45,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <label for="filterRecurrencia" class="form-label">Recurrencia</label>
                     <select id="filterRecurrencia" class="form-select">
                         <option value="">Todos</option>
@@ -54,8 +54,18 @@
                     </select>
                 </div>
 
-                <div class="col-md-2 d-flex align-items-end align-bottom-buttons">
-                    <button type="button" id="clearFiltersBtn" class="btn btn-primary">Limpiar Filtros</button>
+                <div class="col-md-2">
+                    <label for="filterFechaDesde" class="form-label">Fecha Desde</label>
+                    <input type="date" id="filterFechaDesde" class="form-control">
+                </div>
+
+                <div class="col-md-2">
+                    <label for="filterFechaHasta" class="form-label">Fecha Hasta</label>
+                    <input type="date" id="filterFechaHasta" class="form-control">
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end align-bottom-buttons pb-1">
+                    <button type="button" id="clearFiltersBtn" class="btn btn-primary w-100 p-2" style="font-size: 0.85rem;">Limpiar Filtros</button>
                 </div>
 
             </form>

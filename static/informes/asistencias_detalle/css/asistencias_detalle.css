@@ -2,7 +2,6 @@
     min-height: 80px;
 }
 
-
 @media print {
   @page {
     size: A4 portrait;
@@ -67,6 +66,13 @@
     font-size: 0.8rem !important; 
     padding: 6px 4px !important;
     border-bottom: 1px solid #dee2e6 !important;
+    
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  td[colspan="2"] {
+    text-align: center !important;
   }
 
   thead {

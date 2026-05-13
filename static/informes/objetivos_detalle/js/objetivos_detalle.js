@@ -4,12 +4,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterEstado = document.getElementById('filterEstado');
     const filterRecurrencia = document.getElementById('filterRecurrencia');
     const filterDepartamento = document.getElementById('filterDepartamento');
+    const filterFechaDesde = document.getElementById('filterFechaDesde');
+    const filterFechaHasta = document.getElementById('filterFechaHasta');
+    
     const clearFiltersBtn = document.getElementById('clearFiltersBtn');
     const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
     const paginationControls = document.getElementById('paginationControls');
 
     let currentPage = 1;
     const itemsPerPage = 12;
+    let backupData = [];
 
     async function populateDepartamentosSelector() {
         const apiUrl = '/api/departamentos/list/';
@@ -30,13 +35,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const completado = filterEstado.value;
         const tipo_recurrencia = filterRecurrencia.value;
         const departamento_id = filterDepartamento.value;
+        const fecha_desde = filterFechaDesde ? filterFechaDesde.value : '';
+        const fecha_hasta = filterFechaHasta ? filterFechaHasta.value : '';
 
-        const apiUrl = `/api/objetivos/detalle/?dni=${dni}&completado=${completado}&tipo_recurrencia=${tipo_recurrencia}&departamento_id=${departamento_id}&page=${currentPage}&per_page=${itemsPerPage}`;
+        const apiUrl = `/api/objetivos/detalle/?dni=${dni}&completado=${completado}&tipo_recurrencia=${tipo_recurrencia}&departamento_id=${departamento_id}&fecha_desde=${fecha_desde}&fecha_hasta=${fecha_hasta}&page=${currentPage}&per_page=${itemsPerPage}`;
 
         try {
             const response = await fetch(apiUrl);
             if (!response.ok) throw new Error('Error API');
             const result = await response.json();
+            
+            backupData = result.results;
             renderTable(result.results);
             renderPagination(result.pagination);
         } catch (error) {
@@ -44,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function renderTable(data) {
+    function renderTable(data, isPrinting = false) {
         tbody.innerHTML = ''; 
         if (data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="text-center text-body">No se encontraron objetivos.</td></tr>`;
@@ -53,7 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         data.forEach(item => {
             const row = document.createElement('tr');
-            const nombreHtml = `<a href="${item.url_perfil}" class="fw-bold text-decoration-none">${item.empleado}</a>`;
+            
+            const nombreHtml = isPrinting 
+                ? `<span class="fw-bold">${item.empleado}</span>` 
+                : `<a href="${item.url_perfil}" class="fw-bold text-decoration-none">${item.empleado}</a>`;
             
             const typeBadge = `<span class="badge bg-${item.es_recurrente ? 'info' : 'secondary'} text-white" style="font-size: 0.65rem;">${item.es_recurrente ? 'Diario' : 'Único'}</span>`;
             const statusBadge = `<span class="badge bg-${item.completado ? 'success' : 'warning'} text-dark" style="min-width: 80px;">${item.completado ? 'Listo' : 'Pendiente'}</span>`;
@@ -75,9 +87,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
     function renderPagination(pagination) {
         paginationControls.innerHTML = '';
+        if (!pagination) return;
+
         const prevItem = document.createElement('li');
         prevItem.className = `page-item ${!pagination.has_previous ? 'disabled' : ''}`;
         prevItem.innerHTML = `<a class="page-link" href="#">«</a>`;
@@ -112,9 +125,13 @@ document.addEventListener('DOMContentLoaded', () => {
     filterEstado.addEventListener('change', () => loadObjectivesData(1));
     filterRecurrencia.addEventListener('change', () => loadObjectivesData(1));
     filterDepartamento.addEventListener('change', () => loadObjectivesData(1));
+    if (filterFechaDesde) filterFechaDesde.addEventListener('change', () => loadObjectivesData(1));
+    if (filterFechaHasta) filterFechaHasta.addEventListener('change', () => loadObjectivesData(1));
 
     clearFiltersBtn.addEventListener('click', () => {
         filterDni.value = ''; filterEstado.value = ''; filterRecurrencia.value = ''; filterDepartamento.value = '';
+        if (filterFechaDesde) filterFechaDesde.value = '';
+        if (filterFechaHasta) filterFechaHasta.value = '';
         loadObjectivesData(1);
     });
 
@@ -123,11 +140,12 @@ document.addEventListener('DOMContentLoaded', () => {
             dni: filterDni.value,
             completado: filterEstado.value,
             tipo_recurrencia: filterRecurrencia.value,
-            departamento_id: filterDepartamento.value
+            departamento_id: filterDepartamento.value,
+            fecha_desde: filterFechaDesde ? filterFechaDesde.value : '',
+            fecha_hasta: filterFechaHasta ? filterFechaHasta.value : ''
         });
         window.location.href = `/api/objetivos/exportar/csv/?${params.toString()}`;
     });
-
 
     if (downloadPdfBtn) {
         downloadPdfBtn.addEventListener('click', async () => {
@@ -136,6 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 completado: filterEstado.value,
                 tipo_recurrencia: filterRecurrencia.value,
                 departamento_id: filterDepartamento.value,
+                fecha_desde: filterFechaDesde ? filterFechaDesde.value : '',
+                fecha_hasta: filterFechaHasta ? filterFechaHasta.value : '',
                 page: 1,
                 per_page: 5000 
             });
@@ -152,7 +172,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (paginationControls) paginationControls.innerHTML = '';
 
                 renderTable(result.results, true);
-
                 window.print();
 
             } catch (err) {
@@ -162,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 downloadPdfBtn.innerHTML = originalContent;
                 downloadPdfBtn.disabled = false;
                 
+                renderTable(backupData, false);
                 loadObjectivesData(currentPage);
             }
         });

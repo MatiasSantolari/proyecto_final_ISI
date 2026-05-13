@@ -7,8 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterDepartamento = document.getElementById('filterDepartamento');
     const clearFiltersBtn = document.getElementById('clearFiltersBtn');
     const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
     
-  
     async function populateDepartamentosSelector() {
         const apiUrl = '/api/departamentos/list/';
         try {
@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    
     let currentPage = 1;
     const itemsPerPage = 10;
 
@@ -55,9 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-
-    function renderTable(data) {
-
+    function renderTable(data, isPrinting = false) {
         tbody.innerHTML = ''; 
         if (data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="text-center">No se encontraron empleados.</td></tr>`;
@@ -65,7 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         data.forEach(item => {
             const row = document.createElement('tr');
-            const nombreHtml = `<a href="${item.url_perfil}">${item.nombre_completo}</a>`;
+            
+            const nombreHtml = isPrinting 
+                ? `<span>${item.nombre_completo}</span>` 
+                : `<a href="${item.url_perfil}">${item.nombre_completo}</a>`;
+
             row.innerHTML = `
                 <td>${nombreHtml}</td>
                 <td>${item.dni}</td>
@@ -79,9 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
     function renderPagination(pagination) {
         paginationControls.innerHTML = '';
+        if (!pagination) return;
 
         const prevItem = document.createElement('li');
         prevItem.className = `page-item ${!pagination.has_previous ? 'disabled' : ''}`;
@@ -113,7 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
         paginationControls.appendChild(nextItem);
     }
 
-
     filterDni.addEventListener('input', () => loadEmpleadosData(1)); 
     filterEstado.addEventListener('change', () => loadEmpleadosData(1));
     filterDepartamento.addEventListener('change', () => loadEmpleadosData(1));
@@ -133,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         window.location.href = `/api/empleados/exportar/csv/?${params.toString()}`;
     });
-
 
     if (downloadPdfBtn) {
         downloadPdfBtn.addEventListener('click', async () => {

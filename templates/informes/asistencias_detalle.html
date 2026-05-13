@@ -6,30 +6,30 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'informes/asistencias_detalle/css/asistencias_detalle.css' %}">
-<div class="container-fluid p-5 mt-3">
+<div class="container-fluid p-5 mt-2">
     <h4 class="mb-3">Detalle de Historial de Asistencias</h4>
 
     <div class="card mb-2">
         <div class="card-header d-flex justify-content-between align-items-center">
             Filtros y Exportación
             <div class="ms-auto">
+                <button type="button" id="downloadPdfBtn" class="btn btn-danger mr-2">
+                    <i class="bi bi-file-earmark-pdf"></i> PDF
+                </button>
                 <button type="button" id="downloadCsvBtn" class="btn btn-success me-2">
                     <i class="bi bi-file-earmark-arrow-down"></i> CSV
-                </button>
-                <button type="button" id="downloadPdfBtn" class="btn btn-danger">
-                    <i class="bi bi-file-earmark-pdf"></i> PDF
                 </button>
             </div>
         </div>
         <div class="card-body pt-0 pb-3">
             <form id="filterForm" class="row g-3 align-items-center">
                 
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label for="filterDni" class="form-label">Buscar DNI</label>
                     <input type="text" id="filterDni" class="form-control" placeholder="DNI del empleado">
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label for="filterDepartamento" class="form-label">Departamento</label>
                     <select id="filterDepartamento" class="form-select">
                         <option value="">Todos</option>
@@ -37,6 +37,16 @@
                 </div>
                 
                 <div class="col-md-2">
+                    <label for="filterFechaDesde" class="form-label">Fecha Desde</label>
+                    <input type="date" id="filterFechaDesde" class="form-control">
+                </div>
+
+                <div class="col-md-2">
+                    <label for="filterFechaHasta" class="form-label">Fecha Hasta</label>
+                    <input type="date" id="filterFechaHasta" class="form-control">
+                </div>
+
+                <div class="col-md-1">
                     <label for="filterConfirmado" class="form-label">Confirmado</label>
                     <select id="filterConfirmado" class="form-select">
                         <option value="">Todos</option>
@@ -45,7 +55,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <label for="filterTardanza" class="form-label">Tardanza</label>
                     <select id="filterTardanza" class="form-select">
                         <option value="">Todos</option>
@@ -54,8 +64,17 @@
                     </select>
                 </div>
 
-                <div class="col-md-2 d-flex align-items-end align-bottom-buttons">
-                    <button type="button" id="clearFiltersBtn" class="btn btn-primary">Limpiar Filtros</button>
+                <div class="col-md-1">
+                    <label for="filterAusencia" class="form-label">Ausente</label>
+                    <select id="filterAusencia" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="true">Sí</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+
+                <div class="col-md-1 d-flex align-items-end align-bottom-buttons pb-1">
+                    <button type="button" id="clearFiltersBtn" class="btn btn-primary w-100 p-2" style="font-size: 0.8rem;">Limpiar Filtros</button>
                 </div>
 
             </form>

@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterEstado = document.getElementById('filterEstado');
     const clearFiltersBtn = document.getElementById('clearFiltersBtn');
     const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
 
     async function populateCursosSelector() {
         try {
@@ -44,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function renderTable(data) {
+    function renderTable(data, isPrinting = false) {
         tbody.innerHTML = '';
         if (data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="text-center">No hay registros con estos filtros.</td></tr>`;
@@ -68,8 +69,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? '<span class="badge bg-dark text-white border">Externa</span>' 
                 : '<span class="badge bg-info text-dark">Interna</span>';
 
+            const nombreHtml = isPrinting 
+                ? `<span class="fw-bold">${item.nombre_completo}</span>` 
+                : `<a href="${item.url_perfil}" class="fw-bold">${item.nombre_completo}</a>`;
+
             row.innerHTML = `
-                <td><a href="${item.url_perfil}" class="fw-bold">${item.nombre_completo}</a></td>
+                <td>${nombreHtml}</td>
                 <td>${item.dni}</td>
                 <td><small>${item.curso_nombre}</small></td>
                 <td>${tipoBadge}</td>
@@ -79,11 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             tbody.appendChild(row);
         });
-
     }
 
     function renderPagination(pagination) {
         paginationControls.innerHTML = '';
+        if (!pagination) return;
 
         const prevItem = document.createElement('li');
         prevItem.className = `page-item ${!pagination.has_previous ? 'disabled' : ''}`;
@@ -113,7 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (pagination.has_next) loadCapacitacionesData(pagination.current_page + 1);
         });
         paginationControls.appendChild(nextItem);
-    
     }
 
     [filterDni, filterCurso, filterTipo, filterEstado].forEach(el => {
@@ -131,8 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = `/api/capacitaciones/exportar/csv/?${params.toString()}`;
     });
 
-
-     if (downloadPdfBtn) {
+    if (downloadPdfBtn) {
         downloadPdfBtn.addEventListener('click', async () => {
             const params = new URLSearchParams({
                 dni: filterDni.value,

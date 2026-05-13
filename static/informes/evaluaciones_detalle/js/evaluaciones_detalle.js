@@ -4,10 +4,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const filterDni = document.getElementById('filterDni');
     const filterEvaluacion = document.getElementById('filterEvaluacion');
+    const filterFechaDesde = document.getElementById('filterFechaDesde');
+    const filterFechaHasta = document.getElementById('filterFechaHasta');
+    
     const clearFiltersBtn = document.getElementById('clearFiltersBtn');
     const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
 
-    
+    let backupData = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+
     async function populateEvaluacionesSelector() {
         const apiUrl = '/api/evaluaciones/list/';
         try {
@@ -26,16 +33,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    let currentPage = 1;
-    const itemsPerPage = 10;
-
     async function loadEvaluacionesData(page = 1) {
         currentPage = page; 
+        
         const params = new URLSearchParams({
             page: currentPage,
             per_page: itemsPerPage,
             dni: filterDni.value,
             evaluacion_id: filterEvaluacion.value,
+            fecha_desde: filterFechaDesde ? filterFechaDesde.value : '',
+            fecha_hasta: filterFechaHasta ? filterFechaHasta.value : ''
         });
 
         const apiUrl = `/api/evaluaciones/detalle/?${params.toString()}`;
@@ -46,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const result = await response.json();
             
+            backupData = result.results;
             renderTable(result.results);
             renderPagination(result.pagination);
 
@@ -55,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function renderTable(data) {
+    function renderTable(data, isPrinting = false) {
         tbody.innerHTML = ''; 
         if (data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="text-center">No se encontraron evaluaciones.</td></tr>`;
@@ -63,11 +71,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         data.forEach(item => {
             const row = document.createElement('tr');
-            const nombreHtml = `<a href="${item.url_perfil}">${item.nombre_completo}</a>`;
+            
+            const nombreHtml = isPrinting 
+                ? `<span>${item.nombre_completo}</span>` 
+                : `<a href="${item.url_perfil}">${item.nombre_completo}</a>`;
+            
             let calificacionHtml;
             if (item.calificacion_final === 'Sin Calificar') {
-                const url = `/evaluaciones/${item.evaluacion_id}/empleados/`;
-                calificacionHtml = `<a href="${url}" class="btn btn-sm btn-warning fw-bold">Sin Calificar</a>`;
+                if (isPrinting) {
+                    calificacionHtml = `<span class="badge bg-warning text-dark fw-bold">Sin Calificar</span>`;
+                } else {
+                    const url = `/evaluaciones/${item.evaluacion_id}/empleados/`;
+                    calificacionHtml = `<a href="${url}" class="btn btn-sm btn-warning fw-bold">Sin Calificar</a>`;
+                }
             } else {
                 if (item.calificacion_final >= 6){
                     calificacionHtml = `<span class="badge bg-success">${item.calificacion_final}</span>`;
@@ -86,9 +102,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
     function renderPagination(pagination) {
         paginationControls.innerHTML = '';
+        if (!pagination) return;
 
         const prevItem = document.createElement('li');
         prevItem.className = `page-item ${!pagination.has_previous ? 'disabled' : ''}`;
@@ -120,13 +136,17 @@ document.addEventListener('DOMContentLoaded', () => {
         paginationControls.appendChild(nextItem);
     }
 
-
     filterDni.addEventListener('input', () => loadEvaluacionesData(1)); 
     filterEvaluacion.addEventListener('change', () => loadEvaluacionesData(1));
+    if (filterFechaDesde) filterFechaDesde.addEventListener('change', () => loadEvaluacionesData(1));
+    if (filterFechaHasta) filterFechaHasta.addEventListener('change', () => loadEvaluacionesData(1));
 
     clearFiltersBtn.addEventListener('click', () => {
         filterDni.value = '';
         filterEvaluacion.value = '';
+        if (filterFechaDesde) filterFechaDesde.value = '';
+        if (filterFechaHasta) filterFechaHasta.value = '';
+
         loadEvaluacionesData(1);
         if (typeof mostrarToast === 'function') mostrarToast('Filtros restablecidos.', 'info');
     });
@@ -134,17 +154,20 @@ document.addEventListener('DOMContentLoaded', () => {
     downloadCsvBtn.addEventListener('click', () => {
         const params = new URLSearchParams({
             dni: filterDni.value,
-            evaluacion_id: filterEvaluacion.value
+            evaluacion_id: filterEvaluacion.value,
+            fecha_desde: filterFechaDesde ? filterFechaDesde.value : '',
+            fecha_hasta: filterFechaHasta ? filterFechaHasta.value : ''
         });
         window.location.href = `/api/evaluaciones/exportar/csv/?${params.toString()}`;
     });
-
 
     if (downloadPdfBtn) {
         downloadPdfBtn.addEventListener('click', async () => {
             const params = new URLSearchParams({
                 dni: filterDni.value,
                 evaluacion_id: filterEvaluacion.value,
+                fecha_desde: filterFechaDesde ? filterFechaDesde.value : '',
+                fecha_hasta: filterFechaHasta ? filterFechaHasta.value : '',
                 page: 1,
                 per_page: 5000 
             });
@@ -161,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (paginationControls) paginationControls.innerHTML = '';
 
                 renderTable(result.results, true);
-
                 window.print();
 
             } catch (err) {
@@ -171,6 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 downloadPdfBtn.innerHTML = originalContent;
                 downloadPdfBtn.disabled = false;
                 
+                renderTable(backupData, false);
                 loadEvaluacionesData(currentPage);
             }
         });

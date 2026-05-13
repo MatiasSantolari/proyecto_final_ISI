@@ -4,12 +4,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterConfirmado = document.getElementById('filterConfirmado');
     const filterTardanza = document.getElementById('filterTardanza');
     const filterDepartamento = document.getElementById('filterDepartamento');
+    const filterFechaDesde = document.getElementById('filterFechaDesde');
+    const filterFechaHasta = document.getElementById('filterFechaHasta');
+    const filterAusencia = document.getElementById('filterAusencia');
     const clearFiltersBtn = document.getElementById('clearFiltersBtn');
     const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
     const paginationControls = document.getElementById('paginationControls');
 
     let currentPage = 1;
-    const itemsPerPage = 10;
+    const itemsPerPage = 12;
     let backupData = [];
 
     async function populateDepartamentosSelector() {
@@ -39,8 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const confirmado = filterConfirmado.value;
         const tardanza = filterTardanza.value;
         const departamento_id = filterDepartamento.value;
-
-        const apiUrl = `/api/asistencias/detalle/?dni=${dni}&confirmado=${confirmado}&tardanza=${tardanza}&departamento_id=${departamento_id}&page=${currentPage}&per_page=${itemsPerPage}`;
+        const fecha_desde = filterFechaDesde ? filterFechaDesde.value : '';
+        const fecha_hasta = filterFechaHasta ? filterFechaHasta.value : '';
+        const ausencia = filterAusencia ? filterAusencia.value : '';
+        
+        const apiUrl = `/api/asistencias/detalle/?dni=${dni}&confirmado=${confirmado}&tardanza=${tardanza}&departamento_id=${departamento_id}&fecha_desde=${fecha_desde}&fecha_hasta=${fecha_hasta}&ausencia=${ausencia}&page=${currentPage}&per_page=${itemsPerPage}`;
 
         try {
             const response = await fetch(apiUrl);
@@ -59,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    function renderTable(data) {
+    function renderTable(data, isPrinting = false) {
         tbody.innerHTML = ''; 
         if (data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="8" class="text-center">No se encontraron registros con los filtros aplicados.</td></tr>`;
@@ -68,16 +75,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
         data.forEach(item => {
             const row = document.createElement('tr');
-            const nombreHtml = `<a href="${item.url_perfil}">${item.nombre_completo}</a>`;
+            
+            const nombreHtml = isPrinting 
+                ? `<span>${item.nombre_completo}</span>` 
+                : `<a href="${item.url_perfil}">${item.nombre_completo}</a>`;
+            
+            const esAusente = (!item.hora_entrada || item.hora_entrada === '-' || item.hora_entrada === null) && 
+                              (!item.hora_salida || item.hora_salida === '-' || item.hora_salida === null);
+
+            let horasColumnasHtml = '';
+            let tardanzaHtml = '';
+            
+            if (esAusente) {
+                horasColumnasHtml = `
+                    <td colspan="2" class="text-center">
+                        <span class="badge bg-danger px-3 py-1 fw-bold">Ausencia Registrada</span>
+                    </td>`;
+                tardanzaHtml = `<td><span class="badge bg-info">No</span></td>`;
+            } else {
+                const entrada = item.hora_entrada || '-';
+                const salida = item.hora_salida || '-';
+                horasColumnasHtml = `
+                    <td>${entrada}</td>
+                    <td>${salida}</td>`;
+                tardanzaHtml = `<td><span class="badge bg-${item.tardanza ? 'danger' : 'info'}">${item.tardanza ? 'Sí' : 'No'}</span></td>`;
+            }
+
             row.innerHTML = `
                 <td>${nombreHtml}</td>
                 <td>${item.dni}</td>
                 <td>${item.departamento}</td>
                 <td>${item.fecha_asistencia}</td>
-                <td>${item.hora_entrada}</td>
-                <td>${item.hora_salida}</td>
+                ${horasColumnasHtml}
                 <td><span class="badge bg-${item.confirmado ? 'success' : 'warning'}">${item.confirmado ? 'Sí' : 'No'}</span></td>
-                <td><span class="badge bg-${item.tardanza ? 'danger' : 'info'}">${item.tardanza ? 'Sí' : 'No'}</span></td>
+                ${tardanzaHtml}
             `;
             tbody.appendChild(row);
         });
@@ -123,6 +154,9 @@ document.addEventListener('DOMContentLoaded', () => {
     filterConfirmado.addEventListener('change', () => loadAsistenciasData(1));
     filterTardanza.addEventListener('change', () => loadAsistenciasData(1));
     filterDepartamento.addEventListener('change', () => loadAsistenciasData(1));
+    if (filterFechaDesde) filterFechaDesde.addEventListener('change', () => loadAsistenciasData(1));
+    if (filterFechaHasta) filterFechaHasta.addEventListener('change', () => loadAsistenciasData(1));
+    if (filterAusencia) filterAusencia.addEventListener('change', () => loadAsistenciasData(1));
 
 
     clearFiltersBtn.addEventListener('click', () => {
@@ -130,13 +164,14 @@ document.addEventListener('DOMContentLoaded', () => {
         filterConfirmado.value = '';
         filterTardanza.value = '';
         filterDepartamento.value = '';
+        if (filterFechaDesde) filterFechaDesde.value = '';
+        if (filterFechaHasta) filterFechaHasta.value = '';
+        if (filterAusencia) filterAusencia.value = '';
+
         loadAsistenciasData(1);
-        if (typeof mostrarToast === 'function') { 
-            mostrarToast('Filtros restablecidos correctamente.', 'info'); 
-        } else {
-            console.warn('La función mostrarToast no está disponible.');
-        }
+        if (typeof mostrarToast === 'function') mostrarToast('Filtros restablecidos correctamente.', 'info');
     });
+
 
 
     downloadCsvBtn.addEventListener('click', () => {
@@ -144,7 +179,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const confirmado = filterConfirmado.value;
         const tardanza = filterTardanza.value;
         const departamento_id = filterDepartamento.value;
-        const exportUrl = `/api/asistencias/exportar/csv/?dni=${dni}&confirmado=${confirmado}&tardanza=${tardanza}&departamento_id=${departamento_id}`;
+        const fecha_desde = filterFechaDesde ? filterFechaDesde.value : '';
+        const fecha_hasta = filterFechaHasta ? filterFechaHasta.value : '';
+        const ausencia = filterAusencia ? filterAusencia.value : '';
+
+        const exportUrl = `/api/asistencias/exportar/csv/?dni=${dni}&confirmado=${confirmado}&tardanza=${tardanza}&departamento_id=${departamento_id}&fecha_desde=${fecha_desde}&fecha_hasta=${fecha_hasta}&ausencia=${ausencia}`;
         
         window.location.href = exportUrl;
     });
@@ -156,31 +195,30 @@ document.addEventListener('DOMContentLoaded', () => {
             const confirmado = filterConfirmado.value;
             const tardanza = filterTardanza.value;
             const departamento_id = filterDepartamento.value;
+            const fecha_desde = filterFechaDesde ? filterFechaDesde.value : '';
+            const fecha_hasta = filterFechaHasta ? filterFechaHasta.value : '';
+            const ausencia = filterAusencia ? filterAusencia.value : '';
 
             const originalContent = downloadPdfBtn.innerHTML;
             downloadPdfBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
             downloadPdfBtn.disabled = true;
 
-            const exportUrl = `/api/asistencias/detalle/?dni=${dni}&confirmado=${confirmado}&tardanza=${tardanza}&departamento_id=${departamento_id}&page=1&per_page=5000`;
+            const exportUrl = `/api/asistencias/detalle/?dni=${dni}&confirmado=${confirmado}&tardanza=${tardanza}&departamento_id=${departamento_id}&fecha_desde=${fecha_desde}&fecha_hasta=${fecha_hasta}&ausencia=${ausencia}&page=1&per_page=5000`;
             
             try {
                 const response = await fetch(exportUrl);
                 if (!response.ok) throw new Error('Error al recopilar el historial completo');
                 const result = await response.json();
-
                 if (paginationControls) paginationControls.innerHTML = '';
-
                 renderTable(result.results, true);
-
                 window.print();
-
             } catch (err) {
                 console.error("Falló la compilación de datos para PDF:", err);
                 alert("No se pudieron recopilar todos los registros filtrados para el PDF.");
             } finally {
                 downloadPdfBtn.innerHTML = originalContent;
                 downloadPdfBtn.disabled = false;
-                
+                renderTable(backupData, false);
                 loadAsistenciasData(currentPage);
             }
         });
