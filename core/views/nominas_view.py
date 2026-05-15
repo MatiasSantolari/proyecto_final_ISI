@@ -218,7 +218,6 @@ def generar_nominas(request):
 
 
 
-
 @login_required
 def nominas(request):
     departamento_sel = request.GET.get('departamento', '')
@@ -235,7 +234,7 @@ def nominas(request):
     )
 
     pendientes = nominas_list.filter(estado="pendiente").count()
-    pagadas = nominas_list.exclude(estado=["pendiente","anulado"]).count()
+    pagadas = nominas_list.exclude(estado__in=["pendiente", "anulado"]).count() 
 
     if departamento_sel:
         ultimo_cargo = (
@@ -251,11 +250,10 @@ def nominas(request):
 
     if mes:
         nominas_list = nominas_list.filter(fecha_generacion__month=int(mes))
+        
     if anio:
         nominas_list = nominas_list.filter(fecha_generacion__year=int(anio))
 
-
-     # Ordenar por periodo y estado
     estado_order = Case(
         When(estado="pendiente", then=1),
         When(estado="anulado", then=3),
@@ -271,12 +269,10 @@ def nominas(request):
         'estado_order'
     )
 
-
     paginator = Paginator(nominas_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Faltantes por generar en el período actual
     hoy = now().date()
     mes_actual = hoy.month
     anio_actual = hoy.year
@@ -295,9 +291,12 @@ def nominas(request):
 
     return render(request, 'nominas.html', {
         'nominas': page_obj,
+        'page_obj': page_obj,
         'meses': range(1, 13),
         'departamentos': departamentos,
         'departamento_sel': departamento_sel,
+        'mes_seleccionado': mes,
+        'anio_seleccionado': anio,
         'pendientes': pendientes,
         'pagadas': pagadas,
         'faltantes': faltantes,

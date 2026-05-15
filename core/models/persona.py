@@ -35,11 +35,28 @@ class Persona(models.Model):
         db_table = 'persona'
         ordering = ['id']  # - para oden descendente
 
-    
     def cvitae_filename(self):
         if self.cvitae:
             return os.path.basename(self.cvitae.name)
         return ""
+
+
+    def save(self, *args, **kwargs):
+        if self.nombre:
+            self.nombre = self.nombre.strip().title()
+        if self.apellido:
+            self.apellido = self.apellido.strip().title()
+        if self.calle:
+            self.calle = self.calle.strip().title()
+        if self.ciudad:
+            self.ciudad = self.ciudad.strip().title()
+        if self.provincia:
+            self.provincia = self.provincia.strip().title()
+        if self.pais:
+            self.pais = self.pais.strip().title()
+            
+        super(Persona, self).save(*args, **kwargs)
+
 
     @property
     def telefono_completo(self):

@@ -12,28 +12,61 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Q
+
 
 
 @login_required
 def personas(request):
     personas_qs = Persona.objects.select_related('empleado', 'usuario').order_by('apellido', 'nombre')
 
-    departamentos = Departamento.objects.all()
     dep_id = request.GET.get("departamento")
+    search_dni = request.GET.get("dni", "").strip()
+    search_nombre_apellido = request.GET.get("nombre_apellido", "").strip()
+    filtro_estado = request.GET.get("estado", "").strip()
+    filtro_tipo_usuario = request.GET.get("tipo_usuario", "").strip()
+
+    departamentos = Departamento.objects.all()
 
     if dep_id:
         personas_qs = personas_qs.filter(
             empleado__empleadocargo__fecha_fin__isnull=True,
             empleado__empleadocargo__cargo__cargodepartamento__departamento_id=dep_id
-        ).distinct()
+        )
 
+    if search_dni:
+        personas_qs = personas_qs.filter(dni__icontains=search_dni)
 
-    paginator = Paginator(personas_qs, 10)
+    if search_nombre_apellido:
+        personas_qs = personas_qs.filter(
+            Q(nombre__icontains=search_nombre_apellido) | 
+            Q(apellido__icontains=search_nombre_apellido)
+        )
+
+    if filtro_estado:
+        if filtro_estado == "sin_estado":
+            personas_qs = personas_qs.filter(
+                Q(empleado__isnull=True) | Q(empleado__estado="") | Q(empleado__estado__isnull=True)
+            )
+        else:
+            mapeo_estados = {
+                "1": "activo", "2": "inactivo", "3": "en licencia",
+                "4": "suspendido", "5": "en periodo de prueba", "6": "jubilado"
+            }
+            estado_db = mapeo_estados.get(filtro_estado)
+            if estado_db:
+                personas_qs = personas_qs.filter(empleado__estado=estado_db)
+
+    if filtro_tipo_usuario:
+        personas_qs = personas_qs.filter(usuario__rol=filtro_tipo_usuario)
+
+    personas_qs = personas_qs.distinct()
+
+    paginator = Paginator(personas_qs, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     personas_con_datos = []
-
     for persona in page_obj:
         estado = ""
         cargo_id = ""
@@ -63,7 +96,6 @@ def personas(request):
                 estado = "Sin Estado"
                 nombre_cargo = "Sin Cargo"
 
-
         personas_con_datos.append({
             'id': persona.id,
             'nombre': persona.nombre,
@@ -85,17 +117,22 @@ def personas(request):
             'nombre_cargo': nombre_cargo,
             'departamento_id': departamento_id,
             'departamento_nombre': departamento_nombre,
-            'telefono_completo': persona.prefijo_pais + persona.telefono,
+            'telefono_completo': (persona.prefijo_pais or "") + (persona.telefono or ""),
         })
+
     form = PersonaForm()
+    
     return render(request, 'personas.html', {
         'personas': personas_con_datos,
         'page_obj': page_obj,
         'form': form,
         'departamentos': departamentos,
-        'departamento_seleccionado': dep_id
-        })
-
+        'departamento_seleccionado': dep_id,
+        'dni_buscado': search_dni,
+        'nombre_apellido_buscado': search_nombre_apellido,
+        'estado_seleccionado': filtro_estado,
+        'tipo_usuario_seleccionado': filtro_tipo_usuario,
+    })
 
 
 
@@ -142,7 +179,6 @@ def crear_persona(request):
                 persona = form.save()
 
                 if not id_persona:
-                    # Generar username único: nombre.apellido / nombre.apellido1 / etc.
                     base_username = f"{persona.nombre}.{persona.apellido}".replace(" ", "").lower()
                     username = base_username
                     contador = 1
@@ -269,7 +305,6 @@ def crear_persona(request):
                                 except CargoDepartamento.DoesNotExist:
                                     pass
 
-                    
 
                         elif ultimo_cargo.cargo != cargo:
                             ultimo_cargo.fecha_fin = date.today()
@@ -298,10 +333,8 @@ def crear_persona(request):
                                         relacion_nueva.save()
                                 except CargoDepartamento.DoesNotExist:
                                     pass
-
                         else:
                             pass
-
                 else:
                     try:
                         empleado = Empleado.objects.get(id=persona.id)
@@ -309,7 +342,6 @@ def crear_persona(request):
                         empleado.save()
                     except Empleado.DoesNotExist:
                         pass
-
 
                 if accion == "guardar_crear_contrato":
                     tiene_activo = HistorialContrato.objects.filter(

@@ -2,571 +2,592 @@
 {% load widget_tweaks %}
 {% load static %}
 
-  {% block title %}Gestión de Nóminas{% endblock %}
+{% block title %}Gestión de Nóminas{% endblock %}
 
-  {% block content %}
-  
-  <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
-  
-  <div class="container-fluid p-5 my-2">
-    <div class="container-fluid mt-0">
-      <h4 class="mb-3" style="color: var(--color-primario);">Gestión de Nóminas</h4>
-      {% if mostrar_boton_regreso %}
-          <a href="{{ url_regreso }}" class="btn btn-secondary mb-3">
-              <i class="bi bi-arrow-left"></i> Volver al Detalle de Empleado
-          </a>
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+
+<div class="container-fluid p-5 my-2">
+  <div class="container-fluid mt-0">
+    <h4 class="mb-3" style="color: var(--color-primario);">Gestión de Nóminas</h4>
+    {% if mostrar_boton_regreso %}
+        <a href="{{ url_regreso }}" class="btn btn-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Volver al Detalle de Empleado
+        </a>
+    {% endif %}
+  </div>
+
+  <div class="card mb-2">
+    <div class="card-header p-3 d-flex justify-content-between align-items-center mb-0 mt-0 bg-light border-bottom">
+      <div>
+        {% if pendientes > 0 %}
+          <button class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#modalRegenerarNominas">
+            <i class="bi bi-arrow-repeat"></i> Regenerar Nóminas Pendientes ({{ pendientes }})
+          </button>
+        {% endif %}
+
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalGenerarNominas">
+          <i class="bi bi-file-earmark-plus"></i> Generar Nóminas Período Actual ({{ faltantes }})
+        </button>
+      </div>
+      {% if pendientes > 0 %}
+      <button class="btn btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modalConfirmarNominas">
+        <i class="bi bi-check2-circle"></i> Confirmar Nóminas ({{ pendientes }})
+      </button>
       {% endif %}
     </div>
 
-    <div class="card mb-2">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <div>
-          {% if pendientes > 0 %}
-            <button class="btn btn-warning mr-2" 
-                    data-bs-toggle="modal" 
-                    data-bs-target="#modalRegenerarNominas">
-              <i class="bi bi-arrow-repeat"></i> Regenerar Nóminas Pendientes ({{ pendientes }})
-            </button>
-          {% endif %}
+    <div class="card-body pt-3 pb-1 bg-light">
+      <form method="get" action="" id="formFiltrosNominas" class="row g-3 mb-4 align-items-end">
 
-          <button class="btn btn-success" 
-                  data-bs-toggle="modal" 
-                  data-bs-target="#modalGenerarNominas">
-            <i class="bi bi-file-earmark-plus"></i> Generar Nóminas Período Actual ({{ faltantes }})
-          </button>
-        </div>
-        {% if pendientes > 0 %}
-        <button class="btn btn-primary ms-auto"
-                data-bs-toggle="modal"
-                data-bs-target="#modalConfirmarNominas">
-          <i class="bi bi-check2-circle"></i> Confirmar Nóminas ({{ pendientes }})
-        </button>
-        {% endif %}
+        <div class="col-md-4">
+            <label for="departamento" class="form-label fw-bold">Departamento</label>
+            <select class="form-select select-filtro-dinamico" name="departamento" id="departamento">
+              <option value="">-- Todos --</option>
+              {% for dep in departamentos %}
+                <option value="{{ dep.nombre }}" {% if dep.nombre == departamento_sel %}selected{% endif %}>
+                    {{ dep.nombre }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
 
-      </div>
-      <div class="card-body pt-3 pb-1">
-        <form method="get" class="row g-3 mb-4">
-            <div class="col-md-4">
-              <label for="departamento" class="form-label">Departamento</label>
-              <select class="form-select" name="departamento" id="departamento">
-                <option value="">-- Todos --</option>
-                {% for dep in departamentos %}
-                  <option value="{{ dep.nombre }}" {% if dep.nombre == departamento_sel %}selected{% endif %}>
-                      {{ dep.nombre }}
-                  </option>
-                {% endfor %}
+          <div class="col-md-3">
+              <label for="mes" class="form-label fw-bold">Mes</label>
+              <select class="form-select select-filtro-dinamico" name="mes" id="mes">
+                  <option value="">-- Seleccionar --</option>
+                  {% for i in meses %}
+                    <option value="{{ i }}" {% if mes_seleccionado == i|stringformat:"s" %}selected{% endif %}>{{ i }}</option>
+                  {% endfor %}
               </select>
+          </div>
+
+          <div class="col-md-3">
+              <label for="anio" class="form-label fw-bold">Año</label>
+              <input type="number" class="form-control input-filtro-dinamico" name="anio" id="anio" value="{{ anio_seleccionado }}" placeholder="Ingresar Año (AAAA)">
+          </div>
+
+          <div class="col-md-2">
+              <a href="{% url 'nominas' %}" class="btn btn-outline-danger w-100 fw-bold" data-bs-toggle="tooltip" title="Limpiar todos los filtros">
+                <i class="bi bi-trash"></i> Limpiar
+              </a>
+          </div>
+      </form>
+    </div>
+  </div>
+
+
+  <div class="card shadow-sm border-0">
+    <div class="card-body" id="contenedor-tabla-dinamica">
+      <div class="table-responsive">
+        <table class="table table-sm table-striped table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
+          <thead class="table-light text-center">
+            <tr>
+              <th>Empleado</th>
+              <th>Departamento</th>
+              <th style="width: 15%;">Fecha Generación</th>
+              <th style="width: 15%;">Monto Final</th>
+              <th style="width: 10%;">Estado</th>
+              <th style="width: 10%;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="text-center">
+            {% for nomina in nominas %}
+            <tr>
+              <td>{{ nomina.empleado.apellido }} {{ nomina.empleado.nombre }}</td>
+              <td>{{ nomina.empleado.departamento_actual_nombre }}</td>
+              <td>{{ nomina.fecha_generacion|date:"d/m/Y" }}</td>
+              <td>${{ nomina.monto_neto }}</td>
+              <td>
+                {% if nomina.estado == "anulado" %}
+                    <span class="badge bg-danger">{{ nomina.estado }}</span>
+                {% elif nomina.estado == "pendiente" %}
+                    <span class="badge bg-warning">{{ nomina.estado }}</span>
+                {% elif nomina.estado == "pagado" %}
+                    <span class="badge bg-success">{{ nomina.estado }}</span>
+                {% endif %}
+              </td>
+              <td>
+                <button class="btn btn-sm btn-outline-info btn-ver-nomina me-2 mb-1" 
+                        data-id="{{ nomina.id }}"
+                        data-bs-toggle="tooltip" title="Ver">
+                        <i class="bi bi-eye"></i>
+                </button>
+                {% if nomina.estado == "pendiente" or nomina.estado == "pagado" %}
+                  <button class="btn btn-sm btn-outline-danger btn-anular me-1 mb-1" 
+                          data-bs-toggle="modal" 
+                          data-bs-target="#modalAnularNomina"
+                          data-id="{{ nomina.id }}"
+                          data-nombre="{{ nomina.empleado.nombre }}"
+                          data-apellido="{{ nomina.empleado.apellido }}"
+                          data-bs-toggle="tooltip" title="Anular">
+                      <i class="bi bi-trash3"></i>
+                  </button>
+                {% elif nomina.estado == "anulado" %}
+                  <button class="btn btn-sm btn-outline-success btn-restaurar me-1 mb-1" 
+                          data-bs-toggle="modal" 
+                          data-bs-target="#modalRestaurarNomina"
+                          data-id="{{ nomina.id }}"
+                          data-nombre="{{ nomina.empleado.nombre }}"
+                          data-apellido="{{ nomina.empleado.apellido }}"
+                          data-bs-toggle="tooltip" title="Restaurar">
+                      <i class="bi bi-arrow-counterclockwise"></i>
+                  </button>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted">
+                No hay registros de nóminas con esos filtros.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <nav aria-label="Paginación nominas">
+          <ul class="pagination justify-content-center mt-4">
+            {% if nominas.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ nominas.previous_page_number }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes_seleccionado %}&mes={{ mes_seleccionado }}{% endif %}{% if anio_seleccionado %}&anio={{ anio_seleccionado }}{% endif %}">&laquo;</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+            {% endif %}
+
+            {% for num in nominas.paginator.page_range %}
+              {% if nominas.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+              {% else %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ num }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes_seleccionado %}&mes={{ mes_seleccionado }}{% endif %}{% if anio_seleccionado %}&anio={{ anio_seleccionado }}{% endif %}">{{ num }}</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+
+            {% if nominas.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ nominas.next_page_number }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes_seleccionado %}&mes={{ mes_seleccionado }}{% endif %}{% if anio_seleccionado %}&anio={{ anio_seleccionado }}{% endif %}">&raquo;</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Ver Recibo Detallado -->
+<div class="modal fade" id="modalVerNomina" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Recibo de Nómina Detallado</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <h6 class="text-muted">Información Laboral</h6>
+            <p class="mb-1"><strong>Empleado:</strong> <span id="verEmpleado"></span></p>
+            <p class="mb-1"><strong>DNI:</strong> <span id="verDNI"></span></p>
+            <p class="mb-1"><strong>Departamento:</strong> <span id="verDepartamento"></span></p>
+            <p class="mb-1"><strong>Cargo:</strong> <span id="verCargo"></span></p>
+          </div>
+          <div class="col-md-6 text-md-end">
+            <h6 class="text-muted">Detalles de Pago</h6>
+            <p class="mb-1"><strong>Número Nómina:</strong> <span id="verNumero"></span></p>
+            <p class="mb-1"><strong>Fecha Generación:</strong> <span id="verFecha"></span></p>
+            <p class="mb-1" id="fechaPagoContainer">
+              <strong>Fecha Pago:</strong> <span id="verFechaPago"></span>
+            </p>
+            <div class="mt-2">
+              <strong>Estado:</strong> <span id="verEstado"></span>
             </div>
-            <div class="col-md-3">
-                <label for="mes" class="form-label">Mes</label>
-                <select class="form-select" name="mes" id="mes">
-                    <option value="">-- Seleccionar --</option>
-                    {% for i in meses %}
-                      <option value="{{ i }}" {% if request.GET.mes == i|stringformat:"s" %}selected{% endif %}>{{ i }}</option>
-                    {% endfor %}
-                </select>
+          </div>
+        </div>
+        <hr class="my-3">
+        <div class="row">
+          <div class="col-12 mb-3">
+            <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded">
+              <span class="fw-bold text-uppercase">Total Ingresos Brutos</span>
+              <span class="text-success fw-bolder fs-5">$<span id="verBruto"></span></span>
             </div>
-            <div class="col-md-3">
-                <label for="anio" class="form-label">Año</label>
-                <input type="number" class="form-control" name="anio" id="anio" value="{{ request.GET.anio }}" placeholder="Ingresar Año (AAAA)">
+            <div id="id_monto_extra_pactado" class="small mt-1 ps-2">
+              <em class="text-muted">(Incluye Monto Extra Pactado de $<span id="verMontoExtraPactado"></span>)</em>
             </div>
-            <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary w-50">Filtrar</button>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3 d-flex flex-column h-100">
+              <h6 class="text-danger border-bottom pb-1">Descuentos</h6>
+              <ul id="verDescuentosDetalle" class="list-group list-group-flush mb-2"></ul>
+              <p class="d-flex justify-content-between fw-semibold mt-auto pt-1 border-top">
+                <span>Total Descuentos:</span>
+                <span class="text-danger"><span id="verDescuentos"></span></span>
+              </p>
             </div>
+            <div class="col-md-6 mb-3 d-flex flex-column h-100">
+              <h6 class="text-success border-bottom pb-1">Beneficios</h6>
+              <ul id="verBeneficiosDetalle" class="list-group list-group-flush mb-2"></ul>
+              <p class="d-flex justify-content-between fw-semibold mt-auto pt-1 border-top">
+                <span>Total Beneficios:</span>
+                <span class="text-success"><span id="verBeneficios"></span></span>
+              </p>
+            </div>
+          </div>
+        </div>
+        <hr class="my-3">
+        <div class="row">
+          <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center bg-primary text-white p-3 rounded shadow-sm">
+              <h5 class="m-0">Monto Neto a Pagar</h5>
+              <h5 class="m-0">$<span id="verNeto"></span></h5>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Anular o Eliminar -->
+<div class="modal fade" id="modalAnularNomina" tabindex="-1" aria-labelledby="modalAnularNominaLabel" aria-hidden="true">
+  <div class="modal-dialog" style="margin-top: 12rem;">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title text-white" id="modalAnularNominaLabel">Confirmar Eliminar o Anular Nómina</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body"></div>
+      <div class="modal-footer d-flex justify-content-between">
+        <form id="formEliminarNomina" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger" onclick="return confirm('⚠️ ¿Seguro que deseas eliminar esta nómina? Esta acción no se puede deshacer.');">
+            Eliminar
+          </button>
+        </form>
+        <form id="formAnularNomina" method="post" action="" class="d-flex gap-2">
+          {% csrf_token %}
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" name="accion" value="anular" class="btn btn-warning">Anular</button>
         </form>
       </div>
     </div>
-
-    <div class="card shadow-sm border-0">
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-sm table-striped table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
-            <thead class="table-light text-center">
-              <tr>
-                <th>Empleado</th>
-                <th>Departamento</th>
-                <th style="width: 15%;">Fecha Generación</th>
-                <th style="width: 15%;">Monto Final</th>
-                <th style="width: 10%;">Estado</th>
-                <th style="width: 10%;">Acciones</th>
-              </tr>
-            </thead>
-            <tbody class="text-center">
-              {% for nomina in nominas %}
-              <tr>
-                <td>{{ nomina.empleado.apellido }} {{ nomina.empleado.nombre }}</td>
-                <td>{{ nomina.empleado.departamento_actual_nombre}}</td>
-                <td>{{ nomina.fecha_generacion|date:"d/m/Y" }}</td>
-                <td>${{ nomina.monto_neto }}</td>
-                <td>
-                  {% if nomina.estado == "anulado" %}
-                      <span class="badge bg-danger">{{ nomina.estado }}</span>
-                  {% elif nomina.estado == "pendiente" %}
-                      <span class="badge bg-warning">{{ nomina.estado }}</span>
-                  {% elif nomina.estado == "pagado" %}
-                      <span class="badge bg-success">{{ nomina.estado }}</span>
-                  {% endif %}
-                <td>
-                  <button class="btn btn-sm btn-outline-info btn-ver-nomina me-2 mb-1" 
-                          data-bs-toggle="modal" 
-                          data-bs-target="#modalVerNomina" 
-                          data-id="{{ nomina.id }}"
-                          data-bs-toggle="tooltip" title="Ver">
-                          <i class="bi bi-eye"></i>
-                  </button>
-                  {% if nomina.estado == "pendiente" or nomina.estado == "pagado" %}
-                    <button class="btn btn-sm btn-outline-danger btn-anular me-1 mb-1" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#modalAnularNomina"
-                            data-id="{{ nomina.id }}"
-                            data-nombre="{{ nomina.empleado.nombre }}"
-                            data-apellido="{{ nomina.empleado.apellido }}"
-                            data-bs-toggle="tooltip" title="Anular">
-                        <i class="bi bi-trash3"></i>
-                    </button>
-                  {% elif nomina.estado == "anulado" %}
-                    <button class="btn btn-sm btn-outline-success btn-restaurar me-1 mb-1" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#modalRestaurarNomina"
-                            data-id="{{ nomina.id }}"
-                            data-nombre="{{ nomina.empleado.nombre }}"
-                            data-apellido="{{ nomina.empleado.apellido }}"
-                            data-bs-toggle="tooltip" title="Restaurar">
-                        <i class="bi bi-arrow-counterclockwise"></i>
-                    </button>
-                  {% endif %}
-<!--                    
-                  <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditarNomina{{ nomina.id }}">
-                      Editar
-                  </button>
--->
-                </td>
-              </tr>
-              {% empty %}
-              <tr>
-                <td colspan="6" class="text-center text-muted">
-                  No hay registros de nominas.
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-
-          <nav aria-label="Paginación nominas">
-            <ul class="pagination justify-content-center mt-4">
-              {% if nominas.has_previous %}
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ nominas.previous_page_number }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes %}&mes={{ mes }}{% endif %}{% if anio %}&anio={{ anio }}{% endif %}">&laquo;</a>
-                </li>
-              {% else %}
-                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
-              {% endif %}
-
-              {% for num in nominas.paginator.page_range %}
-                {% if nominas.number == num %}
-                  <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                {% else %}
-                  <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes %}&mes={{ mes }}{% endif %}{% if anio %}&anio={{ anio }}{% endif %}">{{ num }}</a>
-                  </li>
-                {% endif %}
-              {% endfor %}
-
-              {% if nominas.has_next %}
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ nominas.next_page_number }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes %}&mes={{ mes }}{% endif %}{% if anio %}&anio={{ anio }}{% endif %}">&raquo;</a>
-                </li>
-              {% else %}
-                <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
-              {% endif %}
-            </ul>
-          </nav>
-
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal Ver -->
-    <div class="modal fade" id="modalVerNomina" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-
-          <div class="modal-header bg-primary text-white">
-            <h5 class="modal-title">Recibo de Nómina Detallado</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-          </div>
-
-          <div class="modal-body p-4">
-            
-            <div class="row mb-4">
-              <div class="col-md-6">
-                <h6 class="text-muted">Información Laboral</h6>
-                <p class="mb-1"><strong>Empleado:</strong> <span id="verEmpleado"></span></p>
-                <p class="mb-1"><strong>DNI:</strong> <span id="verDNI"></span></p>
-                <p class="mb-1"><strong>Departamento:</strong> <span id="verDepartamento"></span></p>
-                <p class="mb-1"><strong>Cargo:</strong> <span id="verCargo"></span></p>
-              </div>
-              <div class="col-md-6 text-md-end">
-                <h6 class="text-muted">Detalles de Pago</h6>
-                <p class="mb-1"><strong>Número Nómina:</strong> <span id="verNumero"></span></p>
-                <p class="mb-1"><strong>Fecha Generación:</strong> <span id="verFecha"></span></p>
-                <p class="mb-1" id="fechaPagoContainer">
-                  <strong>Fecha Pago:</strong> <span id="verFechaPago"></span>
-                </p>
-                <div class="mt-2">
-                  <strong>Estado:</strong> <span id="verEstado">
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <hr class="my-3">
-
-            <div class="row">
-              
-              <div class="col-12 mb-3">
-                <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded">
-                  <span class="fw-bold text-uppercase">Total Ingresos Brutos</span>
-                  <span class="text-success fw-bolder fs-5">$<span id="verBruto"></span></span>
-                </div>
-                <div id="id_monto_extra_pactado" class="small mt-1 ps-2">
-                  <em class="text-muted">(Incluye Monto Extra Pactado de $<span id="verMontoExtraPactado"></span>)</em>
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-6 mb-3 d-flex flex-column h-100">
-                  <h6 class="text-danger border-bottom pb-1">Descuentos</h6>
-                  <ul id="verDescuentosDetalle" class="list-group list-group-flush mb-2">
-                  </ul>
-                  <p class="d-flex justify-content-between fw-semibold mt-auto pt-1 border-top">
-                    <span>Total Descuentos:</span>
-                    <span class="text-danger"><span id="verDescuentos"></span></span>
-                  </p>
-                </div>
-
-                <div class="col-md-6 mb-3 d-flex flex-column h-100">
-                  <h6 class="text-success border-bottom pb-1">Beneficios</h6>
-                  <ul id="verBeneficiosDetalle" class="list-group list-group-flush mb-2">
-                  </ul>
-                  <p class="d-flex justify-content-between fw-semibold mt-auto pt-1 border-top">
-                    <span>Total Beneficios:</span>
-                    <span class="text-success">$<span id="verBeneficios"></span></span>
-                  </p>
-                </div>
-              </div>
-          </div>
-            <hr class="my-3">
-
-            <div class="row">
-              <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center bg-primary text-white p-3 rounded shadow-sm">
-                  <h5 class="m-0">Monto Neto a Pagar</h5>
-                  <h5 class="m-0">$<span id="verNeto"></span></h5>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal Editar  -->
-    <div class="modal fade" id="modalEditarNomina{{ nomina.id }}" tabindex="-1" aria-labelledby="modalEditarNominaLabel{{ nomina.id }}" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <form method="post" action="{% url 'editar_nomina' %}">
-            {% csrf_token %}
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title">Editar Nómina</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <input type="hidden" name="id_nomina" id="id_nomina">
-            <div class="modal-body">
-                {{ form.as_p }}
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-success">Guardar cambios</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal Anular -->
-    <div class="modal fade" id="modalAnularNomina" tabindex="-1" aria-labelledby="modalAnularNominaLabel" aria-hidden="true">
-      <div class="modal-dialog" style="margin-top: 12rem;">
-        <div class="modal-content">
-          <div class="modal-header bg-danger text-white">
-            <h5 class="modal-title text-white" id="modalAnularNominaLabel">Confirmar Eliminar o Anular Nómina</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-          </div>
-          <div class="modal-footer d-flex justify-content-between">
-            <form id="formEliminarNomina" method="post">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-danger"
-                      onclick="return confirm('⚠️ ¿Seguro que deseas eliminar esta nómina? Esta acción no se puede deshacer.');">
-                Eliminar
-              </button>
-            </form>
-
-            <form id="formAnularNomina" method="post" action="" class="d-flex gap-2">
-              {% csrf_token %}
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" name="accion" value="anular" class="btn btn-warning">Anular</button>
-            </form>
-
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal Restaurar -->
-    <div class="modal fade" id="modalRestaurarNomina" tabindex="-1" aria-labelledby="modalRestaurarNominaLabel" aria-hidden="true">
-      <div class="modal-dialog" style="margin-top: 12rem;">
-        <div class="modal-content">
-          <div class="modal-header bg-success text-white">
-            <h5 class="modal-title text-white" id="modalRestaurarNominaLabel">Restaurar Nómina</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-          </div>
-          <div class="modal-footer">
-            <form id="formRestaurarNomina" method="post" action="">
-              {% csrf_token %}
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" name="accion" value="restaurar" class="btn btn-success">Restaurar</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-
-    <!-- Modal Generar -->
-    <div class="modal fade" id="modalGenerarNominas" tabindex="-1">
-      <div class="modal-dialog" style="margin-top: 12rem;">
-        <div class="modal-content">
-          <div class="modal-header bg-success text-white">
-            <h5 class="modal-title">Confirmar Generación</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            Esta acción generará las nóminas para todos los empleados del período actual.
-            <br><br>
-            <strong>Nota:</strong> Si ya existen nóminas en estado <em>pagado</em> o <em>anulado</em>, no se verán afectadas.
-          </div>
-          <div class="modal-footer">
-            <form method="post" action="{% url 'generar_nominas' %}">
-              {% csrf_token %}
-              <input type="hidden" name="accion" value="generar">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" class="btn btn-success">Aceptar</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal Regenerar -->
-    <div class="modal fade" id="modalRegenerarNominas" tabindex="-1">
-      <div class="modal-dialog" style="margin-top: 12rem;">
-        <div class="modal-content">
-          <div class="modal-header bg-warning">
-            <h5 class="modal-title">Confirmar Regeneración</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            ⚠️ Se eliminarán y volverán a generar las nóminas en estado <strong>pendiente</strong> ({{ pendientes }}).
-            <br>
-            Las nóminas en estado <strong>pagado</strong> o <strong>anulado</strong> no se modificarán.
-          </div>
-          <div class="modal-footer">
-            <form method="post" action="{% url 'generar_nominas' %}">
-              {% csrf_token %}
-              <input type="hidden" name="accion" value="regenerar">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" class="btn btn-warning">Aceptar</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal Confirmar -->
-    <div class="modal fade" id="modalConfirmarNominas" tabindex="-1" aria-labelledby="modalConfirmarNominasLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <form method="post" action="{% url 'confirmar_nominas' %}">
-            {% csrf_token %}
-            <div class="modal-header bg-success">
-              <h5 class="modal-title" id="modalConfirmarNominasLabel">Confirmar Nóminas</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-              {% if pendientes > 1 %}
-                ¿Está seguro de confirmar <strong>{{ pendientes }}</strong> nóminas <em>pendientes</em> como <em>pagadas</em>?
-              {% else %}
-                ¿Está seguro de confirmar <strong>{{ pendientes }}</strong> nómina <em>pendiente</em> como <em>pagada</em>?
-              {% endif %}
-              </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" class="btn btn-success">Sí, confirmar</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
   </div>
+</div>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
+<!-- Modal Restaurar -->
+<div class="modal fade" id="modalRestaurarNomina" tabindex="-1" aria-labelledby="modalRestaurarNominaLabel" aria-hidden="true">
+  <div class="modal-dialog" style="margin-top: 12rem;">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title text-white" id="modalRestaurarNominaLabel">Restaurar Nómina</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body"></div>
+      <div class="modal-footer">
+        <form id="formRestaurarNomina" method="post" action="">
+          {% csrf_token %}
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" name="accion" value="restaurar" class="btn btn-success">Restaurar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
-      // Modal Anular
-      const modalAnular = document.getElementById('modalAnularNomina');
+<!-- Modal Generar -->
+<div class="modal fade" id="modalGenerarNominas" tabindex="-1">
+  <div class="modal-dialog" style="margin-top: 12rem;">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">Confirmar Generación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        Esta acción generará las nóminas para todos los empleados del período actual.
+        <br><br>
+        <strong>Nota:</strong> Si ya existen nóminas en estado <em>pagado</em> o <em>anulado</em>, no se verán afectadas.
+      </div>
+      <div class="modal-footer">
+        <form method="post" action="{% url 'generar_nominas' %}">
+          {% csrf_token %}
+          <input type="hidden" name="accion" value="generar">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">Aceptar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Regenerar -->
+<div class="modal fade" id="modalRegenerarNominas" tabindex="-1">
+  <div class="modal-dialog" style="margin-top: 12rem;">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title">Confirmar Regeneración</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        ⚠️ Se eliminarán y volverán a generar las nóminas en estado <strong>pendiente</strong> ({{ pendientes }}).
+        <br>
+        Las nóminas en estado <strong>pagado</strong> o <strong>anulado</strong> no se modificarán.
+      </div>
+      <div class="modal-footer">
+        <form method="post" action="{% url 'generar_nominas' %}">
+          {% csrf_token %}
+          <input type="hidden" name="accion" value="regenerar">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-warning">Aceptar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Confirmar -->
+<div class="modal fade" id="modalConfirmarNominas" tabindex="-1" aria-labelledby="modalConfirmarNominasLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'confirmar_nominas' %}">
+        {% csrf_token %}
+        <div class="modal-header bg-success">
+          <h5 class="modal-title" id="modalConfirmarNominasLabel">Confirmar Nóminas</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          {% if pendientes > 1 %}
+            ¿Está seguro de confirmar <strong>{{ pendientes }}</strong> nóminas <em>pendientes</em> como <em>pagadas</em>?
+          {% else %}
+            ¿Está seguro de confirmar <strong>{{ pendientes }}</strong> nómina <em>pendiente</em> como <em>pagada</em>?
+          {% endif %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">Sí, confirmar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  let modalVerInstancia = null;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    
+
+    const modalVerElemento = document.getElementById('modalVerNomina');
+    if (modalVerElemento) {
+      modalVerInstancia = new bootstrap.Modal(modalVerElemento);
+    }
+
+
+    const modalAnular = document.getElementById('modalAnularNomina');
+    if (modalAnular) {
       modalAnular.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
         const nominaId = button.getAttribute('data-id');
-        const nombre = button.getAttribute('data-nombre');
-        const apellido = button.getAttribute('data-apellido');
+        const nombre = button.getAttribute('data-nombre') || '';
+        const apellido = button.getAttribute('data-apellido') || '';
 
-        // Actualizar el texto del modal
         const modalBody = modalAnular.querySelector('.modal-body');
-        modalBody.innerHTML = `¿Estás seguro de que deseas ELIMINAR o ANULAR la nómina de <strong>${nombre} ${apellido}</strong>?`;
+        if (modalBody) {
+          modalBody.innerHTML = `¿Estás seguro de que deseas ELIMINAR o ANULAR la nómina de <strong>${nombre} ${apellido}</strong>?`;
+        }
 
-        const formAnular = document.getElementById('formAnularNomina');
-        formAnular.action = `/nominas/anular/${nominaId}/`;
-
-        const formEliminar = document.getElementById('formEliminarNomina');
-        formEliminar.action = `/nominas/eliminar/${nominaId}/`;
-
+        document.getElementById('formAnularNomina').action = `/nominas/anular/${nominaId}/`;
+        document.getElementById('formEliminarNomina').action = `/nominas/eliminar/${nominaId}/`;
       });
+    }
 
-      // Modal Restaurar
-      const modalRestaurar = document.getElementById('modalRestaurarNomina');
+
+    const modalRestaurar = document.getElementById('modalRestaurarNomina');
+    if (modalRestaurar) {
       modalRestaurar.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
         const nominaId = button.getAttribute('data-id');    
-        const nombre = button.getAttribute('data-nombre');
-        const apellido = button.getAttribute('data-apellido');
+        const nombre = button.getAttribute('data-nombre') || '';
+        const apellido = button.getAttribute('data-apellido') || '';
 
-        // Actualizar el texto del modal
         const modalBody = modalRestaurar.querySelector('.modal-body');
-        modalBody.innerHTML = `¿Estás seguro de que deseas RESTAURAR la nómina de <strong>${nombre} ${apellido}</strong>?`;
+        if (modalBody) {
+          modalBody.innerHTML = `¿Estás seguro de que deseas RESTAURAR la nómina de <strong>${nombre} ${apellido}</strong>?`;
+        }
 
-        const formRestaurar = document.getElementById('formRestaurarNomina');
-        formRestaurar.action = `/nominas/anular/${nominaId}/`;
+        document.getElementById('formRestaurarNomina').action = `/nominas/anular/${nominaId}/`;
       });
-    });
-
-
-
-    function formatCurrency(amount, isDiscount = false) {
-        const val = parseFloat(amount) || 0;
-        const sign = isDiscount && val > 0 ? '-' : ''; 
-        return `${sign}$${val.toFixed(2)}`;
     }
 
-    document.addEventListener("DOMContentLoaded", function () {
-        const modal = new bootstrap.Modal(document.getElementById('modalVerNomina'));
+
+    const formFiltros = document.getElementById("formFiltrosNominas");
+    const contenedorTabla = document.getElementById("contenedor-tabla-dinamica");
+    let timeoutBusqueda = null;
+
+    function filtrarSinRecargar(urlOpciones = null) {
+        let url = urlOpciones;
         
-        document.querySelectorAll('.btn-ver-nomina').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const id = this.dataset.id;
+        if (!url && formFiltros) {
+            const formData = new FormData(formFiltros);
+            const params = new URLSearchParams(formData);
+            url = `?${params.toString()}`;
+        }
 
-                fetch(`/nominas/ver/${id}/`)
-                    .then(res => res.json())
-                    .then(data => {
-                        
-                        document.getElementById('verEmpleado').textContent = data.empleado;
-                        document.getElementById('verDNI').textContent = data.dni;
-                        document.getElementById('verCargo').textContent = data.cargo;
-                        document.getElementById('verDepartamento').textContent = data.departamento;
-                        document.getElementById('verFecha').textContent = data.fecha_generacion;
-                        document.getElementById('verNumero').textContent = data.numero;
-                        
-                        document.getElementById('verBruto').textContent = formatCurrency(data.monto_bruto).substring(1);
-                        document.getElementById('verNeto').textContent = formatCurrency(data.monto_neto).substring(1);
-                        
-                        document.getElementById('verDescuentos').textContent = formatCurrency(data.total_descuentos, true);
-                        document.getElementById('verBeneficios').textContent = formatCurrency(data.total_beneficios).substring(1);
-                        
-                        const montoExtraContainer = document.getElementById('id_monto_extra_pactado');
-                        if (parseFloat(data.monto_extra_pactado) > 0) {
-                            document.getElementById('verMontoExtraPactado').textContent = formatCurrency(data.monto_extra_pactado).substring(1);
-                            montoExtraContainer.style.display = "block";
-                        } else {
-                            montoExtraContainer.style.display = "none";
-                        }
+        if (!url) return;
 
-                        const estadoSpan = document.getElementById("verEstado");
-                        estadoSpan.innerHTML = "";
-                        let estadoClass = "";
-                        if (data.estado === "pendiente") estadoClass = "badge bg-warning";
-                        else if (data.estado === "pagado") estadoClass = "badge bg-success";
-                        else if (data.estado === "anulado") estadoClass = "badge bg-danger";
-                        else estadoClass = "badge bg-secondary";
-                        estadoSpan.innerHTML = `<span class="${estadoClass} fs-6">${data.estado}</span>`;
-                        
+        fetch(url)
+            .then(response => response.text())
+            .then(htmlTexto => {
+                const parser = new DOMParser();
+                const docVirtual = parser.parseFromString(htmlTexto, 'text/html');
+                const nuevaTabla = docVirtual.getElementById("contenedor-tabla-dinamica");
+                
+                if (nuevaTabla && contenedorTabla) {
+                    contenedorTabla.innerHTML = nuevaTabla.innerHTML;
+                    actualizarEventosPaginacion();
+                }
+            })
+            .catch(error => console.error("Error al procesar el filtro dinámico:", error));
+    }
 
-                        const fechaPagoContainer = document.getElementById("fechaPagoContainer");
-                        if (data.fecha_pago) {
-                            document.getElementById("verFechaPago").innerText = data.fecha_pago;
-                            fechaPagoContainer.style.display = "block";
-                        } else {
-                            fechaPagoContainer.style.display = "none";
-                        }
-
-                        populateList('verDescuentosDetalle', data.descuentos_detalle, 'text-danger', true);
-                        populateList('verBeneficiosDetalle', data.beneficios_detalle, 'text-success', false);
-
-                        modal.show();
-                    });
+    function actualizarEventosPaginacion() {
+        const linksPaginacion = document.querySelectorAll(".pagination .page-link");
+        linksPaginacion.forEach(link => {
+            link.addEventListener("click", function(e) {
+                e.preventDefault();
+                const urlPagina = this.getAttribute("href");
+                if (urlPagina && urlPagina !== "#") {
+                    filtrarSinRecargar(urlPagina);
+                }
             });
         });
+    }
 
-        function populateList(ulId, items, amountClass, isDiscountList) {
-            const ul = document.getElementById(ulId);
-            ul.innerHTML = ''; 
-            if (items && items.length > 0) {
-                items.forEach(d => {
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
-                    
-                    let value;
-                    if (d.monto && d.monto > 0) {
-                        value = formatCurrency(d.monto, isDiscountList);
-                    } else if (d.porcentaje && d.porcentaje > 0) {
-                        value = formatCurrency(d.porcentaje, isDiscountList); 
-                    } else {
-                        value = '';
-                    }
 
-                    li.innerHTML = `
-                      <span>${d.descripcion}</span>
-                      <span class="${amountClass} fw-semibold">${value}</span>
-                    `;
-                    ul.appendChild(li);
-                });
-            }
-        }
+    const inputsTexto = document.querySelectorAll(".input-filtro-dinamico");
+    inputsTexto.forEach(input => {
+        input.addEventListener("input", function() {
+            clearTimeout(timeoutBusqueda);
+            timeoutBusqueda = setTimeout(() => {
+                filtrarSinRecargar();
+            }, 400);
+        });
     });
 
-  </script>
 
+    const selectoresDropdown = document.querySelectorAll(".select-filtro-dinamico");
+    selectoresDropdown.forEach(select => {
+        select.addEventListener("change", function() {
+            filtrarSinRecargar();
+        });
+    });
+
+
+    actualizarEventosPaginacion();
+  });
+
+
+  function formatCurrency(amount, isDiscount = false) {
+      const val = parseFloat(amount) || 0;
+      const sign = isDiscount && val > 0 ? '-' : ''; 
+      return `${sign}$${val.toFixed(2)}`;
+  }
+
+  function populateList(ulId, items, amountClass, isDiscountList) {
+      const ul = document.getElementById(ulId);
+      if (!ul) return;
+      ul.innerHTML = ''; 
+      if (items && items.length > 0) {
+          items.forEach(d => {
+              const li = document.createElement('li');
+              li.className = 'list-group-item d-flex justify-content-between align-items-center';
+              
+              let value;
+              if (d.monto && d.monto > 0) {
+                  value = formatCurrency(d.monto, isDiscountList);
+              } else if (d.porcentaje && d.porcentaje > 0) {
+                  value = formatCurrency(d.porcentaje, isDiscountList); 
+              } else {
+                  value = '';
+              }
+
+              li.innerHTML = `
+                <span>${d.descripcion}</span>
+                <span class="${amountClass} fw-semibold">${value}</span>
+              `;
+              ul.appendChild(li);
+          });
+      }
+  }
+
+
+  document.addEventListener('click', function (e) {
+      const btnVer = e.target.closest('.btn-ver-nomina');
+      if (btnVer && modalVerInstancia) {
+          const id = btnVer.getAttribute('data-id');
+
+          fetch(`/nominas/ver/${id}/`)
+              .then(res => res.json())
+              .then(data => {
+                  document.getElementById('verEmpleado').textContent = data.empleado;
+                  document.getElementById('verDNI').textContent = data.dni;
+                  document.getElementById('verCargo').textContent = data.cargo;
+                  document.getElementById('verDepartamento').textContent = data.departamento;
+                  document.getElementById('verFecha').textContent = data.fecha_generacion;
+                  document.getElementById('verNumero').textContent = data.numero;
+                  
+                  document.getElementById('verBruto').textContent = formatCurrency(data.monto_bruto).substring(1);
+                  document.getElementById('verNeto').textContent = formatCurrency(data.monto_neto).substring(1);
+                  
+                  document.getElementById('verDescuentos').textContent = formatCurrency(data.total_descuentos, true);
+                  document.getElementById('verBeneficios').textContent = formatCurrency(data.total_beneficios).substring(1);
+                  
+                  const montoExtraContainer = document.getElementById('id_monto_extra_pactado');
+                  if (montoExtraContainer) {
+                      if (parseFloat(data.monto_extra_pactado) > 0) {
+                          document.getElementById('verMontoExtraPactado').textContent = formatCurrency(data.monto_extra_pactado).substring(1);
+                          montoExtraContainer.style.display = "block";
+                      } else {
+                          montoExtraContainer.style.display = "none";
+                      }
+                  }
+
+                  const estadoSpan = document.getElementById("verEstado");
+                  if (estadoSpan) {
+                      estadoSpan.innerHTML = "";
+                      let estadoClass = "";
+                      if (data.estado === "pendiente") estadoClass = "badge bg-warning";
+                      else if (data.estado === "pagado") estadoClass = "badge bg-success";
+                      else if (data.estado === "anulado") estadoClass = "badge bg-danger";
+                      else estadoClass = "badge bg-secondary";
+                      estadoSpan.innerHTML = `<span class="${estadoClass} fs-6">${data.estado}</span>`;
+                  }
+
+                  const fechaPagoContainer = document.getElementById("fechaPagoContainer");
+                  if (fechaPagoContainer) {
+                      if (data.fecha_pago) {
+                          document.getElementById("verFechaPago").innerText = data.fecha_pago;
+                          fechaPagoContainer.style.display = "block";
+                      } else {
+                          fechaPagoContainer.style.display = "none";
+                      }
+                  }
+
+                  populateList('verDescuentosDetalle', data.descuentos_detalle, 'text-danger', true);
+                  populateList('verBeneficiosDetalle', data.beneficios_detalle, 'text-success', false);
+
+                  modalVerInstancia.show();
+              })
+              .catch(err => console.error("Error al renderizar el recibo AJAX:", err));
+      }
+  });
+</script>
 {% endblock %}
-
-</body>
-</html>

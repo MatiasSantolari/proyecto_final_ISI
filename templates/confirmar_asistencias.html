@@ -7,124 +7,155 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}"> 
 <div class="container-fluid p-5 my-2">
-  <h4 class="mb-3 mt-2" style="color: var(--color-primario);">Confirmación de Asistencias de HOY ({{ hoy|date:"d/m/Y" }})</h4>
+  <h4 class="mb-3 mt-1" style="color: var(--color-primario);">Confirmación de Asistencias de HOY ({{ hoy|date:"d/m/Y" }})</h4>
 
-  <div class="card mb-3">
-    <div class="card-body">
-      <div class="row align-items-center g-3">
-        {% if mostrar_filtro_departamentos %}
-        <div class="col-md-3">
-          <form method="get" id="formFiltroDept">
-            <label for="departamento" class="form-label mb-0">Departamento: </label>
-            <select name="departamento" id="departamento" class="form-select">
-                <option value="" {% if departamento_sel == "" %}selected{% endif %}>-- Todos --</option>
-                {% for d in departamentos %}
-                  <option value="{{ d.nombre }}" {% if d.nombre == departamento_sel %}selected{% endif %}>{{ d.nombre }}</option>
-                {% endfor %}
-              </select>
+  <div class="row g-2 mb-3">
+    
+    <div class="col-xl-6 col-lg-12">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header py-2 bg-light fw-bold text-muted small">
+          <i class="bi bi-funnel-fill"></i> Panel de Búsqueda de Personal de Hoy
+        </div>
+        <div class="card-body p-2">
+          <form method="get" action="" id="formFiltrosAsistencias" class="row g-2 align-items-end">
+            
+            <div class="col-sm-5">
+              <label class="form-label mb-1 small fw-bold">Buscar por Nombre o Apellido</label>
+              <input type="text" class="form-control form-control-sm input-filtro-dinamico" name="nombre_apellido" id="buscadorAsistencias" placeholder="Escribe nombre y/o apellido..." value="{{ texto_buscado }}">
+            </div>
+
+            <div class="col-sm-5">
+              {% if mostrar_filtro_departamentos %}
+                <label for="departamento" class="form-label mb-1 small fw-bold">Departamento</label>
+                <select class="form-select form-select-sm select-filtro-dinamico" name="departamento" id="departamento">
+                  <option value="">-- Todos --</option>
+                  {% for d in departamentos %}
+                    <option value="{{ d.nombre }}" {% if d.nombre == departamento_sel %}selected{% endif %}>{{ d.nombre }}</option>
+                  {% endfor %}
+                </select>
+              {% else %}
+                <div class="text-muted small pb-1" style="font-size: 0.85rem;"><i class="bi bi-shield-lock"></i> Visualizando área asignada.</div>
+              {% endif %}
+            </div>
+
+            <div class="col-sm-2">
+              <a href="?" class="btn btn-sm btn-outline-danger w-100 fw-bold" data-bs-toggle="tooltip" title="Limpiar todos los filtros" style="padding-top: 0.25rem; padding-bottom: 0.25rem;">
+                <i class="bi bi-trash"></i> Limpiar
+              </a>
+            </div>
+
           </form>
         </div>
-        {% endif %}
+      </div>
+    </div>
 
-        <div class="col-md-9 ms-auto">
-          <form method="post" action="{% url 'confirmar_asistencias_accion' %}">
-          {% csrf_token %}
-        
-          <div class="d-flex justify-content-end">
-            <button type="button" class="btn btn-success me-5" data-bs-toggle="modal" data-bs-target="#modalConfirmar">
-              Confirmar seleccionados
+    <div class="col-xl-6 col-lg-12">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header py-2 bg-light fw-bold text-muted small">
+          <i class="bi bi-check2-circle"></i> Procesamiento Masivo Diario
+        </div>
+        <div class="card-body p-2 d-flex flex-column justify-content-center align-items-center h-100">
+          <div class="d-flex justify-content-center gap-2 w-100">
+            <button type="button" class="btn btn-sm btn-success fw-bold flex-fill" data-bs-toggle="modal" data-bs-target="#modalConfirmar" style="padding-top: 0.4rem; padding-bottom: 0.4rem;">
+              Confirmar Seleccionados
             </button>
-
-            <button type="button" class="btn btn-warning me-4" data-bs-toggle="modal" data-bs-target="#modalTardanza">
-              Marcar tardanza
+            <button type="button" class="btn btn-sm btn-warning fw-bold flex-fill" data-bs-toggle="modal" data-bs-target="#modalTardanza" style="padding-top: 0.4rem; padding-bottom: 0.4rem;">
+              Marcar Tardanza
             </button>
-
-            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalAusentes">
-              Registrar ausentes de hoy
+            <button type="button" class="btn btn-sm btn-danger fw-bold flex-fill" data-bs-toggle="modal" data-bs-target="#modalAusentes" style="padding-top: 0.4rem; padding-bottom: 0.4rem;">
+              Registrar Ausentes
             </button>
           </div>
         </div>
       </div>
     </div>
+
   </div>
 
-  <div class="card shadow-sm border-2">
-    <div class="card-body p-3">
-      <table class="table table-sm table-striped table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
-        <thead class="table-light text-center">
-          <tr>
-            <th><input type="checkbox" id="checkAll" title="Seleccionar todos"></th>
-            <th>Empleado</th>
-            {% if mostrar_filtro_departamentos %}
-              <th>Departamento</th>
+
+  <form method="post" action="{% url 'confirmar_asistencias_accion' %}" id="formProcesarAsistencias">
+    {% csrf_token %}
+
+    <div class="card shadow-sm border-2">
+      <div class="card-body p-3" id="contenedor-tabla-dinamica">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.95rem;">
+            <thead class="table-light text-center">
+              <tr>
+                <th><input type="checkbox" id="checkAll" title="Seleccionar todos"></th>
+                <th>Empleado</th>
+                {% if mostrar_filtro_departamentos %}
+                  <th>Departamento</th>
+                {% endif %}
+                <th>Cargo</th>
+                <th>Entrada</th>
+                <th>Salida</th>
+                <th style="width:10%;">Confirmado</th>
+                <th>Tardanza</th>
+              </tr>
+            </thead>
+            <tbody class="text-center"> 
+              {% for a in asistencias %}
+              <tr>
+                <td>
+                  {% if not a.confirmado %}
+                    <input type="checkbox" name="asistencia_ids" value="{{ a.id }}" class="checkItem">
+                  {% endif %}
+                </td>
+                <td>{{ a.empleado.nombre }} {{ a.empleado.apellido }}</td>
+                {% if mostrar_filtro_departamentos %}
+                  <td>{{ a.empleado.departamento_actual_nombre }}</td>
+                {% endif %}
+                <td>{{ a.empleado.cargo_actual_nombre }}</td>
+                <td>{{ a.hora_entrada|default:"-" }}</td>
+                <td>{{ a.hora_salida|default:"-" }}</td>
+                <td>{% if a.confirmado %}✅{% else %}❌{% endif %}</td>
+                <td>{% if a.tardanza %}⏰ Sí{% else %}-{% endif %}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="8" class="text-center text-muted p-3">No hay registros de asistencia con los filtros ingresados.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <nav aria-label="Page navigation" class="mt-4">
+          <ul class="pagination justify-content-center mb-0">
+            {% if asistencias.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ asistencias.previous_page_number }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if texto_buscado %}&search_texto={{ texto_buscado }}{% endif %}" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
             {% endif %}
-            <th>Cargo</th>
-            <th>Entrada</th>
-            <th>Salida</th>
-            <th style="width:10%;">Confirmado</th>
-            <th>Tardanza</th>
-          </tr>
-        </thead>
-        <tbody class="text-center"> 
-          {% for a in asistencias %}
-          <tr>
-            <td>
-              {% if not a.confirmado %}
-                <input type="checkbox" name="asistencia_ids" value="{{ a.id }}" class="checkItem">
+
+            {% for num in asistencias.paginator.page_range %}
+              {% if num == asistencias.number %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+              {% elif num >= asistencias.number|add:"-2" and num <= asistencias.number|add:"2" %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ num }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if texto_buscado %}&search_texto={{ texto_buscado }}{% endif %}">{{ num }}</a>
+                </li>
               {% endif %}
-            </td>
-            <td>{{ a.empleado.nombre }} {{ a.empleado.apellido }}</td>
-            {% if mostrar_filtro_departamentos %}
-              <td>{{ a.empleado.departamento_actual_nombre }}</td>
+            {% endfor %}
+
+            {% if asistencias.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ asistencias.next_page_number }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if texto_buscado %}&search_texto={{ texto_buscado }}{% endif %}" aria-label="Next">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
             {% endif %}
-            <td>{{ a.empleado.cargo_actual_nombre }}</td>
-            <td>{{ a.hora_entrada|default:"-" }}</td>
-            <td>{{ a.hora_salida|default:"-" }}</td>
-            <td>{% if a.confirmado %}✅{% else %}❌{% endif %}</td>
-            <td>{% if a.tardanza %}⏰ Sí{% else %}-{% endif %}</td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="8">No hay registros de asistencia.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-
-      <nav aria-label="Page navigation" class="mt-4">
-        <ul class="pagination justify-content-center mb-0">
-          {% if asistencias.has_previous %}
-            <li class="page-item">
-              <a class="page-link" href="?{% if departamento_sel %}departamento={{ departamento_sel }}&{% endif %}page={{ asistencias.previous_page_number }}" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-              </a>
-            </li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
-          {% endif %}
-
-          {% for num in asistencias.paginator.page_range %}
-            {% if num == asistencias.number %}
-              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-            {% elif num >= asistencias.number|add:"-2" and num <= asistencias.number|add:"2" %}
-              <li class="page-item"><a class="page-link" href="?{% if departamento_sel %}departamento={{ departamento_sel }}&{% endif %}page={{ num }}">{{ num }}</a></li>
-            {% endif %}
-          {% endfor %}
-
-          {% if asistencias.has_next %}
-            <li class="page-item">
-              <a class="page-link" href="?{% if departamento_sel %}departamento={{ departamento_sel }}&{% endif %}page={{ asistencias.next_page_number }}" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-              </a>
-            </li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
-          {% endif %}
-        </ul>
-      </nav>
-
+          </ul>
+        </nav>
+      </div>
     </div>
-  </div>
 
-      <!-- Modal de confirmación -->
+    <!-- Modal de confirmación -->
     <div class="modal fade" id="modalConfirmar" tabindex="-1" aria-labelledby="modalConfirmarLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-success">
@@ -132,12 +163,12 @@
             <h5 class="modal-title" id="modalConfirmarLabel">Confirmar asistencias</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
           </div>
-          <div class="modal-body">
+          <div class="modal-body text-dark text-start">
             ¿Seguro que deseas confirmar las asistencias seleccionadas?
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit"  name="accion" value="confirmar" class="btn btn-success">Sí, confirmar</button>
+            <button type="submit" name="accion" value="confirmar" class="btn btn-success">Sí, confirmar</button>
           </div>
         </div>
       </div>
@@ -151,7 +182,7 @@
             <h5 class="modal-title">Marcar tardanza</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
-          <div class="modal-body">¿Marcar como tardanza los seleccionados?</div>
+          <div class="modal-body text-dark text-start">¿Marcar como tardanza los seleccionados?</div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
             <button type="submit" name="accion" value="tardanza" class="btn btn-warning">Sí, marcar</button>
@@ -160,16 +191,15 @@
       </div>
     </div>
 
-
     <!-- Modal ausentes -->
     <div class="modal fade" id="modalAusentes" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-danger">
-          <div class="modal-header bg-danger">
-            <h5 class="modal-title">Marcar ausentes</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title text-white">Marcar ausentes</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
-          <div class="modal-body">¿Marcar como ausentes a todos los que no registraron ingreso en el día de hoy ({{ hoy|date:"d/m/Y" }})?</div>
+          <div class="modal-body text-dark text-start">¿Marcar como ausentes a todos los que no registraron ingreso en el día de hoy ({{ hoy|date:"d/m/Y" }})?</div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
             <button type="submit" name="accion" value="registrar_ausentes" class="btn btn-danger">Sí, marcar</button>
@@ -183,13 +213,79 @@
 
 
 <script>
-  
-  document.addEventListener('DOMContentLoaded', function() {
-    const selectDept = document.getElementById('departamento');
-    selectDept?.addEventListener('change', function() {
-      this.form.submit();
+  document.addEventListener('DOMContentLoaded', function () {
+    const formFiltros = document.getElementById("formFiltrosAsistencias");
+    const contenedorTabla = document.getElementById("contenedor-tabla-dinamica");
+    let timeoutBusqueda = null;
+
+    document.addEventListener('change', function(e) {
+      if (e.target && e.target.id === 'checkAll') {
+        document.querySelectorAll('.checkItem').forEach(ch => ch.checked = e.target.checked);
+      }
     });
-    
+
+    function filtrarAsistenciasSinRecargar(urlOpciones = null) {
+        let url = urlOpciones;
+        
+        if (!url && formFiltros) {
+            const formData = new FormData(formFiltros);
+            const params = new URLSearchParams(formData);
+            url = `?${params.toString()}`;
+        }
+
+        if (!url || !contenedorTabla) return;
+
+        fetch(url)
+            .then(response => response.text())
+            .then(htmlTexto => {
+                const parser = new DOMParser();
+                const docVirtual = parser.parseFromString(htmlTexto, 'text/html');
+                const nuevaTabla = docVirtual.getElementById("contenedor-tabla-dinamica");
+                
+                if (nuevaTabla) {
+                    contenedorTabla.innerHTML = nuevaTabla.innerHTML;
+                    vincularPaginacionAsistencias();
+                }
+            })
+            .catch(error => console.error("Error al filtrar las asistencias de forma asíncrona:", error));
+    }
+
+    function vincularPaginacionAsistencias() {
+        document.querySelectorAll("#contenedor-tabla-dinamica .pagination .page-link").forEach(link => {
+            link.addEventListener("click", function(e) {
+                e.preventDefault();
+                const urlPagina = this.getAttribute("href");
+                if (urlPagina && urlPagina !== "#") {
+                    filtrarAsistenciasSinRecargar(urlPagina);
+                }
+            });
+        });
+    }
+
+    const inputsTexto = document.querySelectorAll(".input-filtro-dinamico");
+    inputsTexto.forEach(input => {
+        input.addEventListener("input", function() {
+            clearTimeout(timeoutBusqueda);
+            timeoutBusqueda = setTimeout(() => {
+                filtrarAsistenciasSinRecargar();
+            }, 400);
+        });
+
+        input.addEventListener("focus", function() {
+            const strLength = this.value.length;
+            this.setSelectionRange(strLength, strLength);
+        });
+    });
+
+    const selectoresDropdown = document.querySelectorAll(".select-filtro-dinamico");
+    selectoresDropdown.forEach(select => {
+        select.addEventListener("change", function() {
+            filtrarAsistenciasSinRecargar();
+        });
+    });
+
+    vincularPaginacionAsistencias();
+
     const checkAll = document.getElementById('checkAll');
     const checkItems = document.querySelectorAll('.checkItem');
 
@@ -201,6 +297,5 @@
       });
     }
   });
-
 </script>
 {% endblock %}

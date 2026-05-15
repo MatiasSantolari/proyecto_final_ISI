@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse, HttpResponseBadRequest
-
+from django.db.models import Q
 
 
 def _get_empleado_de_user(user):
@@ -43,7 +43,6 @@ def _get_empleado_de_user(user):
 
 
 
-
 def _user_es_admin(user, empleado_obj=None):
     rol = getattr(user, 'rol', None)
     if rol == 'admin':
@@ -68,10 +67,10 @@ def _user_es_admin(user, empleado_obj=None):
 
 
 
-
 @login_required
 def asignador_view(request):
     departamento_sel = request.GET.get('departamento', '')
+    search_texto = request.GET.get('search_texto', '').strip()
     hoy = now().date()
 
     empleados_qs = Empleado.objects.all()
@@ -83,7 +82,7 @@ def asignador_view(request):
             empleados_qs = empleados_qs.filter(
                 empleadocargo__cargo__cargodepartamento__departamento__nombre=departamento_sel,
                 empleadocargo__fecha_fin__isnull=True
-            ).distinct()
+            )
         mostrar_filtro_departamentos = True
 
     elif rol_actual == "jefe" and user_empleado:
@@ -96,7 +95,7 @@ def asignador_view(request):
             empleados_qs = empleados_qs.filter(
                 empleadocargo__cargo__cargodepartamento__departamento_id__in=dept_ids,
                 empleadocargo__fecha_fin__isnull=True
-            ).distinct()
+            )
             departamento_sel = cargo_act.cargo.cargodepartamento_set.first().departamento.nombre if cargo_act.cargo.cargodepartamento_set.exists() else ''
         mostrar_filtro_departamentos = False
 
@@ -107,10 +106,24 @@ def asignador_view(request):
             empleados_qs = Empleado.objects.none()
         mostrar_filtro_departamentos = False
 
-    empleados_qs = empleados_qs.order_by('apellido', 'nombre')
+    if search_texto:
+        empleados_qs = empleados_qs.filter(
+            Q(nombre__icontains=search_texto) |
+            Q(apellido__icontains=search_texto) |
+            Q(dni__icontains=search_texto)
+        )
+
+    empleados_qs = empleados_qs.distinct().order_by('apellido', 'nombre')
 
     descuentos_disponibles = Descuento.objects.filter(fijo=False, activo=True).order_by('descripcion')
-    beneficios_disponibles = Beneficio.objects.filter(fijo=False, activo=True).order_by('descripcion')
+    beneficios_disponibles = Beneficio.objects.filter(
+            fijo=False, 
+            activo=True
+        ).exclude(
+            Q(descripcion__icontains='antigüedad') | 
+            Q(descripcion__icontains='antiguedad') | 
+            Q(descripcion__icontains='asistencia')
+        ).order_by('descripcion')
     departamentos = Departamento.objects.all().order_by('nombre')
 
     context = {
@@ -120,6 +133,7 @@ def asignador_view(request):
         'descuentos_disponibles': descuentos_disponibles,
         'beneficios_disponibles': beneficios_disponibles,
         'mostrar_filtro_departamentos': mostrar_filtro_departamentos,
+        'texto_buscado': search_texto,
     }
     return render(request, 'asignador_beneficios_descuentos.html', context)
 

@@ -9,39 +9,52 @@
 <div class="container-fluid p-5 my-2">
   <h4 class="mb-3" style="color: var(--color-primario);">Gestión de Contratos</h4>
 
-  <div class="card mb-3">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <div class="d-flex align-items-center gap-3">
-        <button class="btn btn-primary mr-5" data-bs-toggle="modal" data-bs-target="#modalContrato">
-          <i class="bi bi-plus"></i> Nuevo Contrato
-        </button>
-        {% if rol_actual == "admin" %}
-        <div class="d-flex align-items-center gap-2 me-5">
-          <label class="form-label mb-0 text-nowrap">Filtrar por Departamento:</label>
-          <form method="get" class="mb-0">
-            <select class="form-select" name="departamento" onchange="this.form.submit()">
-              <option value="">Todos</option>
+  <div class="card mb-2">
+    <div class="card-header p-3 d-flex justify-content-between align-items-center mb-0 mt-0 bg-light border-bottom">
+      <button class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalContrato" id="btnCrearContrato">
+        <i class="bi bi-plus-lg"></i> Nuevo Contrato
+      </button>
+      <button class="btn btn-secondary fw-bold" data-bs-toggle="modal" data-bs-target="#modalHistorial">
+        <i class="bi bi-clock-history"></i> Historial de Contratos
+      </button>
+    </div>
+
+    <div class="card-body bg-light">
+      <form method="get" action="" id="formFiltrosContratos" class="row g-3 align-items-end">
+        
+        <div class="col-md-5">
+          <label class="form-label fw-bold">Buscar Empleado (Nombre/Apellido)</label>
+          <input type="text" class="form-control input-filtro-dinamico" name="nombre_apellido" placeholder="Name" value="{{ nombre_apellido_buscado }}">
+        </div>
+
+        <div class="col-md-5">
+          {% if rol_actual == "admin" %}
+            <label class="form-label fw-bold">Filtrar por Departamento</label>
+            <select class="form-select select-filtro-dinamico" name="departamento">
+              <option value="">-- Todos los Departamentos --</option>
               {% for dep in departamentos %}
-              <option value="{{ dep.id }}" {% if request.GET.departamento == dep.id|stringformat:"s" %}selected{% endif %}>
-                {{ dep.nombre }}
-              </option>
+                <option value="{{ dep.id }}" {% if departamento_seleccionado == dep.id|stringformat:"s" %}selected{% endif %}>
+                  {{ dep.nombre }}
+                </option>
               {% endfor %}
             </select>
-          </form>
+          {% else %}
+            <div class="text-muted small pt-4"><i class="bi bi-info-circle"></i> Filtrando automáticamente por los empleados de tu área asignada.</div>
+          {% endif %}
         </div>
-        {% endif %}
 
-      </div>
-      <div class="d-flex ms-auto">
-        <button class="btn btn-secondary mr-1" data-bs-toggle="modal" data-bs-target="#modalHistorial">
-          Historial de Contratos
-        </button>
-      </div>
+        <div class="col-md-2">
+          <a href="{% url 'contratos' %}" class="btn btn-outline-danger w-100 fw-bold" data-bs-toggle="tooltip" title="Limpiar todos los filtros">
+            <i class="bi bi-trash"></i> Limpiar
+          </a>
+        </div>
+
+      </form>
     </div>
   </div>
 
-  <div class="card shadow-sm border-0">
-    <div class="card-body">
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body" id="contenedor-tabla-activos">
       <div class="table-responsive">
         <table class="table table-sm table-hover table-striped table-bordered align-middle mb-0" style="min-width: 1300px; font-size: 0.95rem;">
           <thead class="table-light text-center">
@@ -126,7 +139,7 @@
             </tr>
             {% empty %}
             <tr>
-              <td colspan="9" class="text-center text-muted">No hay contratos activos.</td>
+              <td colspan="9" class="text-center text-muted">No hay contratos activos con los filtros ingresados.</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -136,7 +149,7 @@
           <ul class="pagination justify-content-center mt-3">
             {% if contratos.has_previous %}
               <li class="page-item">
-                <a class="page-link" href="?page_contratos={{ contratos.previous_page_number }}{% if request.GET.page_historial %}&page_historial={{ request.GET.page_historial }}{% endif %}">&laquo;</a>
+                <a class="page-link" href="?page_contratos={{ contratos.previous_page_number }}{% if request.GET.page_historial %}&page_historial={{ request.GET.page_historial }}{% endif %}{% if departamento_seleccionado %}&departamento={{ departamento_seleccionado }}{% endif %}{% if nombre_apellido_buscado %}&nombre_apellido={{ nombre_apellido_buscado }}{% endif %}">&laquo;</a>
               </li>
             {% else %}
               <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
@@ -147,14 +160,14 @@
                 <li class="page-item active"><span class="page-link">{{ num }}</span></li>
               {% else %}
                 <li class="page-item">
-                  <a class="page-link" href="?page_contratos={{ num }}{% if request.GET.page_historial %}&page_historial={{ request.GET.page_historial }}{% endif %}">{{ num }}</a>
+                  <a class="page-link" href="?page_contratos={{ num }}{% if request.GET.page_historial %}&page_historial={{ request.GET.page_historial }}{% endif %}{% if departamento_seleccionado %}&departamento={{ departamento_seleccionado }}{% endif %}{% if nombre_apellido_buscado %}&nombre_apellido={{ nombre_apellido_buscado }}{% endif %}">{{ num }}</a>
                 </li>
               {% endif %}
             {% endfor %}
 
             {% if contratos.has_next %}
               <li class="page-item">
-                <a class="page-link" href="?page_contratos={{ contratos.next_page_number }}{% if request.GET.page_historial %}&page_historial={{ request.GET.page_historial }}{% endif %}">&raquo;</a>
+                <a class="page-link" href="?page_contratos={{ contratos.next_page_number }}{% if request.GET.page_historial %}&page_historial={{ request.GET.page_historial }}{% endif %}{% if departamento_seleccionado %}&departamento={{ departamento_seleccionado }}{% endif %}{% if nombre_apellido_buscado %}&nombre_apellido={{ nombre_apellido_buscado }}{% endif %}">&raquo;</a>
               </li>
             {% else %}
               <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
@@ -167,19 +180,18 @@
   </div>
 </div>
 
-
 <!-- Modal Crear/Editar Contrato -->
 <div class="modal fade" id="modalContrato" tabindex="-1" aria-labelledby="modalContratoLabel" aria-hidden="true">
   <div class="modal-dialog" style="margin-top: 3rem;">
     <div class="modal-content">
       <form method="post" action="{% url 'crear_contrato' %}" id="formContrato">
         {% csrf_token %}
-        <input type="hidden" name="id_contrato" id="id_contrato">
         <div class="modal-header" style="background-color: #3c8dbc;">
           <h5 class="modal-title text-white" id="modalContratoLabel">Crear/Editar Contrato</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
+          <input type="hidden" name="id_contrato" id="id_contrato">
           <input type="hidden" name="renovar" id="id_renovar" value="">
           <div class="mb-3">
             <label>Empleado</label>
@@ -232,7 +244,6 @@
           </button>
           {% endif %}
         </div>
-
       </form>
     </div>
   </div>
@@ -263,12 +274,12 @@
           {% elif contrato.estado == "activo" %}
               <span class="badge bg-success">{{ contrato.estado }}</span>
           {% endif %}
+        </p>
       </div>
     </div>
   </div>
 </div>
 {% endfor %}
-
 
 <!-- Modal Confirmar Renovación -->
 <div class="modal fade" id="modalConfirmRenovar" tabindex="-1" aria-labelledby="modalConfirmRenovarLabel" aria-hidden="true">
@@ -278,8 +289,7 @@
         <h5 class="modal-title text-white" id="modalConfirmRenovarLabel">Confirmar Renovación</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body" id="modalConfirmRenovarBody">
-      </div>
+      <div class="modal-body" id="modalConfirmRenovarBody"></div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
         <button type="button" class="btn btn-success" id="confirmRenovarBtn">Sí, renovar</button>
@@ -287,7 +297,6 @@
     </div>
   </div>
 </div>
-
 
 <!-- Modal Confirmar Finalización -->
 <div class="modal fade" id="modalFinalizar" tabindex="-1" aria-hidden="true">
@@ -299,8 +308,7 @@
           <h5 class="modal-title text-white">Confirmar Finalización</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body" id="modalFinalizarBody">
-        </div>
+        <div class="modal-body" id="modalFinalizarBody"></div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
           <button type="submit" class="btn btn-danger">Sí, finalizar</button>
@@ -310,7 +318,6 @@
   </div>
 </div>
 
-
 <!-- Modal Historial de Contratos -->
 <div class="modal fade" id="modalHistorial" tabindex="-1" aria-labelledby="modalHistorialLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl" style="margin-top: 4rem;">
@@ -319,7 +326,7 @@
         <h5 class="modal-title text-white" id="modalHistorialLabel">Historial de Contratos</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" id="contenedor-tabla-historial">
         <div class="table-responsive">
           <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1000px; font-size: 0.9rem;">
             <thead class="table-light text-center">
@@ -333,7 +340,7 @@
                 <th>Estado</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="text-center">
               {% for contrato in historial_contratos %}
               <tr>
                 <td>{{ contrato.empleado.apellido }} {{ contrato.empleado.nombre }}</td>
@@ -341,8 +348,8 @@
                 <td>{{ contrato.contrato }}</td>
                 <td>{{ contrato.fecha_inicio|date:"d/m/Y" }}</td>
                 <td>{{ contrato.fecha_fin|date:"d/m/Y" }}</td>
-                <td>${{ contrato.monto_extra_pactado }}</td>
-                <td class="text-center">
+                <td>\${{ contrato.monto_extra_pactado }}</td>
+                <td>
                   {% if contrato.estado == "finalizado" %}
                       <span class="badge bg-danger">{{ contrato.estado }}</span>
                   {% elif contrato.estado == "renovado" %}
@@ -354,7 +361,7 @@
               </tr>
               {% empty %}
               <tr>
-                <td colspan="6" class="text-center text-muted">No hay contratos en el historial.</td>
+                <td colspan="7" class="text-center text-muted">No hay contratos en el historial.</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -364,7 +371,7 @@
             <ul class="pagination justify-content-center mt-3">
               {% if historial_contratos.has_previous %}
                 <li class="page-item">
-                  <a class="page-link" href="?page_historial={{ historial_contratos.previous_page_number }}{% if request.GET.page_contratos %}&page_contratos={{ request.GET.page_contratos }}{% endif %}">&laquo;</a>
+                  <a class="page-link" href="?page_historial={{ historial_contratos.previous_page_number }}{% if request.GET.page_contratos %}&page_contratos={{ request.GET.page_contratos }}{% endif %}{% if departamento_seleccionado %}&departamento={{ departamento_seleccionado }}{% endif %}{% if nombre_apellido_buscado %}&nombre_apellido={{ nombre_apellido_buscado }}{% endif %}">&laquo;</a>
                 </li>
               {% else %}
                 <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
@@ -375,28 +382,25 @@
                   <li class="page-item active"><span class="page-link">{{ num }}</span></li>
                 {% else %}
                   <li class="page-item">
-                    <a class="page-link" href="?page_historial={{ num }}{% if request.GET.page_contratos %}&page_contratos={{ request.GET.page_contratos }}{% endif %}">{{ num }}</a>
+                    <a class="page-link" href="?page_historial={{ num }}{% if request.GET.page_contratos %}&page_contratos={{ request.GET.page_contratos }}{% endif %}{% if departamento_seleccionado %}&departamento={{ departamento_seleccionado }}{% endif %}{% if nombre_apellido_buscado %}&nombre_apellido={{ nombre_apellido_buscado }}{% endif %}">{{ num }}</a>
                   </li>
                 {% endif %}
               {% endfor %}
 
               {% if historial_contratos.has_next %}
                 <li class="page-item">
-                  <a class="page-link" href="?page_historial={{ historial_contratos.next_page_number }}{% if request.GET.page_contratos %}&page_contratos={{ request.GET.page_contratos }}{% endif %}">&raquo;</a>
+                  <a class="page-link" href="?page_historial={{ historial_contratos.next_page_number }}{% if request.GET.page_contratos %}&page_contratos={{ request.GET.page_contratos }}{% endif %}{% if departamento_seleccionado %}&departamento={{ departamento_seleccionado }}{% endif %}{% if nombre_apellido_buscado %}&nombre_apellido={{ nombre_apellido_buscado }}{% endif %}">&raquo;</a>
                 </li>
               {% else %}
                 <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
               {% endif %}
             </ul>
           </nav>
-
-
         </div>
       </div>
     </div>
   </div>
 </div>
-
 
 
 {% if request.GET.page_historial %}
@@ -414,176 +418,248 @@
 
 
 <script>
+  let modalContratoInstancia = null;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    
+    const mContrato = document.getElementById('modalContrato');
+    if (mContrato) modalContratoInstancia = new bootstrap.Modal(mContrato);
+
+    const modalFinalizar = document.getElementById('modalFinalizar');
+    if (modalFinalizar) {
+      modalFinalizar.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const contratoId = button.getAttribute('data-id');
+        const empleado = button.getAttribute('data-empleado');
+
+        document.getElementById('modalFinalizarBody').innerHTML =
+          `¿Está seguro de finalizar <strong>antes de tiempo</strong> el contrato de <strong>${empleado}</strong>?`;
+
+        document.getElementById('formFinalizar').action = `/contratos/finalizar/${contratoId}/`;
+      });
+    }
+
+    const crearContratoParam = "{{ crear_contrato }}";
+    const empleadoIdParam = "{{ empleado_id }}";
+    if (crearContratoParam === "True" && empleadoIdParam) {
+      let selectEmpleado = document.getElementById("id_empleado");
+      let hiddenEmpleado = document.getElementById("id_empleado_hidden");
+
+      if (selectEmpleado && hiddenEmpleado) {
+        selectEmpleado.value = empleadoIdParam;
+        hiddenEmpleado.value = empleadoIdParam;
+      }
+      if (modalContratoInstancia) modalContratoInstancia.show();
+    }
+
+    if (mContrato) {
+      mContrato.addEventListener('show.bs.modal', function(event) {
+        const trigger = event.relatedTarget;
+        if (trigger && !trigger.getAttribute('data-id') && trigger.id === "btnCrearContrato") {
+          limpiarFormularioContrato();
+        }
+        const montoInput = document.getElementById('id_monto_extra_pactado');
+        if (montoInput) {
+          montoInput.addEventListener('focus', function() { this.select(); });
+        }
+      });
+    }
+
+    const tipoSelect = document.getElementById('id_tipo_contrato');
+    const fechaInicioInput = document.getElementById('id_fecha_inicio');
+    const empSelect = document.getElementById('id_empleado');
+
+    if (tipoSelect) tipoSelect.addEventListener('change', toggleFechaFin);
+    if (fechaInicioInput) fechaInicioInput.addEventListener('change', toggleFechaFin);
+    if (empSelect) {
+      empSelect.addEventListener('change', function() {
+        document.getElementById('id_empleado_hidden').value = this.value;
+      });
+    }
+
+    const formContratoElement = document.getElementById('formContrato');
+    if (formContratoElement) {
+      formContratoElement.addEventListener('submit', function(e) {
+        const renovar = document.getElementById('modalContratoLabel').textContent.includes('Renovar Contrato');
+        if (renovar) {
+          e.preventDefault();
+          const empleadoText = document.getElementById('id_empleado').selectedOptions[0].text;
+          const fechaInicio = document.getElementById('id_fecha_inicio').value;
+          const fechaFin = document.getElementById('id_fecha_fin').value;
+          const modalConfirm = new bootstrap.Modal(document.getElementById('modalConfirmRenovar'));
+          
+          document.getElementById('modalConfirmRenovarBody').innerHTML = `
+            ¿Está seguro de renovar el contrato de <strong>${empleadoText}</strong> 
+            desde <strong>${fechaInicio}</strong> 
+            hasta <strong>${fechaFin}</strong>?
+          `;
+          modalConfirm.show();
+
+          document.getElementById('confirmRenovarBtn').onclick = function() {
+            modalConfirm.hide();
+            formContratoElement.submit();
+          }
+        }
+      });
+    }
+
+    const formFiltros = document.getElementById("formFiltrosContratos");
+    const contenedorActivos = document.getElementById("contenedor-tabla-activos");
+    const contenedorHistorial = document.getElementById("contenedor-tabla-historial");
+    let timeoutBusqueda = null;
+
+    function filtrarContratosSinRecargar(urlOpciones = null) {
+        let url = urlOpciones;
+        
+        if (!url && formFiltros) {
+            const formData = new FormData(formFiltros);
+            const params = new URLSearchParams(formData);
+            url = `?${params.toString()}`;
+        }
+
+        if (!url) return;
+
+        fetch(url)
+            .then(response => response.text())
+            .then(htmlTexto => {
+                const parser = new DOMParser();
+                const docVirtual = parser.parseFromString(htmlTexto, 'text/html');
+                
+                const nuevosActivos = docVirtual.getElementById("contenedor-tabla-activos");
+                const nuevoHistorial = docVirtual.getElementById("contenedor-tabla-historial");
+                
+                if (nuevosActivos && contenedorActivos) {
+                    contenedorActivos.innerHTML = nuevosActivos.innerHTML;
+                }
+                if (nuevoHistorial && contenedorHistorial) {
+                    contenedorHistorial.innerHTML = nuevoHistorial.innerHTML;
+                }
+                
+                vincularPaginacionContratos();
+            })
+            .catch(error => console.error("Error en el filtro asíncrono de contratos:", error));
+    }
+
+    function vincularPaginacionContratos() {
+        document.querySelectorAll("#contenedor-tabla-activos .pagination .page-link, #contenedor-tabla-historial .pagination .page-link").forEach(link => {
+            link.addEventListener("click", function(e) {
+                e.preventDefault();
+                const urlPagina = this.getAttribute("href");
+                if (urlPagina && urlPagina !== "#") {
+                    filtrarContratosSinRecargar(urlPagina);
+                }
+            });
+        });
+    }
+
+    const inputsTexto = document.querySelectorAll(".input-filtro-dinamico");
+    inputsTexto.forEach(input => {
+        input.addEventListener("input", function() {
+            clearTimeout(timeoutBusqueda);
+            timeoutBusqueda = setTimeout(() => {
+                filtrarContratosSinRecargar();
+            }, 400);
+        });
+    });
+
+    const selectoresDropdown = document.querySelectorAll(".select-filtro-dinamico");
+    selectoresDropdown.forEach(select => {
+        select.addEventListener("change", function() {
+            filtrarContratosSinRecargar();
+        });
+    });
+
+    vincularPaginacionContratos();
+
+    window.toggleFechaFin = toggleFechaFin;
+    window.limpiarFormularioContrato = limpiarFormularioContrato;
+    window.editarContrato = editarContrato;
+    window.renovarContrato = renovarContrato;
+  });
+
   function toggleFechaFin() {
     const tipoSelect = document.getElementById('id_tipo_contrato');
     const fechaInicioInput = document.getElementById('id_fecha_inicio');
     const fechaFinInput = document.getElementById('id_fecha_fin');
 
-    if(tipoSelect.value) {
-      fechaFinInput.readOnly = true;
-      if(fechaInicioInput.value) {
+    if(tipoSelect && tipoSelect.value) {
+      if(fechaFinInput) fechaFinInput.readOnly = true;
+      if(fechaInicioInput && fechaInicioInput.value) {
         let meses = tipoSelect.options[tipoSelect.selectedIndex].dataset.meses;
         if(meses) {
-          let inicio = new Date(fechaInicioInput.value);
+          let inicio = new Date(fechaInicioInput.value + 'T00:00:00');
           inicio.setMonth(inicio.getMonth() + parseInt(meses));
-          fechaFinInput.value = inicio.toISOString().split('T')[0];
+          if(fechaFinInput) fechaFinInput.value = inicio.toISOString().split('T')[0];
         }
       }
     } else {
-      fechaFinInput.readOnly = false;
-      fechaFinInput.value = "";
+      if(fechaFinInput) {
+        fechaFinInput.readOnly = false;
+        fechaFinInput.value = "";
+      }
     }
   }
 
+  function limpiarFormularioContrato(){
+    const form = document.getElementById('formContrato');
+    if (form) form.reset();
+    document.getElementById('id_contrato').value = '';
+    document.getElementById('id_renovar').value = '';
 
-document.addEventListener('DOMContentLoaded', function() {
-  const modalCrearEditar = document.getElementById('modalContrato');
-  modalCrearEditar.addEventListener('show.bs.modal', function(event) {
-    const trigger = event.relatedTarget;
-    if(!trigger.getAttribute('data-id')) limpiarFormularioContrato();
-
-
-    const montoInput = document.getElementById('id_monto_extra_pactado');
-    if (montoInput) {
-      montoInput.addEventListener('focus', function() {
-        this.select();
-      });
+    const empleadoSelect = document.getElementById('id_empleado');
+    if (empleadoSelect) {
+      empleadoSelect.removeAttribute('disabled');
+      empleadoSelect.value = "";
     }
-  });
 
-  const tipoSelect = document.getElementById('id_tipo_contrato');
-  const fechaFinInput = document.getElementById('id_fecha_fin');
-  const fechaInicioInput = document.getElementById('id_fecha_inicio');
-
-  tipoSelect.addEventListener('change', toggleFechaFin);
-  fechaInicioInput.addEventListener('change', toggleFechaFin);
-});
-
-function limpiarFormularioContrato(){
-  const form = document.getElementById('formContrato');
-  form.reset();
-  document.getElementById('id_contrato').value = '';
-
-  const empleadoSelect = document.getElementById('id_empleado');
-  empleadoSelect.removeAttribute('disabled');
-  empleadoSelect.value = "";
-
-  document.getElementById('id_empleado_hidden').value = '';   
-  document.getElementById('modalContratoLabel').textContent = 'Crear Nuevo Contrato';
-}
-
-function editarContrato(button){
-  const contratoId = button.getAttribute('data-id');
-  const empleado = button.getAttribute('data-empleado');
-  const tipo = button.getAttribute('data-tipo');
-  const fecha_inicio = button.getAttribute('data-fecha_inicio');
-  const fecha_fin = button.getAttribute('data-fecha_fin');
-  const condiciones = button.getAttribute('data-condiciones');
-  let monto = button.getAttribute('data-monto');
-
-  monto = monto ? parseFloat(monto).toFixed(2) : '';
-
-  document.getElementById('id_contrato').value = contratoId || '';
-  document.getElementById('id_empleado').value = empleado || '';
-  document.getElementById('id_empleado_hidden').value = empleado || ''; 
-  document.getElementById('id_empleado').setAttribute('disabled', true); 
-
-  document.getElementById('id_tipo_contrato').value = tipo || '';
-  document.getElementById('id_fecha_inicio').value = fecha_inicio || '';
-  document.getElementById('id_fecha_fin').value = fecha_fin || '';
-  document.getElementById('id_condiciones').value = condiciones || '';
-  document.getElementById('id_monto_extra_pactado').value = monto;
-
-  document.getElementById('modalContratoLabel').textContent = 'Editar Contrato';
-}
-
-
-document.getElementById('formContrato').addEventListener('submit', function(e) {
-  const renovar = document.getElementById('modalContratoLabel').textContent.includes('Renovar Contrato');
-  if (renovar) {
-    e.preventDefault();
-    const empleadoText = document.getElementById('id_empleado').selectedOptions[0].text;
-    const fechaInicio = document.getElementById('id_fecha_inicio').value;
-    const fechaFin = document.getElementById('id_fecha_fin').value;
-    const modalConfirm = new bootstrap.Modal(document.getElementById('modalConfirmRenovar'));
-    document.getElementById('modalConfirmRenovarBody').innerHTML = `
-      ¿Está seguro de renovar el contrato de <strong>${empleadoText}</strong> 
-      desde <strong>${fechaInicio}</strong> 
-      hasta <strong>${fechaFin}</strong>?
-    `;
-    modalConfirm.show();
-
-    document.getElementById('confirmRenovarBtn').onclick = function() {
-      modalConfirm.hide();
-      e.target.submit();
-    }
+    document.getElementById('id_empleado_hidden').value = '';   
+    document.getElementById('modalContratoLabel').textContent = 'Crear Nuevo Contrato';
+    toggleFechaFin();
   }
-});
 
-
-function renovarContrato(button) {
-  document.getElementById('id_renovar').value = "true";
-  document.getElementById('id_contrato').value = button.getAttribute('data-id');  
-  document.getElementById('id_empleado_hidden').value = button.getAttribute('data-empleado');
-  document.getElementById('id_empleado').value = button.getAttribute('data-empleado');
-  document.getElementById('id_empleado').setAttribute('disabled', true);
-  document.getElementById('id_tipo_contrato').value = button.getAttribute('data-tipo') || '';
-  document.getElementById('id_fecha_inicio').value = button.getAttribute('data-fecha_inicio') || '';
-  document.getElementById('id_condiciones').value = button.getAttribute('data-condiciones') || '';
-  document.getElementById('id_monto_extra_pactado').value = button.getAttribute('data-monto') ? parseFloat(button.getAttribute('data-monto')).toFixed(2) : '';
-  document.getElementById('modalContratoLabel').textContent = 'Renovar Contrato';
-
-  setTimeout(toggleFechaFin, 10);
-
-  const modalContrato = new bootstrap.Modal(document.getElementById('modalContrato'));
-  modalContrato.show();
-}
-
-
-
-document.addEventListener('DOMContentLoaded', function() {
-  const modalFinalizar = document.getElementById('modalFinalizar');
-  modalFinalizar.addEventListener('show.bs.modal', function (event) {
-    const button = event.relatedTarget;
+  function editarContrato(button){
+    limpiarFormularioContrato();
     const contratoId = button.getAttribute('data-id');
     const empleado = button.getAttribute('data-empleado');
+    const tipo = button.getAttribute('data-tipo');
+    const fecha_inicio = button.getAttribute('data-fecha_inicio');
+    const fecha_fin = button.getAttribute('data-fecha_fin');
+    const condiciones = button.getAttribute('data-condiciones');
+    let monto = button.getAttribute('data-monto');
 
-    document.getElementById('modalFinalizarBody').innerHTML =
-      `¿Está seguro de finalizar <strong>antes de tiempo</strong> el contrato de <strong>${empleado}</strong>?`;
+    monto = monto ? parseFloat(monto).toFixed(2) : '';
 
-    const form = document.getElementById('formFinalizar');
-    form.action = `/contratos/finalizar/${contratoId}/`;
-  });
-});
+    document.getElementById('id_contrato').value = contratoId || '';
+    document.getElementById('id_empleado').value = empleado || '';
+    document.getElementById('id_empleado_hidden').value = empleado || ''; 
+    document.getElementById('id_empleado').setAttribute('disabled', true); 
 
+    document.getElementById('id_tipo_contrato').value = tipo || '';
+    document.getElementById('id_fecha_inicio').value = fecha_inicio || '';
+    document.getElementById('id_fecha_fin').value = fecha_fin || '';
+    document.getElementById('id_condiciones').value = condiciones || '';
+    document.getElementById('id_monto_extra_pactado').value = monto;
 
-document.getElementById('id_empleado').addEventListener('change', function() {
-  document.getElementById('id_empleado_hidden').value = this.value;
-});
+    document.getElementById('modalContratoLabel').textContent = 'Editar Contrato';
+    toggleFechaFin();
+  }
 
+  function renovarContrato(button) {
+    limpiarFormularioContrato();
+    document.getElementById('id_renovar').value = "true";
+    document.getElementById('id_contrato').value = button.getAttribute('data-id');  
+    document.getElementById('id_empleado_hidden').value = button.getAttribute('data-empleado');
+    document.getElementById('id_empleado').value = button.getAttribute('data-empleado');
+    document.getElementById('id_empleado').setAttribute('disabled', true);
+    document.getElementById('id_tipo_contrato').value = button.getAttribute('data-tipo') || '';
+    document.getElementById('id_fecha_inicio').value = button.getAttribute('data-fecha_inicio') || '';
+    document.getElementById('id_condiciones').value = button.getAttribute('data-condiciones') || '';
+    document.getElementById('id_monto_extra_pactado').value = button.getAttribute('data-monto') ? parseFloat(button.getAttribute('data-monto')).toFixed(2) : '';
+    document.getElementById('modalContratoLabel').textContent = 'Renovar Contrato';
 
+    setTimeout(toggleFechaFin, 10);
+
+    if (modalContratoInstancia) modalContratoInstancia.show();
+  }
 </script>
-
-
-
-{% if crear_contrato and empleado_id %}
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    let selectEmpleado = document.getElementById("id_empleado");
-    let hiddenEmpleado = document.getElementById("id_empleado_hidden");
-
-    if (selectEmpleado && hiddenEmpleado) {
-      selectEmpleado.value = "{{ empleado_id }}";
-      hiddenEmpleado.value = "{{ empleado_id }}";
-    }
-
-    let modalContrato = new bootstrap.Modal(document.getElementById('modalContrato'));
-    modalContrato.show();
-  });
-</script>
-
-
-
-{% endif %}
-
 {% endblock %}

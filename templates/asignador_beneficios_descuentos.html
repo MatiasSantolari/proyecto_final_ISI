@@ -4,117 +4,141 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
-<div class="container-flud p-5 my-2">
+<div class="container-fluid p-5 my-2">
   <h4 class="mb-3" style="color: var(--color-primario);">Asignador - Descuentos y Beneficios</h4>
 
-  <div class="row g-3 align-items-end">
-    {% if mostrar_filtro_departamentos %}
-    <div class="col-md-3">
-      <div class="card h-100">
-        <div class="card-body">
-          <form method="get">
-            <label for="departamento" class="form-label">Filtrar por Departamento</label>
-            <select name="departamento" id="departamento" class="form-select">
-              <option value="">-- Todos --</option>
-              {% for d in departamentos %}
-                <option value="{{ d.nombre }}" {% if d.nombre == departamento_sel %}selected{% endif %}>{{ d.nombre }}</option>
-              {% endfor %}
-            </select>
+  <div class="row g-2 mb-3">
+    <div class="col-xl-6 col-lg-12">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header py-2 bg-light fw-bold text-muted small">
+          <i class="bi bi-funnel-fill"></i> Búsqueda y Filtrado
+        </div>
+        <div class="card-body p-2">
+          <form method="get" action="" id="formFiltrosAsignador" class="row g-2 align-items-end">
+            
+            <div class="col-sm-5">
+              <label class="form-label mb-1 small fw-bold">Buscar Empleado</label>
+              <input type="text" class="form-control form-control-sm input-filtro-dinamico" name="search_texto" id="buscadorEmpleados" placeholder="Nombre, apellido o DNI..." value="{{ texto_buscado }}">
+            </div>
+
+            <div class="col-sm-5">
+              {% if mostrar_filtro_departamentos %}
+                <label for="departamento" class="form-label mb-1 small fw-bold">Departamento</label>
+                <select class="form-select form-select-sm select-filtro-dinamico" name="departamento" id="departamento">
+                  <option value="">-- Todos --</option>
+                  {% for d in departamentos %}
+                    <option value="{{ d.nombre }}" {% if d.nombre == departamento_sel %}selected{% endif %}>{{ d.nombre }}</option>
+                  {% endfor %}
+                </select>
+              {% else %}
+                <div class="text-muted small pb-1" style="font-size: 0.8rem;"><i class="bi bi-shield-lock"></i> Área corporativa asignada.</div>
+              {% endif %}
+            </div>
+
+            <div class="col-sm-2">
+              <a href="?" class="btn btn-sm btn-outline-danger w-100 fw-bold" data-bs-toggle="tooltip" title="Limpiar filtros" style="padding-top: 0.25rem; padding-bottom: 0.25rem;">
+                <i class="bi bi-trash"></i> Limpiar
+              </a>
+            </div>
+
           </form>
         </div>
       </div>
     </div>
-    {% endif %}
 
-    <div class="col-md-9">
-      <div class="card h-100">    
+    <div class="col-xl-6 col-lg-12">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header py-2 bg-light fw-bold text-muted small">
+          <i class="bi bi-plus-circle-fill"></i> Panel de Asignación
+        </div>
+
         <form id="formAsignar" method="post" action="{% url 'asignar_beneficio_descuento_empleados' %}">
-        {% csrf_token %}
-          <div class="card-body d-flex gap-3 align-items-end flex-wrap">
-            <div style="min-width:200px; flex-grow: 1;">
-              <label class="form-label fw-bold">Descuentos</label>
-              <select id="selectDescuento" class="form-select" name="descuento_id">
-                <option value="">-- Ninguno --</option>
-                {% for d in descuentos_disponibles %}
-                  <option value="{{ d.id }}">{{ d.descripcion }} {% if d.monto %}(${{ d.monto }}){% elif d.porcentaje %}({{ d.porcentaje }}%) {% endif %}</option>
-                {% endfor %}
-              </select>
-            </div>
+          {% csrf_token %}
+          <div class="card-body p-2">
+            <div class="row g-2 align-items-end">
+              
+              <div class="col-sm-5">
+                <label for="selectDescuento" class="form-label mb-1 small fw-bold text-danger">Descuentos No Fijos</label>
+                <select id="selectDescuento" class="form-select form-select-sm" name="descuento_id">
+                  <option value="">-- Ninguno --</option>
+                  {% for d in descuentos_disponibles %}
+                    <option value="{{ d.id }}">{{ d.descripcion }} {% if d.monto %}(${{ d.monto }}){% elif d.porcentaje %}({{ d.porcentaje }}%) {% endif %}</option>
+                  {% endfor %}
+                </select>
+              </div>
 
-            <div style="min-width:200px; flex-grow: 1;">
-              <label class="form-label fw-bold">Beneficios</label>
-              <select id="selectBeneficio" class="form-select" name="beneficio_id">
-                <option value="">-- Ninguno --</option>
-                {% for b in beneficios_disponibles %}
-                  <option value="{{ b.id }}">{{ b.descripcion }} {% if b.monto %}(${{ b.monto }}){% elif b.porcentaje %}({{ b.porcentaje }}%) {% endif %}</option>
-                {% endfor %}
-              </select>
-            </div>
-            
-            <div class="ms-auto mt-auto">
-              <button type="button" id="btnAsignar" class="btn btn-success" 
-                data-bs-toggle="modal" data-bs-target="#modalConfirmarAsignacion">
-                Asignar a Seleccionados
-              </button>
+              <div class="col-sm-5">
+                <label for="selectBeneficio" class="form-label mb-1 small fw-bold text-success">Beneficios No Fijos</label>
+                <select id="selectBeneficio" class="form-select form-select-sm" name="beneficio_id">
+                  <option value="">-- Ninguno --</option>
+                  {% for b in beneficios_disponibles %}
+                    <option value="{{ b.id }}">{{ b.descripcion }} {% if b.monto %}(${{ b.monto }}){% elif b.porcentaje %}({{ b.porcentaje }}%) {% endif %}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="col-sm-2">
+                <button type="button" id="btnAsignar" class="btn btn-sm btn-success fw-bold w-100" data-bs-toggle="modal" data-bs-target="#modalConfirmarAsignacion" style="padding-top: 0.25rem; padding-bottom: 0.25rem;">
+                  Asignar
+                </button>
+              </div>
+
             </div>
           </div>
       </div>
     </div>
+
   </div>
 
-    <div class="card">
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1300px; font-size: 0.95rem;">
-            <thead class="table-light">
+  <div class="card shadow-sm border-0">
+    <div class="card-body" id="contenedor-tabla-dinamica">
+      <div class="table-responsive">
+        <table class="table table-sm table-hover table-bordered align-middle mb-0" style="min-width: 1300px; font-size: 0.95rem;">
+          <thead class="table-light">
+            <tr>
+              <th style="width:40px"><input id="checkAll" type="checkbox"></th>
+              <th>Empleado</th>
+              <th>DNI</th>
+              <th>Departamento</th>
+              <th>Cargo</th>
+              <th style="width:15%;">Asignaciones actuales</th>
+              <th style="width:10%;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for emp in empleados %}
               <tr>
-                <th style="width:40px"><input id="checkAll" type="checkbox"></th>
-                <th>Empleado</th>
-                <th>DNI</th>
-                <th>Departamento</th>
-                <th>Cargo</th>
-                <th style="width:15%;">Asignaciones actuales</th>
-                <th style="width:10%;">Acciones</th>
+                <td><input class="chkEmpleado" type="checkbox" name="empleado_ids[]" value="{{ emp.id }}"></td>
+                <td>{{ emp.apellido }} {{ emp.nombre }}</td>
+                <td>{{ emp.dni }}</td>
+                <td>{{ emp.departamento_actual_nombre|default:"-" }}</td>
+                <td>{{ emp.cargo_actual_nombre|default:"-" }}</td>
+                <td>
+                  <button type="button" class="btn btn-sm btn-outline-secondary btn-ver-asignaciones" data-id="{{ emp.id }}">
+                    Ver asignaciones
+                  </button>
+                </td>
+                <td>
+                  <button type="button" class="btn btn-sm btn-primary btn-assign-one" data-id="{{ emp.id }}" data-nombre="{{ emp.nombre }} {{ emp.apellido }}">
+                    Asignar
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {% for emp in empleados %}
-                <tr>
-                  <td><input class="chkEmpleado" type="checkbox" name="empleado_ids" value="{{ emp.id }}"></td>
-                  <td>{{ emp.apellido }} {{ emp.nombre }}</td>
-                  <td>{{ emp.dni }}</td>
-                  <td>
-                    {# obtener departamento actual (campo/prop en modelo) si lo tienes: departamento_actual_nombre #}
-                    {{ emp.departamento_actual_nombre|default:"-" }}
-                  </td>
-                  <td>{{ emp.cargo_actual_nombre|default:"-" }}</td>
-                  <td>
-                    <button type="button" class="btn btn-sm btn-outline-secondary btn-ver-asignaciones" data-id="{{ emp.id }}">
-                      Ver asignaciones
-                    </button>
-                  </td>
-                  <td>
-                    <!-- quick action: asignar sólo a este empleado -->
-                    <button type="button" class="btn btn-sm btn-primary btn-assign-one" 
-                                        data-id="{{ emp.id }}"
-                                        data-nombre="{{ emp.nombre }} {{ emp.apellido }}"
-                                        >Asignar</button>
-                  </td>
-                </tr>
-              {% empty %}
-                <tr><td colspan="7" class="text-center text-muted">No hay empleados</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+            {% empty %}
+              <tr><td colspan="7" class="text-center text-muted">No hay empleados registrados con los criterios de búsqueda ingresados.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
+  </div>
 
-    <!-- hidden inputs para submit real -->
-    <input type="hidden" name="tipo" id="inputTipo" value="">
-    <input type="hidden" name="item_id" id="inputItemId" value="">
-  </form>
+  <input type="hidden" name="tipo" id="inputTipo" value="">
+  <input type="hidden" name="item_id" id="inputItemId" value="">
+
+  </form> 
 </div>
+
 
 <!-- Modal Confirmar Asignación -->
 <div class="modal fade" id="modalConfirmarAsignacion" tabindex="-1" aria-hidden="true">
@@ -128,7 +152,7 @@
         </div>
         <div class="modal-body">
           <p id="textoConfirmar">¿Seguro que desea asignar esto a los empleados seleccionados?</p>
-          <div id="listSeleccionados" class="small text-muted"></div>
+          <div id="listSeleccionados" class="small text-muted" style="word-break: break-all;"></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -178,69 +202,74 @@
     const selectD = document.getElementById('selectDescuento');
     const selectB = document.getElementById('selectBeneficio');
 
-    selectD.addEventListener('change', () => {
-      if (selectD.value) selectB.value = "";
-    });
-    selectB.addEventListener('change', () => {
-      if (selectB.value) selectD.value = "";
-    });
-
-    
-    const checkAll = document.getElementById('checkAll');
-    checkAll?.addEventListener('change', function() {
-      document.querySelectorAll('.chkEmpleado').forEach(ch => ch.checked = this.checked);
-    });
-
-  
-    const btnAsignar = document.getElementById('btnAsignar');
-    btnAsignar.addEventListener('click', () => {
-      const descuentoId = selectD.value;
-      const beneficioId = selectB.value;
-      const selected = Array.from(document.querySelectorAll('.chkEmpleado:checked')).map(i => i.value);
-
-      if (!descuentoId && !beneficioId) {
-        alert('Seleccione un descuento o un beneficio antes de asignar.');
-        return;
-      }
-      if (selected.length === 0) {
-        alert('Seleccione al menos un empleado.');
-        return;
-      }
-
-      const tipo = descuentoId ? 'descuento' : 'beneficio';
-      const itemId = descuentoId || beneficioId;
-
-
-      document.getElementById('textoConfirmar').textContent = `Se asignará el ${tipo} seleccionado a ${selected.length} empleado(s). ¿Confirmar?`;
-      const listDiv = document.getElementById('listSeleccionados');
-      listDiv.textContent = selected.join(', ');
-
-      document.getElementById('modal_tipo').value = tipo;
-      document.getElementById('modal_item_id').value = itemId;
-
-      const cont = document.getElementById('modal_empleados_container');
-      cont.innerHTML = '';
-      selected.forEach(id => {
-        const inp = document.createElement('input');
-        inp.type = 'hidden';
-        inp.name = 'empleado_ids[]';
-        inp.value = id;
-        cont.appendChild(inp);
+    if (selectD && selectB) {
+      selectD.addEventListener('change', () => {
+        if (selectD.value) selectB.value = "";
       });
+      selectB.addEventListener('change', () => {
+        if (selectB.value) selectD.value = "";
+      });
+    }
 
+    document.addEventListener('change', function(e) {
+      if (e.target && e.target.id === 'checkAll') {
+        document.querySelectorAll('.chkEmpleado').forEach(ch => ch.checked = e.target.checked);
+      }
     });
 
+    const btnAsignar = document.getElementById('btnAsignar');
+    if (btnAsignar) {
+      btnAsignar.addEventListener('click', () => {
+        const descuentoId = selectD.value;
+        const beneficioId = selectB.value;
+        const selected = Array.from(document.querySelectorAll('.chkEmpleado:checked')).map(i => i.value);
 
-    document.querySelectorAll('.btn-assign-one').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const empId = this.dataset.id;
-        const empNombre = this.dataset.nombre;
+        if (!descuentoId && !beneficioId) {
+          alert('Seleccione un descuento o un beneficio antes de asignar.');
+          return;
+        }
+        if (selected.length === 0) {
+          alert('Seleccione al menos un empleado.');
+          return;
+        }
 
-        document.querySelectorAll('.chkEmpleado').forEach(ch=>ch.checked=false);
+        const tipo = descuentoId ? 'descuento' : 'beneficio';
+        const itemId = descuentoId || beneficioId;
+
+        document.getElementById('textoConfirmar').textContent = `Se asignará el ${tipo} seleccionado a ${selected.length} empleado(s). ¿Confirmar?`;
+        
+        const listDiv = document.getElementById('listSeleccionados');
+        if (listDiv) listDiv.textContent = selected.join(', ');
+
+        document.getElementById('modal_tipo').value = tipo;
+        document.getElementById('modal_item_id').value = itemId;
+
+        const cont = document.getElementById('modal_empleados_container');
+        cont.innerHTML = '';
+        selected.forEach(id => {
+          const inp = document.createElement('input');
+          inp.type = 'hidden';
+          inp.name = 'empleado_ids[]';
+          inp.value = id;
+          cont.appendChild(inp);
+        });
+      });
+    }
+
+    document.addEventListener('click', function(e) {
+      const btnOne = e.target.closest('.btn-assign-one');
+      if (btnOne) {
+        const empId = btnOne.getAttribute('data-id');
+        const empNombre = btnOne.getAttribute('data-nombre');
+
+        document.querySelectorAll('.chkEmpleado').forEach(ch => ch.checked = false);
+        
         const cont = document.getElementById('modal_empleados_container');
         cont.innerHTML = '';
         const inp = document.createElement('input');
-        inp.type = 'hidden'; inp.name = 'empleado_ids[]'; inp.value = empId;
+        inp.type = 'hidden'; 
+        inp.name = 'empleado_ids[]'; 
+        inp.value = empId;
         cont.appendChild(inp);
 
         const descuentoId = selectD.value;
@@ -249,8 +278,10 @@
           alert('Seleccione un descuento o un beneficio antes de asignar.');
           return;
         }
+        
         const tipo = descuentoId ? 'descuento' : 'beneficio';
         const itemId = descuentoId || beneficioId;
+        
         document.getElementById('modal_tipo').value = tipo;
         document.getElementById('modal_item_id').value = itemId;
         
@@ -259,13 +290,14 @@
 
         const modal = new bootstrap.Modal(document.getElementById('modalConfirmarAsignacion'));
         modal.show();
-      });
+      }
     });
 
-    // Botón "Ver asignaciones"
-    document.querySelectorAll('.btn-ver-asignaciones').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const empId = this.dataset.id;
+    document.addEventListener('click', function(e) {
+      const btnVer = e.target.closest('.btn-ver-asignaciones');
+      if (btnVer) {
+        const empId = btnVer.getAttribute('data-id');
+        
         fetch(`/asignador_beneficio_descuento/ver/${empId}/`)
           .then(r => r.json())
           .then(data => {
@@ -299,16 +331,57 @@
 
             const modal = new bootstrap.Modal(document.getElementById('modalVerAsignaciones'));
             modal.show();
-          });
-      });
+          })
+          .catch(err => console.error("Error al capturar asignaciones actuales:", err));
+      }
     });
 
-    const selectDept = document.getElementById('departamento');
-    selectDept?.addEventListener('change', function() {
-      this.form.submit();
+    const formFiltros = document.getElementById("formFiltrosAsignador");
+    const contenedorTabla = document.getElementById("contenedor-tabla-dinamica");
+    let timeoutBusqueda = null;
+
+    function filtrarAsignadorSinRecargar() {
+        if (!formFiltros || !contenedorTabla) return;
+
+        const formData = new FormData(formFiltros);
+        const params = new URLSearchParams(formData);
+
+        fetch(`?${params.toString()}`)
+            .then(response => response.text())
+            .then(htmlTexto => {
+                const parser = new DOMParser();
+                const docVirtual = parser.parseFromString(htmlTexto, 'text/html');
+                const nuevaTabla = docVirtual.getElementById("contenedor-tabla-dinamica");
+                
+                if (nuevaTabla) {
+                    contenedorTabla.innerHTML = nuevaTabla.innerHTML;
+                }
+            })
+            .catch(error => console.error("Error en el filtro asíncrono del asignador:", error));
+    }
+
+    const inputsTexto = document.querySelectorAll(".input-filtro-dinamico");
+    inputsTexto.forEach(input => {
+        input.addEventListener("input", function() {
+            clearTimeout(timeoutBusqueda);
+            timeoutBusqueda = setTimeout(() => {
+                filtrarAsignadorSinRecargar();
+            }, 400);
+        });
+
+        input.addEventListener("focus", function() {
+            const strLength = this.value.length;
+            this.setSelectionRange(strLength, strLength);
+        });
+    });
+
+    const selectoresDropdown = document.querySelectorAll(".select-filtro-dinamico");
+    selectoresDropdown.forEach(select => {
+        select.addEventListener("change", function() {
+            filtrarAsignadorSinRecargar();
+        });
     });
 
   });
-
 </script>
 {% endblock %}

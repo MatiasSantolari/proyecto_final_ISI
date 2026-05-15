@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db.models import Q
 
 
 @login_required
@@ -15,11 +16,17 @@ def cargos(request):
     cargos_con_sueldo = []
 
     departamento_seleccionado = request.GET.get('departamento', 'todos')
+    search_nombre_cargo = request.GET.get('nombre_cargo', '').strip()
 
     relaciones = CargoDepartamento.objects.select_related('cargo', 'departamento').order_by('departamento__nombre', 'cargo__nombre')
 
-    if departamento_seleccionado != 'todos':
+    if departamento_seleccionado != 'todos' and departamento_seleccionado != '':
         relaciones = relaciones.filter(departamento_id=departamento_seleccionado)
+
+    if search_nombre_cargo:
+        relaciones = relaciones.filter(cargo__nombre__icontains=search_nombre_cargo)
+
+    relaciones = relaciones.distinct()
 
     for relacion in relaciones:
         cargo = relacion.cargo
@@ -38,20 +45,22 @@ def cargos(request):
             'vacante': relacion.vacante
         })
 
-    paginator = Paginator(cargos_con_sueldo, 10)
+    paginator = Paginator(cargos_con_sueldo, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     departamentos = Departamento.objects.order_by('nombre')
 
     form = CargoForm()
+    
     return render(request, 'cargos.html', {
         'cargos': page_obj, 
         'page_obj': page_obj,
         'form': form,
         'departamentos': departamentos,
-        'departamento_seleccionado': departamento_seleccionado
-        })
+        'departamento_seleccionado': departamento_seleccionado,
+        'nombre_cargo_buscado': search_nombre_cargo,
+    })
 
 
 
@@ -112,6 +121,7 @@ def crear_cargo(request):
         })
 
     return render(request, 'cargos.html', {'form': form, 'cargos': cargos_con_sueldo})
+
 
 
 @login_required

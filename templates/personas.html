@@ -8,52 +8,80 @@
   <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
 
   <div class="container-fluid p-5 my-2">
-    <h4 class="mb-4" style="color: var(--color-primario);">Gestión de Personas</h4>
+    <h4 class="mb-2" style="color: var(--color-primario);">Gestión de Personas</h4>
 
     <div class="card mb-2">
-      <div class="card-header p-1 d-flex justify-content-between align-items-center mb-0 mt-2">
-        <button type="button" class="btn mb-2 ml-4 btn-primary" id="btnCrearPersona"
+      <div class="card-header p-3 d-flex justify-content-between align-items-center mb-0 mt-0 bg-light border-bottom">
+        <button type="button" class="btn btn-primary fw-bold" id="btnCrearPersona"
           data-bs-toggle="modal" data-bs-target="#modalPersona">
-            + Crear Nueva Persona
+            <i class="bi bi-person-plus-fill"></i> Crear Nueva Persona
         </button>
+      </div>
 
-        <div class="ms-3">
-          <input type="text" class="form-control" id="buscadorDNI" placeholder="Buscar por DNI" style="width: 200px;">
-        </div>
+      <div class="card-body bg-light">
+        <form method="get" action="" id="formFiltros" class="row g-3 align-items-end">
+          
+          <div class="col-md-1">
+            <label class="form-label fw-bold">DNI</label>
+            <input type="text" class="form-control input-filtro-dinamico" name="dni" id="buscadorDNI" placeholder="DNI" value="{{ dni_buscado }}">
+          </div>
 
+          <div class="col-md-2">
+            <label class="form-label fw-bold">Nombre/Apellido</label>
+            <input type="text" class="form-control input-filtro-dinamico" name="nombre_apellido" placeholder="Name" value="{{ nombre_apellido_buscado }}">
+          </div>
 
-        <div class="mb-4">
-          <label>Filtrar por Departamento</label>
-          <form method="get">
-            <select class="form-select" name="departamento" onchange="this.form.submit()">
-              <option value="" {% if not request.GET.departamento %}selected{% endif %}>Todos</option>
+          <div class="col-md-2">
+            <label class="form-label fw-bold">Departamento</label>
+            <select class="form-select select-filtro-dinamico" name="departamento">
+              <option value="" {% if not departamento_seleccionado %}selected{% endif %}>Todos</option>
               {% for dep in departamentos %}
-              <option value="{{ dep.id }}" {% if request.GET.departamento == dep.id|stringformat:"s" %}selected{% endif %}>
+              <option value="{{ dep.id }}" {% if departamento_seleccionado == dep.id|stringformat:"s" %}selected{% endif %}>
                 {{ dep.nombre }}
               </option>
               {% endfor %}
             </select>
-          </form>
-        </div>
+          </div>
 
-        <!-- Filtro de Tipo de Usuario -->
-        <div class="mb-4">
-          <label for="filtroTipoUsuario" class="form-label">Filtrar por Tipo de Usuario</label>
-          <select class="form-select" id="filtroTipoUsuario">
-            <option value="todos" selected>Todos</option>
-            <option value="normal">Normal</option>
-            <option value="empleado">Empleado</option>
-            <option value="jefe">Jefe</option>
-            <option value="gerente">Gerente</option>
-            <option value="admin">Administrador</option>
-          </select>
-        </div>
+          <div class="col-md-2">
+            <label class="form-label fw-bold">Tipo de Usuario</label>
+            <select class="form-select select-filtro-dinamico" name="tipo_usuario">
+              <option value="" {% if not tipo_usuario_seleccionado %}selected{% endif %}>Todos</option>
+              <option value="normal" {% if tipo_usuario_seleccionado == "normal" %}selected{% endif %}>Normal</option>
+              <option value="empleado" {% if tipo_usuario_seleccionado == "empleado" %}selected{% endif %}>Empleado</option>
+              <option value="jefe" {% if tipo_usuario_seleccionado == "jefe" %}selected{% endif %}>Jefe</option>
+              <option value="gerente" {% if tipo_usuario_seleccionado == "gerente" %}selected{% endif %}>Gerente</option>
+              <option value="admin" {% if tipo_usuario_seleccionado == "admin" %}selected{% endif %}>Administrador</option>
+            </select>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label fw-bold">Estado</label>
+            <select class="form-select select-filtro-dinamico" name="estado">
+              <option value="" {% if not estado_seleccionado %}selected{% endif %}>Todos</option>
+              <option value="1" {% if estado_seleccionado == "1" %}selected{% endif %}>Activo</option>
+              <option value="2" {% if estado_seleccionado == "2" %}selected{% endif %}>Inactivo</option>
+              <option value="3" {% if estado_seleccionado == "3" %}selected{% endif %}>En licencia</option>
+              <option value="4" {% if estado_seleccionado == "4" %}selected{% endif %}>Suspendido</option>
+              <option value="5" {% if estado_seleccionado == "5" %}selected{% endif %}>En Periodo de Prueba</option>
+              <option value="6" {% if estado_seleccionado == "6" %}selected{% endif %}>Jubilado</option>
+              <option value="sin_estado" {% if estado_seleccionado == "sin_estado" %}selected{% endif %}>Sin Estado</option>
+            </select>
+          </div>
+
+          <div class="col-md-2">
+            <a href="{% url 'personas' %}" class="btn btn-outline-danger w-100 fw-bold" data-bs-toggle="tooltip" title="Limpiar todos los filtros">
+              <i class="bi bi-trash"></i> Limpiar Filtros
+            </a>
+          </div>
+
+        </form>
       </div>
     </div>
 
-    <!-- Tabla de Personas -->
+
     <div class="card shadow-sm border-0">
-      <div class="card-body">
+      <div class="card-body" id="contenedor-tabla-dinamica">
         <div class="table-responsive" style="overflow-x: auto;">
           <table id="tablaPersonas" class="table table-sm table-hover table-bordered align-middle mb-0" style=" min-width: 1300px; font-size: 0.95rem;">
             <thead class="table-light text-center">
@@ -157,9 +185,10 @@
           </table>
           <nav aria-label="Paginación">
             <ul class="pagination justify-content-center mt-3">
+              
               {% if page_obj.has_previous %}
                 <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}">&laquo;</a>
+                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if departamento_seleccionado %}&departamento={{ departamento_seleccionado }}{% endif %}{% if nombre_apellido_buscado %}&nombre_apellido={{ nombre_apellido_buscado }}{% endif %}{% if tipo_usuario_seleccionado %}&tipo_usuario={{ tipo_usuario_seleccionado }}{% endif %}{% if estado_seleccionado %}&estado={{ estado_seleccionado }}{% endif %}">&laquo;</a>
                 </li>
               {% else %}
                 <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
@@ -170,18 +199,18 @@
                   <li class="page-item active"><span class="page-link">{{ num }}</span></li>
                 {% else %}
                   <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}">{{ num }}</a>
+                    <a class="page-link" href="?page={{ num }}{% if departamento_seleccionado %}&departamento={{ departamento_seleccionado }}{% endif %}{% if nombre_apellido_buscado %}&nombre_apellido={{ nombre_apellido_buscado }}{% endif %}{% if tipo_usuario_seleccionado %}&tipo_usuario={{ tipo_usuario_seleccionado }}{% endif %}{% if estado_seleccionado %}&estado={{ estado_seleccionado }}{% endif %}">{{ num }}</a>
                   </li>
                 {% endif %}
               {% endfor %}
 
               {% if page_obj.has_next %}
                 <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}">&raquo;</a>
+                  <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if departamento_seleccionado %}&departamento={{ departamento_seleccionado }}{% endif %}{% if nombre_apellido_buscado %}&nombre_apellido={{ nombre_apellido_buscado }}{% endif %}{% if tipo_usuario_seleccionado %}&tipo_usuario={{ tipo_usuario_seleccionado }}{% endif %}{% if estado_seleccionado %}&estado={{ estado_seleccionado }}{% endif %}">&raquo;</a>
                 </li>
               {% else %}
                 <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
-              {% endif %}
+              {% endif %}              
             </ul>
           </nav>
 
@@ -536,10 +565,8 @@
       cargarCargos(deptId, tipoUsuario);
     });
 
-    // Botón crear limpia el formulario
     document.getElementById('btnCrearPersona').addEventListener('click', limpiarFormulario);
 
-    // Modal eliminar (sin cambios)
     const modalEliminar = document.getElementById('modalEliminarPersona');
     modalEliminar.addEventListener('show.bs.modal', function (event) {
       const button = event.relatedTarget;
@@ -548,70 +575,95 @@
       form.action = `/personas/${personaId}/eliminar/`;
     });
 
-    // Exponer función para el botón editar
-    window.editarPersona = editarPersona;
+        // --- MOTOR AJAX DINÁMICO SOBRE EL MISMO ARCHIVO (SIN RECARGA) ---
+    const formFiltros = document.getElementById("formFiltros");
+    const contenedorTabla = document.getElementById("contenedor-tabla-dinamica");
+    let timeoutBusqueda = null;
 
-    // Inicializar toggleCampos al cargar DOM
-    toggleCampos();
+    // Función que consulta al servidor en segundo plano y extrae solo la tabla
+    function filtrarSinRecargar(urlOpciones = null) {
+        let url = urlOpciones;
+        
+        if (!url) {
+            const formData = new FormData(formFiltros);
+            const params = new URLSearchParams(formData);
+            url = `?${params.toString()}`;
+        }
 
-
-    const buscadorDNI = document.getElementById("buscadorDNI");
-    const filtroTipoUsuario = document.getElementById("filtroTipoUsuario");
-    const filas = document.querySelectorAll("#tablaPersonas tbody tr");
-
-    function aplicarFiltros() {
-      const dniBuscado = buscadorDNI.value.trim().toLowerCase();
-      const tipoSeleccionado = filtroTipoUsuario.value.toLowerCase();
-
-      filas.forEach(fila => {
-        const dni = fila.getAttribute("data-dni").toLowerCase();
-        const tipo = fila.getAttribute("data-tipo").toLowerCase();
-
-        const coincideDNI = dni.startsWith(dniBuscado);
-        const coincideTipo = tipoSeleccionado === "todos" || tipo === tipoSeleccionado;
-
-        fila.style.display = (coincideDNI && coincideTipo) ? "" : "none";
-      });
+        // Petición en segundo plano a Django
+        fetch(url)
+            .then(response => response.text())
+            .then(htmlTexto => {
+                // Parseamos el HTML recibido en memoria
+                const parser = new DOMParser();
+                const docVirtual = parser.parseFromString(htmlTexto, 'text/html');
+                
+                // Extraemos la tabla nueva filtrada
+                const nuevaTabla = docVirtual.getElementById("contenedor-tabla-dinamica");
+                
+                if (nuevaTabla && contenedorTabla) {
+                    // Reemplazamos el contenido de forma instantánea
+                    contenedorTabla.innerHTML = nuevaTabla.innerHTML;
+                    
+                    // Volvemos a activar los clicks en los nuevos botones de la paginación
+                    actualizarEventosPaginacion();
+                }
+            })
+            .catch(error => console.error("Error al procesar el filtro dinámico:", error));
     }
 
-    buscadorDNI.addEventListener("input", aplicarFiltros);
-    filtroTipoUsuario.addEventListener("change", aplicarFiltros);
+    // Escucha los clicks de la paginación para que no recarguen la página
+    function actualizarEventosPaginacion() {
+        const linksPaginacion = document.querySelectorAll(".pagination .page-link");
+        linksPaginacion.forEach(link => {
+            link.addEventListener("click", function(e) {
+                e.preventDefault();
+                const urlPagina = this.getAttribute("href");
+                if (urlPagina && urlPagina !== "#") {
+                    filtrarSinRecargar(urlPagina);
+                }
+            });
+        });
+    }
+
+    // Listeners con retraso de 400ms para inputs de texto (DNI y Nombre/Apellido)
+    const inputsTexto = document.querySelectorAll(".input-filtro-dinamico");
+    inputsTexto.forEach(input => {
+        input.addEventListener("input", function() {
+            clearTimeout(timeoutBusqueda);
+            timeoutBusqueda = setTimeout(() => {
+                filtrarSinRecargar(); // Filtra tras 400ms de inactividad (evita recargas constantes)
+            }, 400);
+        });
+
+        // Mantiene el cursor al final del texto al recuperar el foco
+        input.addEventListener("focus", function() {
+            const strLength = this.value.length;
+            this.setSelectionRange(strLength, strLength);
+        });
+    });
+
+    // Listeners para los selectores dropdown (Filtra de inmediato al cambiar la opción)
+    const selectoresDropdown = document.querySelectorAll(".select-filtro-dinamico");
+    selectoresDropdown.forEach(select => {
+        select.addEventListener("change", function() {
+            filtrarSinRecargar();
+        });
+    });
+
+    // Inicializar los eventos de paginación al cargar la pantalla por primera vez
+    actualizarEventosPaginacion();
+
+    // --- CONSERVAR LÓGICAS OPERATIVAS ORIGINALES ---
+    window.editarPersona = editarPersona;
+    toggleCampos();
+
 });
-
-
-// Filtro combinado por DNI y Tipo de Usuario
-const buscadorDNI = document.getElementById("buscadorDNI");
-const filtroTipoUsuario = document.getElementById("filtroTipoUsuario");
-const filas = document.querySelectorAll("#tablaPersonas tbody tr");
-
-function aplicarFiltros() {
-  const dniFiltro = buscadorDNI.value.trim().toLowerCase();
-  const tipoFiltro = filtroTipoUsuario.value;
-
-  document.querySelectorAll("#tablaPersonas tbody tr").forEach(fila => {
-    const dni = (fila.getAttribute("data-dni") || "").toLowerCase();
-    const tipo = fila.getAttribute("data-tipo");
-
-    const coincideDNI = dni.includes(dniFiltro);
-    const coincideTipo = (tipoFiltro === "todos" || tipo === tipoFiltro);
-
-    fila.style.display = (coincideDNI && coincideTipo) ? "" : "none";
-  });
-}
-
-
-// Eventos para aplicar filtros
-buscadorDNI.addEventListener("input", aplicarFiltros);
-filtroTipoUsuario.addEventListener("change", aplicarFiltros);
-
-
-
 
 
 function setAccion(valor) {
     document.getElementById("accion_input").value = valor;
   }
-
 
 </script>
 {% endblock %}

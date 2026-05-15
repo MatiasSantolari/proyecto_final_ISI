@@ -1,302 +1,380 @@
-{% extends "base.html"%}
+{% extends "base.html" %}
 {% load widget_tweaks %}
 {% load static %}
 
-  {% block title %}Gestión de Cargos{% endblock %}
-  
-  {% block content %}
-  <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
-  <div class="container-fluid p-5 my-3">
-    <h4 class="mb-4" style="color: var(--color-primario);">Gestión de Cargos</h4>
+{% block title %}Gestión de Cargos{% endblock %}
 
-    <div class="card mb-2">
-      <div class="card-header d-flex justify-content-between align-items-center mb-0">
-        <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalCargo">
-          + Crear Nuevo Cargo
-        </button>
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+<div class="container-fluid p-5 my-2">
+  <h4 class="mb-2" style="color: var(--color-primario);">Gestión de Cargos</h4>
 
-        <form method="get" class="mb-3 d-flex align-items-center gap-2">
-          <label for="departamento" class="form-label mb-0">Filtrar por Departamento:</label>
-          <select name="departamento" id="departamento" class="form-select" style="width: auto;">
-            <option value="todos" {% if departamento_seleccionado == 'todos' %}selected{% endif %}>Todos</option>
+  <div class="card mb-2">
+    <div class="card-header p-3 d-flex justify-content-between align-items-center mb-0 mt-0 bg-light border-bottom">
+      <button type="button" class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalCargo" id="btnCrearCargo">
+        <i class="bi bi-briefcase-fill"></i> Crear Nuevo Cargo
+      </button>
+    </div>
+
+    <div class="card-body bg-light">
+      <form method="get" action="" id="formFiltrosCargos" class="row g-3 align-items-end">
+        
+        <div class="col-md-5">
+          <label class="form-label fw-bold">Buscar por Nombre de Cargo</label>
+          <input type="text" class="form-control input-filtro-dinamico" name="nombre_cargo" id="buscadorNombreCargo" placeholder="Nombre Cargo" value="{{ nombre_cargo_buscado }}">
+        </div>
+
+        <div class="col-md-5">
+          <label class="form-label fw-bold">Filtrar por Departamento</label>
+          <select name="departamento" id="departamento" class="form-select select-filtro-dinamico">
+            <option value="todos" {% if not departamento_seleccionado or departamento_seleccionado == 'todos' %}selected{% endif %}>Todos</option>
             {% for dept in departamentos %}
               <option value="{{ dept.id }}" {% if dept.id|stringformat:"s" == departamento_seleccionado %}selected{% endif %}>
                 {{ dept.nombre }}
               </option>
             {% endfor %}
           </select>
-        </form>
-      </div>
+        </div>
+
+        <div class="col-md-2">
+          <a href="{% url 'cargos' %}" class="btn btn-outline-danger w-100 fw-bold" data-bs-toggle="tooltip" title="Limpiar todos los filtros">
+            <i class="bi bi-trash"></i> Limpiar
+          </a>
+        </div>
+
+      </form>
     </div>
-    
-    <!-- Tabla de Cargos -->
-    <div class="card shadow-sm border-0">
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-sm table-striped table-hover table-bordered align-middle mb-0" style="min-width: 1300px; font-size: 0.95rem;">
-            <thead class="table-light text-center">
-              <tr>
-                <th>Nombre</th>
-                <th>Descripción</th>
-                <th>Sueldo</th>
-                <th>Departamento</th>
-                <th style="width:7%;">Vacantes</th>
-                <th style="width:10%;">Acciones</th>
-              </tr>
-            </thead>
-            <tbody class="text-center">
-              {% for cargo in cargos %}
-              <tr>
-                <td>{{ cargo.nombre }}</td>
-                <td>
-                  {% if cargo.descripcion %}
-                    {{ cargo.descripcion }}
-                  {% else %}
-                    -
-                  {% endif %}
-                  </td>
-                <td>
-                  {% if cargo.sueldo_base %}
-                    ${{ cargo.sueldo_base }}
-                  {% else %}
-                    Sin sueldo registrado
-                  {% endif %}
-                </td>
-                <td>{{ cargo.departamento }}</td>
-                <td>{{ cargo.vacante }}</td>
-                <td>
-                  <div class="d-flex justify-content-center gap-2">
-                    <!-- Botón Editar -->
-                    <button class="btn btn-sm btn-outline-secondary me-1"
-                            data-bs-toggle="modal" data-bs-target="#modalCargo"
-                            data-id="{{ cargo.id }}"
-                            data-nombre="{{ cargo.nombre }}"
-                            data-descripcion="{{ cargo.descripcion }}"
-                            data-sueldo="{{ cargo.sueldo_base }}"
-                            data-departamento="{{ cargo.departamento_id }}"
-                            data-vacante="{{ cargo.vacante }}"
-                            onclick="editarCargo(this)"
-                            data-bs-toggle="tooltip" title="Editar">
-                      <i class="bi bi-pencil-square"></i>
-                    </button>
-
-                    <!-- Botón Ver -->
-                    <button class="btn btn-sm btn-outline-info me-1"
-                            data-bs-toggle="modal"
-                            data-bs-target="#modalVerCargo{{ cargo.id }}"
-                            data-bs-toggle="tooltip" title="Ver">
-                      <i class="bi bi-eye"></i>
-                    </button>
-
-                    <!-- Botón Eliminar -->
-                    <button class="btn btn-sm btn-outline-danger"
-                            data-bs-toggle="modal"
-                            data-bs-target="#modalEliminarCargo"
-                            data-id="{{ cargo.id }}"
-                            data-bs-toggle="tooltip" title="Eliminar">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              {% empty %}
-              <tr>
-                <td colspan="6" class="text-center text-muted">
-                  No hay cargos registrados.
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-
-          <nav aria-label="Paginación">
-            <ul class="pagination justify-content-center mt-4">
-              {% if page_obj.has_previous %}
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
-                </li>
-              {% else %}
-                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
-              {% endif %}
-
-              {% for num in page_obj.paginator.page_range %}
-                {% if page_obj.number == num %}
-                  <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+  </div>
+  
+  <div class="card shadow-sm border-0">
+    <div class="card-body" id="contenedor-tabla-dinamica">
+      <div class="table-responsive">
+        <table class="table table-sm table-striped table-hover table-bordered align-middle mb-0" style="min-width: 1300px; font-size: 0.95rem;">
+          <thead class="table-light text-center">
+            <tr>
+              <th>Nombre</th>
+              <th>Descripción</th>
+              <th>Sueldo</th>
+              <th>Departamento</th>
+              <th style="width:7%;">Vacantes</th>
+              <th style="width:10%;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="text-center">
+            {% for cargo in cargos %}
+            <tr>
+              <td>{{ cargo.nombre }}</td>
+              <td>
+                {% if cargo.descripcion %}
+                  {{ cargo.descripcion }}
                 {% else %}
-                  <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                  </li>
+                  -
                 {% endif %}
-              {% endfor %}
-
-              {% if page_obj.has_next %}
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
-                </li>
-              {% else %}
-                <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
-              {% endif %}
-            </ul>
-          </nav>
-
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal para Crear/Editar Cargo -->
-    <div class="modal fade" id="modalCargo" tabindex="-1" aria-labelledby="modalCargoLabel" aria-hidden="true">
-      <div class="modal-dialog" style="margin-top: 6rem;">
-        <div class="modal-content">
-          <form method="post" action="{% url 'crear_cargo' %}" id="formCargo">
-            {% csrf_token %}
-            <div class="modal-header" style="background-color: #3c8dbc;">
-              <h5 class="modal-title text-white" id="modalCargoLabel">Crear/Editar Cargo</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <input type="hidden" name="id_cargo" id="id_cargo">
-            <div class="modal-body">
-              <div class="mb-3">
-                <label for="id_departamento" class="form-label">Departamento</label>
-                {{ form.departamento }}
-              </div>
-              <div class="mb-3">
-                <label for="id_nombre" class="form-label">Nombre</label>
-                {{ form.nombre }}
-              </div>
-              <div class="mb-3">
-                <label for="id_descripcion" class="form-label">Descripción</label>
-                {{ form.descripcion }}
-              </div>
-              <div class="mb-3">
-                <label for="id_sueldo_base" class="form-label">Sueldo Base</label>
-                {{ form.sueldo_base }}
-              </div>
-              <div class="mb-3">
-                <label for="id_vacante" class="form-label">Vacantes</label>
-                {{ form.vacante }}
-              </div>
-            </div>
-            <div class="modal-footer bg-light">
-              <button type="submit" class="btn btn-success w-100 fw-bold">  
-                <i class="bi bi-save"></i> Guardar
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- Modal para Ver Detalles -->
-    {% for cargo in cargos %}
-    <div class="modal fade" id="modalVerCargo{{ cargo.id }}" tabindex="-1" aria-labelledby="modalVerCargo{{ cargo.id }}Label" aria-hidden="true">
-      <div class="modal-dialog" style="margin-top: 6rem;">
-        <div class="modal-content">
-          <div class="modal-header" style="background-color: #3c8dbc;">
-            <h5 class="modal-title text-white" id="modalVerCargo{{ cargo.id }}Label">Detalles del Cargo</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <p><strong>Nombre:</strong> {{ cargo.nombre }}</p>
-            <p><strong>Descripción:</strong> {{ cargo.descripcion }}</p>
-            <p><strong>Sueldo Base:</strong> 
+              </td>
+              <td>
                 {% if cargo.sueldo_base %}
                   ${{ cargo.sueldo_base }}
                 {% else %}
                   Sin sueldo registrado
                 {% endif %}
-            </p>
-            <p><strong>Departamento:</strong> {{ cargo.departamento }}</p>
-            <p><strong>Vacantes:</strong> {{ cargo.vacante }}</p>
-          </div>
-        </div>
+              </td>
+              <td>{{ cargo.departamento }}</td>
+              <td>{{ cargo.vacante }}</td>
+              <td>
+                <div class="d-flex justify-content-center gap-2">
+                  <button class="btn btn-sm btn-outline-secondary"
+                          data-bs-toggle="modal" data-bs-target="#modalCargo"
+                          data-id="{{ cargo.id }}"
+                          data-nombre="{{ cargo.nombre }}"
+                          data-descripcion="{{ cargo.descripcion }}"
+                          data-sueldo="{{ cargo.sueldo_base }}"
+                          data-departamento="{{ cargo.departamento_id }}"
+                          data-vacante="{{ cargo.vacante }}"
+                          onclick="editarCargo(this)"
+                          data-bs-toggle="tooltip" title="Editar">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+
+                  <button class="btn btn-sm btn-outline-info"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalVerCargo{{ cargo.id }}"
+                          data-bs-toggle="tooltip" title="Ver">
+                    <i class="bi bi-eye"></i>
+                  </button>
+
+                  <button class="btn btn-sm btn-outline-danger"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalEliminarCargo"
+                          data-id="{{ cargo.id }}"
+                          data-bs-toggle="tooltip" title="Eliminar">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted">
+                No hay cargos registrados.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <nav aria-label="Paginación">
+          <ul class="pagination justify-content-center mt-4">
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if departamento_seleccionado %}&departamento={{ departamento_seleccionado }}{% endif %}{% if nombre_cargo_buscado %}&nombre_cargo={{ nombre_cargo_buscado }}{% endif %}">&laquo;</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+              {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+              {% else %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ num }}{% if departamento_seleccionado %}&departamento={{ departamento_seleccionado }}{% endif %}{% if nombre_cargo_buscado %}&nombre_cargo={{ nombre_cargo_buscado }}{% endif %}">{{ num }}</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if departamento_seleccionado %}&departamento={{ departamento_seleccionado }}{% endif %}{% if nombre_cargo_buscado %}&nombre_cargo={{ nombre_cargo_buscado }}{% endif %}">&raquo;</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+            {% endif %}
+          </ul>
+        </nav>
+
       </div>
     </div>
-    {% endfor %}
-
-
-    <!-- Modal para Confirmar Eliminación -->
-    <div class="modal fade" id="modalEliminarCargo" tabindex="-1" aria-labelledby="modalEliminarCargoLabel" aria-hidden="true">
-      <div class="modal-dialog" style="margin-top: 12rem;">
-        <div class="modal-content">
-          <div class="modal-header" style="background-color: #3c8dbc;">
-            <h5 class="modal-title text-white" id="modalEliminarCargoLabel">Confirmar Eliminación</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <p>¿Estás seguro de que deseas eliminar este Cargo?</p>
-          </div>
-          <div class="modal-footer">
-            <form id="formEliminarCargo" method="post">
-              {% csrf_token %}
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" class="btn btn-danger">Eliminar</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        
-      const modalEliminar = document.getElementById('modalEliminarCargo');
+  <div class="modal fade" id="modalCargo" tabindex="-1" aria-labelledby="modalCargoLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 6rem;">
+      <div class="modal-content">
+        <form method="post" action="{% url 'crear_cargo' %}" id="formCargo">
+          {% csrf_token %}
+          <div class="modal-header" style="background-color: #3c8dbc;">
+            <h5 class="modal-title text-white" id="modalCargoLabel">Crear/Editar Cargo</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <input type="hidden" name="id_cargo" id="id_cargo">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="id_departamento" class="form-label">Departamento</label>
+              {{ form.departamento }}
+            </div>
+            <div class="mb-3">
+              <label for="id_nombre" class="form-label">Nombre</label>
+              {{ form.nombre }}
+            </div>
+            <div class="mb-3">
+              <label for="id_descripcion" class="form-label">Descripción</label>
+              {{ form.descripcion }}
+            </div>
+            <div class="mb-3">
+              <label for="id_sueldo_base" class="form-label">Sueldo Base</label>
+              {{ form.sueldo_base }}
+            </div>
+            <div class="mb-3">
+              <label for="id_vacante" class="form-label">Vacantes</label>
+              {{ form.vacante }}
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="submit" class="btn btn-success w-100 fw-bold">  
+              <i class="bi bi-save"></i> Guardar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% for cargo in cargos %}
+  <div class="modal fade" id="modalVerCargo{{ cargo.id }}" tabindex="-1" aria-labelledby="modalVerCargo{{ cargo.id }}Label" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 6rem;">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: #3c8dbc;">
+          <h5 class="modal-title text-white" id="modalVerCargo{{ cargo.id }}Label">Detalles del Cargo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Nombre:</strong> {{ cargo.nombre }}</p>
+          <p><strong>Descripción:</strong> {{ cargo.descripcion }}</p>
+          <p><strong>Sueldo Base:</strong> 
+              {% if cargo.sueldo_base %}
+                ${{ cargo.sueldo_base }}
+              {% else %}
+                Sin sueldo registrado
+              {% endif %}
+          </p>
+          <p><strong>Departamento:</strong> {{ cargo.departamento }}</p>
+          <p><strong>Vacantes:</strong> {{ cargo.vacante }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- Modal para Confirmar Eliminación -->
+  <div class="modal fade" id="modalEliminarCargo" tabindex="-1" aria-labelledby="modalEliminarCargoLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 12rem;">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: #3c8dbc;">
+          <h5 class="modal-title text-white" id="modalEliminarCargoLabel">Confirmar Eliminación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas eliminar este Cargo?</p>
+        </div>
+        <div class="modal-footer">
+          <form id="formEliminarCargo" method="post">
+            {% csrf_token %}
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-danger">Eliminar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+      
+    const modalEliminar = document.getElementById('modalEliminarCargo');
+    if (modalEliminar) {
       modalEliminar.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
         const cargoId = button.getAttribute('data-id');
         const form = document.getElementById('formEliminarCargo');
         form.action = `/cargos/${cargoId}/eliminar/`;
       });
-
-      const selectDept = document.getElementById('departamento');
-      selectDept.addEventListener('change', function() {
-        this.form.submit();  
-      });
-
-    });
-
+    }
 
     const modalCrearEditar = document.getElementById('modalCargo');
+    if (modalCrearEditar) {
+      modalCrearEditar.addEventListener('show.bs.modal', function (event) {
+        const triggerButton = event.relatedTarget;
+        if (triggerButton && !triggerButton.getAttribute('data-id')) {
+          limpiarFormulario();
+        }
+      });
+    }
 
-    modalCrearEditar.addEventListener('show.bs.modal', function (event) {
-      const triggerButton = event.relatedTarget;
 
-      if (!triggerButton.getAttribute('data-id')) {
-        limpiarFormulario();
-      }
+    const formFiltros = document.getElementById("formFiltrosCargos");
+    const contenedorTabla = document.getElementById("contenedor-tabla-dinamica");
+    let timeoutBusqueda = null;
+
+    function filtrarSinRecargar(urlOpciones = null) {
+        let url = urlOpciones;
+        
+        if (!url && formFiltros) {
+            const formData = new FormData(formFiltros);
+            const params = new URLSearchParams(formData);
+            url = `?${params.toString()}`;
+        }
+
+        if (!url) return;
+
+        fetch(url)
+            .then(response => response.text())
+            .then(htmlTexto => {
+                const parser = new DOMParser();
+                const docVirtual = parser.parseFromString(htmlTexto, 'text/html');
+                const nuevaTabla = docVirtual.getElementById("contenedor-tabla-dinamica");
+                
+                if (nuevaTabla && contenedorTabla) {
+                    contenedorTabla.innerHTML = nuevaTabla.innerHTML;
+                    actualizarEventosPaginacion();
+                }
+            })
+            .catch(error => console.error("Error al procesar el filtro dinámico:", error));
+    }
+
+    function actualizarEventosPaginacion() {
+        const linksPaginacion = document.querySelectorAll(".pagination .page-link");
+        linksPaginacion.forEach(link => {
+            link.addEventListener("click", function(e) {
+                e.preventDefault();
+                const urlPagina = this.getAttribute("href");
+                if (urlPagina && urlPagina !== "#") {
+                    filtrarSinRecargar(urlPagina);
+                }
+            });
+        });
+    }
+
+
+    const inputsTexto = document.querySelectorAll(".input-filtro-dinamico");
+    inputsTexto.forEach(input => {
+        input.addEventListener("input", function() {
+            clearTimeout(timeoutBusqueda);
+            timeoutBusqueda = setTimeout(() => {
+                filtrarSinRecargar();
+            }, 400);
+        });
+
+        input.addEventListener("focus", function() {
+            const strLength = this.value.length;
+            this.setSelectionRange(strLength, strLength);
+        });
     });
 
-    function limpiarFormulario() {
-      const form = document.getElementById('formCargo');
-      form.reset();
-      document.getElementById('id_cargo').value = '';
-      document.getElementById('modalCargoLabel').textContent = 'Crear Nuevo Cargo';
-      document.querySelector('#formCargo button[type="submit"]').textContent = 'Guardar';
-    }
+
+    const selectoresDropdown = document.querySelectorAll(".select-filtro-dinamico");
+    selectoresDropdown.forEach(select => {
+        select.addEventListener("change", function() {
+            filtrarSinRecargar();
+        });
+    });
 
 
-    function editarCargo(button) {
-      const cargoId = button.getAttribute('data-id');
-      const nombre = button.getAttribute('data-nombre');
-      const descripcion = button.getAttribute('data-descripcion');
-      const sueldo = parseFloat(button.getAttribute('data-sueldo'));
-      const departamento = button.getAttribute('data-departamento');
-      const vacante = parseInt(button.getAttribute('data-vacante'));
+    actualizarEventosPaginacion();
 
-      document.getElementById('id_cargo').value = cargoId || '';
-      document.getElementById('id_nombre').value = nombre || '';
-      document.getElementById('id_descripcion').value = descripcion || '';
-      document.getElementById('id_sueldo_base').value = isNaN(sueldo) ? '' : sueldo;
-      document.getElementById('id_departamento').value = departamento || '';
-      document.getElementById('id_vacante').value = isNaN(vacante) ? '' : vacante;
 
-      document.getElementById('modalCargoLabel').textContent = 'Editar Cargo';
-      document.querySelector('#formCargo button[type="submit"]').textContent = 'Actualizar';
-    }
+    window.limpiarFormulario = limpiarFormulario;
+    window.editarCargo = editarCargo;
+  });
 
-    </script>
-  {% endblock %}
-</body>
-</html>
+  function limpiarFormulario() {
+    const form = document.getElementById('formCargo');
+    if (form) form.reset();
+    document.getElementById('id_cargo').value = '';
+    document.getElementById('modalCargoLabel').textContent = 'Crear Nuevo Cargo';
+    const submitBtn = document.querySelector('#formCargo button[type="submit"]');
+    if (submitBtn) submitBtn.textContent = 'Guardar';
+  }
+
+  function editarCargo(button) {
+    const cargoId = button.getAttribute('data-id');
+    const nombre = button.getAttribute('data-nombre');
+    const descripcion = button.getAttribute('data-descripcion');
+    const sueldo = parseFloat(button.getAttribute('data-sueldo'));
+    const departamento = button.getAttribute('data-departamento');
+    const vacante = parseInt(button.getAttribute('data-vacante'));
+
+    document.getElementById('id_cargo').value = cargoId || '';
+    document.getElementById('id_nombre').value = nombre || '';
+    document.getElementById('id_descripcion').value = descripcion || '';
+    document.getElementById('id_sueldo_base').value = isNaN(sueldo) ? '' : sueldo;
+    document.getElementById('id_departamento').value = departamento || '';
+    document.getElementById('id_vacante').value = isNaN(vacante) ? '' : vacante;
+
+    document.getElementById('modalCargoLabel').textContent = 'Editar Cargo';
+    const submitBtn = document.querySelector('#formCargo button[type="submit"]');
+    if (submitBtn) submitBtn.textContent = 'Actualizar';
+  }
+</script>
+{% endblock %}

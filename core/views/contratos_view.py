@@ -8,6 +8,7 @@ from django.views.decorators.http import require_POST
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 from django.core.paginator import Paginator
+from django.db.models import Q
 
 
 @login_required
@@ -15,48 +16,62 @@ def contratos(request):
     rol_actual = request.session.get("rol_actual", None)
     departamentos = None
 
+    dep_id = request.GET.get("departamento", "").strip()
+    search_nombre_apellido = request.GET.get("nombre_apellido", "").strip()
+
     contratos_qs = HistorialContrato.objects.filter(
         estado="activo"
-        ).select_related("empleado", "cargo", "contrato").order_by('fecha_fin')
+    ).select_related("empleado", "cargo", "contrato").order_by('fecha_fin')
 
     historial_qs = HistorialContrato.objects.all().select_related("empleado", "cargo", "contrato").order_by('-fecha_inicio')
 
     if rol_actual == "admin":
         departamentos = Departamento.objects.all()
-        dep_id = request.GET.get("departamento")
         if dep_id:
             contratos_qs = contratos_qs.filter(cargo__cargodepartamento__departamento__id=dep_id)
             historial_qs = historial_qs.filter(cargo__cargodepartamento__departamento__id=dep_id)
     elif rol_actual in ["jefe", "gerente"]:
         empleado = request.user.empleado
-        dep_id = empleado.cargos.first().departamento.id
-        contratos_qs = contratos_qs.filter(cargo__cargodepartamento__departamento__id=dep_id)
-        historial_qs = historial_qs.filter(cargo__cargodepartamento__departamento__id=dep_id)
+        primer_cargo = empleado.empleadocargo_set.filter(fecha_fin__isnull=True).first()
+        if primer_cargo:
+            cargo_dep = CargoDepartamento.objects.filter(cargo=primer_cargo.cargo).first()
+            if cargo_dep:
+                dep_id_rol = cargo_dep.departamento.id
+                contratos_qs = contratos_qs.filter(cargo__cargodepartamento__departamento__id=dep_id_rol)
+                historial_qs = historial_qs.filter(cargo__cargodepartamento__departamento__id=dep_id_rol)
 
+    if search_nombre_apellido:
+        filtro_nombre = Q(empleado__nombre__icontains=search_nombre_apellido) | Q(empleado__apellido__icontains=search_nombre_apellido)
+        contratos_qs = contratos_qs.filter(filtro_nombre)
+        historial_qs = historial_qs.filter(filtro_nombre)
 
-    contratos_paginator = Paginator(contratos_qs, 10)
+    contratos_qs = contratos_qs.distinct()
+    historial_qs = historial_qs.distinct()
+
+    contratos_paginator = Paginator(contratos_qs, 12)
     historial_paginator = Paginator(historial_qs, 15) 
 
     page_contratos = request.GET.get("page_contratos")
     page_historial = request.GET.get("page_historial")
 
-    contratos = contratos_paginator.get_page(page_contratos)
-    historial_contratos = historial_paginator.get_page(page_historial)
+    contratos_paginados = contratos_paginator.get_page(page_contratos)
+    historial_paginados = historial_paginator.get_page(page_historial)
 
     form = ContratoForm()
 
     crear_contrato = request.GET.get("crear_contrato") == "1"
     empleado_id = request.GET.get("empleado_id")
 
-
     return render(request, "contratos.html", {
-        "contratos": contratos,
-        "historial_contratos": historial_contratos,
+        "contratos": contratos_paginados,
+        "historial_contratos": historial_paginados,
         "form": form,
         "departamentos": departamentos,
         "rol_actual": rol_actual,
         "crear_contrato": crear_contrato,
         "empleado_id": empleado_id,
+        "departamento_seleccionado": dep_id,
+        "nombre_apellido_buscado": search_nombre_apellido,
     })
 
 

@@ -13,6 +13,9 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from django.utils import timezone
 import pytz
 from django.core.paginator import Paginator
+from django.db.models import Q, Value
+from django.db.models.functions import Concat
+
 
 
 def _get_empleado_de_user(request):
@@ -107,6 +110,7 @@ def registrar_asistencia(request):
 def confirmar_asistencias(request):
     hoy = timezone.localtime(timezone.now()).date() 
     departamento_sel = request.GET.get("departamento", "")
+    search_texto = request.GET.get("nombre_apellido", "").strip() # Captura el input
     page_number = request.GET.get("page", 1)
     user_empleado = _get_empleado_de_user(request)
 
@@ -117,7 +121,7 @@ def confirmar_asistencias(request):
             asistencias_qs = asistencias_qs.filter(
                 empleado__empleadocargo__cargo__cargodepartamento__departamento__nombre=departamento_sel,
                 empleado__empleadocargo__fecha_fin__isnull=True
-            ).distinct()
+            )
     else:
         mostrar_filtro = False
         if user_empleado:
@@ -130,27 +134,38 @@ def confirmar_asistencias(request):
                     fecha_asistencia=hoy,
                     empleado__empleadocargo__cargo__cargodepartamento__departamento_id__in=dept_ids,
                     empleado__empleadocargo__fecha_fin__isnull=True
-                ).distinct()
+                )
             else:
                 asistencias_qs = HistorialAsistencia.objects.filter(empleado=user_empleado, fecha_asistencia=hoy)
         else:
             asistencias_qs = HistorialAsistencia.objects.none()
 
-    paginator = Paginator(asistencias_qs.order_by('empleado__apellido'), 10)
-    asistencias_page = paginator.get_page(page_number)
+    if search_texto:
+        asistencias_qs = asistencias_qs.annotate(
+            nombre_completo_1=Concat('empleado__nombre', Value(' '), 'empleado__apellido'),
+            nombre_completo_2=Concat('empleado__apellido', Value(' '), 'empleado__nombre')
+        ).filter(
+            Q(nombre_completo_1__icontains=search_texto) |
+            Q(nombre_completo_2__icontains=search_texto)
+        )
 
+    asistencias_qs = asistencias_qs.distinct().order_by('empleado__apellido', 'empleado__nombre')
+
+    paginator = Paginator(asistencias_qs, 10)
+    asistencias_page = paginator.get_page(page_number)
     departamentos = Departamento.objects.all().order_by("nombre")
 
     context = {
         "asistencias": asistencias_page,
+        "page_obj": asistencias_page,
         "departamentos": departamentos,
         "departamento_sel": departamento_sel,
         "mostrar_filtro_departamentos": mostrar_filtro,
         "paginator": paginator,
         "hoy": hoy,
+        "texto_buscado": search_texto,
     }
     return render(request, "confirmar_asistencias.html", context)
-
 
 
 
