@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadPdfBtn = document.getElementById('downloadPdfBtn');
 
     let backupData = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
 
     async function populateDepartamentosSelector() {
         const apiUrl = '/api/departamentos/list/';
@@ -30,9 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("No se pudieron cargar los departamentos:", error);
         }
     }
-
-    let currentPage = 1;
-    const itemsPerPage = 10;
     
     async function loadNominasData(page = 1) {
         currentPage = page; 
@@ -105,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderPagination(pagination) {
         paginationControls.innerHTML = '';
-        if (!pagination) return;
+        if (!pagination || !pagination.rango_paginas) return;
 
         const prevItem = document.createElement('li');
         prevItem.className = `page-item ${!pagination.has_previous ? 'disabled' : ''}`;
@@ -116,16 +115,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         paginationControls.appendChild(prevItem);
 
-        for (let i = 1; i <= pagination.total_pages; i++) {
+        pagination.rango_paginas.forEach(num => {
             const pageItem = document.createElement('li');
-            pageItem.className = `page-item ${i === pagination.current_page ? 'active' : ''}`;
-            pageItem.innerHTML = `<a class="page-link" href="#">${i}</a>`;
-            pageItem.addEventListener('click', (e) => {
-                e.preventDefault();
-                loadNominasData(i);
-            });
+            
+            if (num === '…' || num === '...') {
+                pageItem.className = 'page-item disabled';
+                pageItem.innerHTML = `<span class="page-link">${num}</span>`;
+            } else {
+                pageItem.className = `page-item ${num === pagination.current_page ? 'active' : ''}`;
+                pageItem.innerHTML = `<a class="page-link" href="#">${num}</a>`;
+                
+                pageItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (num !== pagination.current_page) {
+                        loadNominasData(num);
+                    }
+                });
+            }
             paginationControls.appendChild(pageItem);
-        }
+        });
 
         const nextItem = document.createElement('li');
         nextItem.className = `page-item ${!pagination.has_next ? 'disabled' : ''}`;
@@ -189,11 +197,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (paginationControls) paginationControls.innerHTML = '';
 
                 renderTable(result.results, true);
-
                 window.print();
 
             } catch (err) {
-                console.error("Fallo la descarga de registros de nóminas:", err);
+                console.error("Falló la descarga de registros de nóminas:", err);
                 alert("No se pudieron recopilar todos los registros filtrados para el PDF.");
             } finally {
                 downloadPdfBtn.innerHTML = originalContent;

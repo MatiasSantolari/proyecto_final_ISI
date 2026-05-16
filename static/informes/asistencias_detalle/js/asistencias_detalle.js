@@ -33,8 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("No se pudieron cargar los departamentos:", error);
         }
     }
-
-
     
     async function loadAsistenciasData(page = 1) {
         currentPage = page; 
@@ -64,7 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error al cargar los datos.</td></tr>`;
         }
     }
-
 
     function renderTable(data, isPrinting = false) {
         tbody.innerHTML = ''; 
@@ -114,10 +111,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
-
     function renderPagination(pagination) {
         paginationControls.innerHTML = '';
+        if (!pagination || !pagination.rango_paginas) return;
 
         const prevItem = document.createElement('li');
         prevItem.className = `page-item ${!pagination.has_previous ? 'disabled' : ''}`;
@@ -128,16 +124,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         paginationControls.appendChild(prevItem);
 
-        for (let i = 1; i <= pagination.total_pages; i++) {
+        pagination.rango_paginas.forEach(num => {
             const pageItem = document.createElement('li');
-            pageItem.className = `page-item ${i === pagination.current_page ? 'active' : ''}`;
-            pageItem.innerHTML = `<a class="page-link" href="#">${i}</a>`;
-            pageItem.addEventListener('click', (e) => {
-                e.preventDefault();
-                loadAsistenciasData(i);
-            });
+            
+            if (num === '…' || num === '...') {
+                pageItem.className = 'page-item disabled';
+                pageItem.innerHTML = `<span class="page-link">${num}</span>`;
+            } else {
+                pageItem.className = `page-item ${num === pagination.current_page ? 'active' : ''}`;
+                pageItem.innerHTML = `<a class="page-link" href="#">${num}</a>`;
+                
+                pageItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (num !== pagination.current_page) {
+                        loadAsistenciasData(num);
+                    }
+                });
+            }
             paginationControls.appendChild(pageItem);
-        }
+        });
 
         const nextItem = document.createElement('li');
         nextItem.className = `page-item ${!pagination.has_next ? 'disabled' : ''}`;
@@ -149,7 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
         paginationControls.appendChild(nextItem);
     }
      
-    
     filterDni.addEventListener('input', () => loadAsistenciasData(1)); 
     filterConfirmado.addEventListener('change', () => loadAsistenciasData(1));
     filterTardanza.addEventListener('change', () => loadAsistenciasData(1));
@@ -157,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (filterFechaDesde) filterFechaDesde.addEventListener('change', () => loadAsistenciasData(1));
     if (filterFechaHasta) filterFechaHasta.addEventListener('change', () => loadAsistenciasData(1));
     if (filterAusencia) filterAusencia.addEventListener('change', () => loadAsistenciasData(1));
-
 
     clearFiltersBtn.addEventListener('click', () => {
         filterDni.value = '';
@@ -172,8 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof mostrarToast === 'function') mostrarToast('Filtros restablecidos correctamente.', 'info');
     });
 
-
-
     downloadCsvBtn.addEventListener('click', () => {
         const dni = filterDni.value;
         const confirmado = filterConfirmado.value;
@@ -187,7 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         window.location.href = exportUrl;
     });
-
 
     if (downloadPdfBtn) {
         downloadPdfBtn.addEventListener('click', async () => {

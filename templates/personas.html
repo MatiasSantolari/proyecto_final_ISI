@@ -18,7 +18,7 @@
         </button>
       </div>
 
-      <div class="card-body bg-light">
+      <div class="card-body bg-light pt-2">
         <form method="get" action="" id="formFiltros" class="row g-3 align-items-end">
           
           <div class="col-md-1">
@@ -183,9 +183,9 @@
               {% endfor %}
             </tbody>
           </table>
+
           <nav aria-label="Paginación">
-            <ul class="pagination justify-content-center mt-3">
-              
+            <ul class="pagination justify-content-center mt-3">        
               {% if page_obj.has_previous %}
                 <li class="page-item">
                   <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if departamento_seleccionado %}&departamento={{ departamento_seleccionado }}{% endif %}{% if nombre_apellido_buscado %}&nombre_apellido={{ nombre_apellido_buscado }}{% endif %}{% if tipo_usuario_seleccionado %}&tipo_usuario={{ tipo_usuario_seleccionado }}{% endif %}{% if estado_seleccionado %}&estado={{ estado_seleccionado }}{% endif %}">&laquo;</a>
@@ -194,9 +194,11 @@
                 <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
               {% endif %}
 
-              {% for num in page_obj.paginator.page_range %}
+              {% for num in rango_paginas %}
                 {% if page_obj.number == num %}
                   <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num == '…' or num == '...' %}
+                  <li class="page-item disabled"><span class="page-link">{{ num }}</span></li>
                 {% else %}
                   <li class="page-item">
                     <a class="page-link" href="?page={{ num }}{% if departamento_seleccionado %}&departamento={{ departamento_seleccionado }}{% endif %}{% if nombre_apellido_buscado %}&nombre_apellido={{ nombre_apellido_buscado }}{% endif %}{% if tipo_usuario_seleccionado %}&tipo_usuario={{ tipo_usuario_seleccionado }}{% endif %}{% if estado_seleccionado %}&estado={{ estado_seleccionado }}{% endif %}">{{ num }}</a>
@@ -220,34 +222,35 @@
   </div>
 
   <!-- Modal para Crear/Editar Persona -->
-  <div class="modal position-fixed fade" id="modalPersona" tabindex="-1" aria-labelledby="modalPersonaLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" style="margin-top: 4rem;">
+  <div class="modal position-fixed fade" id="modalPersona" tabindex="-1" aria-labelledby="modalPersonaLabel" aria-hidden="true" style="z-index: 9999;">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" style="margin-top: 2rem;">
       <div class="modal-content">
-        <div class="modal-header" style="background-color: #3c8dbc;">
+        <div class="modal-header py-2" style="background-color: #3c8dbc;">
           <h5 class="modal-title text-white" id="modalPersonaLabel">Crear/Editar Persona</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body pt-3 pb-2">
           <form method="post" action="{% url 'crear_persona' %}" id="formPersona">
             {% csrf_token %}
             <input type="hidden" name="id_persona" id="id_persona">
-            <div class="row g-3">
+            
+            <div class="row g-3 mb-2">
               <div class="col-md">
-                <label for="id_nombre" class="form-label">Nombre</label>
+                <label for="id_nombre" class="form-label mb-1">Nombre</label>
                 {{ form.nombre }}
                 {% for error in form.nombre.errors %}
                   <div class="text-danger small">{{ error }}</div>
                 {% endfor %}
               </div>
               <div class="col-md">
-                <label for="id_apellido" class="form-label">Apellido</label>
+                <label for="id_apellido" class="form-label mb-1">Apellido</label>
                 {{ form.apellido }}
                 {% for error in form.apellido.errors %}
                   <div class="text-danger small">{{ error }}</div>
                 {% endfor %}
               </div>
               <div class="col-md">
-                <label for="id_dni" class="form-label">DNI</label>
+                <label for="id_dni" class="form-label mb-1">DNI</label>
                 {{ form.dni }}
                 {% for error in form.dni.errors %}
                   <div class="text-danger small">{{ error }}</div>
@@ -255,30 +258,30 @@
               </div>
             </div>
 
-            <div class="row g-3 mt-0">
+            <div class="row g-3 mb-2">
               <div class="col-md-4">
-                <label for="id_fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                <label for="id_fecha_nacimiento" class="form-label mb-1">Fecha de Nacimiento</label>
                 {{ form.fecha_nacimiento }}
                 {% for error in form.fecha_nacimiento.errors %}
                   <div class="text-danger small">{{ error }}</div>
                 {% endfor %}
               </div>
               <div class="col-md-4">
-                <label for="id_genero" class="form-label">Género</label>
+                <label for="id_genero" class="form-label mb-1">Género</label>
                 {{ form.genero }}
-            </div>
-            <div class="col-md-4">
-              <label for="id_email" class="form-label">Email</label>
-              {{ form.email }}
-              {% for error in form.email.errors %}
+              </div>
+              <div class="col-md-4">
+                <label for="id_email" class="form-label mb-1">Email</label>
+                {{ form.email }}
+                {% for error in form.email.errors %}
                   <div class="text-danger small">{{ error }}</div>
                 {% endfor %}
               </div>
             </div>
 
-            <div class="row g-3 mt-0">
+            <div class="row g-3 mb-2">
               <div class="col-md-8">
-                <label class="form-label" for="id_prefijo_pais">Teléfono</label>
+                <label class="form-label mb-1" for="id_prefijo_pais">Teléfono</label>
                 <div class="input-group">
                   <span class="input-group-text">Prefijo</span>
                   {{ form.prefijo_pais }}
@@ -288,69 +291,70 @@
               </div>
             </div>
 
-            <div class="row g-3 mt-0">
+            <div class="row g-3 mb-2">
               <div class="col-md-4">
-                <label for="id_pais" class="form-label">País</label>
+                <label for="id_pais" class="form-label mb-1">País</label>
                 {{ form.pais }}
               </div>
               <div class="col-md-4">
-                <label for="id_provincia" class="form-label">Provincia</label>
+                <label for="id_provincia" class="form-label mb-1">Provincia</label>
                 {{ form.provincia }}
               </div>
               <div class="col-md-4">
-                <label for="id_ciudad" class="form-label">Ciudad</label>
+                <label for="id_ciudad" class="form-label mb-1">Ciudad</label>
                 {{ form.ciudad }}
               </div>
             </div>
 
-            <div class="row g-3 mt-0">
+            <div class="row g-3 mb-2">
               <div class="col-md-8">
-                <label for="id_calle" class="form-label">Calle</label>
+                <label for="id_calle" class="form-label mb-1">Calle</label>
                 {{ form.calle }}
               </div>
               <div class="col-md-4">
-                <label for="id_numero" class="form-label">Número</label>
+                <label for="id_numero" class="form-label mb-1">Número</label>
                 {{ form.numero }}
               </div>
             </div>
           
-            <div class="mb-3 mt-2">
-              <label for="id_tipo_usuario" class="form-label">Tipo de Usuario</label>
+            <div class="mb-2 mt-2">
+              <label for="id_tipo_usuario" class="form-label mb-1">Tipo de Usuario</label>
               {{ form.tipo_usuario }}
             </div>
 
-            <div id="campoEstado" class="mb-3" style="display: none;" data-personas-target="campoEstado">
-              <label for="id_estado" class="form-label">Estado</label>
+            <div id="campoEstado" class="mb-2" style="display: none;" data-personas-target="campoEstado">
+              <label for="id_estado" class="form-label mb-1">Estado</label>
               {{ form.estado }}
             </div>
 
-            <div class="row g-3">
+            <div class="row g-3 mb-2">
               <div class="col-md">
-                <div id="campoDepartamento" class="mb-3" style="display: none;" data-personas-target="campoDepartamento">                  <label for="id_departamento" class="form-label">Departamento</label>
+                <div id="campoDepartamento" class="mb-2" style="display: none;" data-personas-target="campoDepartamento">
+                  <label for="id_departamento" class="form-label mb-1">Departamento</label>
                   {{ form.departamento }}
                   {% if form.departamento.errors %}
-                    <div class="text-danger">{{ form.departamento.errors }}</div>
+                    <div class="text-danger small">{{ form.departamento.errors }}</div>
                   {% endif %}
                 </div>
               </div>
               <div class="col-md">
-                <div id="campoCargo" class="mb-3" style="display: none;" data-personas-target="campoCargo">
-                  <label for="id_cargo" class="form-label">Cargo</label>
+                <div id="campoCargo" class="mb-2" style="display: none;" data-personas-target="campoCargo">
+                  <label for="id_cargo" class="form-label mb-1">Cargo</label>
                   {{ form.cargo }}
                 </div>
               </div>
             </div>
             
-              <input type="hidden" name="accion" id="accion_input" value="">
+            <input type="hidden" name="accion" id="accion_input" value="">
 
-              <div class="modal-footer bg-light">
-                <button type="submit" class="btn btn-success fw-bold" onclick="setAccion('guardar')">
-                  <i class="bi bi-save"></i> Guardar
-                </button>
-                <button type="submit" class="btn btn-primary fw-bold" onclick="setAccion('guardar_crear_contrato')">
-                  <i class="bi bi-file-earmark-text"></i> Guardar y Crear Contrato
-                </button>
-              </div>
+            <div class="modal-footer bg-light py-2 mt-3">
+              <button type="submit" class="btn btn-success fw-bold" onclick="setAccion('guardar')">
+                <i class="bi bi-save"></i> Guardar
+              </button>
+              <button type="submit" class="btn btn-primary fw-bold" onclick="setAccion('guardar_crear_contrato')">
+                <i class="bi bi-file-earmark-text"></i> Guardar y Crear Contrato
+              </button>
+            </div>
           </form>
         </div>
       </div>

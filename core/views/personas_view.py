@@ -15,7 +15,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
 
 
-
 @login_required
 def personas(request):
     personas_qs = Persona.objects.select_related('empleado', 'usuario').order_by('apellido', 'nombre')
@@ -63,8 +62,10 @@ def personas(request):
     personas_qs = personas_qs.distinct()
 
     paginator = Paginator(personas_qs, 12)
-    page_number = request.GET.get('page')
+    page_number = request.GET.get('page') or 1 
     page_obj = paginator.get_page(page_number)
+
+    rango_paginas = paginator.get_elided_page_range(page_number, on_each_side=2, on_ends=1)
 
     personas_con_datos = []
     for persona in page_obj:
@@ -125,6 +126,7 @@ def personas(request):
     return render(request, 'personas.html', {
         'personas': personas_con_datos,
         'page_obj': page_obj,
+        'rango_paginas': rango_paginas, 
         'form': form,
         'departamentos': departamentos,
         'departamento_seleccionado': dep_id,

@@ -32,7 +32,13 @@
             {% for tipo in tipos %}
             <tr>
               <td>{{ tipo.descripcion }}</td>
-              <td>{{ tipo.duracion_meses }}</td>
+              <td>
+                {% if tipo.duracion_meses %}
+                  {{ tipo.duracion_meses }} meses
+                {% else %}
+                  <span class="badge bg-info text-dark fw-bold">Tiempo Indeterminado</span>
+                {% endif %}
+              </td>
               <td>
                 <div class="d-flex justify-content-center gap-2">
                   <button class="btn btn-sm btn-outline-secondary me-1"

@@ -270,8 +270,10 @@ def nominas(request):
     )
 
     paginator = Paginator(nominas_list, 10)
-    page_number = request.GET.get('page')
+    page_number = request.GET.get('page') or 1
     page_obj = paginator.get_page(page_number)
+
+    rango_paginas = paginator.get_elided_page_range(page_number, on_each_side=2, on_ends=1)
 
     hoy = now().date()
     mes_actual = hoy.month
@@ -292,6 +294,7 @@ def nominas(request):
     return render(request, 'nominas.html', {
         'nominas': page_obj,
         'page_obj': page_obj,
+        'rango_paginas': rango_paginas,
         'meses': range(1, 13),
         'departamentos': departamentos,
         'departamento_sel': departamento_sel,

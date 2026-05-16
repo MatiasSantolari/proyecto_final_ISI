@@ -9,7 +9,7 @@
 
 <div class="container-fluid p-5 my-2">
   <div class="container-fluid mt-0">
-    <h4 class="mb-3" style="color: var(--color-primario);">Gestión de Nóminas</h4>
+    <h4 class="mb-2" style="color: var(--color-primario);">Gestión de Nóminas</h4>
     {% if mostrar_boton_regreso %}
         <a href="{{ url_regreso }}" class="btn btn-secondary mb-3">
             <i class="bi bi-arrow-left"></i> Volver al Detalle de Empleado
@@ -37,7 +37,7 @@
       {% endif %}
     </div>
 
-    <div class="card-body pt-3 pb-1 bg-light">
+    <div class="card-body pt-2 pb-0 bg-light">
       <form method="get" action="" id="formFiltrosNominas" class="row g-3 mb-4 align-items-end">
 
         <div class="col-md-4">
@@ -148,6 +148,7 @@
 
         <nav aria-label="Paginación nominas">
           <ul class="pagination justify-content-center mt-4">
+            
             {% if nominas.has_previous %}
               <li class="page-item">
                 <a class="page-link" href="?page={{ nominas.previous_page_number }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes_seleccionado %}&mes={{ mes_seleccionado }}{% endif %}{% if anio_seleccionado %}&anio={{ anio_seleccionado }}{% endif %}">&laquo;</a>
@@ -156,9 +157,11 @@
               <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
             {% endif %}
 
-            {% for num in nominas.paginator.page_range %}
+            {% for num in rango_paginas %}
               {% if nominas.number == num %}
                 <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+              {% elif num == '…' or num == '...' %}
+                <li class="page-item disabled"><span class="page-link">{{ num }}</span></li>
               {% else %}
                 <li class="page-item">
                   <a class="page-link" href="?page={{ num }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes_seleccionado %}&mes={{ mes_seleccionado }}{% endif %}{% if anio_seleccionado %}&anio={{ anio_seleccionado }}{% endif %}">{{ num }}</a>
@@ -172,7 +175,7 @@
               </li>
             {% else %}
               <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
-            {% endif %}
+            {% endif %}            
           </ul>
         </nav>
       </div>

@@ -121,9 +121,10 @@ def api_asistencias_detalle(request):
     except EmptyPage:
         asistencias_page = paginator.page(paginator.num_pages)
 
+    rango_paginas = list(paginator.get_elided_page_range(asistencias_page.number, on_each_side=2, on_ends=1))
+
     data = []
     for asistencia in asistencias_page:
-
         cargo_activo = asistencia.empleado.empleadocargo_set.filter(fecha_fin__isnull=True).first()
         
         if cargo_activo:
@@ -152,6 +153,7 @@ def api_asistencias_detalle(request):
             'current_page': asistencias_page.number,
             'has_next': asistencias_page.has_next(),
             'has_previous': asistencias_page.has_previous(),
+            'rango_paginas': rango_paginas,
         }
     }, safe=False)
 
@@ -626,13 +628,15 @@ def api_nominas_detalle(request):
     queryset = get_nominas_queryset(request)
     
     page = request.GET.get('page', 1)
-    per_page = request.GET.get('per_page', 10)
+    per_page = request.GET.get('per_page', 12)
     paginator = Paginator(queryset, per_page)
 
     try:
         nominas_page = paginator.page(page)
     except (PageNotAnInteger, EmptyPage):
         nominas_page = paginator.page(1)
+
+    rango_paginas = list(paginator.get_elided_page_range(nominas_page.number, on_each_side=2, on_ends=1))
 
     data = []
     for nomina in nominas_page:
@@ -669,6 +673,7 @@ def api_nominas_detalle(request):
             'current_page': nominas_page.number,
             'has_next': nominas_page.has_next(),
             'has_previous': nominas_page.has_previous(),
+            'rango_paginas': rango_paginas,
         }
     }, safe=False)
 
