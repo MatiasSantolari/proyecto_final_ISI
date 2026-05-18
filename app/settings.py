@@ -36,7 +36,7 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_AGE = 1000
+SESSION_COOKIE_AGE = 3000
 SESSION_SAVE_EVERY_REQUEST = True
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -44,7 +44,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'sanbamerofactory@gmail.com'     
-EMAIL_HOST_PASSWORD = 'owic dlxq chit fvlv'   
+EMAIL_HOST_PASSWORD = 'gbyo gdqc qxia gcvc'   
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
@@ -68,14 +68,18 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.auth_allowed',
     'social_core.pipeline.social_auth.social_user',
     'social_core.pipeline.user.get_username',
-    'social_core.pipeline.user.create_user',
     'social_core.pipeline.social_auth.associate_by_email', 
+    'social_core.pipeline.user.create_user',
     'social_core.pipeline.social_auth.associate_user',
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
     'core.auth.pipeline.save_profile',
     'core.auth.pipeline.require_persona',
 )
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {
+    'prompt': 'select_account'
+}
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -160,22 +164,25 @@ DATABASES = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-        'OPTIONS': {
-            'user_attributes': ('username', 'email'),
-            'max_similarity': 0.4,
-        }
-    },
+ #   {
+ #       'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+ #       'OPTIONS': {
+ #           'user_attributes': ('username', 'email'),
+ #           'max_similarity': 0.4,
+ #       }
+ #   },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 6,
+        }
     },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+ #   {
+ #       'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+ #   },
+ #   {
+ #       'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+ #   },
 ]
 
 

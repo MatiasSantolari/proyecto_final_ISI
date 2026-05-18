@@ -395,7 +395,7 @@ def cargos_por_departamento(request, dept_id):
 @login_required
 @require_POST
 def eliminar_persona(request, persona_id):
-    persona = get_object_or_404(Persona, id_persona=persona_id)
+    persona = get_object_or_404(Persona, id=persona_id)
     persona.delete()
     return redirect('personas')
 
