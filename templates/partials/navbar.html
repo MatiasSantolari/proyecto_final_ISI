@@ -98,12 +98,15 @@
           <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
             <i class="fas fa-user-circle me-0"></i> {{ request.user.nombre_usuario }}
           </a>
-          <ul class="dropdown-menu dropdown-menu-end">
-          <!--
-            <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Configuración</a></li>
+          <ul class="dropdown-menu dropdown-menu-end shadow">
+            <li>
+              <a class="dropdown-menu-item dropdown-item" href="{% url 'password_change' %}">
+                <i class="bi bi-shield-lock me-2 text-warning"></i> Cambiar contraseña
+              </a>
+            </li>
             
             <li><hr class="dropdown-divider"></li>
-          -->
+            
             <li>
               <form action="{% url 'logout' %}" method="post" style="display: block; margin: 0;">
                 {% csrf_token %}

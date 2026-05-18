@@ -13,4 +13,4 @@ class HabilidadEmpleado(models.Model):
         ordering = ['id']  # - para oden descendente
     
     def __str__(self):
-        return {self.empleado} +" - " + {self.habilidad}
+        return f"{self.empleado} - {self.habilidad}"

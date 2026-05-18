@@ -6,64 +6,87 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
-<div class="container-fluid p-5 my-3">
-            <h4 class="mb-3">Solicitar Vacaciones</h4>
 
-    <div class="card shadow-lg">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <p class="mb-0">
-                <span class="badge bg-info text-dark p-2 shadow-sm">
-                    Días Disponibles: <strong class="ms-2">{{ dias_disponibles }}</strong>
-                </span>
-            </p>
-        </div>
-        <div class="card-body pt-2">
-        <form method="post">
-            {% csrf_token %}
-            <div class="row g-2 align-items-end">
-                <div class="col-md-2">
-                    {{ form.fecha_inicio.label_tag }}
-                    {{ form.fecha_inicio }}
+<style>
+    .table-compact th, .table-compact td {
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+        vertical-align: middle !important;
+    }
+    .action-btn-custom {
+        transition: all 0.2s ease;
+    }
+    .action-btn-custom:hover {
+        transform: translateY(-1px);
+    }
+</style>
+
+<div class="container-fluid p-5 my-3">
+    <h4 class="mb-3" style="color: var(--color-primario); font-weight: bold;">Solicitar Vacaciones</h4>
+
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body py-3">
+            <form method="post" id="solicitudForm">
+                {% csrf_token %}
+                <div class="row g-3 align-items-center">
+                    
+                    <div class="col-md-3">
+                        <p class="mb-0  mt-3">
+                            <span class="badge bg-info text-dark p-2 shadow-sm fs-6">
+                                Días Disponibles: <strong class="ms-2">{{ dias_disponibles }}</strong>
+                            </span>
+                        </p>
+                    </div>
+
+                    <div class="col-md-1 ms-auto"></div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold small text-secondary mb-1" for="{{ form.fecha_inicio.id_for_label }}">Fecha de Inicio</label>
+                        {% render_field form.fecha_inicio class="form-control form-control-sm shadow-sm" type="date" %}
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold small text-secondary mb-1" for="{{ form.fecha_fin.id_for_label }}">Fecha de Fin</label>
+                        {% render_field form.fecha_fin class="form-control form-control-sm shadow-sm" type="date" %}
+                    </div>
+
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-success btn-sm w-100 fw-bold p-2 mt-4 shadow-sm action-btn-custom" style="padding-top: 9px !important; padding-bottom: 9px !important;">
+                            <i class="bi bi-send-fill me-2"></i> Enviar Solicitud
+                        </button>
+                    </div>
+
                 </div>
-                <div class="col-md-2 me-4">
-                    {{ form.fecha_fin.label_tag }}
-                    {{ form.fecha_fin }}
-                </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-success shadow-sw">
-                        <i class="bi bi-send-fill me-2"></i> Enviar Solicitud
-                    </button>
-                </div>
-            </div>
-            {% if form.errors %}
-                <div class="alert alert-danger mt-3">
-                    {% for field in form %}
-                        {% for error in field.errors %}
-                            <p class="mb-0">{{ field.label }}: {{ error }}</p>
+
+                {% if form.errors %}
+                    <div class="alert alert-danger mt-3 mb-0 shadow-sm border-0">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <p class="mb-0 small fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ field.label }}: {{ error }}</p>
+                            {% endfor %}
                         {% endfor %}
-                    {% endfor %}
-                    {% for error in form.non_field_errors %}
-                        <p class="mb-0">{{ error }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </form>
+                        {% for error in form.non_field_errors %}
+                            <p class="mb-0 small fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </form>
         </div>    
     </div>
 
-
-    <h4 class="mt-4 mb-2">Historial de Mis Solicitudes</h4>
+    <h4 class="mt-4 mb-2" style="color: var(--color-primario); font-weight: bold;">Historial de Mis Solicitudes</h4>
+    
     <div class="card shadow-sm border-0">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-sm table-hover table-striped table-bordered align-middle mb-0" style="font-size: 0.95rem;">
+                <table class="table table-sm table-hover table-striped table-bordered align-middle table-compact mb-0" style="font-size: 0.95rem;">
                     <thead class="table-dark text-center">
                         <tr>
-                            <th>Inicio</th>
-                            <th>Fin</th>
-                            <th>Días Laborables</th>
-                            <th>Estado</th>
-                            <th>Accion</th>
+                            <th style="width: 20%;">Inicio</th>
+                            <th style="width: 20%;">Fin</th>
+                            <th style="width: 20%;">Días Laborables</th>
+                            <th style="width: 20%;">Estado</th>
+                            <th style="width: 20%;">Acción</th>
                         </tr>
                     </thead>
                     <tbody class="text-center">
@@ -71,89 +94,94 @@
                         <tr>
                             <td>{{ s.fecha_inicio|date:"d/m/Y" }}</td>
                             <td>{{ s.fecha_fin|date:"d/m/Y" }}</td>
-                            <td><span class="badge bg-light text-dark border">{{ s.cant_dias_solicitados }}</span></td>
+                            <td><span class="badge bg-light text-dark border shadow-sm fw-bold">{{ s.cant_dias_solicitados }} días</span></td>
                             <td>
-                                {% if s.estado == "rechazado"%}
-                                    <span class="badge bg-danger">{{ s.estado }}</span>
+                                {% if s.estado == "rechazado" %}
+                                    <span class="badge bg-danger shadow-sm">{{ s.estado|title }}</span>
                                 {% elif s.estado == "cancelado" %}
-                                    <span class="badge bg-secondary">{{ s.estado }}</span>
+                                    <span class="badge bg-secondary shadow-sm">{{ s.estado|title }}</span>
                                 {% elif s.estado == "pendiente" %}
-                                    <span class="badge bg-warning">{{ s.estado }}</span>
+                                    <span class="badge bg-warning shadow-sm text-dark fw-bold">{{ s.estado|title }}</span>
                                 {% elif s.estado == "aprobado" %}
-                                    <span class="badge bg-success">{{ s.estado }}</span>
+                                    <span class="badge bg-success shadow-sm">{{ s.estado|title }}</span>
                                 {% endif %}
                             </td>
                             <td>
                                 {% if s.estado == "pendiente" %}
-                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalCancelar{{ s.id }}">
-                                    Cancelar
+                                <button class="btn btn-sm btn-outline-danger action-btn-custom px-3 py-1" data-bs-toggle="modal" data-bs-target="#modalCancelar{{ s.id }}">
+                                    <i class="bi bi-trash3 me-1"></i> Cancelar
                                 </button>
 
-                                <!-- Modal de confirmación -->
                                 <div class="modal fade" id="modalCancelar{{ s.id }}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-danger text-white">
-                                            <h5 class="modal-title">Confirmar Cancelación</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        <div class="modal-content shadow border-0">
+                                            <div class="modal-header bg-danger text-white border-bottom-0">
+                                                <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>Confirmar Cancelación</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                             </div>
-                                            <div class="modal-body">
-                                            ¿Seguro que deseas <strong>cancelar</strong> esta solicitud del
-                                            <strong>{{ s.fecha_inicio }}</strong> al <strong>{{ s.fecha_fin }}</strong>?
+                                            <div class="modal-body p-4 text-dark fs-6 text-center">
+                                                ¿Seguro que deseas <strong>cancelar</strong> tu solicitud de vacaciones?<br>
+                                                Periodo cargado del <strong>{{ s.fecha_inicio|date:"d/m/Y" }}</strong> al <strong>{{ s.fecha_fin|date:"d/m/Y" }}</strong>.
                                             </div>
-                                            <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, volver</button>
-
-                                            <a href="{% url 'cancelar_vacacion' s.id %}" class="btn btn-danger">
-                                                Sí, cancelar
-                                            </a>
+                                            <div class="modal-footer justify-content-center bg-light border-top-0">
+                                                <button type="button" class="btn btn-secondary px-4 fw-bold shadow-sm" data-bs-dismiss="modal">No, volver</button>
+                                                <a href="{% url 'cancelar_vacacion' s.id %}" class="btn btn-danger px-4 fw-bold shadow-sm">Sí, cancelar</a>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 {% else %}
-                                -
+                                <span class="text-muted small fw-bold">-</span>
                                 {% endif %}
                             </td>
                         </tr>
                         {% empty %}
-                        <tr><td colspan="5" class="text-center text-muted">No tienes solicitudes previas.</td></tr>
+                        <tr><td colspan="5" class="text-center text-muted py-4 fw-bold">No registras ninguna solicitud de vacaciones previa en el sistema.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
 
-                <nav aria-label="Paginación">
-                    <ul class="pagination justify-content-center mt-4">
-                        {% if solicitudes.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ solicitudes.previous_page_number }}">&laquo;</a>
-                        </li>
-                        {% else %}
-                        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
-                        {% endif %}
+                <div class="d-flex justify-content-center mt-4">
+                    <nav aria-label="Paginación">
+                        <ul class="pagination pagination-sm mb-0 shadow-sm">
+                            {% if solicitudes.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ solicitudes.previous_page_number }}">&laquo;</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                            {% endif %}
 
-                        {% for num in solicitudes.paginator.page_range %}
-                        {% if solicitudes.number == num %}
-                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                        {% else %}
-                            <li class="page-item">
-                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                            </li>
-                        {% endif %}
-                        {% endfor %}
+                            {% if rango_paginas %}
+                                {% for num in rango_paginas %}
+                                    {% if num == '…' or num == '...' %}
+                                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    {% else %}
+                                        <li class="page-item {% if solicitudes.number == num %}active{% endif %}">
+                                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                {% for num in solicitudes.paginator.page_range %}
+                                    <li class="page-item {% if solicitudes.number == num %}active{% endif %}">
+                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endfor %}
+                            {% endif %}
 
-                        {% if solicitudes.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ solicitudes.next_page_number }}">&raquo;</a>
-                        </li>
-                        {% else %}
-                        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
-                        {% endif %}
-                    </ul>
-                </nav>
+                            {% if solicitudes.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ solicitudes.next_page_number }}">&raquo;</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
             </div>
         </div>
     </div>
-
 </div>
 {% endblock %}

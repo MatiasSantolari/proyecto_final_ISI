@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let backupData = [];
     let currentPage = 1;
-    const itemsPerPage = 10;
+    const itemsPerPage = 12;
 
     async function populateEvaluacionesSelector() {
         const apiUrl = '/api/evaluaciones/list/';
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderPagination(pagination) {
         paginationControls.innerHTML = '';
-        if (!pagination) return;
+        if (!pagination || !pagination.rango_paginas) return;
 
         const prevItem = document.createElement('li');
         prevItem.className = `page-item ${!pagination.has_previous ? 'disabled' : ''}`;
@@ -115,16 +115,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         paginationControls.appendChild(prevItem);
 
-        for (let i = 1; i <= pagination.total_pages; i++) {
+        pagination.rango_paginas.forEach(num => {
             const pageItem = document.createElement('li');
-            pageItem.className = `page-item ${i === pagination.current_page ? 'active' : ''}`;
-            pageItem.innerHTML = `<a class="page-link" href="#">${i}</a>`;
-            pageItem.addEventListener('click', (e) => {
-                e.preventDefault();
-                loadEvaluacionesData(i);
-            });
+            
+            if (num === '…' || num === '...') {
+                pageItem.className = 'page-item disabled';
+                pageItem.innerHTML = `<span class="page-link">...</span>`;
+            } else {
+                pageItem.className = `page-item ${num === pagination.current_page ? 'active' : ''}`;
+                pageItem.innerHTML = `<a class="page-link" href="#">${num}</a>`;
+                
+                pageItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (num !== pagination.current_page) {
+                        loadEvaluacionesData(num);
+                    }
+                });
+            }
             paginationControls.appendChild(pageItem);
-        }
+        });
 
         const nextItem = document.createElement('li');
         nextItem.className = `page-item ${!pagination.has_next ? 'disabled' : ''}`;

@@ -15,7 +15,7 @@ def habilidades(request):
     form = HabilidadForm()
     habilidadesList = Habilidad.objects.all().order_by('nombre')
 
-    paginator = Paginator(habilidadesList, 10)
+    paginator = Paginator(habilidadesList, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 

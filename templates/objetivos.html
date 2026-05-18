@@ -5,9 +5,28 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
-<div class="container-fluid p-5 my-3">
-    <h4 class="mb-3" style="color: var(--color-primario);">Gestión de Objetivos</h4>
-    <div class="card mb-3">
+
+<style>
+    .table-compact-custom th, .table-compact-custom td {
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+        vertical-align: middle;
+    }
+    .action-btn-custom {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.85rem;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+    .action-btn-custom:hover {
+        transform: translateY(-1px);
+    }
+</style>
+
+<div class="container-fluid p-5 my-2">
+    <h4 class="mb-2" style="color: var(--color-primario);">Gestión de Objetivos</h4>
+    
+    <div class="card mb-2">
         <div class="card-header d-flex justify-content-between align-items-center mb-0">
             <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalObjetivo" onclick="limpiarFormularioParaCrear()">
                 <i class="bi bi-plus-lg me-1"></i> Nuevo Objetivo
@@ -21,7 +40,7 @@
                 <table class="table table-hover align-middle mb-0" style="font-size: 0.95rem;">
                     <thead class="table-dark text-center">
                         <tr>
-                            <th class="text-start ps-4" style="width: 35%;">Título / Descripción</th>
+                            <th class="text-start ps-4" style="width: 35%;">Título del Objetivo</th>
                             <th>Recurrencia</th>
                             <th>Creación</th>
                             <th>Vencimiento</th>
@@ -29,12 +48,17 @@
                             <th style="width: 12%;">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody class="text-center">
+                    <tbody class="text-center table-compact-custom">
                         {% for objetivo in objetivos %}
                         <tr>
                             <td class="text-start ps-4">
-                                <div class="fw-bold text-truncate" style="max-width: 300px;">{{ objetivo.titulo }}</div>
-                                <small class="text-muted d-block text-truncate" style="max-width: 300px;">{{ objetivo.descripcion|default:"-" }}</small>
+                                <div class="fw-bold text-truncate" 
+                                     style="max-width: 300px; cursor: help;" 
+                                     data-bs-toggle="tooltip" 
+                                     data-bs-placement="top" 
+                                     title="{{ objetivo.descripcion|default:'Sin descripción adicional.' }}">
+                                    <i class="bi bi-info-circle text-muted me-2 small"></i>{{ objetivo.titulo }}
+                                </div>
                             </td>
                             <td>
                                 {% if objetivo.es_recurrente %}
@@ -62,17 +86,17 @@
                             </td>
                             <td>
                                 <div class="btn-group shadow-sm">
-                                    <button class="btn btn-sm btn-outline-info border-2 me-3" data-bs-toggle="modal" 
+                                    <button class="btn btn-sm btn-outline-info action-btn-custom border-2 me-3" data-bs-toggle="modal" 
                                     data-bs-target="#modalVerObjetivo{{ objetivo.id }}" title="Ver Detalles">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                     
-                                    <button class="btn btn-sm btn-outline-primary border-2 me-3" 
+                                    <button class="btn btn-sm btn-outline-primary action-btn-custom border-2 me-3" 
                                     onclick="abrirModalAsignar({{ objetivo.id }}, '{{ objetivo.titulo }}')" title="Asignar">
                                         <i class="bi bi-person-plus"></i>
                                     </button>
 
-                                    <button class="btn btn-sm btn-outline-secondary border-2 me-3" onclick="editarObjetivo(this)"
+                                    <button class="btn btn-sm btn-outline-secondary action-btn-custom border-2 me-3" onclick="editarObjetivo(this)"
                                             data-id="{{ objetivo.id }}" data-titulo="{{ objetivo.titulo }}" 
                                             data-descripcion="{{ objetivo.descripcion }}" 
                                             data-fechafin="{{ objetivo.fecha_fin|date:'Y-m-d' }}" 
@@ -81,13 +105,13 @@
                                         <i class="bi bi-pencil"></i>
                                     </button>
 
-                                    <button class="btn btn-sm  me-3 {% if objetivo.activo %}btn-outline-warning{% else %}btn-outline-success{% endif %} border-2" 
+                                    <button class="btn btn-sm action-btn-custom me-3 {% if objetivo.activo %}btn-outline-warning{% else %}btn-outline-success{% endif %} border-2" 
                                             onclick="confirmarAccion({{ objetivo.id }}, '{{ objetivo.titulo }}', '{% if objetivo.activo %}desactivar{% else %}activar{% endif %}')"
                                             title="{% if objetivo.activo %}Desactivar{% else %}Activar{% endif %}">
                                         <i class="bi {% if objetivo.activo %}bi-slash-circle{% else %}bi-arrow-clockwise{% endif %}"></i>
                                     </button>
                                     
-                                    <button class="btn btn-sm btn-outline-danger border-2" 
+                                    <button class="btn btn-sm btn-outline-danger action-btn-custom border-2" 
                                             onclick="confirmarAccion({{ objetivo.id }}, '{{ objetivo.titulo }}', 'eliminar')"
                                             title="Eliminar">
                                         <i class="bi bi-trash3"></i>
@@ -110,11 +134,25 @@
                         {% else %}
                             <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
                         {% endif %}
-                        {% for num in objetivos.paginator.page_range %}
-                            <li class="page-item {% if objetivos.number == num %}active{% endif %}">
-                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                            </li>
-                        {% endfor %}
+
+                        {% if rango_paginas %}
+                            {% for num in rango_paginas %}
+                                {% if num == '…' or num == '...' %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% else %}
+                                    <li class="page-item {% if objetivos.number == num %}active{% endif %}">
+                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            {% for num in objetivos.paginator.page_range %}
+                                <li class="page-item {% if objetivos.number == num %}active{% endif %}">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endfor %}
+                        {% endif %}
+
                         {% if objetivos.has_next %}
                             <li class="page-item">
                                 <a class="page-link" href="?page={{ objetivos.next_page_number }}">&raquo;</a>
@@ -128,7 +166,6 @@
         </div>
     </div>
 </div>
-
 
 <!--  Modal Crear/Editar -->
 <div class="modal fade" id="modalObjetivo" tabindex="-1" aria-hidden="true">
@@ -168,8 +205,6 @@
                         <label class="form-label fw-bold">Fecha de Fin (Vencimiento)</label>
                         <input type="date" name="fecha_fin" id="id_fecha_fin" class="form-control shadow-sm">
                     </div>
-
-
                 </div>
                 <div class="modal-footer bg-light">
                     <button type="submit" name="accion" value="guardar" class="btn btn-outline-success px-4">Guardar</button>
@@ -202,7 +237,7 @@
 </div>
 {% endfor %}
 
-
+<!-- Modal Asignar Objetivo -->
 <div class="modal fade" id="modalAsignarObjetivo" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -242,7 +277,6 @@
                         </select>
                     </div>
                 </div>
-
                 <div class="modal-footer bg-light text-center">
                     <button type="submit" class="btn btn-primary w-100 fw-bold">Confirmar Asignación</button>
                 </div>
@@ -271,6 +305,7 @@
     </div>
 </div>
 
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const esRecurrente = document.getElementById('id_es_recurrente');
@@ -295,14 +330,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    esRecurrente.addEventListener('change', toggleFechaFin);
+    if (esRecurrente) {
+        esRecurrente.addEventListener('change', toggleFechaFin);
+    }
+
+
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('asignar')) {
         abrirModalAsignar(urlParams.get('asignar'), 'Nuevo Objetivo');
     }
 });
-
 
 function cargarDatosDinamicos() {
     const deptoId = document.getElementById('modalFiltroDepto').value;
@@ -312,6 +354,8 @@ function cargarDatosDinamicos() {
     const divCargo = document.getElementById('selectorCargo');
     const listaEmp = document.getElementById('listaEmpleadosCheckbox');
     const selectCargo = document.getElementById('cargoSelect');
+
+    if (!divEmp || !divCargo || !listaEmp || !selectCargo) return;
 
     divEmp.classList.add('d-none');
     divCargo.classList.add('d-none');
@@ -326,7 +370,7 @@ function cargarDatosDinamicos() {
         .then(res => {
             if (tipo === 'empleado') {
                 listaEmp.innerHTML = '';
-                if (res.data.length > 0) {
+                if (res.data && res.data.length > 0) {
                     res.data.forEach(e => {
                         listaEmp.innerHTML += `
                             <div class="form-check">
@@ -339,7 +383,7 @@ function cargarDatosDinamicos() {
                 }
             } else {
                 selectCargo.innerHTML = '<option value="">-- Seleccionar Cargo --</option>';
-                if (res.data.length > 0) {
+                if (res.data && res.data.length > 0) {
                     res.data.forEach(c => {
                         selectCargo.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
                     });
@@ -347,10 +391,10 @@ function cargarDatosDinamicos() {
                     selectCargo.innerHTML = '<option value="">Sin cargos en este departamento</option>';
                 }
             }
-        });
+        })
+        .catch(err => console.error("Error en filtro dinámico:", err));
 }
 
-// Resetear modal al abrir
 function abrirModalAsignar(id, titulo) {
     document.getElementById('asignarObjetivoId').value = id;
     document.getElementById('modalAsignarObjetivoLabel').innerText = "Asignar: " + titulo;
@@ -362,8 +406,6 @@ function abrirModalAsignar(id, titulo) {
     
     new bootstrap.Modal(document.getElementById('modalAsignarObjetivo')).show();
 }
-
-
 
 function mostrarSelectorAsignacion(tipo) {
     document.getElementById('selectorEmpleado').classList.toggle('d-none', tipo !== 'empleado');
@@ -378,7 +420,8 @@ function editarObjetivo(btn) {
     document.getElementById('id_fecha_fin').value = d.fechafin;
     document.getElementById('id_es_recurrente').checked = d.esrecurrente === 'true';
     document.getElementById('modalObjetivoLabel').innerText = "Editar Objetivo";
-    toggleFechaFin();
+    
+    window.toggleFechaFin();
     new bootstrap.Modal(document.getElementById('modalObjetivo')).show();
 }
 
@@ -387,6 +430,8 @@ function confirmarAccion(id, titulo, tipo) {
     const texto = document.getElementById('textoConfirmacion');
     const btn = document.getElementById('btnConfirmarAccion');
     const header = document.getElementById('headerConfirmacion');
+
+    if (!form || !texto || !btn || !header) return;
 
     if (tipo === 'desactivar') {
         form.action = `/objetivos/desactivar/${id}/`;
@@ -408,10 +453,11 @@ function confirmarAccion(id, titulo, tipo) {
 }
 
 function limpiarFormularioParaCrear() {
-    document.getElementById('formObjetivo').reset();
+    const form = document.getElementById('formObjetivo');
+    if (form) form.reset();
     document.getElementById('id_objetivo').value = '';
     document.getElementById('modalObjetivoLabel').innerText = "Nuevo Objetivo";
-    toggleFechaFin();
+    window.toggleFechaFin();
 }
 </script>
 {% endblock %}

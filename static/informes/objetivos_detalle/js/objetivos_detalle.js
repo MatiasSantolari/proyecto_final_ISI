@@ -88,32 +88,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderPagination(pagination) {
+        const paginationControls = document.getElementById('paginationControls');
         paginationControls.innerHTML = '';
-        if (!pagination) return;
+        if (!pagination || !pagination.rango_paginas) return;
 
         const prevItem = document.createElement('li');
         prevItem.className = `page-item ${!pagination.has_previous ? 'disabled' : ''}`;
-        prevItem.innerHTML = `<a class="page-link" href="#">«</a>`;
+        prevItem.innerHTML = `<a class="page-link" href="#" aria-label="Previous">«</a>`;
         prevItem.addEventListener('click', (e) => {
             e.preventDefault();
             if (pagination.has_previous) loadObjectivesData(pagination.current_page - 1);
         });
         paginationControls.appendChild(prevItem);
 
-        for (let i = 1; i <= pagination.total_pages; i++) {
+        pagination.rango_paginas.forEach(num => {
             const pageItem = document.createElement('li');
-            pageItem.className = `page-item ${i === pagination.current_page ? 'active' : ''}`;
-            pageItem.innerHTML = `<a class="page-link" href="#">${i}</a>`;
-            pageItem.addEventListener('click', (e) => {
-                e.preventDefault();
-                loadObjectivesData(i);
-            });
+            
+            if (num === '…' || num === '...') {
+                pageItem.className = 'page-item disabled';
+                pageItem.innerHTML = `<span class="page-link">...</span>`;
+            } else {
+                pageItem.className = `page-item ${num === pagination.current_page ? 'active' : ''}`;
+                pageItem.innerHTML = `<a class="page-link" href="#">${num}</a>`;
+                
+                pageItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (num !== pagination.current_page) {
+                        loadObjectivesData(num);
+                    }
+                });
+            }
             paginationControls.appendChild(pageItem);
-        }
+        });
 
         const nextItem = document.createElement('li');
         nextItem.className = `page-item ${!pagination.has_next ? 'disabled' : ''}`;
-        nextItem.innerHTML = `<a class="page-link" href="#">»</a>`;
+        nextItem.innerHTML = `<a class="page-link" href="#" aria-label="Next">»</a>`;
         nextItem.addEventListener('click', (e) => {
             e.preventDefault();
             if (pagination.has_next) loadObjectivesData(pagination.current_page + 1);
@@ -121,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         paginationControls.appendChild(nextItem);
     }
 
+    
     filterDni.addEventListener('input', () => loadObjectivesData(1)); 
     filterEstado.addEventListener('change', () => loadObjectivesData(1));
     filterRecurrencia.addEventListener('change', () => loadObjectivesData(1));

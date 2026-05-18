@@ -31,7 +31,7 @@ def objetivos(request):
     for obj in objetivos_list:
         obj.esta_asignado = obj.objetivoempleado_set.exists()
 
-    paginator = Paginator(objetivos_list, 10)
+    paginator = Paginator(objetivos_list, 12)
     page_obj = paginator.get_page(request.GET.get('page'))
     todos_departamentos = Departamento.objects.all()
 

@@ -1,12 +1,12 @@
+import csv
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
-from ..models import *
-from ..forms import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Case, When, Value, IntegerField
-from django.core.paginator import Paginator
+from django.db.models import Case, When, Value, IntegerField, Q
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from ..models import *
+from ..forms import *
 
 
 @login_required
@@ -28,8 +28,18 @@ def solicitar_vacaciones(request):
     )
 
     paginator = Paginator(solicitudes_list, 10)
-    page_number = request.GET.get("page")
-    solicitudes = paginator.get_page(page_number)
+    page_number = request.GET.get("page", 1)
+    
+    try:
+        solicitudes = paginator.page(page_number)
+    except (PageNotAnInteger, EmptyPage):
+        solicitudes = paginator.page(1)
+
+    rango_paginas = list(paginator.get_elided_page_range(
+        solicitudes.number, 
+        on_each_side=2, 
+        on_ends=1
+    ))
 
     if request.method == "POST":
         form = VacacionesSolicitudForm(request.POST)
@@ -51,9 +61,9 @@ def solicitar_vacaciones(request):
     return render(request, "vacaciones_solicitar.html", {
         "form": form,
         "solicitudes": solicitudes,
+        "rango_paginas": rango_paginas,
         "dias_disponibles": empleado.cantidad_dias_disponibles
     })
-
 
 
 @login_required
@@ -89,14 +99,45 @@ def gestionar_vacaciones(request):
                         .order_by("-fecha_solicitud")
         )
 
+    nombre_query = request.GET.get('nombre')
+    depto_query = request.GET.get('departamento_id')
+    estado_query = request.GET.get('estado')
+
+    if nombre_query and nombre_query.strip():
+        solicitudes_list = solicitudes_list.filter(
+            Q(empleado__nombre__icontains=nombre_query) | Q(empleado__apellido__icontains=nombre_query)
+        )
+    if depto_query and depto_query.strip():
+        solicitudes_list = solicitudes_list.filter(
+            empleado__empleadocargo__fecha_fin__isnull=True,
+            empleado__empleadocargo__cargo__cargodepartamento__departamento_id=depto_query
+        )
+    if estado_query and estado_query.strip():
+        solicitudes_list = solicitudes_list.filter(estado=estado_query)
+
+    solicitudes_list = solicitudes_list.distinct()
+
     paginator = Paginator(solicitudes_list, 10)
-    page_number = request.GET.get("page")
-    solicitudes = paginator.get_page(page_number)
+    page_number = request.GET.get("page", 1)
+    
+    try:
+        solicitudes = paginator.page(page_number)
+    except (PageNotAnInteger, EmptyPage):
+        solicitudes = paginator.page(1)
+
+    rango_paginas = list(paginator.get_elided_page_range(
+        solicitudes.number, 
+        on_each_side=2, 
+        on_ends=1
+    ))
+
+    todos_departamentos = Departamento.objects.all().order_by('nombre')
 
     return render(request, "vacaciones_gestionar.html", {
-        "solicitudes": solicitudes
+        "solicitudes": solicitudes,
+        "rango_paginas": rango_paginas,
+        "departamentos": todos_departamentos
     })
-
 
 
 @login_required
@@ -121,7 +162,6 @@ def cambiar_estado_vacacion(request, pk, accion):
     return redirect("gestionar_vacaciones")
 
 
-
 @login_required
 def cancelar_vacacion(request, pk):
     solicitud = get_object_or_404(VacacionesSolicitud, pk=pk, empleado__usuario=request.user)
@@ -130,4 +170,3 @@ def cancelar_vacacion(request, pk):
         solicitud.save()
         messages.success(request, "Solicitud cancelada correctamente.")
     return redirect("solicitar_vacaciones")
-

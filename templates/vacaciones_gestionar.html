@@ -6,11 +6,52 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
-<div class="container-fluid p-5 my-3">
-  <h4 class="mb-3">Solicitudes de Vacaciones</h4>
+
+<div class="container-fluid p-5 my-2">
+  <h4 class="mb-2" style="color: var(--color-primario); font-weight: bold;">Solicitudes de Vacaciones</h4>
+
+  <div class="card mb-3 shadow-sm border-0">
+    <div class="card-header bg-dark text-white fw-bold">Filtros de Búsqueda</div>
+    <div class="card-body pt-2 pb-3">
+      <form method="GET" action="{% url 'gestionar_vacaciones' %}" id="filterForm" class="row g-3 align-items-center">
+        
+        <div class="col-md-3">
+          <label for="filterNombre" class="form-label fw-bold small">Buscar Empleado</label>
+          <input type="text" name="nombre" id="filterNombre" class="form-control form-control-sm shadow-sm" placeholder="Escribe un nombre..." value="{{ request.GET.nombre|default:'' }}">
+        </div>
+
+        <div class="col-md-3">
+          <label for="filterDepartamento" class="form-label fw-bold small">Departamento</label>
+          <select name="departamento_id" id="filterDepartamento" class="form-select form-select-sm shadow-sm">
+            <option value="">Todos los sectores</option>
+            {% for d in departamentos %}
+              <option value="{{ d.id }}" {% if request.GET.departamento_id == d.id|stringformat:"i" %}selected{% endif %}>{{ d.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label for="filterEstado" class="form-label fw-bold small">Estado</label>
+          <select name="estado" id="filterEstado" class="form-select form-select-sm shadow-sm">
+            <option value="">Todos los estados</option>
+            <option value="pendiente" {% if request.GET.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+            <option value="aprobado" {% if request.GET.estado == 'aprobado' %}selected{% endif %}>Aprobado</option>
+            <option value="rechazado" {% if request.GET.estado == 'rechazado' %}selected{% endif %}>Rechazado</option>
+          </select>
+        </div>
+
+        <div class="col-md-3 align-self-end">
+          <a href="{% url 'gestionar_vacaciones' %}" class="btn btn-primary btn-sm w-100 fw-bold shadow-sm p-2">
+             <i class="bi bi-arrow-clockwise me-1"></i> Limpiar Filtros
+          </a>
+        </div>
+
+      </form>
+    </div>
+  </div>
 
   <div class="card shadow-sm border-0">
-    <div class="card-body">
+    <div class="card-body" id="tablaContenedor">
       <div class="table-responsive">
         <table class="table table-sm table-striped table-hover table-bordered align-middle mb-0" style="font-size: 0.95rem;">
           <thead class="table-light text-center">
@@ -28,74 +69,72 @@
           <tbody class="text-center">
             {% for s in solicitudes %}
             <tr class="align-middle">
-              <td>{{ s.empleado.apellido }} {{ s.empleado.nombre }}</td>
-              <td>{{ s.empleado.departamento_actual_nombre }}</td>
+              <td class="fw-bold">{{ s.empleado.apellido }} {{ s.empleado.nombre }}</td>
+              <td>{{ s.empleado.departamento_actual_nombre|default:"-" }}</td>
               <td>{{ s.fecha_inicio|date:"d/m/Y" }}</td>
               <td>{{ s.fecha_fin|date:"d/m/Y" }}</td>
               <td>
-                <span class="badge bg-light text-dark border p-2">{{ s.cant_dias_solicitados }}</span>
+                <span class="badge bg-light text-dark border p-2 shadow-sm">{{ s.cant_dias_solicitados }} días</span>
               </td>
               <td>
-                <span class="badge bg-info p-2">{{ s.empleado.cantidad_dias_disponibles }}</span>
+                <span class="badge bg-info p-2 text-dark fw-bold">{{ s.empleado.cantidad_dias_disponibles }} días</span>
               </td>
               <td>
-              {% if s.estado == "rechazado"%}
-                      <span class="badge bg-danger shadow-sm">{{ s.estado }}</span>
+                {% if s.estado == "rechazado" %}
+                  <span class="badge bg-danger shadow-sm">{{ s.estado|title }}</span>
                 {% elif s.estado == "pendiente" %}
-                      <span class="badge bg-warning shadow-sm" style="color: #ffffffff !important;">{{ s.estado }}</span>
+                  <span class="badge bg-warning shadow-sm text-dark fw-bold">{{ s.estado|title }}</span>
                 {% elif s.estado == "aprobado" %}
-                      <span class="badge bg-success shadow-sm">{{ s.estado }}</span>
+                  <span class="badge bg-success shadow-sm text-white">{{ s.estado|title }}</span>
                 {% endif %}
               </td>
               <td>
                 {% if s.estado == "pendiente" %}
-                <button class="btn btn-outline-success btn-sm border-2 me-4" data-bs-toggle="modal" data-bs-target="#modalAprobar{{ s.id }}">
+                <button class="btn btn-outline-success btn-sm border-2 me-3" data-bs-toggle="modal" data-bs-target="#modalAprobar{{ s.id }}" title="Aprobar Solicitud">
                   <i class="bi bi-check-lg"></i>
                 </button>
-                <button class="btn btn-outline-danger border-2 btn-sm" data-bs-toggle="modal" data-bs-target="#modalRechazar{{ s.id }}">
+                <button class="btn btn-outline-danger border-2 btn-sm" data-bs-toggle="modal" data-bs-target="#modalRechazar{{ s.id }}" title="Rechazar Solicitud">
                   <i class="bi bi-x-lg"></i>
                 </button>
                 {% else %}
-                  <span class="text-muted small">-</span>
+                  <span class="text-muted small fw-bold">-</span>
                 {% endif %}
               </td>
             </tr>
 
-            <!-- Modal Aprobar -->
             <div class="modal fade" id="modalAprobar{{ s.id }}" tabindex="-1" aria-labelledby="modalAprobarLabel{{ s.id }}" aria-hidden="true">
               <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content text-center">
-                  <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" id="modalAprobarLabel{{ s.id }}">Confirmar Aprobación</h5>
+                <div class="modal-content text-center shadow border-0">
+                  <div class="modal-header bg-success text-white border-bottom-0">
+                    <h5 class="modal-title fw-bold" id="modalAprobarLabel{{ s.id }}"><i class="bi bi-check-circle me-2"></i>Confirmar Aprobación</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                   </div>
-                  <div class="modal-body">
-                    ¿Estás seguro de aprobar las vacaciones de <strong>{{ s.empleado }}</strong> del 
-                    <strong>{{ s.fecha_inicio|date:"d/m/Y" }}</strong> al <strong>{{ s.fecha_fin|date:"d/m/Y" }}</strong>?
+                  <div class="modal-body p-4 text-dark fs-6">
+                    ¿Estás seguro de aprobar las vacaciones de <strong>{{ s.empleado.nombre }} {{ s.empleado.apellido }}</strong>?<br>
+                    Periodo fijado del <strong>{{ s.fecha_inicio|date:"d/m/Y" }}</strong> al <strong>{{ s.fecha_fin|date:"d/m/Y" }}</strong> ({{ s.cant_dias_solicitados }} días).
                   </div>
-                  <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <a href="{% url 'cambiar_estado_vacacion' s.id 'aprobar' %}" class="btn btn-success">Confirmar</a>
+                  <div class="modal-footer justify-content-center border-top-0 bg-light">
+                    <button type="button" class="btn btn-secondary px-4 fw-bold shadow-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <a href="{% url 'cambiar_estado_vacacion' s.id 'aprobar' %}" class="btn btn-success px-4 fw-bold shadow-sm">Confirmar</a>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Modal Rechazar -->
             <div class="modal fade" id="modalRechazar{{ s.id }}" tabindex="-1" aria-labelledby="modalRechazarLabel{{ s.id }}" aria-hidden="true">
               <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content text-center">
-                  <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="modalRechazarLabel{{ s.id }}">Confirmar Rechazo</h5>
+                <div class="modal-content text-center shadow border-0">
+                  <div class="modal-header bg-danger text-white border-bottom-0">
+                    <h5 class="modal-title fw-bold" id="modalRechazarLabel{{ s.id }}"><i class="bi bi-exclamation-triangle me-2"></i>Confirmar"></i>Confirmar Rechazo</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                   </div>
-                  <div class="modal-body">
-                    ¿Estás seguro de rechazar la solicitud de vacaciones de <strong>{{ s.empleado }}</strong> del 
-                    <strong>{{ s.fecha_inicio|date:"d/m/Y" }}</strong> al <strong>{{ s.fecha_fin|date:"d/m/Y" }}</strong>?
+                  <div class="modal-body p-4 text-dark fs-6">
+                    ¿Estás seguro de rechazar la solicitud de vacaciones de <strong>{{ s.empleado.nombre }} {{ s.empleado.apellido }}</strong>?<br>
+                    Se le notificarán al empleado los días rechazados (<strong>{{ s.fecha_inicio|date:"d/m/Y" }}</strong> al <strong>{{ s.fecha_fin|date:"d/m/Y" }}</strong>).
                   </div>
-                  <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <a href="{% url 'cambiar_estado_vacacion' s.id 'rechazar' %}" class="btn btn-danger">Confirmar</a>
+                  <div class="modal-footer justify-content-center border-top-0 bg-light">
+                    <button type="button" class="btn btn-secondary px-4 fw-bold shadow-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <a href="{% url 'cambiar_estado_vacacion' s.id 'rechazar' %}" class="btn btn-danger px-4 fw-bold shadow-sm">Confirmar</a>
                   </div>
                 </div>
               </div>
@@ -103,44 +142,122 @@
 
             {% empty %}
             <tr>
-              <td colspan="8" class="text-center text-muted">No hay solicitudes.</td>
+              <td colspan="8" class="text-center text-muted py-4 fw-bold">No se encontraron solicitudes de vacaciones registradas con los parámetros ingresados.</td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
 
-        <nav aria-label="Paginación">
-          <ul class="pagination justify-content-center mt-4">
-            {% if solicitudes.has_previous %}
-              <li class="page-item">
-                <a class="page-link" href="?page={{ solicitudes.previous_page_number }}">&laquo;</a>
-              </li>
-            {% else %}
-              <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
-            {% endif %}
-
-            {% for num in solicitudes.paginator.page_range %}
-              {% if solicitudes.number == num %}
-                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-              {% else %}
+        <div class="d-flex justify-content-center mt-3" id="paginadorContenedor">
+          <nav aria-label="Paginación">
+            <ul class="pagination mb-1 shadow-sm">
+              {% if solicitudes.has_previous %}
                 <li class="page-item">
-                  <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                  <a class="page-link" href="?page={{ solicitudes.previous_page_number }}{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.departamento_id %}&departamento_id={{ request.GET.departamento_id }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}">&laquo;</a>
                 </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
               {% endif %}
-            {% endfor %}
 
-            {% if solicitudes.has_next %}
-              <li class="page-item">
-                <a class="page-link" href="?page={{ solicitudes.next_page_number }}">&raquo;</a>
-              </li>
-            {% else %}
-              <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
-            {% endif %}
-          </ul>
-        </nav>
+              {% if rango_paginas %}
+                {% for num in rango_paginas %}
+                  {% if num == '…' or num == '...' %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                  {% else %}
+                    <li class="page-item {% if solicitudes.number == num %}active{% endif %}">
+                      <a class="page-link" href="?page={{ num }}{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.departamento_id %}&departamento_id={{ request.GET.departamento_id }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}">{{ num }}</a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+              {% else %}
+                {% for num in solicitudes.paginator.page_range %}
+                  <li class="page-item {% if solicitudes.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.departamento_id %}&departamento_id={{ request.GET.departamento_id }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}">{{ num }}</a>
+                  </li>
+                {% endfor %}
+              {% endif %}
+
+              {% if solicitudes.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ solicitudes.next_page_number }}{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.departamento_id %}&departamento_id={{ request.GET.departamento_id }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}">&raquo;</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+              {% endif %}
+            </ul>
+          </nav>
+        </div>
       </div>
     </div>
   </div>
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("filterForm");
+    const nombreInput = document.getElementById("filterNombre");
+    const deptoSelect = document.getElementById("filterDepartamento");
+    const estadoSelect = document.getElementById("filterEstado");
+
+    async function realizarFiltroAsincrono(page = 1) {
+        const nombre = nombreInput.value;
+        const depto = deptoSelect.value;
+        const estado = estadoSelect.value;
+
+        const url = `{% url 'gestionar_vacaciones' %}?nombre=${encodeURIComponent(nombre)}&departamento_id=${depto}&estado=${estado}&page=${page}`;
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Error en red");
+            
+            const htmlTexto = await response.text();
+            
+            const parser = new DOMParser();
+            const docTemporal = parser.parseFromString(htmlTexto, "text/html");
+
+            const nuevoTbody = docTemporal.querySelector("#tablaContenedor tbody");
+            const tbodyActual = document.querySelector("#tablaContenedor tbody");
+            if (nuevoTbody && tbodyActual) {
+                tbodyActual.innerHTML = nuevoTbody.innerHTML;
+            }
+
+            const nuevoPaginador = docTemporal.querySelector("#paginadorContenedor");
+            const paginadorActual = document.getElementById("paginadorContenedor");
+            if (nuevoPaginador && paginadorActual) {
+                paginadorActual.innerHTML = nuevoPaginador.innerHTML;
+            }
+
+        } catch (error) {
+            console.error("Fallo al actualizar el reporte asincrónico:", error);
+        }
+    }
+
+    if (deptoSelect) deptoSelect.addEventListener("change", () => realizarFiltroAsincrono(1));
+    if (estadoSelect) estadoSelect.addEventListener("change", () => realizarFiltroAsincrono(1));
+
+    let timeout = null;
+    if (nombreInput) {
+        nombreInput.addEventListener("input", function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                realizarFiltroAsincrono(1);
+            }, 350);
+        });
+    }
+
+    document.addEventListener("click", function(e) {
+        const enlacePagina = e.target.closest(".pagination a");
+        if (enlacePagina) {
+            e.preventDefault();
+            const hrefUrl = enlacePagina.getAttribute("href");
+            if (hrefUrl && hrefUrl !== "#") {
+                const urlParams = new URLSearchParams(hrefUrl.split("?")[1]);
+                const paginaDestino = urlParams.get("page") || 1;
+                realizarFiltroAsincrono(paginaDestino);
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

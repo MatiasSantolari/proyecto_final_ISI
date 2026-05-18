@@ -775,7 +775,7 @@ def api_evaluaciones_detalle(request):
     queryset = get_evaluaciones_queryset(request)
     
     page = request.GET.get('page', 1)
-    per_page = request.GET.get('per_page', 10)
+    per_page = request.GET.get('per_page', 12)
     paginator = Paginator(queryset, per_page)
 
     try:
@@ -783,10 +783,15 @@ def api_evaluaciones_detalle(request):
     except (PageNotAnInteger, EmptyPage):
         evaluaciones_page = paginator.page(1)
 
+    rango_paginas = list(paginator.get_elided_page_range(
+        evaluaciones_page.number, 
+        on_each_side=2, 
+        on_ends=1
+    ))
+
     data = []
     for ev_emp in evaluaciones_page:
         calificacion = float(ev_emp.calificacion_final) if ev_emp.calificacion_final is not None else 'Sin Calificar'
-
         url_perfil = reverse('empleado_perfil_detalle', args=[ev_emp.empleado.id])
 
         data.append({
@@ -807,6 +812,7 @@ def api_evaluaciones_detalle(request):
             'current_page': evaluaciones_page.number,
             'has_next': evaluaciones_page.has_next(),
             'has_previous': evaluaciones_page.has_previous(),
+            'rango_paginas': rango_paginas,
         }
     }, safe=False)
 
@@ -966,7 +972,6 @@ def get_objetivos_queryset(request):
     queryset = ObjetivoEmpleado.objects.select_related(
         'empleado', 
         'objetivo', 
-        'objetivo__departamento',
         'cargo'
     ).order_by('-fecha_asignacion', '-id')
     
@@ -982,14 +987,20 @@ def get_objetivos_queryset(request):
         try:
             depto_usuario = request.user.persona.empleado.departamento_actual()
             if depto_usuario:
-                queryset = queryset.filter(objetivo__departamento=depto_usuario)
+                queryset = queryset.filter(
+                    empleado__empleadocargo__fecha_fin__isnull=True,
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento=depto_usuario
+                )
             else:
                 return ObjetivoEmpleado.objects.none()
         except (AttributeError, Empleado.DoesNotExist):
             return ObjetivoEmpleado.objects.none()
             
-    elif departamento_id:
-        queryset = queryset.filter(objetivo__departamento_id=departamento_id)
+    elif departamento_id and departamento_id.strip():
+        queryset = queryset.filter(
+            empleado__empleadocargo__fecha_fin__isnull=True,
+            empleado__empleadocargo__cargo__cargodepartamento__departamento_id=departamento_id
+        )
 
     if dni:
         queryset = queryset.filter(empleado__dni__icontains=dni)
@@ -1019,6 +1030,7 @@ def get_objetivos_queryset(request):
 
 
 
+
 @login_required
 def objetivos_detalle_view(request):
     rol_actual = request.session.get('rol_actual', request.user.rol)
@@ -1038,7 +1050,6 @@ def objetivos_detalle_view(request):
 
 
 
-
 @login_required
 def api_objetivos_detalle(request):
     queryset = get_objetivos_queryset(request)
@@ -1052,6 +1063,12 @@ def api_objetivos_detalle(request):
     except (PageNotAnInteger, EmptyPage):
         objs_page = paginator.page(1)
 
+    rango_paginas = list(paginator.get_elided_page_range(
+        objs_page.number, 
+        on_each_side=2, 
+        on_ends=1
+    ))
+
     data = []
     for rel in objs_page:
         cargo_nombre = rel.cargo.nombre if rel.cargo else "Asignación Manual"        
@@ -1062,6 +1079,13 @@ def api_objetivos_detalle(request):
         else:
             f_limite = rel.fecha_limite.strftime('%d-%m-%Y') if rel.fecha_limite else "Sin fecha"
 
+        nombre_dep = 'General'
+        cargo_activo = rel.empleado.empleadocargo_set.filter(fecha_fin__isnull=True).first()
+        if cargo_activo:
+            rel_depto = cargo_activo.cargo.cargodepartamento_set.first()
+            if rel_depto:
+                nombre_dep = rel_depto.departamento.nombre
+
         data.append({
             'id': rel.id,
             'empleado': f"{rel.empleado.nombre} {rel.empleado.apellido}",
@@ -1069,7 +1093,7 @@ def api_objetivos_detalle(request):
             'objetivo_titulo': rel.objetivo.titulo,
             'objetivo_descripcion': rel.objetivo.descripcion,
             'es_recurrente': rel.objetivo.es_recurrente, 
-            'departamento': rel.objetivo.departamento.nombre if rel.objetivo.departamento else 'General',
+            'departamento': nombre_dep,
             'cargo_nombre': cargo_nombre,
             'fecha_asignacion': f_asignacion,
             'fecha_limite': f_limite, 
@@ -1084,8 +1108,10 @@ def api_objetivos_detalle(request):
             'current_page': objs_page.number,
             'has_next': objs_page.has_next(),
             'has_previous': objs_page.has_previous(),
+            'rango_paginas': rango_paginas,
         }
     })
+
 
 
 @login_required
@@ -1112,14 +1138,25 @@ def exportar_objetivos_csv(request):
             f_limite = rel.fecha_limite if rel.fecha_limite else 'Sin límite'
             
         estado = "Completado" if rel.completado else "Pendiente"
-        dep = rel.objetivo.departamento.nombre if rel.objetivo.departamento else 'General'
+        
+        nombre_dep = 'General'
+        if rel.cargo:
+            rel_depto = rel.cargo.cargodepartamento_set.first()
+            if rel_depto:
+                nombre_dep = rel_depto.departamento.nombre
+        else:
+            cargo_activo = rel.empleado.empleadocargo_set.filter(fecha_fin__isnull=True).first()
+            if cargo_activo:
+                rel_depto = cargo_activo.cargo.cargodepartamento_set.first()
+                if rel_depto:
+                    nombre_dep = rel_depto.departamento.nombre
         
         writer.writerow([
             f"{rel.empleado.nombre} {rel.empleado.apellido}",
             rel.empleado.dni,
             rel.objetivo.titulo,
             tipo,
-            dep,
+            nombre_dep,
             rel.cargo.nombre if rel.cargo else "Manual",
             rel.fecha_asignacion,
             f_limite,  
