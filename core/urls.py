@@ -192,7 +192,8 @@ urlpatterns = [
 
 
     ## CHATBOT ##
-    path("chatbot/get_response/", chatbot_view.get_response_chatbot, name="chatbot_response"),
+    path('chatbot/response/', get_response_chatbot, name='chatbot_response'),
+    path('chatbot/feedback/', save_chatbot_feedback, name='chatbot_feedback'),
 
 
     ###### INFORMES ADM ######

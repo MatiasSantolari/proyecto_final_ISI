@@ -17,6 +17,9 @@
     </div>
   </div>
   <div class="chatbot-body" id="chatbox"></div>
+  
+  <div id="quick-replies-container" class="quick-replies-tray" style="display: none;"></div>
+
   <div class="chatbot-input">
     <input type="text" id="inputChat" placeholder="Escribe un mensaje...">
     <button onclick="sendMessage()">
@@ -33,62 +36,91 @@
   const minimizeChat = document.getElementById("minimize-chat");
   const clearChatButton = document.getElementById("clear-chat");
   const inputChat = document.getElementById("inputChat");
+  const chatbox = document.getElementById("chatbox");
+  const quickRepliesContainer = document.getElementById("quick-replies-container");
+  
   let minimized = false;
+  let scriptMarkedLoaded = false;
+  let currentAttendanceStatus = "NO_ENTRY"; 
+  let isConfirming = false; 
 
   function saveChat(messages) {
     localStorage.setItem('hrChatHistory', JSON.stringify(messages));
   }
 
   function loadChat() {
-    const chatbox = document.getElementById("chatbox");
     chatbox.innerHTML = ""; 
     const history = localStorage.getItem('hrChatHistory');
     if (history) {
       const messages = JSON.parse(history);
-      messages.forEach(msg => {
-        addMessage(msg.sender, msg.message, false);
+      messages.forEach((msg, index) => {
+        addMessage(msg.sender, msg.message, false, index);
       });
       chatbox.scrollTop = chatbox.scrollHeight;
     }
+    syncAttendanceStatus();
   }
 
   function clearChat() {
     localStorage.removeItem('hrChatHistory');
-    document.getElementById("chatbox").innerHTML = ""; 
+    chatbox.innerHTML = ""; 
+    syncAttendanceStatus();
   }
 
-
-  function saveChatWindowState() {
-    const isOpen = !chatWindow.classList.contains("d-none");
-    localStorage.setItem('hrChatWindowOpen', isOpen);
-  }
-
-  function loadChatWindowState() {
-    const wasOpen = localStorage.getItem('hrChatWindowOpen') === 'true';
-    if (wasOpen) {
-      chatWindow.classList.remove("d-none");
-      loadChat();
+  function loadMarkedLibrary(callback) {
+    if (scriptMarkedLoaded || typeof marked !== 'undefined') {
+      callback();
+      return;
     }
-  }
+    
+    const script = document.createElement('script');
+    script.src = "https://jsdelivr.net";
+    
+    const timeoutSeguridad = setTimeout(() => {
+      callback();
+    }, 400);
 
+    script.onload = () => {
+      clearTimeout(timeoutSeguridad);
+      if (typeof marked !== 'undefined') {
+        marked.setOptions({ gfm: true, breaks: true });
+      }
+      scriptMarkedLoaded = true;
+      callback();
+    };
+
+    script.onerror = () => {
+      clearTimeout(timeoutSeguridad);
+      callback();
+    };
+
+    document.head.appendChild(script);
+  }
 
   chatButton.addEventListener("click", () => {
-    chatWindow.classList.toggle("d-none");
-    if (!chatWindow.classList.contains("d-none")) {
-        loadChat();
+    const isHidden = chatWindow.classList.contains("d-none");
+    if (isHidden) {
+        loadMarkedLibrary(() => {
+            chatWindow.classList.remove("d-none");
+            chatbox.style.display = "block";
+            
+            const inputContainer = chatWindow.querySelector(".chatbot-input");
+            if (inputContainer) inputContainer.style.setProperty("display", "flex", "important");
+            if (quickRepliesContainer) quickRepliesContainer.style.setProperty("display", "flex", "important");
+            
+            minimized = false;
+            loadChat(); 
+        });
+    } else {
+        chatWindow.classList.add("d-none");
     }
-    saveChatWindowState();
   });
-
 
   closeChat.addEventListener("click", () => {
     chatWindow.classList.add("d-none");
-    saveChatWindowState();
   });
-
   
   clearChatButton.addEventListener("click", clearChat);
-
 
   minimizeChat.addEventListener("click", () => {
     const body = chatWindow.querySelector(".chatbot-body");
@@ -96,27 +128,135 @@
     if (minimized) {
       body.style.display = "block";
       input.style.display = "flex";
+      if (currentAttendanceStatus !== "COMPLETED") {
+        quickRepliesContainer.style.display = "flex";
+      }
       minimized = false;
     } else {
       body.style.display = "none";
       input.style.display = "none";
+      quickRepliesContainer.style.display = "none";
       minimized = true;
     }
   });
 
+  function showQuickReplies(status = null) {
+    if (status) currentAttendanceStatus = status;
+    if (isConfirming) return;
 
-  function addMessage(sender, message, save = true) {
-    let chatbox = document.getElementById("chatbox");
-    let messageContainer = document.createElement("div");
+    quickRepliesContainer.innerHTML = "";
+    quickRepliesContainer.style.display = "flex";
     
-    messageContainer.classList.add('chat-message');
+    let suggestions = [];
+
+    if (currentAttendanceStatus === "NO_ENTRY") {
+        suggestions.push("⏰ Fichar Entrada");
+    } else if (currentAttendanceStatus === "HAS_ENTRY") {
+        suggestions.push("⏰ Fichar Salida");
+    } else if (currentAttendanceStatus === "COMPLETED") {
+        quickRepliesContainer.style.display = "none";
+        return;
+    }
+
+    suggestions.forEach(text => {
+      let btn = document.createElement("button");
+      btn.className = "quick-reply-btn";
+      btn.innerText = text;
+      btn.onclick = () => {
+        if (text === "⏰ Fichar Entrada") {
+            askForAttendanceConfirmation("entrada");
+        } else if (text === "⏰ Fichar Salida") {
+            askForAttendanceConfirmation("salida");
+        }
+      };
+      quickRepliesContainer.appendChild(btn);
+    });
+  }
+
+  function askForAttendanceConfirmation(tipo) {
+    isConfirming = true; 
+    quickRepliesContainer.innerHTML = ""; 
+    
+    let systemAlert = document.createElement("div");
+    systemAlert.className = "chat-message-wrapper";
+    systemAlert.innerHTML = `
+      <div class="chat-message bot-message" style="border-left: 4px solid #3c8dbc; background-color: rgba(60, 141, 188, 0.08);">
+        ⚠️ <b>Confirmación Requerida:</b> ¿Estás seguro de que deseas registrar tu <b>${tipo}</b> para la jornada de hoy?
+      </div>`;
+    chatbox.appendChild(systemAlert);
+    chatbox.scrollTop = chatbox.scrollHeight;
+
+    let btnSi = document.createElement("button");
+    btnSi.className = "quick-reply-btn";
+    btnSi.style.borderColor = "#28a745";
+    btnSi.style.color = "#28a745";
+    btnSi.innerText = `Sí, registrar ${tipo}`;
+    btnSi.onclick = () => {
+        isConfirming = false; 
+        inputChat.value = `Sí, registrar ${tipo}`;
+        sendMessage(); 
+    };
+
+    let btnNo = document.createElement("button");
+    btnNo.className = "quick-reply-btn";
+    btnNo.style.borderColor = "#dc3545";
+    btnNo.style.color = "#dc3545";
+    btnNo.innerText = "No, cancelar";
+    btnNo.onclick = () => {
+        isConfirming = false; 
+        inputChat.value = "No, cancelar";
+        sendMessage(); 
+    };
+
+    quickRepliesContainer.appendChild(btnSi);
+    quickRepliesContainer.appendChild(btnNo);
+  }
+
+  async function syncAttendanceStatus() {
+     if (isConfirming) return; 
+     try {
+         let response = await fetch("{% url 'chatbot_response' %}", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie('csrftoken') },
+              body: JSON.stringify({ message: "Sincronizar estado de asistencia de manera silenciosa" })
+         });
+         let data = await response.json();
+         showQuickReplies(data.attendance_status);
+     } catch (e) {
+         showQuickReplies("NO_ENTRY");
+     }
+  }
+
+  function addMessage(sender, message, save = true, msgIndex = null) {
+    if (!message && sender === 'bot') {
+        return msgIndex;
+    }
+
+    let messageContainer = document.createElement("div");
+    messageContainer.classList.add('chat-message-wrapper'); 
+    let bubble = document.createElement("div");
+    bubble.classList.add('chat-message');
+
     if (sender === 'user') {
-        messageContainer.classList.add('user-message');
-        messageContainer.innerHTML = "<b>Tú:</b> " + message;
+        bubble.classList.add('user-message');
+        bubble.innerHTML = `<b>Tú:</b> ${escapeHTML(message)}`;
+        messageContainer.appendChild(bubble);
     } else {
-        messageContainer.classList.add('bot-message');
-        message = message.replace(/\n/g, "<br>");
-        messageContainer.innerHTML = "<b>Bot:</b> " + message;
+        bubble.classList.add('bot-message');
+        if (typeof marked !== 'undefined') {
+            bubble.innerHTML = `<b>Bot:</b> ${marked.parse(message)}`;
+        } else {
+            bubble.innerHTML = `<b>Bot:</b> ${message.replace(/\n/g, "<br>")}`;
+        }
+        messageContainer.appendChild(bubble);
+
+        let feedbackRow = document.createElement("div");
+        feedbackRow.className = "feedback-row";
+        feedbackRow.innerHTML = `
+          <button class="feedback-btn" onclick="sendFeedback(${msgIndex}, 'up', this)">👍</button>
+          <button class="feedback-btn" onclick="sendFeedback(${msgIndex}, 'down', this)">👎</button>
+        `;
+        messageContainer.appendChild(feedbackRow);
     }
 
     chatbox.appendChild(messageContainer);
@@ -126,38 +266,94 @@
         const history = JSON.parse(localStorage.getItem('hrChatHistory') || '[]');
         history.push({ sender: sender, message: message });
         saveChat(history);
+        return history.length - 1;
+    }
+    return msgIndex;
+  }
+
+  async function sendFeedback(msgIndex, type, buttonElement) {
+    const history = JSON.parse(localStorage.getItem('hrChatHistory') || '[]');
+    if (!history[msgIndex]) return;
+
+    buttonElement.style.transform = "scale(1.2)";
+    buttonElement.parentElement.querySelectorAll('button').forEach(b => b.disabled = true);
+
+    try {
+      await fetch("{% url 'chatbot_feedback' %}", { 
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie('csrftoken') },
+          body: JSON.stringify({ 
+            message_user: history[msgIndex - 1] ? history[msgIndex - 1].message : "",
+            message_bot: history[msgIndex].message,
+            feedback_type: type 
+          })
+      });
+    } catch (e) {
+      console.error("Error guardando feedback:", e);
     }
   }
 
-
-  async function sendMessage() {
-    let input = document.getElementById("inputChat");
-    let message = input.value.trim();
-    if (!message) return;
-    input.value = "";
-    addMessage('user', message);
-
-    let chatbox = document.getElementById("chatbox");
-    let loadingIndicator = document.createElement("div");
-    loadingIndicator.id = "loading-indicator";
-    loadingIndicator.innerHTML = "<b>Bot:</b> <i>Escribiendo...</i>";
-    chatbox.appendChild(loadingIndicator);
+  function showLoadingIndicator() {
+    let indicator = document.createElement("div");
+    indicator.id = "loading-indicator";
+    indicator.className = "chat-message-wrapper";
+    indicator.innerHTML = `
+      <div class="chat-message bot-message loading-bubble">
+        <b>Bot:</b> 
+        <div class="typing-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>`;
+    chatbox.appendChild(indicator);
     chatbox.scrollTop = chatbox.scrollHeight;
-
-    let response = await fetch("{% url 'chatbot_response' %}", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json",
-                  "X-CSRFToken": getCookie('csrftoken') },
-        body: JSON.stringify({ message: message })
-    });
-
-    let data = await response.json();
-    chatbox.removeChild(loadingIndicator); 
-    addMessage('bot', data.response);
-    chatbox.innerHTML += "<hr>"; 
   }
 
+  async function sendMessage() {
+    let message = inputChat.value.trim();
+    if (!message) return;
+    inputChat.value = "";
+    
+    quickRepliesContainer.style.display = "none";
+
+    let userIndex = null;
+    if (!message.includes("Sincronizar estado de asistencia")) {
+        userIndex = addMessage('user', message);
+        showLoadingIndicator();
+    }
+
+    try {
+      let response = await fetch("{% url 'chatbot_response' %}", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie('csrftoken') },
+          body: JSON.stringify({ message: message })
+      });
+
+      let data = await response.json();
+      
+      const indicator = document.getElementById("loading-indicator");
+      if (indicator) chatbox.removeChild(indicator); 
+
+      if (data.response && data.response.trim() !== "") {
+          const nextIndex = userIndex !== null ? userIndex + 1 : null;
+          addMessage('bot', data.response, true, nextIndex);
+      }
+      
+      if (data.attendance_status) {
+          currentAttendanceStatus = data.attendance_status;
+      }
+      
+    } catch (error) {
+      const indicator = document.getElementById("loading-indicator");
+      if (indicator) chatbox.removeChild(indicator); 
+      if (!message.includes("Sincronizar estado de asistencia")) {
+          addMessage('bot', "Lo siento, experimenté un problema de conexión con el servidor central.");
+      }
+    }
+
+    showQuickReplies();
+  }
 
   inputChat.addEventListener("keydown", function(event) {
       if (event.key === "Enter") {
@@ -166,9 +362,15 @@
       }
   });
 
-
-  loadChatWindowState();
-
+  function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, tag => ({ 
+      '&': '&amp;', 
+      '<': '&lt;', 
+      '>': '&gt;', 
+      "'": '&#39;', 
+      '"': '&quot;' 
+    }[tag] || tag));
+  }
 
   function getCookie(name) {
     let cookieValue = null;
@@ -184,5 +386,4 @@
     }
     return cookieValue;
   }
-
 </script>

@@ -1,9 +1,12 @@
+from datetime import date
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 import json
 from langchain_core.messages import HumanMessage
-from .hr_agent import hr_agent, AnyMessage, HumanMessage
+from .hr_agent import hr_agent, AnyMessage
+from ...models import HistorialAsistencia 
+
 from .hr_tools import (
     get_vacation_days_tool, 
     get_benefits_tool, 
@@ -27,174 +30,107 @@ def get_response_chatbot(request):
     if request.method != "POST":
         return JsonResponse({"response": "Método no permitido"}, status=405)
 
-    data = json.loads(request.body)
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "JSON inválido"}, status=400)
 
     user_message_text = (data.get("message") or "").strip()
-    user = request.user 
+    user_id = request.user.pk
     
     if not user_message_text:
         return JsonResponse({"error": "No message provided"}, status=400)
 
-    text = user_message_text.lower()
-    response_text = "" 
+    text_lower = user_message_text.lower()
 
-    user_id = user.pk
+    if "sincronizar estado de asistencia" in text_lower:
+        return JsonResponse({
+            "response": "", 
+            "attendance_status": _get_attendance_status(user_id)
+        })
+    
+    if "no, cancelar" in text_lower:
+        return JsonResponse({
+            "response": "Operación cancelada de forma segura. No se ha registrado ninguna marca en tu legajo. ¿En qué más te puedo ayudar? 😊",
+            "attendance_status": _get_attendance_status(user_id)
+        })
 
-    saludos_entrada = [
-        "hola", "buenas", "buenos dias", "que tal", "que onda", "hey", "q onda", "q tal", "holis", 
-        "hi", "hello", "como va", "que hay", "saludos", "q paso", "que paso", "buen dia", "buena", "que onda pa", 
-        "che", "che que tal", "che hola", "ayuda", "necesito ayuda", "asistente", "bot", "rhrr", "rrhh bot"
-    ]
-    
-    saludos_salida = [
-        "chau", "bye", "hasta luego", "nos vemos", "adios", "gracias", "muchas gracias", "gracias totales", 
-        "chao", "cya", "hasta pronto", "me voy", "terminamos", "listo gracias", "eso es todo", 
-        "gracias por la ayuda", "ok gracias", "gracias chau", "thanks", "thank you", "gracias mil"
-    ]
-    
-    kw_vacaciones = [
-        "vacacion", "vacaciones", "dias libres", "dia libre", "dias de vacaciones", "dia de vacaciones", 
-        "dias para viajar", "dia para viajar", "pedir dias", "pedir dia", "cuantos dias tengo", "mis dias", 
-        "cuantos dias me quedan", "franco", "francos", "descanso", "descansos", "tiempo libre", "ausencia", 
-        "licencia", "licencias", "licencia anual", "dias habiles", "dias no habiles", "me puedo tomar", "cuanto tengo", 
-        "saldo vacaciones", "consultar dias", "disponibles", "pedir vacaciones", "solicitar vacaciones", 
-        "planificar vacaciones", "viajar", "viaje", "descansar", "feriado", "feriados", "dias feriados",
-        "cuantos francos", "tomarse dias", "cuota vacaciones", "ver dias", "estado dias", "dias pagados", "vacaciones pagas"
-    ]
-    
-    kw_beneficios = [
-        "beneficio", "beneficios", "obra social", "obra", "social", "salud", "prepaga", "prepagada", "medicina prepaga", 
-        "que me dan", "que recibo", "plan de salud", "cobertura", "beneficio medico", "beneficio salud", 
-        "gimnasio", "descuento gimnasio", "estudio", "estudios", "bono", "bonos",
-        "plus", "premios", "aguinaldo", "obra social familiar", "afiliados", "familiares", "beneficios extras", "ticket canasta",
-        "comida", "beneficio comida", "transporte", "ayuda transporte", "guarderia", "cheque guarderia", 
-        "cuanto es el bono", "que beneficios tengo", "ver beneficios", "mis beneficios", "beneficios obra social", "plan salud"
-    ]
-    
-    kw_descuentos = [
-        "descuento", "descuentos", "retencion", "retenciones", "deduccion", "deducciones", "impuesto", "impuestos", "aportes", 
-        "jubilacion", "afip", "sindicato", "cuota sindicato", "retencion ganancia", 
-        "impuesto a las ganancias", "ganancias", "ingresos brutos"
-    ]
-    
-    kw_jefe = [
-        "jefe", "mi jefe", "supervisor", "gerente", "quien es mi jefe", "quien es mi supervisor", 
-        "a quien reporto", "quien me supervisa", "mi superior", "jefatura", "quien es el encargado", 
-        "quien manda", "jefe directo", "mi jefe directo", "mi gerencia", "quien es el jefe", 
-        "quien me lidera", "lider de equipo", "mi lider", "mi responsable", "responsable de area",
-        "coordinador", "reportar a", "gerencia", "gerente de", "director", "directora"
-    ]
 
-    kw_equipo = [
-        "equipo", "mi equipo", "compañeros", "compañero", "compañera", "compañeras", "mis compañeros", 
-        "colegas", "colega", "mis colegas", "con quien trabajo", "quienes trabajan conmigo", 
-        "quien trabaja conmigo", "mi team", "team", "miembros", "integrantes", "quienes somos", 
-        "quienes estan en mi area", "quien mas esta", "gente de mi sector", "mis pares", 
-        "mi grupo", "grupo de trabajo", "quien esta en mi depto", "compañeros de oficina",
-        "con quien comparto", "gente de mi equipo", "quien mas trabaja aca", "sector"
-    ]
-    
-    kw_rol_depto = [
-        "cargo", "puesto", "departamento", "depto", "mi puesto", "mi cargo", "en que area estoy", 
-        "mi area", "mi departamento", "soy de", "trabajo en", "puesto actual", "mi rol", 
-        "posicion", "categoría", "escalafon", "seniority", "fecha ingreso", "cuando entre", 
-        "antiguedad", "estructura", "organigrama", "donde trabajo", "division"
-    ]
+    if "sí, registrar entrada" in text_lower:
+        user_message_text = "EJECUTAR_MARCA_REGISTRO_ENTRADA_CONFIRMADO"
+        
+    elif "sí, registrar salida" in text_lower:
+        user_message_text = "EJECUTAR_MARCA_REGISTRO_SALIDA_CONFIRMADO"
 
-    kw_objetivos = [
-        "objetivo", "objetivos", "metas", "meta", "que tengo asignado",
-        "mis objetivos", "mis metas", "que tengo que hacer", "tareas", "tarea", "asignacion", 
-        "asignaciones", "objetivo anual", "objetivos del mes", "que se espera de mi", "completado", 
-        "pendiente", "estado objetivos", "mis tareas"
-    ]
-    
-    kw_nomina = [
-        "nomina", "nómina", "recibo sueldo", "recibo de sueldo", "sueldo", "salario", 
-        "pago", "cobro", "monto neto", "monto bruto", "mi pago", "cuanto cobré", 
-        "ver sueldo", "ultima nomina", "nomina mes", "liquidación", "liquidacion sueldo",
-        "cuanto gano", "neto", "bruto", "sueldo neto",
-        "sueldo bruto", "ver pago", "cuando pagan", "fecha de pago", "transferencia sueldo"
-    ]
 
-    kw_evaluaciones = [
-        "evaluacion", "evaluaciones", "evaluar", "desempeño", "rendimiento", "performance",
-        "calificacion", "mis notas", "nota", "review", "puntuacion", "puntaje",
-        "como me fue", "evaluacion anual", "evaluacion de desempeño", "mis evaluaciones"
-    ]
-    
-    kw_contrato = [
-        "contrato", "tipo de contrato", "mi contrato", "condiciones contrato", 
-        "fecha inicio", "fecha fin", "finalizacion contrato", "estado contrato",
-        "sueldo pactado", "monto extra", "activo", "renovacion", "terminar contrato",
-        "vence", "cuando termina"
-    ]
-
-    kw_postulaciones = [
-        "postulacion", "postulaciones", "solicitud cargo", "cargos internos", 
-        "aplicacion trabajo", "trabajo interno", "busqueda interna", "moverme de puesto",
-        "cambio de cargo", "estado solicitud", "mis solicitudes", "carrera", "puestos disponibles"
-    ]
-
-    kw_asistencia = [
-        "asistencia", "presente", "ausente", "falta", "faltas", "llegada tarde", "horas trabajadas",
-        "ingreso", "salida", "mi horario", "registro horario", "checador", "fichaje", "mis asistencias"
-    ]
-    
-    kw_capacitaciones = [
-        "curso", "cursos", "capacitaciones", "capacitacion", "capacitar", "inscripcion", "inscripciones"
-    ]
-
-    if any(saludo in text for saludo in saludos_entrada):
-        response_text = f"¡Hola {user.persona.nombre}! 👋 Soy tu asistente virtual de RRHH. ¿En qué puedo ayudarte hoy?"
-    elif any(saludo in text for saludo in saludos_salida):
-        response_text = f"De nada {user.persona.nombre}, ¡que tengas un excelente día! 😊"
-    elif any(kw in text for kw in kw_vacaciones):
-        response_text = get_vacation_days_tool.invoke({"user_id": user_id}) 
-    elif any(kw in text for kw in kw_beneficios):
-        response_text = get_benefits_tool.invoke({"user_id": user_id})   
-    elif any(kw in text for kw in kw_descuentos):
-        response_text = get_discounts_tool.invoke({"user_id": user_id})
-    elif any(kw in text for kw in kw_jefe):
-        response_text = get_boss_and_manager_info_tool.invoke({"user_id": user_id})
-    elif any(kw in text for kw in kw_equipo):
-        response_text = get_team_members_tool.invoke({"user_id": user_id}) 
-    elif any(kw in text for kw in kw_rol_depto):
-        response_text = get_current_role_and_department_tool.invoke({"user_id": user_id}) 
-    elif any(kw in text for kw in kw_objetivos):
-        response_text = get_employee_objectives_tool.invoke({"user_id": user_id}) 
-    elif any(kw in text for kw in kw_nomina):
-        response_text = get_last_payroll_tool.invoke({"user_id": user_id})
-    elif any(kw in text for kw in kw_evaluaciones):
-        response_text = get_last_performance_review_tool.invoke({"user_id": user_id})
-    elif any(kw in text for kw in kw_contrato):
-        response_text = get_current_contract_info_tool.invoke({"user_id": user_id})
-    elif any(kw in text for kw in kw_postulaciones):
-        response_text = get_internal_job_applications_tool.invoke({"user_id": user_id})
-    elif any(kw in text for kw in kw_asistencia):
-        response_text = get_attendance_summary_tool.invoke({"user_id": user_id})
-    elif any(kw in text for kw in kw_capacitaciones):
-        response_text = get_recommended_courses_tool.invoke({"user_id": user_id})
-  
-
-    if not response_text:        
-        try:
-            config = {"configurable": {"thread_id": f"hr_chat_{user_id}"}}
-            
-            input_data = {
-                "messages": [HumanMessage(content=text)],
-                "user_id": user_id
+    try:
+        config = {
+            "configurable": {
+                "thread_id": f"hr_chat_{user_id}",
+                "user_id": int(user_id)
             }
+        }
+        
+        input_data = {
+            "messages": [HumanMessage(content=user_message_text)]
+        }
 
-            final_state = hr_agent.invoke(input_data, config=config)            
-            last_message = final_state['messages'][-1]
+        final_state = hr_agent.invoke(input_data, config=config)            
+        response_text = final_state['messages'][-1].content
+        
+    except Exception as e:
+        print(f"Error crítico en agente de IA: {e}")
+        response_text = "Lo siento, experimenté una dificultad interna al procesar tu solicitud."
 
-            if last_message.type == 'ai':
-                response_text = last_message.content
-            else:
-                response_text = "Lo siento, no pude procesar la respuesta."
+    return JsonResponse({
+        "response": response_text,
+        "attendance_status": _get_attendance_status(user_id)
+    })
 
-        except Exception as e:
-            print(f"Error AI/Tokens: {e}")
-            response_text = "Lo siento, no entendí tu consulta. Por favor, sé más específico con palabras clave."
 
-    return JsonResponse({"response": response_text or "No tengo información sobre ese tema específico."})
+def _get_attendance_status(user_id):
+    """Evalúa el estado actual de las marcas del día del empleado en la Base de Datos."""
+    try:
+        hoy = date.today()
+        
+        asistencia = HistorialAsistencia.objects.filter(
+            empleado__usuario=user_id, 
+            fecha_asistencia=hoy
+        ).first()
+        
+        if not asistencia:
+            return "NO_ENTRY"
+            
+        if asistencia.hora_entrada and not asistencia.hora_salida:
+            return "HAS_ENTRY" 
+            
+        return "COMPLETED"
+    except Exception as e:
+        print(f"Error de sincronización de marcas en ORM: {e}")
+        return "NO_ENTRY"
+
+
+@csrf_exempt
+@login_required
+def save_chatbot_feedback(request):
+    """Recibe y audita las calificaciones (👍/👎) enviadas por los empleados."""
+    if request.method != "POST":
+        return JsonResponse({"status": "Método no permitido"}, status=405)
+        
+    try:
+        data = json.loads(request.body)
+        message_user = data.get("message_user", "").strip()
+        message_bot = data.get("message_bot", "").strip()
+        feedback_type = data.get("feedback_type", "") 
+        
+        print(f"--- FEEDBACK IA RECIBIDO [{feedback_type.upper()}] ---")
+        print(f"Usuario Autenticado: {request.user.username}")
+        print(f"Consulta Empleado: {message_user}")
+        print(f"Respuesta DeepSeek: {message_bot}")
+        print("-----------------------------------------")
+        
+        return JsonResponse({"status": "success", "message": "Feedback registrado correctamente."})
+        
+    except Exception as e:
+        print(f"Error procesando feedback de la IA: {e}")
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
