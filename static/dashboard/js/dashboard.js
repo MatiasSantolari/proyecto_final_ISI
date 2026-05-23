@@ -904,6 +904,101 @@
   }
 
 
+
+
+  
+  async function ejecutarAnalisisDashboardIA() {
+    const spinner = document.getElementById('aiReportSpinner');
+    const txtContenedor = document.getElementById('aiReportText');
+    
+    if (!spinner || !txtContenedor) return;
+
+    spinner.classList.remove('d-none');
+    txtContenedor.classList.add('d-none');
+    txtContenedor.innerHTML = '';
+
+    const pVacaciones = document.getElementById('vacationPeriodSelector')?.value || '1m';
+    const pAsistencias = document.getElementById('attendancePeriodSelector')?.value || '30d';
+    const pNominas = document.getElementById('payrollPeriodSelector')?.value || '1m';
+    const pEvaluaciones = document.getElementById('evalPeriodSelector')?.value || '12m';
+    const pCapacitaciones = document.getElementById('capPeriodSelector')?.value || '6m';
+    const pObjetivosDept = document.getElementById('departmentSelector')?.value || 'todos';
+    const anio1 = document.getElementById('yearSelector1')?.value || (new Date().getFullYear() - 1);
+    const anio2 = document.getElementById('yearSelector2')?.value || new Date().getFullYear();
+
+    const [kpis, vac, ast, evl, pay, str, obj, cap, costComp] = await Promise.all([
+      safeFetch(API.kpis),
+      safeFetch(`${API.vacations}?periodo=${pVacaciones}`),
+      safeFetch(`${API.attendance}?periodo=${pAsistencias}`),
+      safeFetch(`${API.evaluations}?periodo=${pEvaluaciones}`),
+      safeFetch(`${API.payroll}?periodo=${pNominas}`),
+      safeFetch(API.structure),
+      pObjetivosDept !== 'todos' ? safeFetch(`${API.objectives}?departamento_id=${pObjetivosDept}`) : safeFetch(API.objectives),
+      safeFetch(`${API.capacitaciones}?periodo=${pCapacitaciones}`),
+      safeFetch(`${API.laboral_cost}?year1=${anio1}&year2=${anio2}`)
+    ]);
+
+    const payloadCompleto = {
+      kpis: kpis,
+      vacaciones: { periodo: pVacaciones, datos: vac },
+      asistencias: { periodo: pAsistencias, datos: ast },
+      evaluaciones: { periodo: pEvaluaciones, datos: evl },
+      nominas: { periodo: pNominas, datos: pay },
+      estructura_plantilla: str,
+      objetivos: { departamento_filtrado: pObjetivosDept, datos: obj },
+      capacitaciones: { periodo: pCapacitaciones, datos: cap },
+      comparativa_costo_laboral: { anio1: anio1, anio2: anio2, datos: costComp }
+    };
+
+    try {
+      const response = await fetch('/dashboard/api/generar-reporte-ia/?tipo=Diagnóstico Global de Dashboard', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfTokenDashboard()
+        },
+        body: JSON.stringify(payloadCompleto)
+      });
+
+      if (!response.ok) throw new Error("Error en el servidor de IA");
+      const data = await response.json();
+
+      spinner.classList.add('d-none');
+      txtContenedor.classList.remove('d-none');
+      txtContenedor.innerHTML = data.reporte;
+
+    } catch (error) {
+      console.error('Error con Consultor DeepSeek:', error);
+      spinner.classList.add('d-none');
+      txtContenedor.classList.remove('d-none');
+      txtContenedor.innerHTML = `
+        <div class="alert alert-danger d-flex align-items-center gap-3 border-0 shadow-sm rounded-3">
+          <i class="bi bi-exclamation-triangle-fill fs-3 text-danger"></i>
+          <div>
+            <strong>Error del Consultor de IA</strong><br>
+            <span class="small">No pudimos procesar el cruce de datos en este momento. Por favor reintente.</span>
+          </div>
+        </div>`;
+    }
+  }
+
+  function getCsrfTokenDashboard() {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, 10) === 'csrftoken=') {
+          cookieValue = decodeURIComponent(cookie.substring(10));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+
+
   document.addEventListener('DOMContentLoaded', (event) => {
     loadAll();
     loadObjectives();
@@ -945,29 +1040,83 @@
     }
     const selectorCap = document.getElementById('capPeriodSelector');
     if (selectorCap) selectorCap.addEventListener('change', loadCapacitaciones);
-  });
+  
+
+    const btnIA = document.getElementById('btnGenerateAIReport');
+    if (btnIA) {
+        btnIA.addEventListener('click', ejecutarAnalisisDashboardIA);
+    }
+  
     
-  function ejecutarInforme() {
-        const charts = [vacChart, attendanceChart, evalChart, payrollChart, deptChart, laborCostChart, capChart];
-        
-        charts.forEach(chart => {
-            if (chart && typeof chart.options !== 'undefined') {
-                chart.options.responsive = false;
-                chart.update('none');
+  
+
+    const btnCopy = document.getElementById('btnCopyAIText');
+    if (btnCopy) {
+        btnCopy.addEventListener('click', () => {
+            const contenido = document.getElementById('aiReportText');
+            if (!contenido || contenido.classList.contains('d-none')) return;
+            
+            navigator.clipboard.writeText(contenido.innerText)
+                .then(() => {
+                    const originalText = btnCopy.innerHTML;
+                    btnCopy.innerHTML = `<i class="bi bi-check-lg"></i> ¡Copiado!`;
+                    btnCopy.classList.replace('btn-outline-primary', 'btn-success');
+                    setTimeout(() => {
+                        btnCopy.innerHTML = originalText;
+                        btnCopy.classList.replace('btn-success', 'btn-outline-primary');
+                    }, 2000);
+                })
+                .catch(err => console.error('Error al copiar: ', err));
+        });
+    }
+
+    const btnDownloadPDF_IA = document.getElementById('btnDownloadAIPDF');
+    if (btnDownloadPDF_IA) {
+        btnDownloadPDF_IA.addEventListener('click', async () => {
+            const contenido = document.getElementById('aiReportText');
+            if (!contenido || contenido.classList.contains('d-none')) return;
+
+            try {
+                const res = await fetch('/dashboard/api/ultimo-pdf-ia/');
+                const data = await res.json();
+                
+                if (data.url_pdf) {
+                    window.open(data.url_pdf, '_blank');
+                } else {
+                    alert("No se encontró el archivo del informe en el servidor.");
+                }
+            } catch (err) {
+                console.error("Error al recuperar el archivo PDF:", err);
             }
         });
+    }
+  });
 
-        window.print();
 
-        setTimeout(() => {
+
+    function ejecutarInforme() {
+            const charts = [vacChart, attendanceChart, evalChart, payrollChart, deptChart, laborCostChart, capChart];
+            
             charts.forEach(chart => {
                 if (chart && typeof chart.options !== 'undefined') {
-                    chart.options.responsive = true;
-                    chart.update();
+                    chart.options.responsive = false;
+                    chart.update('none');
                 }
             });
-        }, 500);
+
+            window.print();
+
+            setTimeout(() => {
+                charts.forEach(chart => {
+                    if (chart && typeof chart.options !== 'undefined') {
+                        chart.options.responsive = true;
+                        chart.update();
+                    }
+                });
+            }, 500);
     }
+
+
 
     const btnDownloadPDF = document.getElementById('btnDownloadPDF');
     if (btnDownloadPDF) {
@@ -979,4 +1128,6 @@
         btnPrintScreen.removeAttribute('onclick');
         btnPrintScreen.addEventListener('click', ejecutarInforme);
     }
+
+
 })();

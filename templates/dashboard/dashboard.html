@@ -19,47 +19,67 @@
     <div class="row g-2 kpi-deck mb-1">
       <div class="col-6 col-md-2">
         <a href="{% url 'empleados_detalle'%}" class="card kpi-link border-0 shadow-sm" style="min-height: 80px;">
-          <div class="card-body py-2 px-3 d-flex flex-column justify-content-center">
-            <div class="mb-1 fw-semibold" style="font-size: 0.85rem;">
-              Empleados activos <i class="bi bi-chevron-right small"></i>
+          <div class="card-body py-2 px-2 d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center justify-content-center rounded" style="width: 36px; height: 36px; background-color: rgba(13, 110, 253, 0.1); flex-shrink: 0;">
+              <i class="bi bi-people text-primary fs-4"></i>
             </div>
-            <div id="kpiEmployees" class="fw-bold" style="font-size: 1.5rem; line-height: 1;">—</div>
+            <div class="d-flex flex-column justify-content-center">
+              <div class="mb-1 fw-semibold" style="font-size: 0.85rem;">
+                Empleados activos <i class="bi bi-chevron-right small"></i>
+              </div>
+              <div id="kpiEmployees" class="fw-bold" style="font-size: 1.5rem; line-height: 1;">—</div>
+            </div>
           </div>
         </a>
       </div>
 
       <div class="col-6 col-md-3">
         <a href="{% url 'asistencias_detalle'%}" class="card kpi-link border-0 shadow-sm" style="min-height: 80px;">
-          <div class="card-body py-2 px-3 d-flex flex-column justify-content-center">
-            <div class="mb-1 fw-semibold" style="font-size: 0.85rem;">
-              Ausencias (<span id="txtAbsenceMonth">...</span>) <i class="bi bi-chevron-right small"></i>
+          <div class="card-body py-2 px-3 d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center justify-content-center rounded" style="width: 36px; height: 36px; background-color: rgba(25, 135, 84, 0.1); flex-shrink: 0;">
+              <i class="bi bi-calendar-x text-success fs-4"></i>
             </div>
-            <div id="kpiAbsences" class="fw-bold" style="font-size: 1.5rem; line-height: 1;">—</div>
+            <div class="d-flex flex-column justify-content-center">
+              <div class="mb-1 fw-semibold" style="font-size: 0.85rem;">
+                Ausencias (<span id="txtAbsenceMonth">...</span>) <i class="bi bi-chevron-right small"></i>
+              </div>
+              <div id="kpiAbsences" class="fw-bold" style="font-size: 1.5rem; line-height: 1;">—</div>
+            </div>
           </div>
         </a>
       </div>
 
       <div class="col-6 col-md-3">
         <a href="{% url 'nominas_detalle'%}" class="card kpi-link border-0 shadow-sm" style="min-height: 80px;">
-          <div class="card-body py-2 px-3 d-flex flex-column justify-content-center">
-            <div class="mb-1 fw-semibold" style="font-size: 0.85rem;">
-              Costo (<span id="txtPayrollMonth" style="font-size: 0.75rem;">...</span>) <i class="bi bi-chevron-right small"></i>
+          <div class="card-body py-2 px-3 d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center justify-content-center rounded" style="width: 36px; height: 36px; background-color: rgba(111, 66, 193, 0.1); flex-shrink: 0;">
+              <i class="bi bi-cash-stack fs-4" style="color: #6f42c1;"></i>
             </div>
-            <div id="kpiPayroll" class="fw-bold" style="font-size: 1.5rem; line-height: 1;">—</div>
+            <div class="d-flex flex-column justify-content-center">
+              <div class="mb-1 fw-semibold" style="font-size: 0.85rem;">
+                Costo (<span id="txtPayrollMonth" style="font-size: 0.75rem;">...</span>) <i class="bi bi-chevron-right small"></i>
+              </div>
+              <div id="kpiPayroll" class="fw-bold" style="font-size: 1.5rem; line-height: 1;">—</div>
+            </div>
           </div>
         </a>
       </div>
 
       <div class="col-6 col-md-4 d-flex align-items-center gap-2">
-        <a href="{% url 'evaluaciones_detalle'%}" class="card kpi-link border-0 shadow-sm" style="min-height: 80px;">
-          <div class="card-body py-2 px-3 d-flex flex-column justify-content-center">
-            <div class="mb-1 fw-semibold" style="font-size: 0.85rem;">
-              Prom. Evaluaciones (<span id="txtEvalRange" style="font-size: 0.75rem;">...</span>) <i class="bi bi-chevron-right small"></i>
+        <a href="{% url 'evaluaciones_detalle'%}" class="card kpi-link border-0 shadow-sm flex-grow-1" style="min-height: 80px;">
+          <div class="card-body py-2 px-3 d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center justify-content-center rounded" style="width: 36px; height: 36px; background-color: rgba(220, 53, 69, 0.1); flex-shrink: 0;">
+              <i class="bi bi-graph-up-arrow text-danger fs-4"></i>
             </div>
-            <div id="kpiEvalAvg" class="fw-bold" style="font-size: 1.5rem; line-height: 1;">—</div>
+            <div class="d-flex flex-column justify-content-center">
+              <div class="mb-1 fw-semibold" style="font-size: 0.85rem;">
+                Prom. Evaluaciones (<span id="txtEvalRange" style="font-size: 0.75rem;">...</span>) <i class="bi bi-chevron-right small"></i>
+              </div>
+              <div id="kpiEvalAvg" class="fw-bold" style="font-size: 1.5rem; line-height: 1;">—</div>
+            </div>
           </div>
         </a>
-    
+
         <div class="dropdown ms-4">
           <button class="btn btn-link text-muted p-1" type="button" id="dropdownMenuReport" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 2rem; line-height: 1;">
             <i class="bi bi-three-dots-vertical"></i>
@@ -71,10 +91,24 @@
                 <span>Descargar Dashboard en PDF</span>
               </button>
             </li>
+            <li>
+              <button class="dropdown-item d-flex align-items-center gap-2 py-2 text-primary" type="button" id="btnGenerateAIReport" data-bs-toggle="modal" data-bs-target="#aiReportModal">
+                <i class="bi bi-stars"></i>
+                <strong>Analizar Dashboard con IA</strong>
+              </button>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-secondary" href="{% url 'historial_reportes_ia' %}">
+                <i class="bi bi-folder-symlink-fill"></i>
+                <span>Ver Historial de Informes</span>
+              </a>
+            </li>
           </ul>
         </div>
       </div>
     </div>
+
 
     <!-- Row: Vacaciones + Asistencias -->
     <div class="row g-2 mb-3">
@@ -301,9 +335,42 @@
           </div>
         </div>
       </div>
-    </div>
-    
+    </div> 
   </div>
+
+
+  
+  <div class="modal fade" id="aiReportModal" tabindex="-1" aria-labelledby="aiReportModalLabel" aria-hidden="true" style="z-index: 9999;">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+          <div class="modal-header border-0 pt-4 pb-2 bg-transparent">
+            <h5 class="modal-title d-flex align-items-center gap-2" id="aiReportModalLabel">
+              <i class="bi bi-stars text-primary fs-4"></i>
+              <strong class="fs-5">Consultor Estratégico RRHH Agent</strong>
+            </h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+
+          <div class="modal-body px-4 py-3 bg-transparent">
+            <div class="text-center py-5" id="aiReportSpinner">
+              <div class="spinner-border text-primary mb-3" role="status" style="width: 2.5rem; height: 2.5rem; border-width: 0.25em;"></div>
+              <p class="text-muted-ia small fw-medium mb-0 px-3">El Agente está analizando las métricas, buscando anomalías cruzadas y preparando tus recomendaciones...</p>
+            </div>
+            <div id="aiReportText" class="d-none lh-base" style="font-size: 0.95rem;"></div>
+          </div>
+
+          <div class="modal-footer border-0 pt-2 pb-4 bg-transparent d-flex justify-content-end gap-3">
+            <button type="button" class="btn btn-secondary btn-sm px-4 py-2" style="border-radius: 8px; font-size: 0.85rem;" data-bs-dismiss="modal">Cerrar</button>
+            
+            <button type="button" class="btn btn-danger btn-sm px-4 py-2 d-flex align-items-center gap-2" style="border-radius: 8px; font-size: 0.85rem;" id="btnDownloadAIPDF">
+              <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
 
   <script src="{% static 'dashboard/js/dashboard.js' %}"></script>
 {%endblock%}

@@ -35,7 +35,7 @@
     }
     
     
-    async function loadObjetivos() {
+        async function loadObjetivos() {
         const data = await safeFetch(API.data);
         if (!data) return;
 
@@ -93,58 +93,75 @@
         const cargoCont = document.getElementById('containerCargo');
         let realizadosCargo = 0;
 
-        cargoCont.innerHTML = data.cargo.length ? '' : '<tr><td colspan="3" class="text-center py-4 text-muted">No hay objetivos de puesto asignados.</td></tr>';
+        if (cargoCont) {
+            const tablaPadre = cargoCont.closest('table');
+            if (tablaPadre) {
+                tablaPadre.removeAttribute('class');
+                tablaPadre.style.cssText = "display: block; background: transparent !important; border: none !important; box-shadow: none !important; margin: 0; padding: 0;";
+                
+                const contenedorResponsive = tablaPadre.parentElement;
+                if (contenedorResponsive && contenedorResponsive.classList.contains('table-responsive')) {
+                    contenedorResponsive.style.cssText = "margin: 0; padding: 0; border: none; overflow: visible;";
+                }
+            }
+            cargoCont.style.cssText = "display: block; width: 100%; margin: 0; padding: 0;";
+            cargoCont.innerHTML = data.cargo.length ? '' : '<div class="text-center py-4 text-muted">No hay objetivos de puesto asignados.</div>';
+        }
 
         data.cargo.forEach(item => {
             if (item.completado) realizadosCargo++;
 
-            const filaEstilo = item.completado ? 'bg-light opacity-75' : ''; 
-            
-            const textoEstilo = item.completado ? 'text-muted' : 'text-dark';
-           
+            const bgClass = item.completado ? 'bg-light opacity-75' : 'bg-dark-completed';    
+            const textClasses = item.completado ? 'text-decoration-line-through text-muted' : 'text-dark';
+
+            let colorTirita = 'border-primary'; 
             let badgeClass = 'bg-secondary text-white';
             let badgeIcon = '<i class="bi bi-calendar-event me-1"></i>';
             let textoBadge = item.vence ? `Fecha limite: ${item.vence}` : 'Sin fecha límite';
 
             if (item.completado) {
+                colorTirita = 'border-success';
                 badgeClass = 'bg-success text-white'; 
                 badgeIcon = '<i class="bi bi-check-circle-fill me-1"></i>';
                 textoBadge = 'Finalizado';
             } else {
                 if (item.atrasado) {
+                    colorTirita = 'border-danger';
                     badgeClass = 'bg-danger text-white shadow-sm';
                     badgeIcon = '<i class="bi bi-exclamation-triangle-fill me-1"></i>';
                 } else if (item.es_hoy) {
+                    colorTirita = 'border-warning';
                     badgeClass = 'bg-warning text-dark shadow-sm'; 
                     badgeIcon = '<i class="bi bi-hourglass-split me-1"></i>';
                     textoBadge = 'VENCE HOY';
-                } else {
-                    badgeClass = 'bg-info text-white'; 
                 }
             }
 
             cargoCont.innerHTML += `
-                <tr class="${filaEstilo} p-4 table-compact-goals"> 
-                    <td class="${textoEstilo}">
-                        <div class="fw-bold">${item.titulo}</div>
-                        <small class="text-muted d-block" style="max-width: 280px;">
-                            ${item.descripcion || 'Sin descripción adicional'}
-                        </small>
+                <tr class="d-flex align-items-center justify-content-between py-1 px-3 mb-2 rounded border-start border-4 ${colorTirita} shadow-sm ${bgClass}" 
+                    style="display: flex !important; width: 100%; box-sizing: border-box; border-top: none !important; border-right: none !important; border-bottom: none !important;"> 
+                    
+                    <td class="${textClasses} p-0" style="border: none !important; background: transparent !important; display: block; flex-grow: 1;">
+                        <h6 class="m-0 fw-bold">${item.titulo}</h6>
+                        <small class="text-muted">${item.descripcion || ''}</small>
                     </td>
-                    <td style="width: 160px;">
-                        <span class="badge ${badgeClass} p-2 w-100 d-flex align-items-center justify-content-center">
-                            ${badgeIcon} ${textoBadge}
+                    
+                    <td class="p-0 d-flex align-items-center gap-2" style="border: none !important; background: transparent !important; display: flex !important;">
+                        <span class="badge ${badgeClass} p-1 px-2 d-inline-flex align-items-center justify-content-center" style="font-size: 0.72rem; white-space: nowrap;">
+                            ${badgeIcon} <span class="ms-1">${textoBadge}</span>
                         </span>
-                    </td>
-                    <td class="text-center" style="width: 80px;">
+                        
                         <button class="btn btn-sm ${item.completado ? 'btn-outline-secondary' : 'btn-success'} rounded-circle shadow-sm" 
+                                style="width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; padding: 0;"
                                 title="${item.completado ? 'Reabrir objetivo' : 'Marcar como completado'}"
                                 onclick="toggleObjetivo(${item.id}, ${item.completado})">
-                            <i class="bi ${item.completado ? 'bi-arrow-counterclockwise' : 'bi-check-lg'}"></i>
+                            <i class="bi ${item.completado ? 'bi-arrow-counterclockwise' : 'bi-check-lg'}" style="font-size: 0.75rem;"></i>
                         </button>
                     </td>
                 </tr>`;
         });
+
+
 
 
         const porcCargo = data.cargo.length ? Math.round((realizadosCargo / data.cargo.length) * 100) : 0;
@@ -337,7 +354,7 @@
             'ANTIGUEDAD_5':  { nivel: 3, icon: 'bi-award' },
             'ANTIGUEDAD_10': { nivel: 4, icon: 'bi-award-fill' },
             'ANTIGUEDAD_15': { nivel: 5, icon: 'bi-patch-check' }, 
-            'ANTIGUEDAD_20': { nivel: 6, icon: 'bi-medal-fill' },
+            'ANTIGUEDAD_20': { nivel: 6, icon: 'bi-shield' },
             'ANTIGUEDAD_25': { nivel: 7, icon: 'bi-trophy' },
             'ANTIGUEDAD_30': { nivel: 8, icon: 'bi-trophy-fill' },
             'ANTIGUEDAD_40': { nivel: 9, icon: 'bi-gem' }

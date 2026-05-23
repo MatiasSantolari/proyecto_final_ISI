@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Historial de Informes IA{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-5 mt-2">
+    <h4 class="mb-2">Historial de Auditorías con IA</h4>
+
+    <div class="card mb-2">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>Repositorio de diagnósticos de negocio en PDF</div>
+            <div class="ms-auto">
+                <a href="{% url 'home' %}" class="btn btn-primary">
+                    <i class="bi bi-arrow-left-short"></i> Volver al Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-sm mb-0" id="historialIAtable">
+                    <thead class="text-center">
+                        <tr>
+                            <th>Emitido por</th>
+                            <th>Rol del Generador</th>
+                            <th>Fecha y Hora de Emisión</th>
+                            <th>Documento Físico</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center" id="historialIAtableBody">
+                        {% for r in reportes %}
+                        <tr>
+                            <td class="align-middle fw-semibold">{{ r.usuario.username }}</td>
+                            <td class="align-middle">
+                                <span>{{ r.usuario.get_rol_display }}</span>
+                            </td>
+                            <td class="align-middle">{{ r.fecha_generacion|date:"d-m-Y H:i" }} hs</td>
+                            <td class="align-middle">
+                                <a href="{{ r.archivo_pdf.url }}" target="_blank" class="btn btn-danger btn-sm py-1 px-3">
+                                    <i class="bi bi-file-earmark-pdf"></i> Ver PDF
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">
+                                <i class="bi bi-folder-x d-block mb-2 fs-4"></i>
+                                No se han registrado informes con Inteligencia Artificial en el servidor todavía.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

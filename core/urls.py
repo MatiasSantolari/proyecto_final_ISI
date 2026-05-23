@@ -191,9 +191,14 @@ urlpatterns = [
     path('evaluaciones/<int:id_evaluacion>/empleados/<int:id_empleado>/calificar/', evaluaciones_view.calificar_empleado, name='calificar_empleado'),
 
 
+#### AI ####
     ## CHATBOT ##
     path('chatbot/response/', get_response_chatbot, name='chatbot_response'),
     path('chatbot/feedback/', save_chatbot_feedback, name='chatbot_feedback'),
+    ## REPORTER ##
+    path('dashboard/api/generar-reporte-ia/', api_generar_reporte_ia_view, name='generar_reporte_ia'),
+    path('dashboard/api/ultimo-pdf-ia/', api_ultimo_pdf_ia_view, name='ultimo_pdf_ia'),
+    path('dashboard/historial-reportes-ia/', historial_reportes_ia_view, name='historial_reportes_ia'),
 
 
     ###### INFORMES ADM ######
