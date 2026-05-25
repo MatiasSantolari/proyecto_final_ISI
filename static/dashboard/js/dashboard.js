@@ -162,6 +162,7 @@
   };
 
 
+
   let isFirstLoad = true;
   // Vacations
   async function loadVacations() {
@@ -262,7 +263,6 @@
 
 
 
-
   async function loadAttendance() {
     const periodSelector = document.getElementById('attendancePeriodSelector');
     const selectedPeriod = periodSelector ? periodSelector.value : '30d';
@@ -324,6 +324,15 @@
                 borderRadius: 6,
                 borderSkipped: false,
                 barPercentage: 0.7
+              },
+              { 
+                label: 'Licencias', 
+                data: att.licenses || [], 
+                backgroundColor: '#6c757d',
+                stack: 'stack1',
+                borderRadius: 6,
+                borderSkipped: false,
+                barPercentage: 0.7
               }
             ]
           },
@@ -373,6 +382,7 @@
         attendanceChart.data.datasets[0].data = att.present;
         attendanceChart.data.datasets[1].data = att.late;
         attendanceChart.data.datasets[2].data = att.ausent;
+        attendanceChart.data.datasets[3].data = att.licenses; 
         attendanceChart.update();
       }
     }
@@ -951,7 +961,7 @@
     };
 
     try {
-      const response = await fetch('/dashboard/api/generar-reporte-ia/?tipo=Diagnóstico Global de Dashboard', {
+      const response = await fetch('/dashboard/api/generar-reporte-ia/?tipo=Auditoría Estratégica Transversal: Sistema de Gestión de Recursos Humanos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

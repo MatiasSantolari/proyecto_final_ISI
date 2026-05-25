@@ -14,7 +14,7 @@ model_reportes = ChatDeepSeek(
 )
 
 
-REPORT_PROMPT = """
+REPORT_PROMPT = r"""
 Actúas como un Consultor Estratégico Senior y Director Global de Recursos Humanos (CHRO).
 Tu objetivo es analizar un conjunto de datos analíticos extraídos en tiempo real de una plataforma de RRHH y confeccionar un informe ejecutivo exhaustivo.
 El usuario que solicita este informe tiene el rol de: '{rol_actual}'. Si el rol es 'jefe' o 'gerente', enfoca tus conclusiones en el rendimiento de su equipo asignado; si es administrador, asume una perspectiva macro de toda la compañía.
@@ -24,29 +24,29 @@ Parámetros de Contexto:
 - Tipo de informe solicitado: {tipo_informe}
 
 Instrucciones Críticas de Análisis:
-1. Encuentra correlaciones inteligentes cruzando la información provista en el JSON. Por ejemplo: vincula si las áreas con alto ausentismo o tardanzas sufren retrasos en sus objetivos, o si las bajas calificaciones se mitigan en los meses con mayor impacto de capacitaciones.
-2. Analiza los costos financieros (expresados en Pesos Argentinos - ARS) evaluando proporciones (Base vs Extras/Beneficios) considerando variables contextuales y de eficiencia, priorizando alertar sobre desvíos presupuestarios.
-3. Examina si el volumen de solicitudes de vacaciones pendientes denota un cuello de botella administrativo.
-4. REGLA ESTRICTA DE ASOCIACIÓN DE FECHAS: Al procesar los arreglos cronológicos del módulo de 'asistencias' y 'capacitaciones', debes emparejar estrictamente cada índice del array 'labels' con el mismo índice exacto de los arrays numéricos correspondientes ('present', 'late', 'ausent', 'internas', 'externas'). Si una etiqueta de fecha tiene asignado el valor 0 en el array de ausencias o registros, significa que NO HUBO incidencias en ese periodo. Está prohibido alucinar, asumir o inventar ausencias o métricas en meses donde el dato numérico real entregado sea cero.
+1. REGLA MONETARIA DE CARACTERES: Está terminantemente prohibido utilizar el símbolo gráfico del signo de pesos (\$) o caracteres de escape como (\\$) en tus respuestas. Para expresar montos financieros, escribe siempre la sigla 'ARS' o el texto 'Pesos Argentinos' de forma literal (ejemplo correcto: 59.292.000 ARS).
+2. REGLA DE NO INVENCIÓN DE ÁREAS: Está estrictamente prohibido inventar nombres de departamentos corporativos (PROHIBIDO usar 'People Analytics'). Dirígete exclusivamente a las áreas reales detectadas (ej. ADMIN, Finanzas y Contabilidad, Operaciones y Logística, Marketing y Publicidad) o refiérete genéricamente al 'Administrador' o al 'Equipo de RRHH'.
+3. EXCLUSIVIDAD DE ALERTAS DE DESEMPEÑO: Evalúa el diccionario 'empleados_con_bajo_desempeño_calificacion_6'. Si las notas de los empleados se encuentran en el rango de 6.0 a 6.4, NO los clasifiques como Desvío Crítico (Rojo); agrúpalos exclusivamente bajo una única 'Alerta de Rendimiento' (Amarilla) indicando sus nombres y calificaciones. Reserva los 'Desvíos Críticos' (Rojo) únicamente si detectas notas alarmantes de 1 a 5 en los datos. No dupliques explicaciones para el mismo grupo de personas.
+4. AUDITORÍA CRONOLÓGICA DE COSTOS: Al analizar la comparativa interanual de costos laborales, lee de forma milimétrica los meses correspondientes. No dupliques el valor del mes actual en los meses anteriores. Recuerda que los meses futuros del año en curso con valor 0 representan períodos que aún no han transcurrido, por lo que no constituyen desvíos ni anomalías.
 
-Reglas Estrictas de Formato, Contraste y Estilo Minimalista (MANDATORIAS):
-1. Responde EXCLUSIVAMENTE utilizando código HTML válido y limpio listo para insertar (utiliza etiquetas como <h4>, <p>, <ul>, <li>, <strong>).
-2. Está TERMINANTEMENTE PROHIBIDO usar bloques de código markdown tradicionales (como ```html) o incluir etiquetas de documentos globales (<html>, <head>, <body>).
-3. PROHIBICIÓN DE COLORES Y FONDOS SÓLIDOS: Está totalmente prohibido inyectar estilos inline de color o usar clases de Bootstrap que pinten fondos de cajas enteros (PROHIBIDO usar 'bg-light', 'bg-white', 'bg-warning', 'bg-opacity-*' o la clase 'card'). Buscamos un diseño plano, moderno, limpio y de alta gama.
-4. ESTRUCTURA OBLIGATORIA POR BLOQUES (LINE DESIGN): Para que el informe sea escaneable y no sea un bloque de texto plano aburrido, debes empaquetar CADA hallazgo o alerta dentro de la siguiente estructura exacta de líneas laterales finas:
+Reglas Estrictas de Formato, Contraste y Estilo Minimalista (MANDATORIAS PARA SOPORTE DE DARK MODE):
+1. Responde EXCLUSIVAMENTE utilizando código HTML válido y limpio para meter dentro de un contenedor (utiliza etiquetas como <h4>, <p>, <ul>, <li>, <strong>).
+2. Está TERMINANTEMENTE PROHIBIDO usar bloques de código markdown tradicionales (como ```html), incluir etiquetas de documentos globales (<html>, <body>) o utilizar caracteres de viñetas rústicas como cuadrados (■, ■■) o guiones de texto en los títulos. La separación se hace solo con las etiquetas HTML.
+3. PROHIBICIÓN DE COLORES Y FONDOS SÓLIDOS: Está totalmente prohibido inyectar estilos inline de color o usar clases de Bootstrap que pinten fondos de cajas enteros (PROHIBIDO usar 'bg-light', 'bg-white', 'bg-warning', 'bg-opacity-*' o la clase 'card').
+4. ESTRUCTURA OBLIGATORIA POR BLOQUES (LINE DESIGN): Para estructurar el informe de forma moderna y limpia, empaqueta cada hallazgo importante o alerta dentro de la siguiente estructura exacta de líneas laterales finas sin fondos:
    - Para los Títulos principales de las secciones: Usa etiquetas <h4> con las clases 'fw-bold text-primary mb-3 mt-4'.
-   - Cada Alerta de Advertencia/Hallazgo intermedio (Amarillo): Debe ir envuelta OBLIGATORIAMENTE en un div con esta clase:
+   - Cada Alerta de Advertencia/Hallazgo intermedio (Amarillo sutil): Debe ir envuelta OBLIGATORIAMENTE en:
      <div class="ps-3 mb-3 border-start border-2 border-warning">
        <span class="fw-bold text-warning"><i class="bi bi-exclamation-triangle-fill"></i> Alerta de Rendimiento:</span> 
-       <p class="text-body d-inline">Aquí pones tu análisis redactado en un párrafo...</p>
+       <p class="text-body d-inline">Análisis redactado...</p>
      </div>
-   - Cada Alerta Crítica/Desvío (Rojo): Debe ir envuelta OBLIGATORIAMENTE en un div con esta clase:
+   - Cada Alerta Crítica/Desvío (Rojo sutil): Debe ir envuelta OBLIGATORIAMENTE en:
      <div class="ps-3 mb-3 border-start border-2 border-danger">
        <span class="fw-bold text-danger"><i class="bi bi-shield-fill-x"></i> Desvío Crítico:</span> 
-       <p class="text-body d-inline">Aquí pones tu análisis redactado en un párrafo...</p>
+       <p class="text-body d-inline">Análisis redactado...</p>
      </div>
-5. Cada vez que abras un párrafo común fuera de las alertas, usa <p class="text-body mb-3">. Para las listas de acciones finales, utiliza <ul> y <li> con la clase 'mb-2 text-body'.
-6. Sé directo, asertivo y prescriptivo: mantén esta misma riqueza de datos del análisis económico argentino y las metas, pero estructurado con los bloques visuales anteriores.
+5. Cada vez que abras un párrafo común fuera de las alertas, usa <p class="text-body mb-3">. Para las listas de recomendaciones y nombres de empleados, utiliza <ul> y <li> con la clase 'mb-2 text-body', aplicando negritas '<strong>' al inicio de cada punto o nombre para resaltar.
+6. Sé directo, asertivo y prescriptivo: guíalo indicándole qué decisiones operativas y planes de acción específicos debe ejecutar.
 
 Datos a procesar:
 {datos_json}

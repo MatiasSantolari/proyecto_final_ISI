@@ -98,7 +98,7 @@
               {% for a in asistencias %}
               <tr>
                 <td>
-                  {% if not a.confirmado %}
+                  {% if not a.confirmado and not a.licencia %}
                     <input type="checkbox" name="asistencia_ids" value="{{ a.id }}" class="checkItem">
                   {% endif %}
                 </td>
@@ -107,10 +107,25 @@
                   <td>{{ a.empleado.departamento_actual_nombre }}</td>
                 {% endif %}
                 <td>{{ a.empleado.cargo_actual_nombre }}</td>
-                <td>{{ a.hora_entrada|default:"-" }}</td>
-                <td>{{ a.hora_salida|default:"-" }}</td>
+                
+                {% if a.licencia %}
+                  <td colspan="2" class="text-center">
+                    <span class="badge bg-secondary px-3 py-1 fw-semibold text-white">Licencia Justificada</span>
+                  </td>
+                {% else %}
+                  <td>{{ a.hora_entrada|default:"-" }}</td>
+                  <td>{{ a.hora_salida|default:"-" }}</td>
+                {% endif %}
+                
                 <td>{% if a.confirmado %}✅{% else %}❌{% endif %}</td>
-                <td>{% if a.tardanza %}⏰ Sí{% else %}-{% endif %}</td>
+                
+                <td>
+                  {% if a.licencia %}
+                    <span class="text-muted small">—</span>
+                  {% else %}
+                    {% if a.tardanza %}⏰ Sí{% else %}-{% endif %}
+                  {% endif %}
+                </td>
               </tr>
               {% empty %}
               <tr><td colspan="8" class="text-center text-muted p-3">No hay registros de asistencia con los filtros ingresados.</td></tr>

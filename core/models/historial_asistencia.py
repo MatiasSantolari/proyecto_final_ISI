@@ -9,6 +9,7 @@ class HistorialAsistencia(models.Model):
     hora_salida = models.TimeField(null=True, blank=True, verbose_name='Hora de salida')
     confirmado = models.BooleanField(default=False, verbose_name="Confirmado por jefe/admin")
     tardanza = models.BooleanField(default=False, verbose_name="Marca tardanza por jefe/admin")
+    licencia = models.BooleanField(default=False, verbose_name="¿Estaba de Licencia?")
     
     class Meta:
         verbose_name='HistorialAsistencia'

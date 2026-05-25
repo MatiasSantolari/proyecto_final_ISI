@@ -99,7 +99,8 @@ def api_kpis(request):
     absences_count = asistencias_qs.filter(
         fecha_asistencia__month=today.month,
         fecha_asistencia__year=today.year,
-        confirmado=False
+        confirmado=False,
+        licencia=False
     ).distinct().count()
 
     ultima_nomina = nominas_qs.order_by('-fecha_generacion').first()
@@ -239,25 +240,29 @@ def api_asistencias(request):
     
     qs = base_qs.filter(fecha_asistencia__range=[start_date, today])
 
-    labels, present, ausent, late = [], [], [], []
+    labels, present, ausent, late, licenses = [], [], [], [], []
     
     if group_by == 'day':
         for i in range(days_back):
             d = start_date + timedelta(days=i)
             labels.append(d.strftime('%d %b'))
             day_qs = qs.filter(fecha_asistencia=d)
-            present.append(day_qs.filter(confirmado=True).count())
-            late.append(day_qs.filter(tardanza=True).count())
-            ausent.append(day_qs.filter(confirmado=False).count())
+            
+            present.append(day_qs.filter(confirmado=True, tardanza=False, licencia=False).count())
+            late.append(day_qs.filter(tardanza=True, licencia=False).count())
+            ausent.append(day_qs.filter(confirmado=False, licencia=False).count())
+            licenses.append(day_qs.filter(licencia=True).count())
     
     elif group_by == 'month':
         current_date = start_date
         while current_date <= today:
             month_qs = qs.filter(fecha_asistencia__month=current_date.month, fecha_asistencia__year=current_date.year)
             labels.append(current_date.strftime('%b %Y'))
-            present.append(month_qs.filter(confirmado=True).count())
-            late.append(month_qs.filter(tardanza=True).count())
-            ausent.append(month_qs.filter(confirmado=False).count())
+            
+            present.append(month_qs.filter(confirmado=True, tardanza=False, licencia=False).count())
+            late.append(month_qs.filter(tardanza=True, licencia=False).count())
+            ausent.append(month_qs.filter(confirmado=False, licencia=False).count())
+            licenses.append(month_qs.filter(licencia=True).count())
             current_date += relativedelta(months=1)
 
     elif group_by == 'week':
@@ -266,9 +271,11 @@ def api_asistencias(request):
             week_end = min(current_date + timedelta(days=6), today)
             week_qs = qs.filter(fecha_asistencia__range=[current_date, week_end])
             labels.append(f"{current_date.strftime('%d %b')} - {week_end.strftime('%d %b')}" if current_date != week_end else f"Día {current_date.strftime('%d %b')}")
-            present.append(week_qs.filter(confirmado=True).count())
-            late.append(week_qs.filter(tardanza=True).count())
-            ausent.append(week_qs.filter(confirmado=False).count())
+            
+            present.append(week_qs.filter(confirmado=True, tardanza=False, licencia=False).count())
+            late.append(week_qs.filter(tardanza=True, licencia=False).count())
+            ausent.append(week_qs.filter(confirmado=False, licencia=False).count())
+            licenses.append(week_qs.filter(licencia=True).count())
             current_date = week_end + timedelta(days=1)
 
     return JsonResponse({
@@ -276,6 +283,7 @@ def api_asistencias(request):
         "present": present, 
         "late": late, 
         "ausent": ausent,
+        "licenses": licenses,
         "start_date_formatted": start_date.strftime('%d %b %Y'),
         "end_date_formatted": today.strftime('%d %b %Y'),
         "active_period": periodo_final 
@@ -667,7 +675,11 @@ def api_asistencia_empleado(request):
     persona = getattr(request.user, 'persona', None)
     if not persona:
         return JsonResponse({'error': 'Perfil incompleto'}, status=403)
-    empleado = Empleado.objects.get(id=persona.id)
+    
+    try:
+        empleado = Empleado.objects.get(id=persona.id)
+    except Empleado.DoesNotExist:
+        return JsonResponse({'error': 'Empleado no encontrado'}, status=44)
     
     hoy = timezone.localtime(timezone.now()).date() 
     primer_dia_mes = hoy.replace(day=1)
@@ -678,36 +690,39 @@ def api_asistencia_empleado(request):
     current_day = primer_dia_mes
     while current_day <= hoy:
         if current_day.weekday() not in [5, 6]: 
-            total_dias_laborables_contados += 1
             
-            asistencia_del_dia = HistorialAsistencia.objects.filter(
+            registro_asistencia_dia = HistorialAsistencia.objects.filter(
                 empleado=empleado,
-                fecha_asistencia=current_day,
-                confirmado=True
-            ).exists()
+                fecha_asistencia=current_day
+            ).first()
 
-            if asistencia_del_dia:
-                dias_asistidos += 1
+            if registro_asistencia_dia and registro_asistencia_dia.licencia:
+                pass
+            else:
+                total_dias_laborables_contados += 1
+                if registro_asistencia_dia and registro_asistencia_dia.confirmado:
+                    dias_asistidos += 1
                 
         current_day += timedelta(days=1)
 
     porcentaje_asistencia = (dias_asistidos / total_dias_laborables_contados * 100) if total_dias_laborables_contados > 0 else 0
 
-    
     registro_hoy = HistorialAsistencia.objects.filter(empleado=empleado, fecha_asistencia=hoy).first()
 
     estado_hoy = "Nada marcado"
     if registro_hoy:
-        if registro_hoy.hora_entrada and not registro_hoy.hora_salida:
+        if registro_hoy.licencia:
+            estado_hoy = "De Licencia"
+        elif registro_hoy.hora_entrada and not registro_hoy.hora_salida:
             estado_hoy = "Entrada marcada"
         elif registro_hoy.hora_entrada and registro_hoy.hora_salida:
             estado_hoy = "Ambos marcados"
-
 
     return JsonResponse({
         "asistencia_mes": round(porcentaje_asistencia, 1),
         "estado_hoy": estado_hoy,
     })
+
 
 
 

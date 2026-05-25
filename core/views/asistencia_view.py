@@ -12,9 +12,9 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.utils import timezone
 import pytz
-from django.core.paginator import Paginator
 from django.db.models import Q, Value
 from django.db.models.functions import Concat
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 
@@ -96,12 +96,19 @@ def registrar_asistencia(request):
         historial_asistencias = HistorialAsistencia.objects.filter(empleado=empleado).order_by('-fecha_asistencia')
         paginator = Paginator(historial_asistencias, 10)
         page_number = request.GET.get('page') 
-        page_obj = paginator.get_page(page_number)
+
+        try:
+            page_obj = paginator.page(page_number)
+        except (PageNotAnInteger, EmptyPage):
+            page_obj = paginator.page(1)
+
+        rango_paginas = list(paginator.get_elided_page_range(page_obj.number, on_each_side=1, on_ends=1))
 
         return render(request, "registrar_asistencia.html", {
             "asistencia_hoy": asistencia,
             "hoy": hoy,
             "page_obj": page_obj,
+            "rango_paginas": rango_paginas,
         })
 
 
@@ -110,7 +117,7 @@ def registrar_asistencia(request):
 def confirmar_asistencias(request):
     hoy = timezone.localtime(timezone.now()).date() 
     departamento_sel = request.GET.get("departamento", "")
-    search_texto = request.GET.get("nombre_apellido", "").strip() # Captura el input
+    search_texto = request.GET.get("nombre_apellido", "").strip() 
     page_number = request.GET.get("page", 1)
     user_empleado = _get_empleado_de_user(request)
 
@@ -196,23 +203,34 @@ def confirmar_asistencias_accion(request):
             else:
                 empleados = Empleado.objects.filter(id=user_empleado.id)
 
-        # Crear registros de ausencia para los que no tienen hoy
         for e in empleados:
             if not HistorialAsistencia.objects.filter(empleado=e, fecha_asistencia=hoy).exists():
-                HistorialAsistencia.objects.create(
-                    empleado=e,
-                    fecha_asistencia=hoy,
-                    hora_entrada=None,
-                    hora_salida=None,
-                    tardanza=False,
-                    confirmado=False
-                )
+                
+                if e.estado == 'en licencia':
+                    HistorialAsistencia.objects.create(
+                        empleado=e,
+                        fecha_asistencia=hoy,
+                        hora_entrada=None,
+                        hora_salida=None,
+                        tardanza=False,
+                        confirmado=True,  
+                        licencia=True     
+                    )
+                else:
+                    HistorialAsistencia.objects.create(
+                        empleado=e,
+                        fecha_asistencia=hoy,
+                        hora_entrada=None,
+                        hora_salida=None,
+                        tardanza=False,
+                        confirmado=False, 
+                        licencia=False    
+                    )
                 actualizados += 1
 
-        messages.success(request, f"Se registraron {actualizados} ausentes de hoy.")
+        messages.success(request, f"Se procesaron {actualizados} empleados que no registraron marcas hoy.")
         return redirect("confirmar_asistencias")
 
-    
     for aid in ids:
         asistencia = HistorialAsistencia.objects.filter(id=aid, fecha_asistencia=hoy).first()
         if not asistencia or asistencia.hora_entrada is None:

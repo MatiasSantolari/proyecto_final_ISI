@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
+    
     function renderTable(data) {
         tbody.innerHTML = ''; 
         if (data.length === 0) {
@@ -45,19 +46,44 @@ document.addEventListener('DOMContentLoaded', () => {
             const fechaAsistenciaObj = parseISODateLocal(item.fecha_asistencia);
             const fechaDisplay = fechaAsistenciaObj ? fechaAsistenciaObj.toLocaleDateString() : 'N/A';
             
-            const tardanzaClass = item.tardanza ? 'bg-danger' : 'bg-success';
-            const confirmadoClass = item.confirmado ? 'bg-success' : 'bg-warning text-dark';
+            const esLicencia = item.es_licencia === true;
+
+            let horasColumnasHtml = '';
+            let tardanzaHtml = '';
+            let confirmadoHtml = '';
+
+            if (esLicencia) {
+                horasColumnasHtml = `
+                    <td colspan="2" class="text-center">
+                        <span class="badge bg-secondary px-3 py-1 fw-semibold text-white">Licencia Justificada</span>
+                    </td>`;
+                tardanzaHtml = `<td><span class="text-muted small">—</span></td>`;
+                confirmadoHtml = `<td><span class="badge bg-success">Sí</span></td>`;
+            } else {
+                const entrada = item.hora_entrada || 'N/A';
+                const salida = item.hora_salida || 'N/A';
+                
+                horasColumnasHtml = `
+                    <td>${entrada}</td>
+                    <td>${salida}</td>`;
+                
+                const tardanzaClass = item.tardanza ? 'bg-danger' : 'bg-success';
+                tardanzaHtml = `<td><span class="badge ${tardanzaClass}">${item.tardanza ? 'Sí' : 'No'}</span></td>`;
+                
+                const confirmadoClass = item.confirmado ? 'bg-success' : 'bg-warning text-dark';
+                confirmadoHtml = `<td><span class="badge ${confirmadoClass}">${item.confirmado ? 'Sí' : 'No'}</span></td>`;
+            }
 
             row.innerHTML = `
                 <td>${fechaDisplay}</td>
-                <td>${item.hora_entrada || 'N/A'}</td>
-                <td>${item.hora_salida || 'N/A'}</td>
-                <td><span class="badge ${tardanzaClass}">${item.tardanza ? 'Sí' : 'No'}</span></td>
-                <td><span class="badge ${confirmadoClass}">${item.confirmado ? 'Sí' : 'No'}</span></td>
+                ${horasColumnasHtml}
+                ${tardanzaHtml}
+                ${confirmadoHtml}
             `;
             tbody.appendChild(row);
         });
     }
+
 
 
     function renderPagination(pagination) {

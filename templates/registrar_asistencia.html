@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
 <div class="container-fluid p-5 my-2">
 
-  <div class="row justify-content-center mb-4 mt-3">
+  <div class="row justify-content-center mb-2 mt-2">
     <div class="col-md-8 col-lg-6">
       
       <div class="card shadow-lg border-0 rounded-4 overflow-hidden"> 
@@ -21,7 +21,9 @@
           <div class="row align-items-center mb-2">
             <div class="col-md-6 text-center text-md-start">
                 <p class="mb-0"><strong>Fecha:</strong> {{ hoy|date:"d/m/Y" }}</p>
-                {% if asistencia_hoy %}
+                {% if asistencia_hoy.licencia %}
+                    <p class="mb-0 text-info fw-bold"><i class="bi bi-calendar-event-fill me-2"></i> Jornada de Licencia</p>
+                {% elif asistencia_hoy %}
                     <p class="mb-0 text-success"><i class="bi bi-check-circle-fill me-2"></i> Estado: Registrado</p>
                 {% else %}
                     <p class="mb-0 text-muted">Estado: Pendiente de registro</p>
@@ -29,18 +31,22 @@
             </div>
             
             <div class="col-md-6 mt-3 mt-md-0 d-flex justify-content-center justify-content-md-end gap-3">
-                <span class="badge bg-primary p-2">Entrada: {{ asistencia_hoy.hora_entrada|default:"-" }}</span>
-                <span class="badge bg-secondary p-2">Salida: {{ asistencia_hoy.hora_salida|default:"-" }}</span>
+                {% if asistencia_hoy.licencia %}
+                    <span class="badge bg-secondary p-2 w-100 text-center">Licencia Justificada</span>
+                {% else %}
+                    <span class="badge bg-primary p-2">Entrada: {{ asistencia_hoy.hora_entrada|default:"-" }}</span>
+                    <span class="badge bg-secondary p-2">Salida: {{ asistencia_hoy.hora_salida|default:"-" }}</span>
+                {% endif %}
             </div>
           </div>
 
            <hr>
 
           <div class="d-flex justify-content-center gap-3 mt-0">
-            <button type="button" id="btn-entrada-local" class="btn btn-success flex-fill btn-lg rounded-3" data-bs-toggle="modal" data-bs-target="#confirmEntradaModal">
+            <button type="button" id="btn-entrada-local" class="btn btn-success flex-fill btn-lg rounded-3" {% if asistencia_hoy.licencia %}disabled{% endif %} data-bs-toggle="modal" data-bs-target="#confirmEntradaModal">
               <i class="bi bi-box-arrow-in-right me-2"></i> Entrada
             </button>
-            <button type="button" id="btn-salida-local" class="btn btn-danger flex-fill btn-lg rounded-3" data-bs-toggle="modal" data-bs-target="#confirmSalidaModal">
+            <button type="button" id="btn-salida-local" class="btn btn-danger flex-fill btn-lg rounded-3" {% if asistencia_hoy.licencia %}disabled{% endif %} data-bs-toggle="modal" data-bs-target="#confirmSalidaModal">
               <i class="bi bi-box-arrow-left me-2"></i> Salida
             </button>
           </div>
@@ -69,29 +75,44 @@
                 {% for h in page_obj %}
                 <tr>
                   <td>{{ h.fecha_asistencia|date:"d/m/Y" }}</td>
-                  <td>{{ h.hora_entrada|default:"-" }}</td>
-                  <td>{{ h.hora_salida|default:"-" }}</td>
+                  
+                  {% if h.licencia %}
+                    <td colspan="2" class="text-center">
+                      <span class="badge bg-secondary px-3 py-1 fw-semibold text-white">Licencia Justificada</span>
+                    </td>
+                  {% else %}
+                    <td>{{ h.hora_entrada|default:"-" }}</td>
+                    <td>{{ h.hora_salida|default:"-" }}</td>
+                  {% endif %}
+                  
                   <td>{% if h.confirmado %}✅{% else %}❌{% endif %}</td>
+                  
                   <td>
-                    {% if h.confirmado %}
-                      {% if h.tardanza %}
-                        <span class="badge bg-warning text-dark">⏰ Tarde</span>
-                      {% else %}
-                        <span class="badge bg-success">🟢 A tiempo</span>
-                      {% endif %}
+                    {% if h.licencia %}
+                      <span class="badge bg-secondary">🟢 Justificado</span>
                     {% else %}
-                      <span class="badge bg-info text-dark">⚪ Pendiente</span>
+                      {% if h.confirmado %}
+                        {% if h.tardanza %}
+                          <span class="badge bg-warning text-dark">⏰ Tarde</span>
+                        {% else %}
+                          <span class="badge bg-success">🟢 A tiempo</span>
+                        {% endif %}
+                      {% else %}
+                        <span class="badge bg-danger text-white">🔴 Ausente</span>
+                      {% endif %}
                     {% endif %}
                   </td>
                 </tr>
                 {% empty %}
                 <tr>
-                  <td colspan="5" class="text-center text-muted p-4">No hay registros.</td>
+                  <td colspan="5" class="text-center text-muted p-4">No hay registros de asistencias.</td>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
+          
+
           <nav aria-label="Historial de Asistencias">
             <ul class="pagination justify-content-center mt-3">
               {% if page_obj.has_previous %}
@@ -102,9 +123,11 @@
                 <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
               {% endif %}
 
-              {% for num in page_obj.paginator.page_range %}
-                {% if page_obj.number == num %}
+              {% for num in rango_paginas %}
+                {% if num == page_obj.number %}
                   <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num == '…' or num == '...' %}
+                  <li class="page-item disabled"><span class="page-link" style="background: transparent; border: none; opacity: 0.65;">...</span></li>
                 {% else %}
                   <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
                 {% endif %}
@@ -126,9 +149,17 @@
   </div>
 </div>
 {% endblock %}
+
 {% block extra_js %}
 <script>
     function updateLocalButtons() {
+        const esLicenciaHoy = "{{ asistencia_hoy.licencia }}" === 'True';
+        if (esLicenciaHoy) {
+            document.getElementById('btn-entrada-local').innerHTML = '<i class="bi bi-calendar-event me-2"></i> De Licencia';
+            document.getElementById('btn-salida-local').innerHTML = '<i class="bi bi-calendar-event me-2"></i> De Licencia';
+            return;
+        }
+
         const asistenciaHoyRegistrada = "{{ asistencia_hoy.pk }}" && "{{ asistencia_hoy.pk }}" !== 'None';
         const horaSalidaRegistrada = "{{ asistencia_hoy.hora_salida }}" && "{{ asistencia_hoy.hora_salida }}" !== 'None';
 

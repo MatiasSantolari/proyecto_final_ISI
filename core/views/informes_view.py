@@ -72,11 +72,12 @@ def get_asistencias_queryset(request):
         queryset = queryset.filter(fecha_asistencia__lte=fecha_hasta)
         
     if ausencia == 'true':
-        queryset = queryset.filter(hora_entrada__isnull=True, hora_salida__isnull=True)
+        queryset = queryset.filter(hora_entrada__isnull=True, hora_salida__isnull=True, licencia=False)
     elif ausencia == 'false':
-        queryset = queryset.filter(hora_entrada__isnull=False) | queryset.filter(hora_salida__isnull=False)
+        queryset = queryset.filter(Q(hora_entrada__isnull=False) | Q(hora_salida__isnull=False) | Q(licencia=True))
     
     return queryset.distinct()
+
 
 
 
@@ -134,12 +135,15 @@ def api_asistencias_detalle(request):
 
         url_perfil = reverse('empleado_perfil_detalle', args=[asistencia.empleado.id])
 
+        entrada_txt = "Licencia" if asistencia.licencia else (asistencia.hora_entrada.strftime('%H:%M:%S') if asistencia.hora_entrada else '-')
+        salida_txt = "Licencia" if asistencia.licencia else (asistencia.hora_salida.strftime('%H:%M:%S') if asistencia.hora_salida else '-')
+
         data.append({
             'nombre_completo': f"{asistencia.empleado.nombre} {asistencia.empleado.apellido}",
             'dni': asistencia.empleado.dni,
             'fecha_asistencia': asistencia.fecha_asistencia.strftime('%d-%m-%Y'),
-            'hora_entrada': asistencia.hora_entrada.strftime('%H:%M:%S') if asistencia.hora_entrada else '-',
-            'hora_salida': asistencia.hora_salida.strftime('%H:%M:%S') if asistencia.hora_salida else '-',
+            'hora_entrada': entrada_txt,
+            'hora_salida': salida_txt,
             'confirmado': asistencia.confirmado,
             'tardanza': asistencia.tardanza,
             'departamento': nombre_dep,
@@ -176,13 +180,20 @@ def exportar_asistencias_csv(request):
         else:
             nombre_dep = 'Sin Cargo Activo'
 
+        if asistencia.licencia:
+            entrada_csv = 'Licencia Justificada'
+            salida_csv = 'Licencia Justificada'
+        else:
+            entrada_csv = asistencia.hora_entrada if asistencia.hora_entrada else 'Ausencia'
+            salida_csv = asistencia.hora_salida if asistencia.hora_salida else 'Ausencia'
+
         writer.writerow([
             f"{asistencia.empleado.nombre} {asistencia.empleado.apellido}",
             asistencia.empleado.dni,
             nombre_dep, 
             asistencia.fecha_asistencia,
-            asistencia.hora_entrada if asistencia.hora_entrada else 'Ausencia', 
-            asistencia.hora_salida if asistencia.hora_salida else 'Ausencia',
+            entrada_csv, 
+            salida_csv,
             'Sí' if asistencia.confirmado else 'No',
             'Sí' if asistencia.tardanza else 'No',
         ])
@@ -320,9 +331,13 @@ def exportar_empleados_csv(request):
     return response
 
 
+################# PERFIL PERSONA RESUMIDO ###################
 
 @login_required
 def empleado_perfil_detalle_view(request, empleado_id):
+    """
+    Vista principal que renderiza el perfil del empleado con sus pestañas HTML.
+    """
     empleado = get_object_or_404(Empleado.objects.all(), id=empleado_id)
     cargo_activo = empleado.empleadocargo_set.filter(fecha_fin__isnull=True).first()
     departamento_activo = None
@@ -336,14 +351,15 @@ def empleado_perfil_detalle_view(request, empleado_id):
     })
 
 
-
 @login_required
 def api_empleado_nominas(request, empleado_id):
+    """
+    API 1: Historial de nóminas liquidadas del empleado.
+    """
     rol_actual = request.session.get('rol_actual', request.user.rol)
     
     if rol_actual in ['jefe', 'gerente']:
         depto_usuario = request.user.persona.empleado.departamento_actual()
-    
         es_de_su_equipo = EmpleadoCargo.objects.filter(
             empleado_id=empleado_id,
             cargo__cargodepartamento__departamento=depto_usuario,
@@ -353,11 +369,10 @@ def api_empleado_nominas(request, empleado_id):
         if not es_de_su_equipo:
             return JsonResponse({'error': 'No tiene permiso para ver este empleado'}, status=403)
     
-    
     nominas = Nomina.objects.filter(empleado_id=empleado_id).order_by('-fecha_generacion')
     
     page = request.GET.get('page', 1)
-    per_page = request.GET.get('per_page', 15)
+    per_page = request.GET.get('per_page', 10)
     paginator = Paginator(nominas, per_page)
     
     try:
@@ -373,6 +388,8 @@ def api_empleado_nominas(request, empleado_id):
         'estado': n.estado,
     } for n in items_page]
 
+    rango_paginas = list(paginator.get_elided_page_range(items_page.number, on_each_side=1, on_ends=1))
+
     return JsonResponse({
         'results': data,
         'pagination': {
@@ -380,13 +397,16 @@ def api_empleado_nominas(request, empleado_id):
             'current_page': items_page.number,
             'has_next': items_page.has_next(),
             'has_previous': items_page.has_previous(),
+            'rango_paginas': rango_paginas,  
         }
     }, safe=False)
 
 
-
 @login_required
 def api_empleado_evaluaciones(request, empleado_id):
+    """
+    API 2: Historial de evaluaciones de desempeño del empleado.
+    """
     rol_actual = request.session.get('rol_actual', request.user.rol)
     
     if rol_actual in ['jefe', 'gerente']:
@@ -400,10 +420,9 @@ def api_empleado_evaluaciones(request, empleado_id):
         if not es_de_su_equipo:
             return JsonResponse({'error': 'No tiene permiso para ver este empleado'}, status=403)
   
-  
     evaluaciones = EvaluacionEmpleado.objects.filter(empleado_id=empleado_id).order_by('-fecha_registro')
     page = request.GET.get('page', 1)
-    per_page = request.GET.get('per_page', 15)
+    per_page = request.GET.get('per_page', 10)
     paginator = Paginator(evaluaciones, per_page)
     try:
         items_page = paginator.page(page)
@@ -417,6 +436,8 @@ def api_empleado_evaluaciones(request, empleado_id):
         'url_calificacion': f"/evaluaciones/{e.evaluacion.id}/empleados/", 
     } for e in items_page]
 
+    rango_paginas = list(paginator.get_elided_page_range(items_page.number, on_each_side=1, on_ends=1))
+
     return JsonResponse({
         'results': data,
         'pagination': {
@@ -424,9 +445,9 @@ def api_empleado_evaluaciones(request, empleado_id):
             'current_page': items_page.number,
             'has_next': items_page.has_next(),
             'has_previous': items_page.has_previous(),
+            'rango_paginas': rango_paginas,  
         }
     }, safe=False)
-
 
 
 def es_subordinado(user, empleado_id, rol):
@@ -444,9 +465,11 @@ def es_subordinado(user, empleado_id, rol):
         return False
 
 
-
 @login_required
 def api_empleado_asistencia(request, empleado_id):
+    """
+    API 3: Historial de asistencia diaria del empleado (Soporta Licencias).
+    """
     rol = request.session.get('rol_actual', request.user.rol)
     if not es_subordinado(request.user, empleado_id, rol):
         return JsonResponse({'error': 'Acceso denegado'}, status=403)
@@ -454,7 +477,7 @@ def api_empleado_asistencia(request, empleado_id):
     asistencias = HistorialAsistencia.objects.filter(empleado_id=empleado_id).order_by('-fecha_asistencia')[:180]
 
     page = request.GET.get('page', 1)
-    per_page = request.GET.get('per_page', 15)
+    per_page = request.GET.get('per_page', 10)
     paginator = Paginator(asistencias, per_page)
 
     try:
@@ -462,13 +485,22 @@ def api_empleado_asistencia(request, empleado_id):
     except (PageNotAnInteger, EmptyPage):
         items_page = paginator.page(1)
 
-    data = [{
-        'fecha': a.fecha_asistencia.strftime('%d-%m-%Y'),
-        'entrada': a.hora_entrada.strftime('%H:%M') if a.hora_entrada else 'N/A',
-        'salida': a.hora_salida.strftime('%H:%M') if a.hora_salida else 'N/A',
-        'confirmado': a.confirmado,
-        'tardanza': a.tardanza,
-    } for a in items_page]
+    data = []
+    for a in items_page:
+        entrada_txt = "Licencia" if a.licencia else (a.hora_entrada.strftime('%H:%M') if a.hora_entrada else 'N/A')
+        salida_txt = "Licencia" if a.licencia else (a.hora_salida.strftime('%H:%M') if a.hora_salida else 'N/A')
+
+        data.append({
+            'fecha': a.fecha_asistencia.strftime('%d-%m-%Y'),
+            'entrada': entrada_txt,
+            'salida': salida_txt,
+            'confirmado': a.confirmado,
+            'tardanza': a.tardanza,
+            'es_licencia': a.licencia, 
+        })
+
+    rango_paginas = list(paginator.get_elided_page_range(items_page.number, on_each_side=1, on_ends=1))
+
     return JsonResponse({
         'results': data,
         'pagination': {
@@ -476,12 +508,16 @@ def api_empleado_asistencia(request, empleado_id):
             'current_page': items_page.number,
             'has_next': items_page.has_next(),
             'has_previous': items_page.has_previous(),
+            'rango_paginas': rango_paginas, 
         }
     }, safe=False)
 
 
 @login_required
 def api_empleado_vacaciones(request, empleado_id):
+    """
+    API 4: Historial de solicitudes de vacaciones del empleado.
+    """
     rol = request.session.get('rol_actual', request.user.rol)
     if not es_subordinado(request.user, empleado_id, rol):
         return JsonResponse({'error': 'Acceso denegado'}, status=403)
@@ -489,7 +525,7 @@ def api_empleado_vacaciones(request, empleado_id):
     solicitudes = VacacionesSolicitud.objects.filter(empleado_id=empleado_id).order_by('-fecha_solicitud')
 
     page = request.GET.get('page', 1)
-    per_page = request.GET.get('per_page', 15)
+    per_page = request.GET.get('per_page', 10)
     paginator = Paginator(solicitudes, per_page)
 
     try:
@@ -505,6 +541,8 @@ def api_empleado_vacaciones(request, empleado_id):
         'estado': s.estado,
     } for s in items_page]
 
+    rango_paginas = list(paginator.get_elided_page_range(items_page.number, on_each_side=1, on_ends=1))
+
     return JsonResponse({
         'results': data,
         'pagination': {
@@ -512,13 +550,16 @@ def api_empleado_vacaciones(request, empleado_id):
             'current_page': items_page.number,
             'has_next': items_page.has_next(),
             'has_previous': items_page.has_previous(),
+            'rango_paginas': rango_paginas,  
         }
     }, safe=False)
 
 
-
 @login_required
 def api_empleado_objetivos(request, empleado_id):
+    """
+    API 5: Historial de metas y objetivos individuales asignados.
+    """
     rol = request.session.get('rol_actual', request.user.rol)
     if not es_subordinado(request.user, empleado_id, rol):
         return JsonResponse({'error': 'Acceso denegado'}, status=403)
@@ -534,7 +575,7 @@ def api_empleado_objetivos(request, empleado_id):
         queryset = queryset.filter(cargo__isnull=False)
 
     page = request.GET.get('page', 1)
-    per_page = request.GET.get('per_page', 15)
+    per_page = request.GET.get('per_page', 10)
     paginator = Paginator(queryset, per_page)
 
     try:
@@ -557,6 +598,8 @@ def api_empleado_objetivos(request, empleado_id):
             'nombre_cargo': item.cargo.nombre if item.cargo else None 
         })
 
+    rango_paginas = list(paginator.get_elided_page_range(items_page.number, on_each_side=1, on_ends=1))
+
     return JsonResponse({
         'results': data,
         'pagination': {
@@ -564,8 +607,11 @@ def api_empleado_objetivos(request, empleado_id):
             'current_page': items_page.number,
             'has_next': items_page.has_next(),
             'has_previous': items_page.has_previous(),
+            'rango_paginas': rango_paginas,  
         }
     })
+
+
 
 
 #############################
@@ -1287,6 +1333,7 @@ def api_objetivos_detalle_emp(request):
 def asistencias_detalle_view_emp(request):
     return render(request, 'informes_vista_empleado/asistencias_detalle.html')
 
+
 @login_required
 def api_asistencias_detalle_emp(request):
     empleado = None
@@ -1311,15 +1358,18 @@ def api_asistencias_detalle_emp(request):
     except EmptyPage:
         asistencias_page = paginator.page(paginator.num_pages)
     
-    
     data = []
     for asistencia in asistencias_page:
+        entrada_txt = "Licencia" if asistencia.licencia else (asistencia.hora_entrada.strftime('%H:%M') if asistencia.hora_entrada else None)
+        salida_txt = "Licencia" if asistencia.licencia else (asistencia.hora_salida.strftime('%H:%M') if asistencia.hora_salida else None)
+
         data.append({
             'fecha_asistencia': asistencia.fecha_asistencia.strftime('%Y-%m-%d'),
-            'hora_entrada': asistencia.hora_entrada.strftime('%H:%M') if asistencia.hora_entrada else None,
-            'hora_salida': asistencia.hora_salida.strftime('%H:%M') if asistencia.hora_salida else None,
+            'hora_entrada': entrada_txt,
+            'hora_salida': salida_txt,
             'confirmado': asistencia.confirmado,
             'tardanza': asistencia.tardanza,
+            'es_licencia': asistencia.licencia, 
         })
     
     return JsonResponse({

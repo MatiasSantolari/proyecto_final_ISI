@@ -63,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
     function renderTable(data, isPrinting = false) {
         tbody.innerHTML = ''; 
         if (data.length === 0) {
@@ -77,25 +78,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<span>${item.nombre_completo}</span>` 
                 : `<a href="${item.url_perfil}">${item.nombre_completo}</a>`;
             
-            const esAusente = (!item.hora_entrada || item.hora_entrada === '-' || item.hora_entrada === null) && 
+            const esLicencia = item.hora_entrada === "Licencia" || item.hora_salida === "Licencia";
+            
+            const esAusente = !esLicencia && 
+                              (!item.hora_entrada || item.hora_entrada === '-' || item.hora_entrada === null) && 
                               (!item.hora_salida || item.hora_salida === '-' || item.hora_salida === null);
 
             let horasColumnasHtml = '';
             let tardanzaHtml = '';
+            let confirmadoHtml = '';
             
-            if (esAusente) {
+            if (esLicencia) {
+                horasColumnasHtml = `
+                    <td colspan="2" class="text-center">
+                        <span class="badge bg-secondary px-3 py-1 fw-semibold text-white">Licencia Justificada</span>
+                    </td>`;
+                tardanzaHtml = `<td><span class="text-muted small">—</span></td>`;
+                confirmadoHtml = `<td><span class="badge bg-success">Sí</span></td>`;
+            } 
+            else if (esAusente) {
                 horasColumnasHtml = `
                     <td colspan="2" class="text-center">
                         <span class="badge bg-danger px-3 py-1 fw-bold">Ausencia Registrada</span>
                     </td>`;
                 tardanzaHtml = `<td><span class="badge bg-info">No</span></td>`;
-            } else {
+                confirmadoHtml = `<td><span class="badge bg-warning">No</span></td>`;
+            } 
+            else {
                 const entrada = item.hora_entrada || '-';
                 const salida = item.hora_salida || '-';
                 horasColumnasHtml = `
                     <td>${entrada}</td>
                     <td>${salida}</td>`;
                 tardanzaHtml = `<td><span class="badge bg-${item.tardanza ? 'danger' : 'info'}">${item.tardanza ? 'Sí' : 'No'}</span></td>`;
+                confirmadoHtml = `<td><span class="badge bg-${item.confirmado ? 'success' : 'warning'}">${item.confirmado ? 'Sí' : 'No'}</span></td>`;
             }
 
             row.innerHTML = `
@@ -104,12 +120,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${item.departamento}</td>
                 <td>${item.fecha_asistencia}</td>
                 ${horasColumnasHtml}
-                <td><span class="badge bg-${item.confirmado ? 'success' : 'warning'}">${item.confirmado ? 'Sí' : 'No'}</span></td>
+                ${confirmadoHtml}
                 ${tardanzaHtml}
             `;
             tbody.appendChild(row);
         });
     }
+
+    
 
     function renderPagination(pagination) {
         paginationControls.innerHTML = '';

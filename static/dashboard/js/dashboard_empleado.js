@@ -162,8 +162,6 @@
         });
 
 
-
-
         const porcCargo = data.cargo.length ? Math.round((realizadosCargo / data.cargo.length) * 100) : 0;
         const barraCargo = document.getElementById('progresoCargo');
         if(barraCargo) {
@@ -179,6 +177,8 @@
     
     async function loadAsistenciaCard() {
         const cont = document.getElementById('containerAsistenciaCard');
+        if (!cont) return;
+        
         cont.innerHTML = '<div class="text-center text-muted py-3">Cargando...</div>';
 
         const dataAsistencia = await safeFetch(API.asistencia);
@@ -198,6 +198,9 @@
             recordatorioHTML = `<div class="alert alert-warning p-2 small"><i class="bi bi-clock-history me-2"></i>Recuerda marcar su <strong>**salida**</strong> al terminar el día (Podras hacerlo en la barra superior interfaz).</div>`;
         } else if (estadoHoy === "Ambos marcados") {
             recordatorioHTML = `<div class="alert alert-success p-2 small"><i class="bi bi-check-circle me-2"></i>Asistencia de hoy registrada correctamente.</div>`;
+        } 
+        else if (estadoHoy === "De Licencia") {
+            recordatorioHTML = `<div class="alert alert-info p-2 small"><i class="bi bi-calendar-event me-2"></i>Jornada actual registrada como <strong>**Licencia Justificada**</strong> en el sistema.</div>`;
         }
 
         cont.innerHTML = `

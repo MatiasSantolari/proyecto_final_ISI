@@ -1,6 +1,8 @@
 import json
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
+from django.utils import timezone
+from django.db.models import Count, Sum
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
@@ -8,9 +10,10 @@ from django.views.decorators.http import require_POST, require_GET
 from django.core.files.base import ContentFile
 from xhtml2pdf import pisa
 from django.shortcuts import render
-
 from .hr_reporter import generar_informe_ia
 from ...models import ReporteDashboardIA  
+from core.models import HistorialAsistencia, EvaluacionEmpleado, Empleado
+
 
 
 @login_required
@@ -20,7 +23,43 @@ def api_generar_reporte_ia_view(request):
     try:
         datos_dashboard = json.loads(request.body)
         rol_actual = request.session.get('rol_actual', request.user.rol)
-        tipo_informe = request.GET.get('tipo', 'Diagnóstico Global de Dashboard')
+        tipo_informe = request.GET.get('tipo', 'Auditoría Estratégica Transversal: Sistema de Gestión de Recursos Humanos')
+
+        hoy = timezone.localdate()
+        hace_30_dias = hoy - timedelta(days=30)
+
+        ausencias_detalladas = HistorialAsistencia.objects.filter(
+            fecha_asistencia__range=[hace_30_dias, hoy],
+            confirmado=False
+        ).values(
+            'empleado__nombre', 'empleado__apellido', 
+            'empleado__empleadocargo__cargo__cargodepartamento__departamento__nombre'
+        ).annotate(total_faltas=Count('id')).order_by('-total_faltas')[:10]
+
+        lista_ausentes = [
+            {
+                "nombre": f"{a['empleado__nombre']} {a['empleado__apellido']}",
+                "departamento": a['empleado__empleadocargo__cargo__cargodepartamento__departamento__nombre'] or "Sin Área",
+                "cantidad_faltas": a['total_faltas']
+            } for a in ausencias_detalladas
+        ]
+
+        evaluaciones_bajas = EvaluacionEmpleado.objects.exclude(calificacion_final__isnull=True).filter(
+            fecha_registro__gte=hoy - timedelta(days=365),
+            calificacion_final__lt=6 
+        ).select_related('empleado').order_by('calificacion_final')[:10]
+
+        lista_evaluaciones_bajas = [
+            {
+                "nombre": f"{ev.empleado.nombre} {ev.empleado.apellido}",
+                "calificacion": float(ev.calificacion_final)
+            } for ev in evaluaciones_bajas
+        ]
+
+        datos_dashboard['detalles_nomina_exclusivos_ia'] = {
+            'top_empleados_ausentes_30_dias': lista_ausentes,
+            'empleados_con_bajo_desempeño_calificacion_6': lista_evaluaciones_bajas
+        }
 
         html_reporte = generar_informe_ia(
             datos=datos_dashboard, 
@@ -74,6 +113,8 @@ def api_generar_reporte_ia_view(request):
         return JsonResponse({'error': 'JSON inválido'}, status=400)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
 
 
 @login_required
