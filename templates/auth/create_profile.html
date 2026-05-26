@@ -33,7 +33,27 @@
     #theme-toggle:hover {
         background: rgba(255, 255, 255, 0.2);
     }
+
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: auto;
+      height: auto;
+      color: transparent;
+      background: transparent;
+      cursor: pointer;
+      z-index: 5;
+  }
+
+  input[type="date"] {
+      position: relative;
+  }
 </style>
+
 
 <body class="bg-info-subtle text-dark"> 
   <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">

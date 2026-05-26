@@ -48,6 +48,8 @@ Reglas Estrictas de Formato, Contraste y Estilo Minimalista (MANDATORIAS PARA SO
 5. Cada vez que abras un párrafo común fuera de las alertas, usa <p class="text-body mb-3">. Para las listas de recomendaciones y nombres de empleados, utiliza <ul> y <li> con la clase 'mb-2 text-body', aplicando negritas '<strong>' al inicio de cada punto o nombre para resaltar.
 6. Sé directo, asertivo y prescriptivo: guíalo indicándole qué decisiones operativas y planes de acción específicos debe ejecutar.
 
+7. REGLA DE NOMENCLATURA ASESORA (PROHIBIDO 'CONCLUSIONES'): Está terminantemente prohibido usar la palabra o título 'Conclusiones', 'Próximos Pasos' o similares para cerrar el informe. El bloque final de cierre del diagnóstico debe titularse obligatoria y exclusivamente de la siguiente manera: '<h4>Sugerencias de Negocio y Recomendaciones Operativas</h4>' con la clase 'fw-bold text-primary mb-3 mt-4'. En esta sección debés estructurar en formato de lista (<ul>, <li>) los planes de acción prescriptivos e inmediatos divididos por prioridades operativas para mitigar el ausentismo, resolver los objetivos estancados y regular el desvío de costos netos.
+
 Datos a procesar:
 {datos_json}
 """

@@ -10,6 +10,7 @@ from django.views.decorators.http import require_POST, require_GET
 from django.core.files.base import ContentFile
 from xhtml2pdf import pisa
 from django.shortcuts import render
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from .hr_reporter import generar_informe_ia
 from ...models import ReporteDashboardIA  
 from core.models import HistorialAsistencia, EvaluacionEmpleado, Empleado
@@ -121,7 +122,7 @@ def api_generar_reporte_ia_view(request):
 @require_GET
 def api_ultimo_pdf_ia_view(request):
     """
-    🌟 VISTA EXTRA: Busca el último PDF generado por el usuario conectado
+    VISTA EXTRA: Busca el último PDF generado por el usuario conectado
     y devuelve su URL para que el JS lo descargue directo.
     """
     ultimo_reporte = ReporteDashboardIA.objects.filter(usuario=request.user).order_by('-fecha_generacion').first()
@@ -136,13 +137,32 @@ def api_ultimo_pdf_ia_view(request):
 def historial_reportes_ia_view(request):
     """
     Renderiza la tabla histórica con todos los PDFs guardados en disco,
-    aplicando reglas de privacidad según el rol del usuario conectado.
+    aplicando reglas de privacidad y paginación con elipsis (...).
     """
     rol_actual = request.session.get('rol_actual', request.user.rol)
     
     if rol_actual in ['jefe', 'gerente']:
-        reportes = ReporteDashboardIA.objects.filter(usuario=request.user).order_by('-fecha_generacion')
+        reportes_list = ReporteDashboardIA.objects.filter(usuario=request.user).order_by('-fecha_generacion')
     else:
-        reportes = ReporteDashboardIA.objects.all().select_related('usuario').order_by('-fecha_generacion')
+        reportes_list = ReporteDashboardIA.objects.all().select_related('usuario').order_by('-fecha_generacion')
         
-    return render(request, 'informes/historial_reportes_ia.html', {'reportes': reportes})
+    paginator = Paginator(reportes_list, 12)
+    page_number = request.GET.get('page', 1)
+    
+    try:
+        reportes = paginator.page(page_number)
+    except PageNotAnInteger:
+        reportes = paginator.page(1)
+    except EmptyPage:
+        reportes = paginator.page(paginator.num_pages)
+
+    page_range = reportes.paginator.get_elided_page_range(
+        number=page_number, 
+        on_each_side=2, 
+        on_ends=1
+    )
+        
+    return render(request, 'informes/historial_reportes_ia.html', {
+        'reportes': reportes,
+        'page_range': page_range
+    })

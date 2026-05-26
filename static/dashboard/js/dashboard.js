@@ -14,6 +14,7 @@
   // theme handling
   const root = document.documentElement;
 
+  let isFirstLoadVac = true;
   // Chart instances
   let vacChart=null, attendanceChart, evalChart=null, payrollChart, deptChart, laborCostChart = null, capChart = null;
 
@@ -163,19 +164,18 @@
 
 
 
-  let isFirstLoad = true;
   // Vacations
   async function loadVacations() {
     const periodSelector = document.getElementById('vacationPeriodSelector');
-    const p = isFirstLoad ? '' : (periodSelector ? periodSelector.value : '1m');
+    const p = isFirstLoadVac ? '' : (periodSelector ? periodSelector.value : '1m');
     const apiUrl = `${API.vacations}?periodo=${p}`;
     
     const vac = await safeFetch(apiUrl);
 
     if(vac){
-        if (isFirstLoad && vac.active_period && periodSelector) {
+        if (isFirstLoadVac && vac.active_period && periodSelector) {
             periodSelector.value = vac.active_period;
-            isFirstLoad = false; 
+            isFirstLoadVac = false; 
         }
         const dateRangeEl = document.getElementById('vacationDateRange');
         if (dateRangeEl && vac.start_date_formatted && vac.end_date_formatted) {
@@ -262,131 +262,88 @@
   }
 
 
+    async function loadAttendance() {
+        const periodSelector = document.getElementById('attendancePeriodSelector');
+        const selectedPeriod = periodSelector ? periodSelector.value : '30d';
+        const apiUrl = `${API.attendance}?periodo=${selectedPeriod}`;
 
-  async function loadAttendance() {
-    const periodSelector = document.getElementById('attendancePeriodSelector');
-    const selectedPeriod = periodSelector ? periodSelector.value : '30d';
-    const apiUrl = `${API.attendance}?periodo=${selectedPeriod}`;
+        const att = await safeFetch(apiUrl);
+        if (!att) return;
 
-    const att = await safeFetch(apiUrl);
-    if(att){
-      const dateRangeEl = document.getElementById('attendanceDateRange');
-      if (dateRangeEl && att.start_date_formatted && att.end_date_formatted) {
-          const rangeText = (att.start_date_formatted === att.end_date_formatted)
-              ? att.start_date_formatted
-              : `${att.start_date_formatted} - ${att.end_date_formatted}`;
-          dateRangeEl.textContent = `(${rangeText})`;
-      }
+        const dateRangeEl = document.getElementById('attendanceDateRange');
+        if (dateRangeEl && att.start_date_formatted && att.end_date_formatted) {
+            const rangeText = (att.start_date_formatted === att.end_date_formatted)
+                ? att.start_date_formatted
+                : `${att.start_date_formatted} - ${att.end_date_formatted}`;
+            dateRangeEl.textContent = `(${rangeText})`;
+        }
 
-      const ctx = document.getElementById('attendanceChart').getContext('2d');
-      
-      const extraLegendPadding = {
-          id: 'extraLegendPadding',
-          beforeInit(chart) {
-              const originalFit = chart.legend.fit;
-              chart.legend.fit = function fit() {
-                  originalFit.bind(chart.legend)();
-                  this.height += 25; 
-              };
-          }
-      };
+        const canvas = document.getElementById('attendanceChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        
+        const extraLegendPadding = {
+            id: 'extraLegendPadding',
+            beforeInit(chart) {
+                const originalFit = chart.legend.fit;
+                chart.legend.fit = function fit() {
+                    originalFit.bind(chart.legend)();
+                    this.height += 25; 
+                };
+            }
+        };
 
-      if(!attendanceChart){
+        if (typeof attendanceChart !== 'undefined' && attendanceChart) {
+            attendanceChart.data.labels = att.labels || [];
+            attendanceChart.data.datasets[0].data = att.present || [];
+            attendanceChart.data.datasets[1].data = att.late || [];
+            attendanceChart.data.datasets[2].data = att.ausent || [];
+            attendanceChart.data.datasets[3].data = att.licenses || []; 
+            attendanceChart.update();
+            return; 
+        }
+
+        const existingChart = Chart.getChart(canvas); 
+        if (existingChart) {
+            existingChart.destroy();
+        }
+
         attendanceChart = new Chart(ctx, {
-          type: 'bar',
-          plugins: [extraLegendPadding],
-          data: {
+        type: 'bar',
+        plugins: [extraLegendPadding],
+        data: {
             labels: att.labels || [],
             datasets: [
-              { 
-                label: 'Presentes', 
-                data: att.present || [], 
-                backgroundColor: '#28a745', 
-                stack: 'stack1',
-                borderRadius: 6,
-                borderSkipped: false,
-                barPercentage: 0.7
-              },
-              { 
-                label: 'Tardanzas', 
-                data: att.late || [], 
-                backgroundColor: '#ffc107', 
-                stack: 'stack1',
-                borderRadius: 6,
-                borderSkipped: false,
-                barPercentage: 0.7
-              },
-              { 
-                label: 'Ausencias', 
-                data: att.ausent || [], 
-                backgroundColor: '#dc3545', 
-                stack: 'stack1',
-                borderRadius: 6,
-                borderSkipped: false,
-                barPercentage: 0.7
-              },
-              { 
-                label: 'Licencias', 
-                data: att.licenses || [], 
-                backgroundColor: '#6c757d',
-                stack: 'stack1',
-                borderRadius: 6,
-                borderSkipped: false,
-                barPercentage: 0.7
-              }
+            { label: 'Presentes', data: att.present || [], backgroundColor: '#28a745', stack: 'stack1', borderRadius: 6, borderSkipped: false, barPercentage: 0.7 },
+            { label: 'Tardanzas', data: att.late || [], backgroundColor: '#ffc107', stack: 'stack1', borderRadius: 6, borderSkipped: false, barPercentage: 0.7 },
+            { label: 'Ausencias', data: att.ausent || [], backgroundColor: '#dc3545', stack: 'stack1', borderRadius: 6, borderSkipped: false, barPercentage: 0.7 },
+            { label: 'Licencias', data: att.licenses || [], backgroundColor: '#6c757d', stack: 'stack1', borderRadius: 6, borderSkipped: false, barPercentage: 0.7 }
             ]
-          },
-          options: { 
+        },
+        options: { 
             responsive: true, 
             maintainAspectRatio: false,
             plugins: {
-              legend: {
+            legend: {
                 position: 'top',
                 align: 'end',
-                labels: {
-                  usePointStyle: true,
-                  pointStyle: 'circle',
-                  padding: 15,
-                  font: { size: 12, weight: '500' }
-                }
-              },
-              tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                padding: 12,
-                cornerRadius: 8
-              }
+                labels: { usePointStyle: true, pointStyle: 'circle', padding: 15, font: { size: 12, weight: '500' } }
+            },
+            tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: 12, cornerRadius: 8 }
             },
             scales: { 
-              x: { 
-                stacked: true,
-                border: { display: false },
-                grid: { display: false },
-                ticks: { color: '#9ca3af' }
-              }, 
-              y: { 
-                stacked: true,
-                border: { display: false },
+            x: { stacked: true, border: { display: false }, grid: { display: false }, ticks: { color: '#9ca3af' } }, 
+            y: { 
+                stacked: true, 
+                border: { display: false }, 
                 grid: { color: 'rgba(156, 163, 175, 0.1)', drawTicks: false },
-                ticks: {
-                  stepSize: 1,
-                  color: '#9ca3af',
-                  callback: (value) => Number.isInteger(value) ? value : null
-                }, 
+                ticks: { stepSize: 1, color: '#9ca3af', callback: (value) => Number.isInteger(value) ? value : null }, 
                 min: 0
-              }
             }
-          }
+            }
+        }
         });
-      } else {
-        attendanceChart.data.labels = att.labels;
-        attendanceChart.data.datasets[0].data = att.present;
-        attendanceChart.data.datasets[1].data = att.late;
-        attendanceChart.data.datasets[2].data = att.ausent;
-        attendanceChart.data.datasets[3].data = att.licenses; 
-        attendanceChart.update();
-      }
     }
-  }
 
 
   // Evaluaciones
@@ -734,7 +691,7 @@
 
 
 
-  async function loadObjectives() {
+    async function loadObjectives() {
       const departmentSelector = document.getElementById('departmentSelector');
       const selectedDepartmentId = departmentSelector ? departmentSelector.value : 'todos';
 
@@ -743,59 +700,96 @@
           : API.objectives;
 
       const objs = await safeFetch(apiUrl);
-      const list = document.getElementById('objectivesList');
-      list.innerHTML = '';
+      
+      const listDanger = document.getElementById('objectivesListDanger');
+      const listWarning = document.getElementById('objectivesListWarning');
+      const listSuccess = document.getElementById('objectivesListSuccess');
+      
+      if (!listDanger || !listWarning || !listSuccess) return;
 
-      if(objs && objs.items && objs.items.length > 0){
+      listDanger.innerHTML = '';
+      listWarning.innerHTML = '';
+      listSuccess.innerHTML = '';
+
+      if (objs && objs.items && objs.items.length > 0) {
+        
+        objs.items.sort((a, b) => a.progress - b.progress);
+
         objs.items.forEach(o => {
           let progressClass = 'bg-primary'; 
           let textColor = 'text-primary';
-          if (o.progress < 35) { progressClass = 'bg-danger'; textColor = 'text-danger'; }
-          else if (o.progress < 75) { progressClass = 'bg-warning'; textColor = 'text-warning'; }
-          else { progressClass = 'bg-success'; textColor = 'text-success'; }
+          let targetContainer = listSuccess;
+
+          if (o.progress < 35) { 
+              progressClass = 'bg-danger'; 
+              textColor = 'text-danger'; 
+              targetContainer = listDanger; 
+          }
+          else if (o.progress < 75) { 
+              progressClass = 'bg-warning'; 
+              textColor = 'text-warning'; 
+              targetContainer = listWarning; 
+          }
+          else { 
+              progressClass = 'bg-success'; 
+              textColor = 'text-success'; 
+              targetContainer = listSuccess; 
+          }
 
           const wrap = document.createElement('div');
+          wrap.className = 'd-flex flex-column border rounded-2 mb-2';
           
-          wrap.className = 'p-3 mb-2 rounded-3 border d-flex flex-column';
           wrap.style.cssText = `
-              background-color: rgba(128, 128, 128, 0.05); 
-              border-color: rgba(128, 128, 128, 0.15) !important;
-              transition: transform 0.2s ease;
+              padding: 0.5rem 0.65rem !important; 
+              background-color: rgba(128, 128, 128, 0.04); 
+              border-color: rgba(128, 128, 128, 0.12) !important;
+              transition: transform 0.15s ease;
           `;
           
-          wrap.onmouseover = () => { wrap.style.transform = 'translateX(5px)'; wrap.style.backgroundColor = 'rgba(128, 128, 128, 0.1)'; };
-          wrap.onmouseout = () => { wrap.style.transform = 'translateX(0)'; wrap.style.backgroundColor = 'rgba(128, 128, 128, 0.05)'; };
+          wrap.onmouseover = () => { wrap.style.transform = 'translateX(4px)'; wrap.style.backgroundColor = 'rgba(128, 128, 128, 0.08)'; };
+          wrap.onmouseout = () => { wrap.style.transform = 'translateX(0)'; wrap.style.backgroundColor = 'rgba(128, 128, 128, 0.04)'; };
 
           wrap.innerHTML = `
-            <div class="d-flex justify-content-between align-items-start mb-2">
-              <div style="max-width: 75%;">
-                <div class="fw-bold text-reset" style="font-size: 0.85rem; line-height: 1.2;">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <div style="max-width: 80%;">
+                <!-- Compactación de tipografía: font-size reducido a 0.8rem -->
+                <div class="fw-bold text-reset text-truncate" style="font-size: 0.8rem; line-height: 1.1; max-width: 220px;" title="${o.title}">
                   ${o.title}
                 </div>
-                <div class="text-muted mt-1" style="font-size: 0.7rem;">
-                  <span class="badge border text-muted fw-normal" style="background: rgba(128,128,128,0.1); border-color: rgba(128,128,128,0.2) !important;">
+                <div class="text-muted" style="font-size: 0.65rem; margin-top: 1px;">
+                  <span class="badge text-muted fw-normal p-1" style="background: rgba(128,128,128,0.08); border: 1px solid rgba(128,128,128,0.15); font-size: 0.6rem; padding: 1px 4px !important;">
                       ${o.type}
                   </span> 
-                  <span class="ms-2">${o.owner || '—'}</span>
+                  <span class="ms-1 text-truncate d-inline-block align-middle" style="max-width: 90px;">${o.owner || '—'}</span>
                 </div>
               </div>
-              <div class="fw-bolder ${textColor}" style="font-size: 0.85rem;">
+              <div class="fw-bolder ${textColor}" style="font-size: 0.8rem; padding-top: 1px;">
                 ${o.progress}%
               </div>
             </div>
-            <div class="progress" style="height: 6px; background-color: rgba(128, 128, 128, 0.2); border-radius: 10px;">
+            <div class="progress" style="height: 4px; background-color: rgba(128, 128, 128, 0.15); border-radius: 6px;">
               <div class="progress-bar ${progressClass}" role="progressbar" 
-                  style="width: ${o.progress}%; border-radius: 10px; transition: width 1s ease;" 
+                  style="width: ${o.progress}%; border-radius: 6px; transition: width 0.8s ease;" 
                   aria-valuenow="${o.progress}" aria-valuemin="0" aria-valuemax="100">
               </div>
             </div>
           `;
-          list.appendChild(wrap);
+          targetContainer.appendChild(wrap);
         });
+        
+        const fallbackHTML = `<div class="text-center py-4 text-muted small style="font-size: 0.75rem;">Sin metas en este rango.</div>`;
+        if (listDanger.innerHTML === '') listDanger.innerHTML = fallbackHTML;
+        if (listWarning.innerHTML === '') listWarning.innerHTML = fallbackHTML;
+        if (listSuccess.innerHTML === '') listSuccess.innerHTML = fallbackHTML;
+
       } else {
-          list.innerHTML = `<div class="text-center py-5 text-muted small">No hay objetivos activos.</div>`;
+          const globalFallback = `<div class="text-center py-5 text-muted small">No hay objetivos activos.</div>`;
+          listDanger.innerHTML = globalFallback;
+          listWarning.innerHTML = globalFallback;
+          listSuccess.innerHTML = globalFallback;
       }
   }
+
 
 
 

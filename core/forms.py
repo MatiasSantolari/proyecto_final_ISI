@@ -382,6 +382,7 @@ class PersonaPerfilForm(forms.ModelForm):
             "nombre",
             "apellido",
             "dni",
+            "fecha_nacimiento",
             "telefono",
             "prefijo_pais",
             "pais",
@@ -401,6 +402,10 @@ class PersonaPerfilForm(forms.ModelForm):
             ),
             "dni": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "DNI"}
+            ),
+            "fecha_nacimiento": forms.DateInput(
+                format="%Y-%m-%d",
+                attrs={"class": "form-control", "type": "date"}
             ),
             "prefijo_pais": forms.TextInput(
                 attrs={

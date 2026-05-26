@@ -5,7 +5,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.12.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-  <div  id="app-root" class="container-fluid p-0 bg-transparent">
+  <div  id="app-root" class="container-fluid p-0 bg-transparent mb-5">
 
     <div class="d-flex justify-content-between align-items-center mb-2">
       <div class="d-flex gap-2 align-items-center">
@@ -122,12 +122,16 @@
 
                 <div class="d-flex align-items-center gap-2">
                     <div id="vacationDateRange" class="text-muted" style="font-size: 0.7rem;"></div>
-                    <select id="vacationPeriodSelector" class="form-select form-select-sm" style="width: 120px; height: 30px;">
+                    <select id="vacationPeriodSelector" class="form-select form-select-sm" 
+                    style="width: 130px; height: 30px; background-image: none !important; padding-right: 8px !important; -webkit-appearance: none; -moz-appearance: none; appearance: none;">
                         <option value="1m">Mes actual</option>
-                        <option value="2m">Últimos 2m</option>
-                        <option value="3m">Últimos 3m</option>
-                        <option value="6m">Últimos 6m</option>
-                        <option value="12m">Último año</option>
+                        <option value="2m">Últimos 2 meses</option>
+                        <option value="3m">Últimos 3 meses</option>
+                        <option value="6m">Últimos 6 meses</option>
+                        <option value="12m">Últimos 12 meses</option>
+                        <option value="24m">Últimos 2 años</option>
+                        <option value="60m">Últimos 5 años</option>
+                        <option value="all">Histórico</option>
                     </select>
                 </div>
             </div>
@@ -144,30 +148,33 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div class="col-lg-8">
-      <div class="card pt-4 pl-4 pr-4 pb-1 chart-card h-100 shadow-sm border-0">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <a href="{% url 'asistencias_detalle'%}" class="kpi-link d-flex align-items-center text-decoration-none">
-            <strong class="text-reset">Asistencias / Tardanzas</strong>
-            <i class="bi bi-chevron-right ms-2 text-muted" style="font-size: 0.8rem;"></i>
-          </a>
+      </div>
+      <div class="col-lg-8">
+        <div class="card pt-4 pl-4 pr-4 pb-1 chart-card h-100 shadow-sm border-0">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{% url 'asistencias_detalle'%}" class="kpi-link d-flex align-items-center text-decoration-none">
+              <strong class="text-reset">Asistencias / Tardanzas</strong>
+              <i class="bi bi-chevron-right ms-2 text-muted" style="font-size: 0.8rem;"></i>
+            </a>
 
-          <div class="d-flex align-items-center gap-3">
-            <div id="attendanceDateRange" class="text-muted" style="font-size: 0.9rem;"></div>
-            <select id="attendancePeriodSelector" class="form-select form-select-sm" style="width: 235px; height: 32px;">
-                <option value="30d">Últimos 30 días</option>
-                <option value="2m">Últimos 2 meses (por semana)</option>
-                <option value="3m">Últimos 3 meses (por semana)</option>
-                <option value="6m">Últimos 6 meses (por mes)</option>
-                <option value="12m">Últimos 12 meses (por mes)</option>
-            </select>
+            <div class="d-flex align-items-center gap-3">
+              <div id="attendanceDateRange" class="text-muted" style="font-size: 0.9rem;"></div>
+              <select id="attendancePeriodSelector" class="form-select form-select-sm" style="width: 235px; height: 32px;">
+                  <option value="30d">Últimos 30 días</option>
+                  <option value="2m">Últimos 2 meses (por semana)</option>
+                  <option value="3m">Últimos 3 meses (por semana)</option>
+                  <option value="6m">Últimos 6 meses (por mes)</option>
+                  <option value="12m">Último 12 meses (por mes)</option>
+                  <option value="24m">Últimos 2 años (por mes)</option>
+                  <option value="60m">Últimos 5 años (por mes)</option>
+                  <option value="all">Histórico (por mes)</option>
+              </select>
+            </div>
+          </div>
+          <div style="height: 300px; position: relative;">
+            <canvas id="attendanceChart"></canvas>
           </div>
         </div>
-        <div style="height: 300px; position: relative;">
-          <canvas id="attendanceChart"></canvas>
-        </div>
-      </div>
     </div>
 
 
@@ -183,9 +190,13 @@
             <div id="payrollDateRange" class="text-muted small mt-1" style="font-size: 0.75rem;"></div>
             <select id="payrollPeriodSelector" class="form-select form-select-sm" style="width: 150px;">
               <option value="1m">Último período</option>
-              <option value="3m">Últimos 3</option>
-              <option value="6m">Últimos 6</option>
-              <option value="12m">Último año</option>
+              <option value="2m">Últimos 2 meses</option>
+              <option value="3m">Últimos 3 meses</option>
+              <option value="6m">Últimos 6 meses</option>
+              <option value="12m">Últimos 12 meses</option>
+              <option value="24m">Últimos 2 años</option>
+              <option value="60m">Últimos 5 años</option>
+              <option value="all">Histórico</option>
             </select>
           </div>
           <div class="d-flex align-items-center justify-content-between mt-5" style="height: 280px;">
@@ -199,7 +210,6 @@
             <div id="payrollCustomLegend" style="width: 50%;" class="ps-2">
             </div>
           </div>
-          <div id="payrollDateRange" class="text-muted small mt-2 text-center"></div>
         </div>
       </div>
       <div class="col-lg-6">
@@ -212,10 +222,14 @@
                     <div id="evalDateRange" class="text-muted small mt-1" style="font-size: 0.75rem;"></div>
 
                 <select id="evalPeriodSelector" class="form-select form-select-sm" style="width: 155px; height: 32px;">
+                    <option value="1m">Mes Actual</option> 
+                    <option value="2m">Últimos 2 meses</option>      
                     <option value="3m">Últimos 3 meses</option>
                     <option value="6m">Últimos 6 meses</option>
-                    <option value="12m" selected>Último año</option>
+                    <option value="12m" selected>Últimos 12 meses</option>
                     <option value="24m">Últimos 2 años</option>
+                    <option value="60m">Últimos 5 años</option>
+                    <option value="all">Histórico</option>
                 </select>
             </div>
             <div style="height: 300px; position: relative;">
@@ -227,7 +241,7 @@
 
     
     <!-- Comparativa Coste Laboral Anual -->
-    <div class="row g-2">
+    <div class="row g-2 mb-0 pb-0">
       <div class="col-12">
         <div class="card p-4 chart-card border-0 shadow-sm">
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -259,9 +273,57 @@
       </div>
     </div>
 
+    <div class="row g-2" style="margin-top: -5px !important;">
+      <div class="col-12">
+        <div class="card p-4 shadow-sm border-0" style="border-radius: 16px;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div class="d-flex mb-0 align-items-center">
+                  <a href="{% url 'objetivos_detalle' %}" class="kpi-link d-flex align-items-center text-decoration-none">
+                    <strong class="text-reset">Matriz de Seguimiento de Objetivos</strong>
+                    <i class="bi bi-chevron-right ms-2 text-muted"></i>
+                  </a>
+                  <div class="text-muted small ms-3">Distribución por nivel de completitud</div>
+              </div>
+              <select id="departmentSelector" class="form-select form-select-sm border-0 bg-body-secondary" style="width: 200px; font-size: 0.9rem; font-weight: 600;">            
+                  <option value="todos">Todos</option>
+                  {% for departamento in departamentos_disponibles %}
+                      <option value="{{ departamento.id }}">{{ departamento.nombre }}</option>
+                  {% endfor %}
+              </select>
+            </div>          
+            
+            <div class="row g-3">
+                
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom border-danger-subtle">
+                        <span class="badge bg-danger rounded-circle p-1 d-inline-flex" style="width: 8px; height: 8px;"></span>
+                        <strong class="text-danger small text-uppercase" style="letter-spacing: 0.5px;">Atención Requerida (0% - 34%)</strong>
+                    </div>
+                    <div id="objectivesListDanger" class="custom-scrollbar" style="height: 420px; overflow-y: auto; padding-right: 5px;"></div>
+                </div>
 
-    <!-- Row: Estructura + Objetivos -->
-    <div class="row g-2 mb-1">
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom border-warning-subtle">
+                        <span class="badge bg-warning rounded-circle p-1 d-inline-flex" style="width: 8px; height: 8px;"></span>
+                        <strong class="text-warning small text-uppercase" style="letter-spacing: 0.5px;">En Curso / Medio (35% - 74%)</strong>
+                    </div>
+                    <div id="objectivesListWarning" class="custom-scrollbar" style="height: 420px; overflow-y: auto; padding-right: 5px;"></div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom border-success-subtle">
+                        <span class="badge bg-success rounded-circle p-1 d-inline-flex" style="width: 8px; height: 8px;"></span>
+                        <strong class="text-success small text-uppercase" style="letter-spacing: 0.5px;">Alineados / Óptimo (75% - 100%)</strong>
+                    </div>
+                    <div id="objectivesListSuccess" class="custom-scrollbar" style="height: 420px; overflow-y: auto; padding-right: 5px;"></div>
+                </div>
+
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-2 mb-3" style="margin-top: -6px !important;">
       <div class="col-lg-6">
           <div class="card p-4 chart-card h-100 shadow-sm border-0">
               <div class="d-flex justify-content-between align-items-start mb-3" style="height: 45px;">
@@ -269,9 +331,8 @@
                       <strong class="text-reset">Estructura: empleados por departamento</strong>
                       <div class="text-muted small">Distribución de la plantilla</div>
                   </div>
-                  <i class="bi bi-diagram-3 text-muted"></i>
+                  <i class="bi bi-diagram-3 text-muted fs-4"></i>
               </div>
-              
               <div style="height: 280px; overflow-y: auto; overflow-x: hidden;" class="custom-scrollbar">
                   <div id="deptChartParent" style="height: 100%; position: relative;">
                       <canvas id="deptChart"></canvas>
@@ -280,63 +341,33 @@
           </div>
       </div>
 
-      <!-- Columna Derecha: Objetivos -->
       <div class="col-lg-6">
-        <div class="card p-4 h-100 shadow-sm border-0" style="border-radius: 16px;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-              <div class="d-flex justify-content-between mb-0">
-                  <a href="{% url 'objetivos_detalle'%}" class="kpi-link d-flex align-items-center">
-                    <strong class="text-reset">Objetivos</strong>
-                    <i class="bi bi-chevron-right ms-2 text-muted"></i>
-                  </a>
-                  <div class="text-muted small ml-2">Progreso de cumplimiento</div>
-              </div>
-              <select id="departmentSelector" class="form-select form-select-sm border-0 bg-body-secondary" 
-                      style="width: 140px; font-size: 0.75rem; font-weight: 600;">            
-                      <option value="todos">Todos</option>
-                      {% for departamento in departamentos_disponibles %}
-                          <option value="{{ departamento.id }}">{{ departamento.nombre }}</option>
-                      {% endfor %}
-              </select>
-            </div>          
-            <div id="objectivesList" 
-                style="height: 280px; overflow-y: auto; overflow-x: hidden; padding-right: 5px;">
-            </div>
-        </div>
-      </div>
-
-    </div>
-
-
-
-      <!-- Capacitaciones -->
-    <div class="row g-2 mb-3">
-      <div class="col-12">
-        <div class="card p-4 chart-card shadow-sm border-0">
-          <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="card p-4 chart-card h-100 shadow-sm border-0">
+          <div class="d-flex justify-content-between align-items-center mb-3" style="height: 45px;">
               <a href="{% url 'capacitaciones_detalle' %}" class="kpi-link d-flex align-items-center text-decoration-none">
                 <strong class="text-reset">Impacto de Capacitaciones</strong>
                 <i class="bi bi-chevron-right ms-2 text-muted" style="font-size: 0.8rem;"></i>
               </a>
               <div class="d-flex align-items-center gap-3">
                 <div id="capDateRange" class="text-muted mt-1" style="font-size: 0.9rem;"></div>
-            
                 <select id="capPeriodSelector" class="form-select form-select-sm" style="width: 160px; height: 32px;">
                   <option value="1m">Mes actual</option>
+                  <option value="2m">Últimos 2 meses</option>
                   <option value="3m">Últimos 3 meses</option>
                   <option value="6m" selected>Últimos 6 meses</option>
-                  <option value="12m">Último año</option>
+                  <option value="12m">Últimos 12 meses</option>
+                  <option value="24m">Últimos 2 años</option>
+                  <option value="60m">Últimos 5 años</option>
+                  <option value="all">Histórico</option>
                 </select>
               </div>
-            </div>
-
-          <div style="height: 300px; position: relative;">
+          </div>
+          <div style="height: 280px; position: relative;"> 
             <canvas id="capChart"></canvas>
           </div>
         </div>
       </div>
-    </div> 
-  </div>
+    </div>
 
 
   

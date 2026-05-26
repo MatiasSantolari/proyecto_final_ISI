@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.utils import timezone
-from django.db.models import Sum, Avg, Count
+from django.db.models import Sum, Avg, Count, Q, Min
 from django.views.decorators.http import require_GET
 from django.contrib.auth.decorators import login_required
 from datetime import timedelta, date
@@ -8,8 +8,10 @@ from django.db.models.functions import ExtractMonth, ExtractYear
 from dateutil.relativedelta import relativedelta
 from collections import defaultdict
 from django.utils import translation
-from django.db.models import Q
+from django.db.models.functions import TruncDay, TruncMonth, TruncWeek
 import calendar
+from django.db.models.functions import Round
+import locale
 
 from core.models import (
     Empleado,
@@ -31,20 +33,14 @@ from core.models import (
     CapacitacionEmpleado,
 )
 
-# Helper to force float for Decimal
+
 def to_float(value):
     try:
-        return float(value)
+        return float(value) if value is not None else 0.0
     except:
         return 0.0
-
-
-import locale
-from django.utils import timezone
-from datetime import timedelta
-from django.db.models import Sum, Avg
-
-# Intentar establecer idioma en español para los nombres de meses
+    
+####
 try:
     locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 except:
@@ -136,18 +132,20 @@ def api_kpis(request):
 
 
 
+@require_GET
 @login_required
 def api_vacaciones(request):
-    hoy = timezone.now().date()
+    hoy = timezone.localdate()
     periodo_solicitado = request.GET.get('periodo')
-    rol_actual = request.session.get('rol_actual', request.user.rol)
-    
-    periodos_map = {'1m': 0, '2m': 2, '3m': 3, '6m': 6, '12m': 12}
+    if not periodo_solicitado or periodo_solicitado.strip() == "":
+        periodo_solicitado = '1m'
 
-    def obtener_rango(p_code):
-        meses = periodos_map.get(p_code, 0)
-        s_date = (hoy - relativedelta(months=meses)).replace(day=1) if meses > 0 else hoy.replace(day=1)
-        return s_date, hoy
+    rol_actual = request.session.get('rol_actual', request.user.rol)
+
+    periodos_map = {
+        '1m': 0, '2m': 2, '3m': 3, '6m': 6, '12m': 12, 
+        '24m': 24, '60m': 60
+    }
 
     base_qs = VacacionesSolicitud.objects.all()
     
@@ -164,31 +162,32 @@ def api_vacaciones(request):
         except (AttributeError, Empleado.DoesNotExist):
             base_qs = base_qs.none()
 
-    if periodo_solicitado:
-        start_date, end_date = obtener_rango(periodo_solicitado)
-        periodo_final = periodo_solicitado
+    if periodo_solicitado == 'all':
+        primera_sol = base_qs.order_by('fecha_solicitud').only('fecha_solicitud').first()
+        start_date = primera_sol.fecha_solicitud if primera_sol else hoy.replace(day=1)
+        end_date = hoy
     else:
-        periodo_final = '1m'
-        for p_code in ['1m', '2m', '3m', '6m', '12m']:
-            sd, ed = obtener_rango(p_code)
-            if base_qs.filter(fecha_solicitud__range=[sd, ed]).exists():
-                start_date, end_date = sd, ed
-                periodo_final = p_code
-                break
-        else:
-            start_date, end_date = obtener_rango('1m')
+        meses = periodos_map.get(periodo_solicitado, 0)
+        start_date = (hoy - relativedelta(months=meses)).replace(day=1) if meses > 0 else hoy.replace(day=1)
+        end_date = hoy
 
-    qs = base_qs.filter(fecha_solicitud__range=[start_date, end_date])
+    metrics = base_qs.filter(fecha_solicitud__range=[start_date, end_date]).aggregate(
+        total=Count('id'),
+        approved=Count('id', filter=Q(estado='aprobado')),
+        pending=Count('id', filter=Q(estado='pendiente')),
+        rejected=Count('id', filter=Q(estado='rechazado')),
+        cancelled=Count('id', filter=Q(estado='cancelado'))
+    )
 
     return JsonResponse({
-        "total": qs.count(),
-        "approved": qs.filter(estado='aprobado').count(),
-        "pending": qs.filter(estado='pendiente').count(),
-        "rejected": qs.filter(estado='rechazado').count(),
-        "cancelled": qs.filter(estado='cancelado').count(),
+        "total": metrics['total'] or 0,
+        "approved": metrics['approved'] or 0,
+        "pending": metrics['pending'] or 0,
+        "rejected": metrics['rejected'] or 0,
+        "cancelled": metrics['cancelled'] or 0,
         "start_date_formatted": start_date.strftime('%d %b %Y'),
         "end_date_formatted": end_date.strftime('%d %b %Y'),
-        "active_period": periodo_final
+        "active_period": periodo_solicitado
     })
 
 
@@ -197,7 +196,7 @@ def api_vacaciones(request):
 @login_required
 def api_asistencias(request):
     today = timezone.localdate()
-    periodo_solicitado = request.GET.get('periodo')
+    periodo_solicitado = request.GET.get('periodo', '30d')
     rol_actual = request.session.get('rol_actual', request.user.rol)
 
     base_qs = HistorialAsistencia.objects.all()
@@ -220,63 +219,78 @@ def api_asistencias(request):
         '3m':  {'days': 90, 'group': 'week'},
         '6m':  {'days': 180, 'group': 'month'},
         '12m': {'days': 365, 'group': 'month'},
+        '24m': {'days': 730, 'group': 'month'},  
+        '60m': {'days': 1825, 'group': 'month'}, 
     }
 
-    if periodo_solicitado and periodo_solicitado in periodos_config:
-        periodo_final = periodo_solicitado
-        conf = periodos_config[periodo_final]
+    if periodo_solicitado == 'all':
+        primera_asistencia = base_qs.order_by('fecha_asistencia').only('fecha_asistencia').first()
+        start_date = primera_asistencia.fecha_asistencia if primera_asistencia else today - timedelta(days=29)
+        group_by = 'month'
+    elif periodo_solicitado in periodos_config:
+        conf = periodos_config[periodo_solicitado]
+        start_date = today - timedelta(days=conf['days'] - 1)
+        group_by = conf['group']
     else:
-        periodo_final = '30d' 
-        for p_code, p_data in periodos_config.items():
-            sd = today - timedelta(days=p_data['days'] - 1)
-            if base_qs.filter(fecha_asistencia__range=[sd, today]).exists():
-                periodo_final = p_code
-                break
-        conf = periodos_config[periodo_final]
+        start_date = today - timedelta(days=29)
+        group_by = 'day'
 
-    days_back = conf['days']
-    group_by = conf['group']
-    start_date = today - timedelta(days=days_back - 1)
-    
     qs = base_qs.filter(fecha_asistencia__range=[start_date, today])
 
-    labels, present, ausent, late, licenses = [], [], [], [], []
-    
     if group_by == 'day':
+        trunc_func = TruncDay('fecha_asistencia')
+    elif group_by == 'week':
+        trunc_func = TruncWeek('fecha_asistencia')
+    else:
+        trunc_func = TruncMonth('fecha_asistencia')
+
+    metrics = qs.annotate(periodo_label=trunc_func).values('periodo_label').annotate(
+        c_present=Count('id', filter=Q(confirmado=True, tardanza=False, licencia=False)),
+        c_late=Count('id', filter=Q(tardanza=True, licencia=False)),
+        c_ausent=Count('id', filter=Q(confirmado=False, licencia=False)),
+        c_licenses=Count('id', filter=Q(licencia=True))
+    ).order_by('periodo_label')
+
+    metrics_dict = {m['periodo_label']: m for m in metrics}
+    labels, present, ausent, late, licenses = [], [], [], [], []
+
+    if group_by == 'day':
+        days_back = (today - start_date).days + 1
         for i in range(days_back):
             d = start_date + timedelta(days=i)
             labels.append(d.strftime('%d %b'))
-            day_qs = qs.filter(fecha_asistencia=d)
-            
-            present.append(day_qs.filter(confirmado=True, tardanza=False, licencia=False).count())
-            late.append(day_qs.filter(tardanza=True, licencia=False).count())
-            ausent.append(day_qs.filter(confirmado=False, licencia=False).count())
-            licenses.append(day_qs.filter(licencia=True).count())
+            m = metrics_dict.get(d, {'c_present': 0, 'c_late': 0, 'c_ausent': 0, 'c_licenses': 0})
+            present.append(m['c_present'])
+            late.append(m['c_late'])
+            ausent.append(m['c_ausent'])
+            licenses.append(m['c_licenses'])
     
     elif group_by == 'month':
-        current_date = start_date
+        current_date = start_date.replace(day=1)
         while current_date <= today:
-            month_qs = qs.filter(fecha_asistencia__month=current_date.month, fecha_asistencia__year=current_date.year)
             labels.append(current_date.strftime('%b %Y'))
-            
-            present.append(month_qs.filter(confirmado=True, tardanza=False, licencia=False).count())
-            late.append(month_qs.filter(tardanza=True, licencia=False).count())
-            ausent.append(month_qs.filter(confirmado=False, licencia=False).count())
-            licenses.append(month_qs.filter(licencia=True).count())
+            m = metrics_dict.get(current_date, {'c_present': 0, 'c_late': 0, 'c_ausent': 0, 'c_licenses': 0})
+            present.append(m['c_present'])
+            late.append(m['c_late'])
+            ausent.append(m['c_ausent'])
+            licenses.append(m['c_licenses'])
             current_date += relativedelta(months=1)
 
     elif group_by == 'week':
-        current_date = start_date
+        current_date = start_date - timedelta(days=start_date.weekday()) 
         while current_date <= today:
+            if current_date + timedelta(days=6) < start_date:
+                current_date += timedelta(days=7)
+                continue
             week_end = min(current_date + timedelta(days=6), today)
-            week_qs = qs.filter(fecha_asistencia__range=[current_date, week_end])
-            labels.append(f"{current_date.strftime('%d %b')} - {week_end.strftime('%d %b')}" if current_date != week_end else f"Día {current_date.strftime('%d %b')}")
+            labels.append(f"{current_date.strftime('%d %b')} - {week_end.strftime('%d %b')}")
             
-            present.append(week_qs.filter(confirmado=True, tardanza=False, licencia=False).count())
-            late.append(week_qs.filter(tardanza=True, licencia=False).count())
-            ausent.append(week_qs.filter(confirmado=False, licencia=False).count())
-            licenses.append(week_qs.filter(licencia=True).count())
-            current_date = week_end + timedelta(days=1)
+            m = metrics_dict.get(current_date, {'c_present': 0, 'c_late': 0, 'c_ausent': 0, 'c_licenses': 0})
+            present.append(m['c_present'])
+            late.append(m['c_late'])
+            ausent.append(m['c_ausent'])
+            licenses.append(m['c_licenses'])
+            current_date += timedelta(days=7)
 
     return JsonResponse({
         "labels": labels, 
@@ -286,40 +300,51 @@ def api_asistencias(request):
         "licenses": licenses,
         "start_date_formatted": start_date.strftime('%d %b %Y'),
         "end_date_formatted": today.strftime('%d %b %Y'),
-        "active_period": periodo_final 
+        "active_period": periodo_solicitado 
     })
 
 
+
+
+def to_float(value):
+    try:
+        return float(value) if value is not None else 0.0
+    except:
+        return 0.0
 
 
 @require_GET
 @login_required
 def api_evaluaciones(request):
     today = timezone.localdate()
-    rol_actual = request.session.get('rol_actual', request.user.rol)
-    period = request.GET.get('periodo', '12m') 
     
-    if period == '3m':
-        start_date = today + relativedelta(months=-3)
-    elif period == '6m':
-        start_date = today + relativedelta(months=-6)
-    elif period == '24m':
-        start_date = today + relativedelta(years=-2)
-    else:
-        start_date = today + relativedelta(years=-1) 
+    periodo_solicitado = request.GET.get('periodo')
+    if not periodo_solicitado or periodo_solicitado.strip() == "":
+        periodo_solicitado = '12m'
+        
+    rol_actual = request.session.get('rol_actual', request.user.rol)
+    
+    periodos_map = {
+        '1m': 1, '2m': 2, '3m': 3, '6m': 6, '12m': 12, 
+        '24m': 24, '60m': 60
+    }
 
-    evals_qs = EvaluacionEmpleado.objects.exclude(calificacion_final__isnull=True).filter(
-        fecha_registro__gte=start_date
-    )
+    evals_qs = EvaluacionEmpleado.objects.exclude(calificacion_final__isnull=True)
+
+    if periodo_solicitado == 'all':
+        primera_eval = evals_qs.order_by('fecha_registro').only('fecha_registro').first()
+        start_date = primera_eval.fecha_registro if primera_eval else today - relativedelta(months=11)
+    else:
+        meses_atras = periodos_map.get(periodo_solicitado, 12)
+        start_date = today - relativedelta(months=meses_atras)
+        evals_qs = evals_qs.filter(fecha_registro__gte=start_date)
 
     if rol_actual in ['jefe', 'gerente']:
         try:
-            empleado_usuario = request.user.persona.empleado
-            departamento = empleado_usuario.departamento_actual()
-            
-            if departamento:
+            depto = request.user.persona.empleado.departamento_actual()
+            if depto:
                 evals_qs = evals_qs.filter(
-                    empleado__empleadocargo__cargo__cargodepartamento__departamento=departamento,
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento=depto,
                     empleado__empleadocargo__fecha_fin__isnull=True
                 ).distinct()
             else:
@@ -327,21 +352,25 @@ def api_evaluaciones(request):
         except (AttributeError, Empleado.DoesNotExist):
             evals_qs = evals_qs.none()
 
+    metrics = evals_qs.annotate(
+        nota_redondeada=Round('calificacion_final')
+    ).values('nota_redondeada').annotate(
+        total=Count('id')
+    )
+
     counts = [0] * 10
-    calificaciones = evals_qs.values_list('calificacion_final', flat=True)
-    
-    for v in calificaciones:
+    for m in metrics:
         try:
-            i = int(round(float(v)))
-            if 1 <= i <= 10:
-                counts[i-1] += 1
+            nota = int(m['nota_redondeada'])
+            if 1 <= nota <= 10:
+                counts[nota - 1] = m['total']
         except (ValueError, TypeError):
             continue
 
     return JsonResponse({
         "labels": ["1","2","3","4","5","6","7","8","9","10"], 
         "counts": counts,
-        "start_date_formatted": start_date.strftime('%b %Y'),
+        "start_date_formatted": start_date.strftime('%b %Y') if start_date else "Inicio",
         "end_date_formatted": today.strftime('%b %Y'),
     })
 
@@ -353,16 +382,18 @@ def api_evaluaciones(request):
 def api_nominas(request):
     rol_actual = request.session.get('rol_actual', request.user.rol)
     
+    periodo_solicitado = request.GET.get('periodo')
+    if not periodo_solicitado or periodo_solicitado.strip() == "":
+        periodo_solicitado = '1m'
+        
     qs_base = Nomina.objects.all()
 
     if rol_actual in ['jefe', 'gerente']:
         try:
-            empleado_usuario = request.user.persona.empleado
-            departamento = empleado_usuario.departamento_actual()
-            
-            if departamento:
+            depto = request.user.persona.empleado.departamento_actual()
+            if depto:
                 qs_base = qs_base.filter(
-                    empleado__empleadocargo__cargo__cargodepartamento__departamento=departamento,
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento=depto,
                     empleado__empleadocargo__fecha_fin__isnull=True
                 ).distinct()
             else:
@@ -370,40 +401,53 @@ def api_nominas(request):
         except (AttributeError, Empleado.DoesNotExist):
             qs_base = qs_base.none()
 
-    ultima_nomina = qs_base.order_by('-fecha_generacion').first()
+    ultima_nomina = qs_base.order_by('-fecha_generacion').only('fecha_generacion').first()
     
     if not ultima_nomina:
         return JsonResponse({
-            "base": 0, "benefits": 0, "discounts": 0, "extras": 0,
+            "base": 0.0, "benefits": 0.0, "discounts": 0.0, "extras": 0.0,
             "start_date_formatted": "Sin datos", "end_date_formatted": ""
         })
 
     ultimo_mes_con_datos = ultima_nomina.fecha_generacion.replace(day=1)
-    period = request.GET.get('periodo', '1m') 
-    try:
-        num_months = int(period.replace('m', ''))
-    except ValueError:
-        num_months = 1
     
-    end_date = ultimo_mes_con_datos + relativedelta(months=+1, days=-1)
-    start_date = ultimo_mes_con_datos - relativedelta(months=(num_months - 1))
+    periodos_map = {
+        '1m': 1, '2m': 2, '3m': 3, '6m': 6, '12m': 12, 
+        '24m': 24, '60m': 60
+    }
+
+    end_date = ultimo_mes_con_datos + relativedelta(months=1, days=-1)
+
+    if periodo_solicitado == 'all':
+        primera_nom = qs_base.order_by('fecha_generacion').only('fecha_generacion').first()
+        start_date = primera_nom.fecha_generacion.replace(day=1) if primera_nom else ultimo_mes_con_datos
+    else:
+        num_months = periodos_map.get(periodo_solicitado, 1)
+        start_date = ultimo_mes_con_datos - relativedelta(months=(num_months - 1))
 
     qs_final = qs_base.filter(fecha_generacion__range=[start_date, end_date])
 
-    base = qs_final.aggregate(total=Sum('monto_bruto'))['total'] or 0
-    benefits = qs_final.aggregate(total=Sum('total_beneficios'))['total'] or 0
-    discounts = qs_final.aggregate(total=Sum('total_descuentos'))['total'] or 0
-    extras = qs_final.aggregate(total=Sum('monto_extra_pactado'))['total'] or 0
+    totales = qs_final.aggregate(
+        s_bruto=Sum('monto_bruto'),
+        s_beneficios=Sum('total_beneficios'),
+        s_descuentos=Sum('total_descuentos'),
+        s_extras=Sum('monto_extra_pactado')
+    )
+
+    base = totales['s_bruto'] or 0
+    benefits = totales['s_beneficios'] or 0
+    discounts = totales['s_descuentos'] or 0
+    extras = totales['s_extras'] or 0
     
     start_date_formatted = start_date.strftime('%b. %Y').capitalize()
     
     return JsonResponse({
-        "base": float(base - extras),
-        "benefits": float(benefits),
-        "discounts": float(discounts),
-        "extras": float(extras),
+        "base": to_float(base - extras),
+        "benefits": to_float(benefits),
+        "discounts": to_float(discounts),
+        "extras": to_float(extras),
         "start_date_formatted": start_date_formatted,
-        "end_date_formatted": end_date.strftime('%b. %Y').capitalize() if num_months > 1 else start_date_formatted,
+        "end_date_formatted": end_date.strftime('%b. %Y').capitalize() if periodo_solicitado != '1m' else start_date_formatted,
     })
 
 
@@ -504,6 +548,10 @@ def api_objetivos(request):
 
     objs_queryset = Objetivo.objects.filter(activo=True).select_related(
         'departamento', 'creado_por__persona'
+    ).annotate(
+        total_asig=Count('objetivoempleado'),
+        total_comp=Count('objetivoempleado', filter=Q(objetivoempleado__completado=True)),
+        tiene_cargo=Count('objetivoempleado', filter=Q(objetivoempleado__cargo__isnull=False))
     ).order_by('-fecha_creacion')
 
     if rol_actual in ['jefe', 'gerente']:
@@ -514,29 +562,23 @@ def api_objetivos(request):
             if depto_usuario:
                 objs_queryset = objs_queryset.filter(departamento=depto_usuario)
             else:
-                objs_queryset = objs_queryset.none()
+                return JsonResponse({"items": []})
         except (AttributeError, Empleado.DoesNotExist):
-            objs_queryset = objs_queryset.none()
+            return JsonResponse({"items": []})
             
     elif department_id and department_id != 'todos':
         try:
-            objs_queryset = objs_queryset.filter(departamento__id=int(department_id))
+            objs_queryset = objs_queryset.filter(departamento_id=int(department_id))
         except ValueError:
             pass
 
     items = []
-    objs = objs_queryset[:50] 
-
-    for o in objs:
-        asignaciones = ObjetivoEmpleado.objects.filter(objetivo=o)
+    for o in objs_queryset[:50]:
+        total = o.total_asig
         
-        if asignaciones.exists():
-            total_asignados = asignaciones.count()
-            completados = asignaciones.filter(completado=True).count()
-            avg_progress = (completados * 100) // total_asignados
-            
-            tiene_cargo = asignaciones.filter(cargo__isnull=False).exists()
-            tipo_label = "Por Cargo" if tiene_cargo else "Directo"
+        if total > 0:
+            avg_progress = (o.total_comp * 100) // total
+            tipo_label = "Por Cargo" if o.tiene_cargo > 0 else "Directo"
         else:
             avg_progress = 0
             tipo_label = "Sin asignar"
@@ -565,47 +607,58 @@ def api_objetivos(request):
 def api_capacitaciones(request):
     today = timezone.localdate()
     rol_actual = request.session.get('rol_actual', request.user.rol)
-    period = request.GET.get('periodo', '6m') 
     
-    try:
-        num_months = int(period.replace('m', ''))
-    except ValueError:
-        num_months = 6
+    periodo_solicitado = request.GET.get('periodo')
+    if not periodo_solicitado or periodo_solicitado.strip() == "":
+        periodo_solicitado = '6m' 
+        
+    periodos_map = {
+        '1m': 1, '2m': 2, '3m': 3, '6m': 6, '12m': 12, 
+        '24m': 24, '60m': 60
+    }
 
-    start_date = (today.replace(day=1) - relativedelta(months=num_months - 1))
-    
-    qs = CapacitacionEmpleado.objects.filter(
-        fecha_inscripcion__gte=start_date, 
-        fecha_inscripcion__lte=today
-    )
+    base_qs = CapacitacionEmpleado.objects.all()
 
     if rol_actual in ['jefe', 'gerente']:
         try:
-            empleado_usuario = request.user.persona.empleado
-            departamento = empleado_usuario.departamento_actual()
-            
-            if departamento:
-                qs = qs.filter(
-                    empleado__empleadocargo__cargo__cargodepartamento__departamento=departamento,
+            depto = request.user.persona.empleado.departamento_actual()
+            if depto:
+                base_qs = base_qs.filter(
+                    empleado__empleadocargo__cargo__cargodepartamento__departamento=depto,
                     empleado__empleadocargo__fecha_fin__isnull=True
                 ).distinct()
             else:
-                qs = qs.none()
+                return JsonResponse({"labels": [], "internas": [], "externas": []})
         except (AttributeError, Empleado.DoesNotExist):
-            qs = qs.none()
+            return JsonResponse({"labels": [], "internas": [], "externas": []})
+
+    if periodo_solicitado == 'all':
+        primera_insc = base_qs.order_by('fecha_inscripcion').only('fecha_inscripcion').first()
+        start_date = primera_insc.fecha_inscripcion.replace(day=1) if primera_insc else today.replace(day=1)
+    else:
+        num_months = periodos_map.get(periodo_solicitado, 6)
+        start_date = (today.replace(day=1) - relativedelta(months=num_months - 1))
+
+    qs_final = base_qs.filter(fecha_inscripcion__range=[start_date, today])
+
+    metrics = qs_final.annotate(
+        mes_label=TruncMonth('fecha_inscripcion')
+    ).values('mes_label').annotate(
+        c_internas=Count('id', filter=Q(capacitacion__es_externo=False)),
+        c_externas=Count('id', filter=Q(capacitacion__es_externo=True))
+    ).order_by('mes_label')
+
+    metrics_dict = {m['mes_label']: m for m in metrics}
 
     labels, internas, externas = [], [], []
     current_date = start_date
+    
     while current_date <= today:
-        month_qs = qs.filter(
-            fecha_inscripcion__month=current_date.month, 
-            fecha_inscripcion__year=current_date.year
-        )
-        
         labels.append(current_date.strftime('%b %y').capitalize())
-        internas.append(month_qs.filter(capacitacion__es_externo=False).count())
-        externas.append(month_qs.filter(capacitacion__es_externo=True).count())
+        m = metrics_dict.get(current_date, {'c_internas': 0, 'c_externas': 0})
         
+        internas.append(m['c_internas'])
+        externas.append(m['c_externas'])
         current_date += relativedelta(months=1)
 
     return JsonResponse({

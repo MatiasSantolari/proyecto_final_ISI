@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
+from datetime import datetime
 
 
 @login_required
@@ -574,9 +575,23 @@ def experiencias_delete(request):
             return JsonResponse({'success': False, 'error': 'Experiencia no encontrada'})
         
 
+
+@login_required
 def perfil_save_view(request):
     if request.method == 'POST':
-        form = PersonaPerfilForm(request.POST, request.FILES, instance=request.user.persona)
+        data = request.POST.copy()
+        fecha_nac = data.get('fecha_nacimiento')
+        
+        if fecha_nac:
+            try:
+                if "/" in fecha_nac:
+                    fecha_obj = datetime.strptime(fecha_nac, "%d/%m/%Y").date()
+                    data['fecha_nacimiento'] = fecha_obj.strftime("%Y-%m-%d")
+            except ValueError:
+                pass 
+
+        form = PersonaPerfilForm(data, request.FILES, instance=request.user.persona)
+        
         if form.is_valid():
             persona = form.save()
             cv_url = persona.cvitae.url if persona.cvitae else None
@@ -588,4 +603,9 @@ def perfil_save_view(request):
                 'toast_type': 'success'
             })
         else:
-            return JsonResponse({'success': False, 'errors': form.errors.as_json()}, status=400)
+            return JsonResponse({
+                'success': False, 
+                'errors': form.errors
+            }, status=400)
+            
+    return JsonResponse({'success': False, 'message': 'Método no permitido.'}, status=405)
