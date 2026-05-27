@@ -21,7 +21,7 @@
   <div class="card shadow-sm border-0">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-sm table-striped table-hover table-bordered align-middle" style="margin-bottom: 7rem;">
+        <table class="table table-sm table-hover table-striped table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
           <thead class="table-light text-center">
             <tr>
               <th>Descripción</th>
@@ -268,7 +268,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
 
-  // ----- MODAL VER EVALUACIÓN -----
   const modalVer = new bootstrap.Modal(document.getElementById('modalVerEvaluacion'));
 
   document.querySelectorAll('.btn-ver-evaluacion').forEach(btn => {
@@ -301,14 +300,14 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // ----- ELEMENTOS DEL FORMULARIO -----
+
   const selectTipo = document.getElementById('selectTipo');
   const criteriosContainer = document.getElementById('criteriosContainer');
   const agregarTipoBtn = document.getElementById('agregarTipoBtn');
   const tiposSeleccionados = document.getElementById('tiposSeleccionados');
   const modalEvaluacion = document.getElementById('modalEvaluacion');
 
-  // Datos de criterios por tipo
+
   const criteriosData = {
     {% for tipo in tipos_criterio %}
       "{{ tipo.id }}": [
@@ -319,7 +318,7 @@ document.addEventListener("DOMContentLoaded", function () {
     {% endfor %}
   };
 
-  // ----- EDITAR EVALUACIÓN -----
+
   window.editarEvaluacion = function(btn) {
     const id = btn.dataset.id;
     document.getElementById('id_evaluacion').value = id;
@@ -332,12 +331,12 @@ document.addEventListener("DOMContentLoaded", function () {
          const fechaISO = `${partes[2]}-${partes[1]}-${partes[0]}`; // "yyyy-mm-dd"
          document.getElementById('id_fecha_evaluacion').value = fechaISO;
 
-        // Limpiar contenedores
+
         tiposSeleccionados.innerHTML = '';
         criteriosContainer.innerHTML = '';
         selectTipo.value = '';
 
-        // Cargar tipos y criterios
+
         for (const [tipoDesc, criterios] of Object.entries(data.tipos)) {
           const tipoOption = Array.from(selectTipo.options).find(opt => opt.text === tipoDesc);
           if (!tipoOption) continue;
@@ -377,13 +376,13 @@ document.addEventListener("DOMContentLoaded", function () {
             `;
             lista.appendChild(divC);
 
-            // Eliminar criterio
+
             divC.querySelector('.eliminar-criterio-btn').addEventListener('click', ()=> {
               divC.remove();
               if(lista.querySelectorAll('.criterio-item').length === 0) divTipo.remove();
             });
 
-            // Actualizar hidden al cambiar ponderación
+
             const inputEdit = divC.querySelector('.ponderacion-edit');
             const hiddenP = divC.querySelector('input[name="ponderacion"]');
             inputEdit.addEventListener('change', ()=> {
@@ -400,7 +399,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
-  // ----- SELECCIÓN DE CRITERIOS POR TIPO -----
+
   selectTipo.addEventListener('change', function() {
     const tipoId = this.value;
     criteriosContainer.innerHTML = '';
@@ -409,7 +408,6 @@ document.addEventListener("DOMContentLoaded", function () {
      const criteriosUsados = Array.from(tiposSeleccionados.querySelectorAll('.criterio-item'))
                                  .map(d => d.dataset.id.toString());
 
-    // Filtrar criterios que aún no fueron seleccionados
     const criteriosDisponibles = criteriosData[tipoId].filter(c => !criteriosUsados.includes(c.id));
 
     if (criteriosDisponibles.length === 0) {
@@ -446,7 +444,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // ----- AGREGAR TIPO Y CRITERIOS -----
+
   agregarTipoBtn.addEventListener('click', function(){
     const tipoId = selectTipo.value;
     if(!tipoId) return alert('Seleccione un tipo');
@@ -464,7 +462,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 
-    // --- AJUSTAR PONDERACIONES PARA QUE SUMEN 1 ---
+
     let totalPonder = criteriosChecked.reduce((acc,c)=>acc+c.ponder,0);
     if(totalPonder !== 1){
         const n = criteriosChecked.length;
@@ -539,13 +537,13 @@ document.addEventListener("DOMContentLoaded", function () {
     criteriosContainer.innerHTML = '';
   });
 
-  // ----- VALIDAR AL GUARDAR -----
+
   document.getElementById('formEvaluacion').addEventListener('submit', function(e){
     const tipos = tiposSeleccionados.querySelectorAll('.tipo-block');
     for(const tipo of tipos){
       const suma = Array.from(tipo.querySelectorAll('.ponderacion-edit'))
                       .reduce((acc,input)=>acc+parseFloat(input.value),0);
-      const sumaRedondeada = Math.round(suma * 100) / 100;  // <-- redondeo a 2 decimales
+      const sumaRedondeada = Math.round(suma * 100) / 100;  
       if(sumaRedondeada !== 1){
         alert(`La suma de ponderaciones del tipo "${tipo.querySelector('strong').textContent}" debe ser 1`);
         e.preventDefault();
@@ -554,7 +552,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // ----- LIMPIAR MODAL AL CERRAR -----
+
   modalEvaluacion.addEventListener('hidden.bs.modal', function () {
     document.getElementById('id_evaluacion').value = '';
     document.getElementById('id_descripcion').value = '';

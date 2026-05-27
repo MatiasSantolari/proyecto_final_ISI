@@ -3,11 +3,11 @@
 
 {% block content %}
 <div class="container mt-5 mb-5">
-  <h3 class="text-center mb-1" style="color: var(--color-primario);">Postulaciones Recibidas</h3>
-    <div class="text-end mb-3">
-    <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalHistoricoPostulaciones">
-        Ver histórico de postulaciones
-    </button>
+    <div class="d-flex justify-content-between align-items-center mb-3 pt-3">
+        <h3 class="mb-0" style="color: var(--color-primario);">Postulaciones Recibidas</h3>
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalHistoricoPostulaciones">
+            Ver histórico de postulaciones
+        </button>
     </div>
 
     <div class="card mb-4">
@@ -20,9 +20,9 @@
                 <h4 class="mt-4 text-success">Cargos con búsqueda activa</h4>
                 {% for departamento, relaciones in cargos_visibles_por_dpto.items %}
                     <h5 class="mt-4 ps-2 border-start border-3 border-success">{{ departamento }}</h5>
-                    <div class="accordion mb-4 shadow-sm border-start border-3 border-success" id="accordionVisibles-{{ forloop.counter }}">
+                    <div class="accordion mb-4 shadow-sm" id="accordionVisibles-{{ forloop.counter }}">
                     {% for rel in relaciones %}
-                        <div class="accordion-item mb-2 shadow-sm" id="accordion-cargo-{{ rel.cargo.id }}">
+                        <div class="accordion-item mb-2 shadow-sm border-start border-2 border-success" id="accordion-cargo-{{ rel.cargo.id }}">
                             <h2 class="accordion-header" id="heading{{ rel.cargo.id }}">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ rel.cargo.id }}" aria-expanded="false" aria-controls="collapse{{ rel.cargo.id }}">
                                 {{ rel.cargo.nombre }}
@@ -133,9 +133,9 @@
             <h4 class="mt-2 text-danger">Cargos con búsqueda cerrada</h4>
             {% for departamento, relaciones in cargos_no_visibles_por_dpto.items %}
                 <h5 class="mt-4 ps-2 border-start border-3 border-danger">{{ departamento }}</h5>
-                <div class="accordion mb-4 shadow-sm border-start border-3 border-danger" id="accordionNoVisibles-{{ forloop.counter }}">
+                <div class="accordion mb-4 shadow-sm" id="accordionNoVisibles-{{ forloop.counter }}">
                 {% for rel in relaciones %}
-                    <div class="accordion-item mb-2 shadow-sm" id="accordion-cargo-{{ rel.cargo.id }}">
+                    <div class="accordion-item mb-2 shadow-sm border-start border-2 border-danger" id="accordion-cargo-{{ rel.cargo.id }}">
                         <h2 class="accordion-header" id="heading{{ rel.cargo.id }}">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ rel.cargo.id }}" aria-expanded="false" aria-controls="collapse{{ rel.cargo.id }}">
                             {{ rel.cargo.nombre }}

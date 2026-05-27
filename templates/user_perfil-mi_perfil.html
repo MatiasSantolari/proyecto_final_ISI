@@ -1,36 +1,37 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/user_perfil/mi_perfil.css' %}">
 
-<div id="miPerfilContent" class="main-content justify-content-center align-items-start mt-5 rounded">  
-  <div class="form-wrapper p-3 rounded shadow-sm" 
-       style="max-width: 950px; width: 100%; background-color: #f3f3f3; border-radius: 12px; margin: 0 auto;">
+<div id="miPerfilContent" class="main-content justify-content-center align-items-start mt-4 pt-3 rounded ">  
+  <div class="form-wrapper p-3 rounded shadow-sm perfil-card-marcada mb-4" 
+       style="max-width: 950px; width: 100%; background-color: #e6e6e6; border-radius: 12px; margin: 0 auto;">
 
-    <div class="p-2 mb-2 text-center text-white rounded" 
-        style="background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%);">
+    <div class="p-2 mb-3 text-center text-white" 
+        style="background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%); border-radius: 12px;">
       <h4 class="fw-bold mb-1">Mi Perfil</h4>
       <p class="mb-0">Vista de Datos Personales</p>
     </div>
     
     <div class="row g-4 justify-content-center">
-
       <div class="col-md-6 d-flex justify-content-end">
         <div class="card shadow-sm p-3" 
              style="background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%); color: white; height: 250px; width: 100%; border: none; border-radius: 12px;">
           <div class="d-flex align-items-center mb-3">
-            {% if request.user.persona.avatar %}
-              <img src="{{ request.user.persona.avatar.url }}" alt="Avatar" class="profile-avatar-display me-3">
-            {% else %}
-              <i class="bi bi-person-fill fs-1 me-3"></i>
-            {% endif %}
-            <div>
-              <h5 class="mb-1">{{ request.user.persona.nombre }}</h5>
-              <p class="mb-0">{{ request.user.persona.apellido }}</p>
+            <div id="viewAvatarContainer" class="d-inline-block me-3">
+              {% if request.user.persona.avatar %}
+                <img id="previewAvatarView" src="{{ request.user.persona.avatar.url }}" alt="Avatar" class="profile-avatar-display">
+              {% else %}
+                <i id="previewAvatarViewIcon" class="bi bi-person-fill fs-1"></i>
+              {% endif %}
             </div>
-        </div>
+            <div>
+              <h5 class="mb-1" id="viewNombre">{{ request.user.persona.nombre }}</h5>
+              <p class="mb-0" id="viewApellido">{{ request.user.persona.apellido }}</p>
+            </div>
+          </div>
           <hr style="border-color: rgba(255,255,255,0.5);">
           <div class="d-flex justify-content-between">
             <strong>DNI:</strong>
-            <span>{{ request.user.persona.dni }}</span>
+            <span id="viewDni">{{ request.user.persona.dni }}</span> 
           </div>
           <div class="d-flex justify-content-between mt-2">
             <strong>Cargo:</strong>
@@ -54,27 +55,31 @@
       <div class="col-md-6 d-flex justify-content-start">
         <div class="card shadow-sm p-3 d-flex flex-column justify-content-between" 
              style="background: linear-gradient(135deg, #2ecc71, #27ae60);; color: white; height: 250px; width: 100%; border: none; border-radius: 12px;">
-          <div class="d-flex align-items-center mb-3">
-            <i class="bi bi-gift-fill fs-1 me-3"></i>
-            <div>
-              <h6 class="mb-1">Cumpleaños</h6>
-              {% if request.user.persona.fecha_nacimiento %}
-                <p class="mb-0 fw-bold">{{ request.user.persona.fecha_nacimiento|date:"d/m/Y" }}</p>
-              {% else %}
-                <p class="mb-0 text-white-50">No registrado</p>
-              {% endif %}
+          <div class="d-flex mb-3">
+            <i class="bi bi-gift-fill fs-1 me-3 align-self-center"></i>
+            
+            <div class="d-flex flex-column justify-content-center">
+                <h6 class="mb-1 fw-bold">Cumpleaños</h6>
+                <div id="viewFechaNacimiento" class="fw-bold fs-5" style="line-height: 1.1;">
+                    {% if request.user.persona.fecha_nacimiento %}
+                        {{ request.user.persona.fecha_nacimiento|date:"d/m/Y" }}
+                    {% else %}
+                        <span class="opacity-75" style="font-size: 0.95rem;">No registrado</span>
+                    {% endif %}
+                </div>
             </div>
           </div>
+
           <hr style="border-color: rgba(255,255,255,0.5);">
-          {% if dias_cumple is not None %}
-            <div class="text-center mt-auto">
-              <p class="mb-1">Faltan solo:</p>
-              <p class="mb-1 fw-bold fs-4">{{ dias_cumple }}</p>
-              <p class="mb-0">días</p>
-            </div>
-          {% else %}
-            <p class="mb-0 text-white-50 text-center">Fecha de nacimiento no definida</p>
-          {% endif %}
+          <div class="text-center mt-auto" id="viewDiasCumpleContainer">
+            {% if dias_cumple is not None %}
+                <p class="mb-1">Faltan solo</p>
+                <p class="mb-1 fw-bold fs-4">{{ dias_cumple }}</p>
+                <p class="mb-0">días</p>
+            {% else %}
+              <p class="mb-0 text-white-50 text-center">Fecha de nacimiento no definida</p>
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>
@@ -82,7 +87,7 @@
     <div class="row justify-content-center mt-0">
       <div class="col-12">
         <div class="card shadow-sm p-3" 
-             style="background: linear-gradient(135deg, #f1c40f, #d4a017); color: #f5f5f5ff; border: none; border-radius: 12px; width: 100%;">
+             style="background: linear-gradient(185deg, #f1c40f, #d4a017); color: #f5f5f5ff; border: none; border-radius: 12px; width: 100%;">
           <div class="d-flex align-items-center mb-3">
             <i class="bi bi-geo-alt-fill fs-4 me-2"></i>
             <h5 class="fw-bold">Información de contacto</h5>
@@ -92,15 +97,15 @@
           <div class="row">
             <div class="col-md-6 mb-2">
               <strong>Dirección:</strong> 
-              <span>{{ request.user.persona.calle|default:"No registrada" }} {{request.user.persona.numero}}</span>
+              <span id="viewDireccion">{{ request.user.persona.calle|default:"No registrada" }} {{request.user.persona.numero}}</span>
             </div>
             <div class="col-md-6 mb-2">
               <strong>Localidad:</strong> 
-              <span>{{ request.user.persona.pais|default:"No registrada" }}, {{ request.user.persona.provincia}}, {{ request.user.persona.ciudad}}</span>
+              <span id="viewLocalidad">{{ request.user.persona.pais|default:"No registrada" }}, {{ request.user.persona.provincia}}, {{ request.user.persona.ciudad}}</span>
             </div>
             <div class="col-md-6 mb-2">
               <strong>Teléfono:</strong> 
-              <span>{{ request.user.persona.prefijo_pais|default:"No registrado" }} {{ request.user.persona.telefono}}</span>
+              <span id="viewTelefono">{{ request.user.persona.prefijo_pais|default:"No registrado" }} {{ request.user.persona.telefono}}</span>
             </div>
             <div class="col-md-6 mb-2">
               <strong>Email:</strong> 

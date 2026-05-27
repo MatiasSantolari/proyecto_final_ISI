@@ -178,9 +178,10 @@
     const editarAcciones = document.getElementById('editarAcciones');
     const tabs = document.querySelectorAll('#perfilTabs .nav-link');
 
-    const seleccionarCVBtn = document.getElementById('seleccionarCVBtn');
-    const inputCVitae = document.getElementById('id_cvitae');
-    const cvitaeNombre = document.getElementById('cvitaeNombre');
+    const selectorCVBtn = document.getElementById('seleccionarCVBtn');
+//    const inputCVitaeField = document.getElementById('id_cvitae');
+    const inputCVitaeField = document.querySelector('#hiddenCVInputField input[type="file"]');
+    const nombreCVField = document.getElementById('cvitaeNombre');
     const eliminarCVBtn = document.getElementById('eliminarCVBtn');
     const verCVBtn = document.getElementById('verCVBtn');
     const confirmEliminarCvModalElement = document.getElementById('confirmEliminarCvModal');
@@ -215,8 +216,17 @@
 
     
     if (avatarContainer && avatarInput) {
-      avatarContainer.addEventListener('click', () => {
-        if (!avatarInput.disabled) avatarInput.click();
+      
+      avatarContainer.addEventListener('click', function(e) {
+        if (e.target === avatarInput) return;
+        
+        if (!avatarInput.disabled) {
+            avatarInput.click();
+        }
+      });
+
+      avatarInput.addEventListener('click', function(e) {
+        e.stopPropagation();
       });
 
       avatarInput.addEventListener('change', (event) => {
@@ -226,23 +236,39 @@
           const reader = new FileReader();
           
           reader.onload = e => {
-            let preview = document.getElementById('previewAvatarEdit'); 
-            const defaultIconDiv = document.getElementById('defaultAvatarIcon');
+            let preview = avatarContainer.querySelector('#previewAvatarEdit'); 
+            const defaultIconDiv = avatarContainer.querySelector('#defaultAvatarIcon');
             
             if (defaultIconDiv) {
               const newImg = document.createElement('img');
               newImg.id = 'previewAvatarEdit';
               newImg.alt = 'Avatar Preview';
+              newImg.style.cssText = 'width: 100px; height: 100px; object-fit: cover; border-radius: 50%;';
               avatarContainer.insertBefore(newImg, defaultIconDiv);
               avatarContainer.removeChild(defaultIconDiv);
               preview = newImg;
             }   
-            preview.src = e.target.result;
+            if (preview) {
+                preview.src = e.target.result;
+            }
           };
           reader.readAsDataURL(file);
         }
       });
     }
+
+    const fechaInput = document.querySelector('input[name="fecha_nacimiento"]') || document.getElementById('id_fecha_nacimiento');
+    if (fechaInput) {
+        fechaInput.addEventListener('click', function(e) {
+            e.stopPropagation(); 
+            try {
+                this.showPicker();
+            } catch (error) {
+                console.log("El navegador no soporta showPicker de forma nativa.");
+            }
+        });
+    }
+
 
 
 
@@ -328,6 +354,7 @@
                 input.disabled = true;
             });
             
+
             fetch(form.action || '/perfil/save/', { 
                 method: 'POST',
                 body: formData,
@@ -336,7 +363,76 @@
             .then(response => response.json()) 
             .then(data => {
                 if (data.success) {
+                    
+                    const inputFoto = document.querySelector('#hiddenAvatarInputFields input[type="file"]') || document.getElementById('id_avatar');
+                    
+                    if (inputFoto && inputFoto.files && inputFoto.files.length > 0) {
+                        const nuevaFotoURL = URL.createObjectURL(inputFoto.files[0]);
+                        
+                        const avatarSidebar = document.getElementById('previewAvatar');
+                        if (avatarSidebar) avatarSidebar.src = nuevaFotoURL;
+                        
+                        const viewContainer = document.getElementById('viewAvatarContainer');
+                        if (viewContainer) {
+                            let avatarCentral = viewContainer.querySelector('#previewAvatarView');
+                            const iconoCentral = viewContainer.querySelector('#previewAvatarViewIcon');
+                            
+                            if (iconoCentral) {
+                                const nuevaImg = document.createElement('img');
+                                nuevaImg.id = 'previewAvatarView';
+                                nuevaImg.className = 'profile-avatar-display';
+                                nuevaImg.alt = 'Avatar';
+                                nuevaImg.src = nuevaFotoURL;
+                                viewContainer.replaceChild(nuevaImg, iconoCentral);
+                            } else if (avatarCentral) {
+                                avatarCentral.src = nuevaFotoURL;
+                            }
+                        }
+                    }
+              
+                    if (data.user_data) {
+                        const u = data.user_data;
+                        
+                        const txtNombre = document.getElementById('viewNombre');
+                        const txtApellido = document.getElementById('viewApellido');
+                        const txtDni = document.getElementById('viewDni');
+                        if (txtNombre) txtNombre.textContent = u.nombre;
+                        if (txtApellido) txtApellido.textContent = u.apellido;
+                        if (txtDni) txtDni.textContent = u.dni;
+                        
+                        const txtFechaNac = document.getElementById('viewFechaNacimiento');
+                        const containerCumple = document.getElementById('viewDiasCumpleContainer');
+                        if (txtFechaNac) txtFechaNac.textContent = u.fecha_nacimiento || 'No registrado';
+                        
+                        if (containerCumple) {
+                            if (u.dias_cumple !== null && u.dias_cumple !== undefined) {
+                                containerCumple.innerHTML = `
+                                    <p class="mb-1">Faltan solo:</p>
+                                    <p class="mb-1 fw-bold fs-4" id="viewDiasCumple">${u.dias_cumple}</p>
+                                    <p class="mb-0">días</p>
+                                `;
+                            } else {
+                                containerCumple.innerHTML = `<p class="mb-0 text-white-50 text-center">Fecha de nacimiento no definida</p>`;
+                            }
+                        }
+
+                        const txtDireccion = document.getElementById('viewDireccion');
+                        const txtLocalidad = document.getElementById('viewLocalidad');
+                        const txtTelefono = document.getElementById('viewTelefono');
+                        
+                        if (txtDireccion) {
+                            txtDireccion.textContent = `${u.calle} ${u.numero}`.trim();
+                        }
+                        if (txtLocalidad) {
+                            txtLocalidad.textContent = `${u.pais}, ${u.provincia}, ${u.ciudad}`.replace(/,\s*,/g, ',').trim().replace(/,$/, '');
+                        }
+                        if (txtTelefono) {
+                            txtTelefono.textContent = u.telefono;
+                        }
+                    }
+
                     mostrarMiPerfil(); 
+                    
                     if (typeof mostrarToast === 'function') {
                         mostrarToast(data.toast_message || 'Acción exitosa', data.toast_type || 'success');
                     } else {
@@ -346,15 +442,9 @@
                     alert('Error al guardar: ' + (data.errors ? JSON.stringify(data.errors) : ''));
                 }
             })
-            .catch(error => {
-              if (typeof mostrarToast === 'function') {
-                  mostrarToast('Ocurrió un error de red o del servidor.', 'error');
-              } else {
-                  alert('Ocurrió un error de red o del servidor.');
-              }
-            });
         });
-      }
+    }
+
 
 
     if (editarBtn) editarBtn.addEventListener('click', () => mostrarEditarPerfil());
@@ -384,25 +474,31 @@
 
 
     
-    if (seleccionarCVBtn && inputCVitae && cvitaeNombre) {
-      seleccionarCVBtn.addEventListener('click', () => inputCVitae.click());
-      inputCVitae.addEventListener('change', () => {
-        if (inputCVitae.files.length > 0) cvitaeNombre.value = inputCVitae.files[0].name;
+
+    if (selectorCVBtn && inputCVitaeField && nombreCVField) {
+      
+      selectorCVBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation(); 
+          inputCVitaeField.click();
       });
-    }
-    if (eliminarCVBtn) eliminarCVBtn.addEventListener('click', () => confirmEliminarCvModal.show());
-    if (confirmEliminarCvBtn) {
-      confirmEliminarCvBtn.addEventListener('click', () => {
-        cvitaeNombre.value = ''; inputCVitae.value = '';
-        if (verCVBtn) verCVBtn.style.display = 'none';
-        let inputHidden = document.querySelector('input[name="eliminar_cvitae"]');
-        if (!inputHidden) {
-          inputHidden = document.createElement('input'); inputHidden.type = 'hidden';
-          inputHidden.name = 'eliminar_cvitae'; inputHidden.value = '1'; form.appendChild(inputHidden);
+      
+      inputCVitaeField.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+            const archivoSeleccionado = this.files[0]; 
+            nombreCVField.value = archivoSeleccionado.name; 
+            
+            const btnVerCV = document.getElementById('verCVBtn');
+            if (btnVerCV) {
+                btnVerCV.href = URL.createObjectURL(archivoSeleccionado);
+                btnVerCV.classList.remove('d-none'); 
+                btnVerCV.style.setProperty('display', 'inline-block', 'important'); 
+            }
         }
-        confirmEliminarCvModal.hide();
       });
     }
+
+
 
     window.seleccionarTab = (tabId) => {mostrarEditarPerfil(tabId);};
 

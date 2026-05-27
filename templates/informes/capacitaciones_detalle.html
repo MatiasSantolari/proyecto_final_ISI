@@ -5,17 +5,17 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'informes/capacitaciones_detalle/css/capacitaciones_detalle.css' %}">
-<div class="container-fluid p-5 mt-3">
-    <h4 class="mb-3">Seguimiento de Capacitaciones e Inscripciones</h4>
+<div class="container-fluid p-5 mt-2">
+    <h4 class="mb-2">Seguimiento de Capacitaciones e Inscripciones</h4>
 
     <div class="card mb-2">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div>Filtros de Búsqueda</div>
             <div class="ms-auto">
-                <button type="button" id="downloadPdfBtn" class="btn btn-danger mr-2">
+                <button type="button" id="downloadPdfBtn" class="btn btn-danger btn-sm mr-2">
                     <i class="bi bi-file-earmark-pdf"></i> PDF
                 </button>
-                <button type="button" id="downloadCsvBtn" class="btn btn-success me-2">
+                <button type="button" id="downloadCsvBtn" class="btn btn-success btn-sm me-2">
                     <i class="bi bi-file-earmark-arrow-down"></i> CSV
                 </button>
             </div>
@@ -55,7 +55,7 @@
                     </select>
                 </div>
                 
-                <div class="col-md-2 d-flex align-items-end pt-4">
+                <div class="col-md-2 d-flex align-items-end align-bottom-buttons pb-2">
                     <button type="button" id="clearFiltersBtn" class="btn btn-primary w-100">Limpiar</button>
                 </div>
             </form>

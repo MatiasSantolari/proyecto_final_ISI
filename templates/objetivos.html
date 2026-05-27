@@ -23,7 +23,7 @@
     }
 </style>
 
-<div class="container-fluid p-5 my-2">
+<div class="container-fluid p-5 my-1">
     <h4 class="mb-2" style="color: var(--color-primario);">Gestión de Objetivos</h4>
     
     <div class="card mb-2">
@@ -37,7 +37,7 @@
     <div class="card shadow-sm border-0">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="font-size: 0.95rem;">
+                <table class="table table-sm table-hover table-striped table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
                     <thead class="table-dark text-center">
                         <tr>
                             <th class="text-start ps-4" style="width: 35%;">Título del Objetivo</th>
@@ -195,7 +195,7 @@
                                     ¿Es un objetivo diario / recurrente?
                                 </label>
                             </div>
-                            <div class="form-text text-muted small ps-5">
+                            <div class="form-text text-muted small ps-5 mt-1">
                                 Si se activa, el sistema generará esta tarea automáticamente cada día.
                             </div>
                         </div>
@@ -203,12 +203,12 @@
 
                     <div class="mb-3" id="contenedorFechaFin">
                         <label class="form-label fw-bold">Fecha de Fin (Vencimiento)</label>
-                        <input type="date" name="fecha_fin" id="id_fecha_fin" class="form-control shadow-sm">
+                        <input type="date" name="fecha_fin" id="id_fecha_fin" class="form-control shadow-sm" onclick="this.showPicker()" style="cursor: pointer;">
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
-                    <button type="submit" name="accion" value="guardar" class="btn btn-outline-success px-4">Guardar</button>
-                    <button type="submit" name="accion" value="guardar_y_asignar" class="btn btn-primary px-4">Guardar y Asignar</button>
+                    <button type="submit" name="accion" value="guardar" class="btn btn-outline-success px-4 fw-bold">Guardar</button>
+                    <button type="submit" name="accion" value="guardar_y_asignar" class="btn btn-primary px-4 fw-bold">Guardar y Asignar</button>
                 </div>
             </form>
         </div>
@@ -244,6 +244,7 @@
             <form method="post" action="{% url 'asignar_objetivo' %}">
                 {% csrf_token %}
                 <input type="hidden" name="objetivo_id" id="asignarObjetivoId">
+                <input type="hidden" name="depto_id_hidden" id="deptoIdHidden">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="modalAsignarObjetivoLabel">Asignar Objetivo</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -273,8 +274,8 @@
                     </div>
                     <div id="selectorCargo" class="d-none mb-3">
                         <label class="form-label fw-bold">3. Seleccione Cargo:</label>
-                        <select name="cargo_id" id="cargoSelect" class="form-select">
-                        </select>
+                        <div id="cargoSelect" class="border rounded p-3 bg-light" style="max-height: 200px; overflow-y: auto;">
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light text-center">
@@ -295,21 +296,22 @@
             </div>
             <div class="modal-body p-4 text-center">
                 <p class="fs-5" id="textoConfirmacion"></p>
+                <button type="button" class="btn btn-secondary btn-sm mr-4" data-bs-dismiss="modal">Cancelar</button>
                 <form id="formAccionObjetivo" method="post" class="d-inline">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger px-4 fw-bold" id="btnConfirmarAccion">Confirmar</button>
                 </form>
-                <button type="button" class="btn btn-secondary px-4 ms-2" data-bs-dismiss="modal">Cancelar</button>
+                
             </div>
         </div>
     </div>
 </div>
 
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const esRecurrente = document.getElementById('id_es_recurrente');
     const fechaFin = document.getElementById('id_fecha_fin');
+    const contenedorFechaFin = document.getElementById('contenedorFechaFin');
 
     window.toggleFechaFin = function() {
         if (esRecurrente && fechaFin) {
@@ -319,13 +321,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (estaChequeado) {
                 fechaFin.value = '';
-                fechaFin.style.backgroundColor = "#e9ecef"; 
-                fechaFin.style.color = "#6c757d";
-                fechaFin.style.cursor = "not-allowed";
+                fechaFin.removeAttribute('required'); 
+                if (contenedorFechaFin) contenedorFechaFin.classList.add('d-none');
             } else {
+                if (contenedorFechaFin) contenedorFechaFin.classList.remove('d-none');
+                fechaFin.setAttribute('required', 'required'); 
                 fechaFin.style.backgroundColor = ""; 
                 fechaFin.style.color = "";
-                fechaFin.style.cursor = "default";
+                fechaFin.style.cursor = "pointer";
             }
         }
     }
@@ -333,7 +336,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (esRecurrente) {
         esRecurrente.addEventListener('change', toggleFechaFin);
     }
-
 
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -349,11 +351,12 @@ document.addEventListener('DOMContentLoaded', function () {
 function cargarDatosDinamicos() {
     const deptoId = document.getElementById('modalFiltroDepto').value;
     const tipo = document.getElementById('tipoAsignacion').value;
-    
+    const objetivoId = document.getElementById('asignarObjetivoId').value;
+
     const divEmp = document.getElementById('selectorEmpleado');
     const divCargo = document.getElementById('selectorCargo');
     const listaEmp = document.getElementById('listaEmpleadosCheckbox');
-    const selectCargo = document.getElementById('cargoSelect');
+    const selectCargo = document.getElementById('cargoSelect'); // <--- ID EXACTO DE TU CODIGO ORIGINAL
 
     if (!divEmp || !divCargo || !listaEmp || !selectCargo) return;
 
@@ -365,30 +368,47 @@ function cargarDatosDinamicos() {
     if (tipo === 'empleado') divEmp.classList.remove('d-none');
     if (tipo === 'cargo') divCargo.classList.remove('d-none');
 
-    fetch(`/obtener-datos-depto/?depto_id=${deptoId}&tipo=${tipo}`)
+    fetch(`/obtener-datos-depto/?depto_id=${deptoId}&tipo=${tipo}&objetivo_id=${objetivoId}`)
         .then(response => response.json())
         .then(res => {
             if (tipo === 'empleado') {
                 listaEmp.innerHTML = '';
                 if (res.data && res.data.length > 0) {
                     res.data.forEach(e => {
+                        const estaCheck = e.ya_asignado ? 'checked' : '';
+                        const estiloAsignado = e.ya_asignado ? 'fw-bold text-success' : '';
+                        const badgeAsignado = e.ya_asignado ? '<span class="badge bg-success-subtle text-success small ms-2" style="font-size:0.65rem;">Asignado previamente</span>' : '';
+
                         listaEmp.innerHTML += `
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="empleado_id" value="${e.id}" id="emp${e.id}">
-                                <label class="form-check-label" for="emp${e.id}">${e.nombre}</label>
+                            <div class="form-check d-flex align-items-center mb-1">
+                                <input class="form-check-input" type="checkbox" name="empleado_id" value="${e.id}" id="emp${e.id}" ${estaCheck}>
+                                <label class="form-check-label ms-2 ${estiloAsignado}" for="emp${e.id}">
+                                    ${e.nombre} ${badgeAsignado}
+                                </label>
                             </div>`;
                     });
                 } else {
-                    listaEmp.innerHTML = '<p class="text-danger small">No hay empleados vinculados a este departamento.</p>';
+                    listaEmp.innerHTML = '<p class="text-danger small m-0">No hay empleados vinculados a este departamento.</p>';
                 }
-            } else {
-                selectCargo.innerHTML = '<option value="">-- Seleccionar Cargo --</option>';
+            } else if (tipo === 'cargo') {
+                // RENDERIZADO INYECTANDO NUEVOS CHECKBOXES DIRECTAMENTE ADENTRO DE TU ID ORIGINAL 'cargoSelect'
+                selectCargo.innerHTML = '';
                 if (res.data && res.data.length > 0) {
                     res.data.forEach(c => {
-                        selectCargo.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+                        const estaCheck = c.ya_asignado ? 'checked' : '';
+                        const estiloAsignado = c.ya_asignado ? 'fw-bold text-primary' : '';
+                        const badgeAsignado = c.ya_asignado ? '<span class="badge bg-primary-subtle text-primary small ms-2" style="font-size:0.65rem;">Con este objetivo</span>' : '';
+
+                        selectCargo.innerHTML += `
+                            <div class="form-check d-flex align-items-center mb-1">
+                                <input class="form-check-input" type="checkbox" name="cargo_id" value="${c.id}" id="cargo${c.id}" ${estaCheck}>
+                                <label class="form-check-label ms-2 ${estiloAsignado}" for="cargo${c.id}">
+                                    ${c.nombre} ${badgeAsignado}
+                                </label>
+                            </div>`;
                     });
                 } else {
-                    selectCargo.innerHTML = '<option value="">Sin cargos en este departamento</option>';
+                    selectCargo.innerHTML = '<p class="text-danger small m-0">Sin cargos en este departamento</p>';
                 }
             }
         })
@@ -444,7 +464,7 @@ function confirmarAccion(id, titulo, tipo) {
         btn.className = "btn btn-success fw-bold";
         header.className = "modal-header bg-success text-white";
     } else {
-        form.action = `/objetivos/eliminar/${id}/`;
+        form.action = `/objetivos/${id}/eliminar/`;
         texto.innerHTML = `¿ELIMINAR PERMANENTEMENTE <strong>${titulo}</strong>?<br><small class="text-danger">Se perderá todo el historial.</small>`;
         btn.className = "btn btn-danger fw-bold";
         header.className = "modal-header bg-danger text-white";

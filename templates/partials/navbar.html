@@ -2,59 +2,185 @@
 
 <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
 
-<nav class="main-header navbar navbar-expand navbar-main-custom shadow-sm fixed-top px-3 py-2" style="z-index:1100;">
-    <div class="collapse navbar-collapse" id="navbarContent">
-      <ul class="navbar-nav me-4">
+<style>
+  .navbar-capsule-link {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 30px !important;
+    padding: 6px 14px !important; 
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: all 0.2s ease-in-out !important;
+    backdrop-filter: blur(4px);
+    color: #0dcaf0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  .navbar-capsule-link:hover {
+    background: rgba(13, 202, 240, 0.12) !important;
+    border-color: rgba(13, 202, 240, 0.35) !important;
+    box-shadow: 0 0 10px rgba(13, 202, 240, 0.15);
+    transform: translateY(-1px);
+  }
+
+  body.dark-mode .navbar-capsule-link {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+  }
+  body.dark-mode .navbar-capsule-link:hover {
+    background: rgba(13, 202, 240, 0.15) !important;
+    border-color: #0dcaf0 !important;
+  }
+
+  .btn-navbar-asistencia-entrada {
+    background: rgba(40, 167, 69, 0.12) !important;
+    border: 1px solid rgba(40, 167, 69, 0.35) !important;
+    color: #28a745 !important;
+    border-radius: 30px !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: all 0.2s ease-in-out !important;
+    backdrop-filter: blur(4px);
+    margin: 0 !important; 
+  }
+  .btn-navbar-asistencia-entrada:hover:not(:disabled) {
+    background: #28a745 !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.25);
+    transform: translateY(-1px);
+  }
+
+  .btn-navbar-asistencia-salida {
+    background: rgba(220, 53, 69, 0.12) !important;
+    border: 1px solid rgba(220, 53, 69, 0.35) !important;
+    color: #dc3545 !important;
+    border-radius: 30px !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: all 0.2s ease-in-out !important;
+    backdrop-filter: blur(4px);
+    margin: 0 !important; 
+  }
+  .btn-navbar-asistencia-salida:hover:not(:disabled) {
+    background: #dc3545 !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.25);
+    transform: translateY(-1px);
+  }
+
+  .nav-item-text-custom {
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.75) !important;
+    transition: color 0.2s ease;
+    height: 100% !important;
+  }
+  .nav-item-text-custom:hover {
+    color: #0dcaf0 !important;
+  }
+
+  .btn-navbar-asistencia-entrada:disabled,
+  .btn-navbar-asistencia-salida:disabled {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #adb5bd !important;
+    opacity: 0.5;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .navbar-vertical-divider {
+    width: 1px;
+    height: 16px;
+    background-color: rgba(255, 255, 255, 0.12);
+    margin: 0 12px;
+    align-self: center;
+  }
+
+  #theme-toggle {
+    padding: 0 !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+  }
+</style>
+
+<nav class="main-header navbar navbar-expand navbar-main-custom shadow-sm fixed-top px-3 py-0" style="z-index:1100;">
+    <div class="collapse navbar-collapse h-100" id="navbarContent">
+      <ul class="navbar-nav me-3 align-items-center">
         <li class="nav-item">
           <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
         </li>
       </ul>
-     <ul class="navbar-nav align-items-center">
+
+      <ul class="navbar-nav align-items-center">
         {% if request.session.rol_actual != 'normal' %}
-          <li class="nav-item">
-              <a class="nav-link fs-5" href="{% url 'home' %}">Dashboard </a>
+          <li class="nav-item d-flex align-items-center">
+              <a class="nav-link navbar-capsule-link" href="{% url 'home' %}">
+                <i class="bi bi-grid-1x2-fill me-2"></i> Panel de Control
+              </a>
           </li>
         {% else %}
-          <li>
-            <a class="nav-link fs-5 fw-bold d-flex ml-5" href="{% url 'user_perfil' %}">
-              <i class="bi bi-person fs-5 me-2"></i> Perfil
+          <li class="nav-item d-flex align-items-center">
+            <a class="nav-link navbar-capsule-link" href="{% url 'user_perfil' %}">
+              <i class="bi bi-person-fill me-2"></i> Mi Perfil
             </a>
           </li>
         {% endif %}
       </ul>
-      <ul class="navbar-nav mb-2 mb-lg-0 ms-auto align-items-center">
-      {% if request.session.rol_actual != 'normal' %}
-        <li class="nav-item me-2">
-          <span id="container-btn-entrada-navbar" title="Registrar Entrada de Hoy">
+
+      <ul class="navbar-nav ms-auto align-items-center mb-0">
+      {% if request.session.rol_actual != 'normal' %}        
+        <li class="nav-item me-2 d-flex align-items-center pr-1">
+          <span id="container-btn-entrada-navbar" title="Registrar Entrada de Hoy" class="d-flex align-items-center">
               <button 
                 type="button" 
-                class="btn btn-success me-2 pt-1 pb-1" 
+                class="btn btn-sm btn-navbar-asistencia-entrada px-3 py-1 d-inline-flex align-items-center" 
                 data-bs-toggle="modal" 
                 data-bs-target="#confirmEntradaModal"
               >
-                <i class="bi bi-box-arrow-in-right me-2"></i> Entrada
+                <i class="bi bi-box-arrow-in-right me-2 fs-6"></i> Entrada
               </button>
           </span>
         </li>        
-        <li class="nav-item">
-          <span id="container-btn-salida-navbar" title="Registrar Salida de Hoy">
+        <li class="nav-item d-flex align-items-center">
+          <span id="container-btn-salida-navbar" title="Registrar Salida de Hoy" class="d-flex align-items-center">
               <button 
                 type="button" 
-                class="btn btn-danger me-5 pt-1 pb-1" 
+                class="btn btn-sm btn-navbar-asistencia-salida px-3 py-1 d-inline-flex align-items-center" 
                 data-bs-toggle="modal" 
                 data-bs-target="#confirmSalidaModal"
               >
-                <i class="bi bi-box-arrow-left me-2"></i> Salida
+                <i class="bi bi-box-arrow-left me-2 fs-6"></i> Salida
               </button>
           </span>
         </li>
-        <li><a class="nav-link" href="{% url 'user_perfil' %}"><i class="bi bi-person me-2"></i> Perfil</a></li>
-        <li class="nav-item dropdown ms-3">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fas fa-exchange-alt me-1"></i> {{ request.session.rol_actual|title }}
+
+        <li class="d-none d-md-block"><div class="navbar-vertical-divider"></div></li>
+
+        <li class="nav-item d-flex align-items-center">
+          <a class="nav-link nav-item-text-custom" href="{% url 'user_perfil' %}">
+            <i class="bi bi-person me-1"></i> Perfil
+          </a>
+        </li>
+
+        <li class="nav-item dropdown ms-2 d-flex align-items-center">
+          <a class="nav-link dropdown-toggle nav-item-text-custom text-info" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-exchange-alt me-1 text-info"></i> {{ request.session.rol_actual|title }}
           </a>
           {% if user.rol == "admin" or user.rol == "gerente" or user.rol == "jefe" %}
-            <ul class="dropdown-menu dropdown-menu-end">
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
               <li>
                 {% if user.rol == 'admin' %}
                   <button type="button" name="rol" data-rol="admin" class="dropdown-item {% if rol_actual == 'admin' %}active{% endif %}" data-bs-toggle="modal" data-bs-target="#confirmarCambioRol">Admin</button>
@@ -74,44 +200,32 @@
         </li>
       {% endif %}  
 
-        <li>
-          <button id="theme-toggle" class="btn nav-item">
+        <li class="ms-2">
+          <button id="theme-toggle" class="btn nav-link p-1 opacity-75" style="transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
             <span id="theme-icon">🌙</span> 
           </button>
         </li>
-       <!--
-         <li class="nav-item dropdown">
-          <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown">
-            <i class="far fa-bell"></i>
-            <span class="position-absolute top-1 start-99 translate-middle badge rounded-pill bg-warning">3</span>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><h6 class="dropdown-header">Notificaciones</h6></li>
-            <li><a class="dropdown-item" href="#">Nueva solicitud recibida</a></li>
-            <li><a class="dropdown-item" href="#">Actualización de perfil</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#">Ver todas</a></li>
-          </ul>
-        </li>
-        -->
+
+        <li class="d-none d-sm-block"><div class="navbar-vertical-divider"></div></li>
+
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-            <i class="fas fa-user-circle me-0"></i> {{ request.user.nombre_usuario }}
+          <a class="nav-link dropdown-toggle nav-item-text-custom" href="#" data-bs-toggle="dropdown">
+            <i class="fas fa-user-circle me-1"></i> {{ request.user.nombre_usuario }}
           </a>
-          <ul class="dropdown-menu dropdown-menu-end shadow">
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
             <li>
-              <a class="dropdown-menu-item dropdown-item" href="{% url 'password_change' %}">
-                <i class="bi bi-shield-lock me-2 text-warning"></i> Cambiar contraseña
+              <a class="dropdown-item py-2 d-flex align-items-center" href="{% url 'password_change' %}">
+                <i class="bi bi-shield-lock me-2 text-warning fs-6"></i> Cambiar contraseña
               </a>
             </li>
             
-            <li><hr class="dropdown-divider"></li>
+            <li><hr class="dropdown-divider opacity-12 my-1"></li>
             
             <li>
-              <form action="{% url 'logout' %}" method="post" style="display: block; margin: 0;">
+              <form action="{% url 'logout' %}" method="post" style="display: block; margin: 0; padding: 0;">
                 {% csrf_token %}
-                <button type="submit" class="dropdown-item text-danger" style="background: none; border: none; width: 100%; text-align: left; padding-left: 1rem;">
-                  <i class="bi bi-box-arrow-right me-2"></i> Cerrar sesión
+                <button type="submit" class="dropdown-item text-danger py-2 d-flex align-items-center" style="background: none; border: none; width: 100%; text-align: left;">
+                  <i class="bi bi-box-arrow-right me-2 fs-6"></i> Cerrar sesión
                 </button>
               </form>
             </li>
@@ -119,6 +233,7 @@
         </li>
       </ul>
     </div>
+
     <div class="modal fade" id="confirmEntradaModal" tabindex="-1" aria-labelledby="confirmEntradaLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">

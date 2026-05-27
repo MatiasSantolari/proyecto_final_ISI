@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="container-fluid p-5 my-2">
-    <h4 class="mb-3" style="color: var(--color-primario);">Cursos y Capacitaciones</h4>
+    <h3 class="mb-3" style="color: var(--color-primario);">Cursos y Capacitaciones</h3>
 
     {% if capacitaciones %}
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
@@ -31,7 +31,7 @@
                         </div>
 
                         <h5 class="card-title fw-bold" style="color: #333;">{{ cap.nombre }}</h5>
-                        <p class="card-text text-muted small flex-grow-1">
+                        <p class="card-text text-muted small flex-grow-1 mb-0">
                             {{ cap.descripcion|truncatechars:120 }}
                                 <a href="#" class="text-decoration-none fw-bold"
                                 data-bs-toggle="modal" data-bs-target="#modalDetalle{{ cap.id }}"

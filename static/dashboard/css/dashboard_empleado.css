@@ -92,3 +92,38 @@ body.dark-mode .enlace-header:hover .text-muted {
     align-items: center;
     text-decoration: none; 
 }
+
+
+.card {
+    border: 1px solid rgba(3, 10, 25, 0.05) !important;
+    border-radius: 1rem !important; 
+    box-shadow: 0 4px 20px -2px rgba(3, 10, 25, 0.02), 
+                0 12px 30px -4px rgba(3, 10, 25, 0.04) !important; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    overflow: hidden; 
+}
+
+.card:has(.enlace-header:hover) {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 35px -5px rgba(3, 10, 25, 0.12) !important;
+}
+
+.enlace-header {
+    transition: background-color 0.3s ease, color 0.3s ease !important;
+}
+
+body:not(.dark-mode) .enlace-header:hover,
+body.dark-mode .enlace-header:hover {
+    box-shadow: none !important; 
+    transform: none !important;  
+}
+
+.enlace-header:hover .bi-chevron-right {
+    transform: translateX(3px);
+    color: #0d6efd !important;
+}
+
+.bi-chevron-right {
+    transition: transform 0.2s ease, color 0.2s ease;
+    display: inline-block;
+}

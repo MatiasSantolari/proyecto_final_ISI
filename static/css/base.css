@@ -1,20 +1,20 @@
-html, body {
+html {
+    font-size: 14.4px !important; 
     height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
 }
 
 body {
     background-color: #f8f9fa;
     font-family: "Segoe UI", sans-serif;
-    min-height: 100vh;
+    min-height: 100vh !important;
     display: flex;
     flex-direction: column;
+    height: auto !important; 
 }
 
 .wrapper {
-    min-height: 100vh;
+    min-height: 100vh !important;
+    height: auto !important;
     display: flex;
     flex-direction: column;
 }
@@ -24,7 +24,9 @@ body {
     padding: 20px;
     background-color: #f4f6f9;
     margin-top: 0 !important; 
+    min-height: calc(100vh - 57px) !important; 
 }
+
 
 footer.app-footer {
     background-color: #e6e5e5;

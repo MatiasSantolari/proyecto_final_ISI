@@ -18,6 +18,16 @@ from datetime import datetime
 
 @login_required
 def personas(request):
+    form_data = request.session.pop('form_data_persona_error', None)
+    
+    if form_data:
+        form = PersonaForm(form_data)
+        form.is_valid()
+        abrir_modal_error = True
+    else:
+        form = PersonaForm()
+        abrir_modal_error = False
+
     personas_qs = Persona.objects.select_related('empleado', 'usuario').order_by('apellido', 'nombre')
 
     dep_id = request.GET.get("departamento")
@@ -129,6 +139,7 @@ def personas(request):
         'page_obj': page_obj,
         'rango_paginas': rango_paginas, 
         'form': form,
+        'abrir_modal_error': abrir_modal_error,
         'departamentos': departamentos,
         'departamento_seleccionado': dep_id,
         'dni_buscado': search_dni,
@@ -150,12 +161,26 @@ def crear_persona(request):
 
         form = PersonaForm(request.POST, request.FILES, instance=persona, departamento_id=departamento_id)
 
+        dni_input = request.POST.get('dni', '').strip()
+        if dni_input:
+            query_dni = Persona.objects.filter(dni=dni_input)
+            if id_persona:
+                query_dni = query_dni.exclude(id=id_persona)
+                
+            if query_dni.exists():
+                messages.error(request, f'¡Error! El DNI {dni_input} ya se encuentra registrado en el sistema.')
+                
+                request.session['form_data_persona_error'] = request.POST
+                return redirect('personas')
+
         if form.is_valid():
             email = form.cleaned_data.get('email')
             accion = request.POST.get("accion")
             
             if not id_persona and Usuario.objects.filter(email=email).exists():
-                form.add_error('email', 'Ya existe un usuario registrado con ese correo electrónico.')
+                messages.error(request, 'El correo electrónico ya se encuentra registrado por otro usuario.')
+                request.session['form_data_persona_error'] = request.POST
+                return redirect('personas')
             else:
                 persona = form.save()
                 rol = form.cleaned_data.get('tipo_usuario')
@@ -165,6 +190,7 @@ def crear_persona(request):
                     cargo = Cargo.get_gerente_por_departamento(departamento_id)
                     if not cargo:
                         form.add_error('departamento', 'No hay un cargo de gerente configurado para este departamento.')
+                        messages.error(request, 'Error de configuración de cargo departamental.')
                         personas = Persona.objects.all()
                         return render(request, 'personas.html', {'form': form, 'personas': personas})
                     
@@ -358,14 +384,19 @@ def crear_persona(request):
                         return redirect(f"/contratos/?crear_contrato=1&empleado_id={empleado.id}")
 
 
+                if 'form_data_persona_error' in request.session:
+                    del request.session['form_data_persona_error']
+                    
+                messages.success(request, '¡Colaborador guardado con éxito!')
                 return redirect('personas')
         else:
-            print("Errores en el formulario:", form.errors)
+            messages.error(request, 'Por favor, verifique los datos ingresados en el formulario.')
+            request.session['form_data_persona_error'] = request.POST
+            return redirect('personas')
     else:
         form = PersonaForm()
 
-    personas = Persona.objects.all()
-    return render(request, 'personas.html', {'form': form, 'personas': personas})
+    return redirect('personas')
 
 
 
@@ -576,6 +607,7 @@ def experiencias_delete(request):
         
 
 
+
 @login_required
 def perfil_save_view(request):
     if request.method == 'POST':
@@ -595,12 +627,38 @@ def perfil_save_view(request):
         if form.is_valid():
             persona = form.save()
             cv_url = persona.cvitae.url if persona.cvitae else None
+            
+            fecha_nacimiento_formateada = ""
+            dias_restantes_cumple = None
+            if persona.fecha_nacimiento:
+                fecha_nacimiento_formateada = persona.fecha_nacimiento.strftime("%d/%m/%Y")
+                
+                hoy = datetime.now().date()
+                cumple_este_ano = persona.fecha_nacimiento.replace(year=hoy.year)
+                if cumple_este_ano < hoy:
+                    cumple_este_ano = cumple_este_ano.replace(year=hoy.year + 1)
+                dias_restantes_cumple = (cumple_este_ano - hoy).days
+
             return JsonResponse({
                 'success': True, 
                 'message': 'Datos guardados correctamente.',
                 'cv_url': cv_url,
                 'toast_message': '¡Perfil actualizado con éxito!', 
-                'toast_type': 'success'
+                'toast_type': 'success',
+                
+                'user_data': {
+                    'nombre': persona.nombre or '',
+                    'apellido': persona.apellido or '',
+                    'dni': persona.dni or '',
+                    'fecha_nacimiento': fecha_nacimiento_formateada,
+                    'dias_cumple': dias_restantes_cumple,
+                    'calle': persona.calle or 'No registrada',
+                    'numero': persona.numero or '',
+                    'pais': persona.pais or 'No registrada',
+                    'provincia': persona.provincia or '',
+                    'ciudad': persona.ciudad or '',
+                    'telefono': f"{persona.prefijo_pais or ''} {persona.telefono or ''}".strip() or 'No registrado'
+                }
             })
         else:
             return JsonResponse({

@@ -1,113 +1,181 @@
 <style>
-.main-sidebar,
-.sidebar-mini.sidebar-collapse .main-sidebar:hover {
-    width: 300px !important; 
-    transition: width 0.3s ease-in-out;
+    .main-sidebar,
+    .sidebar-mini.sidebar-collapse .main-sidebar:hover {
+        width: 300px !important; 
+        transition: width 0.3s ease-in-out;
+    }
+
+    .sidebar-collapse .main-sidebar:not(:hover) {
+        width: 4.6rem !important;
+    }
+
+    .sidebar-collapse .main-sidebar:not(:hover) .brand-text, 
+    .sidebar-collapse .main-sidebar:not(:hover) .calendar-container,
+    .sidebar-collapse .main-sidebar:not(:hover) h6,
+    .sidebar-collapse .main-sidebar:not(:hover) .info-user-sidebar {
+        display: none !important;
+    }
+
+    .main-sidebar:not(.sidebar-collapse) #avatarContainer,
+    .main-sidebar:not(.sidebar-collapse) #previewAvatar,
+    .sidebar-mini.sidebar-collapse .main-sidebar:hover #avatarContainer,
+    .sidebar-mini.sidebar-collapse .main-sidebar:hover #previewAvatar {
+        width: 70px !important; 
+        height: 70px !important;
+        margin: 10px auto !important;
+        display: block !important;
+        transition: width 0.2s ease, height 0.2s ease !important;
+    }
+
+    .main-sidebar:not(.sidebar-collapse) #defaultAvatarIcon,
+    .sidebar-mini.sidebar-collapse .main-sidebar:hover #defaultAvatarIcon {
+        width: 60px !important; 
+        height: 60px !important;
+        margin: 15px auto 10px auto !important; 
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: width 0.2s ease, height 0.2s ease !important;
+    }
+
+    .sidebar-collapse .main-sidebar:not(:hover) #avatarContainer,
+    .sidebar-collapse .main-sidebar:not(:hover) #previewAvatar,
+    .sidebar-collapse .main-sidebar:not(:hover) #defaultAvatarIcon {
+        width: 35px !important;
+        height: 35px !important;
+        margin: 10px 6px !important;
+    }
+
+    .calendar-container {
+        width: 90% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    .calendar-table td.today, td.today {
+        background-color: #28a745 !important;
+        color: white !important;
+        border-radius: 50%;
+        font-weight: bold;
+    }
+
+    #avatarContainer, #previewAvatar, #defaultAvatarIcon {
+        transition: width 0.2s ease-in-out, height 0.2s ease-in-out, margin 0.2s ease-in-out !important;
+    }
+
+    .main-sidebar,
+    .sidebar-mini.sidebar-collapse .main-sidebar:hover {
+        width: 300px !important; 
+    }
+
+    .brand-link,
+    .sidebar-mini.sidebar-collapse .main-sidebar:hover .brand-link {
+        padding: 0.5rem 1rem !important; 
+        display: flex !important;
+        align-items: center !important;
+        white-space: nowrap !important;
+        overflow: hidden;
+    }
+
+    .brand-link .brand-text {
+        display: inline-block !important;
+        margin-left: 10px !important;
+        font-size: 1rem;
+        flex: 1;
+        min-width: 0;  
+    }
+
+    .sidebar-collapse .main-sidebar:not(:hover) .brand-text {
+        display: none !important;
+    }
+
+    .main-sidebar .nav-link {
+        height: 40px !important;    
+        padding: 0.5rem 1rem !important; 
+        display: flex;
+        align-items: center;
+    }
+
+    .main-sidebar .nav-item {
+        width: 290px !important;
+        margin: 0 auto;
+    }
+
+    .sidebar-collapse .main-sidebar:not(:hover) .brand-text { display: none !important; }
+
+    .sidebar-mini .main-sidebar .nav-link, .sidebar-mini-md .main-sidebar .nav-link, .sidebar-mini-xs .main-sidebar .nav-link {
+        width: calc(290px - .5rem * 2) !important;
+    }
+
+    .layout-navbar-fixed .wrapper .main-sidebar:hover .brand-link {
+    width: 300px !important;
+    }
+
+    .layout-navbar-fixed .wrapper .brand-link {
+        width: 300px;
+    }
+
+    #defaultAvatarIcon i {
+        font-size: 1.8rem !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+    }
+
+.main-sidebar .brand-link.sidebar-brand-hub,
+.sidebar-dark-primary .brand-link.sidebar-brand-hub {
+  background-color: transparent !important; 
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0.5rem 0.6rem !important;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: all 0.3s ease;
 }
 
-.sidebar-collapse .main-sidebar:not(:hover) {
-    width: 4.6rem !important;
+.main-sidebar .brand-link.sidebar-brand-hub:hover,
+.sidebar-dark-primary .brand-link.sidebar-brand-hub:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #fff !important;
 }
 
-.sidebar-collapse .main-sidebar:not(:hover) .brand-text, 
-.sidebar-collapse .main-sidebar:not(:hover) .calendar-container,
-.sidebar-collapse .main-sidebar:not(:hover) h6,
-.sidebar-collapse .main-sidebar:not(:hover) .info-user-sidebar {
-    display: none !important;
+.sidebar-brand-hub:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #fff !important;
 }
 
-.main-sidebar:not(.sidebar-collapse) #avatarContainer,
-.main-sidebar:not(.sidebar-collapse) #previewAvatar,
-.main-sidebar:not(.sidebar-collapse) #defaultAvatarIcon,
-.sidebar-mini.sidebar-collapse .main-sidebar:hover #avatarContainer,
-.sidebar-mini.sidebar-collapse .main-sidebar:hover #previewAvatar,
-.sidebar-mini.sidebar-collapse .main-sidebar:hover #defaultAvatarIcon {
-    width: 70px !important; 
-    height: 70px !important;
-    margin: 10px auto !important;
-    display: block !important;
-    transition: width 0.2s ease, height 0.2s ease !important;
-}
 
-.sidebar-collapse .main-sidebar:not(:hover) #avatarContainer,
-.sidebar-collapse .main-sidebar:not(:hover) #previewAvatar,
-.sidebar-collapse .main-sidebar:not(:hover) #defaultAvatarIcon {
-    width: 35px !important;
-    height: 35px !important;
-    margin: 10px 6px !important;
-}
+  .sidebar-collapse .sidebar-brand-hub {
+    justify-content: center;
+    padding: 0.5rem 0 !important;
+  }
 
-.calendar-container {
-    width: 90% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-}
-
-.calendar-table td.today, td.today {
-    background-color: #28a745 !important;
-    color: white !important;
-    border-radius: 50%;
-    font-weight: bold;
-}
-
-#avatarContainer, #previewAvatar, #defaultAvatarIcon {
-    transition: width 0.2s ease-in-out, height 0.2s ease-in-out, margin 0.2s ease-in-out !important;
-}
-
-.main-sidebar,
-.sidebar-mini.sidebar-collapse .main-sidebar:hover {
-    width: 300px !important; 
-}
-
-.brand-link,
-.sidebar-mini.sidebar-collapse .main-sidebar:hover .brand-link {
-    padding: 1rem 1rem !important; 
-    display: flex !important;
-    align-items: center !important;
-    white-space: nowrap !important;
-    overflow: hidden;
-}
-
-.brand-link .brand-text {
-    display: inline-block !important;
-    margin-left: 10px !important;
-    font-size: 1rem;
-    flex: 1;
-    min-width: 0;  
-}
-
-.sidebar-collapse .main-sidebar:not(:hover) .brand-text {
-    display: none !important;
-}
-
-.main-sidebar .nav-link {
-    height: 40px !important;    
-    padding: 0.5rem 1rem !important; 
-    display: flex;
+  .sidebar-central-hub-icon {
+    display: inline-flex;
     align-items: center;
-}
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.1) 0%, rgba(13, 202, 240, 0.1) 100%);
+    border: 1.5px dashed rgba(13, 202, 240, 0.5);
+    border-radius: 50%;
+    animation: rotateHubSidebar 20s linear infinite;
+    flex-shrink: 0; 
+  }
 
-.main-sidebar .nav-item {
-    width: 290px !important;
-    margin: 0 auto;
-}
+  @keyframes rotateHubSidebar {
+    100% { transform: rotate(360deg); }
+  }
 
-.sidebar-collapse .main-sidebar:not(:hover) .brand-text { display: none !important; }
-
-.sidebar-mini .main-sidebar .nav-link, .sidebar-mini-md .main-sidebar .nav-link, .sidebar-mini-xs .main-sidebar .nav-link {
-    width: calc(290px - .5rem * 2) !important;
-}
-
-.layout-navbar-fixed .wrapper .main-sidebar:hover .brand-link {
- width: 300px !important;
-}
-
-.layout-navbar-fixed .wrapper .brand-link {
-    width: 300px;
-}
+  .sidebar-system-text {
+    font-size: 0.7rem; 
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #0dcaf0;
+    font-weight: 700;
+  }
 
 </style>
-
 
 
 <script>
@@ -173,12 +241,14 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
 
-<aside id="main-sidebar" class="main-sidebar sidebar-dark-primary elevation-4" style="height: 100vh; overflow-y: auto;">
-    <a href="{% url 'home' %}" class="brand-link">
-        <i class="bi bi-house-door-fill fs-5 me-2 ms-2"></i>
-        <span class="brand-text font-weight-bold" style="letter-spacing: 0.5px;">Home</span>
+<aside id="main-sidebar" class="main-sidebar sidebar-dark-primary elevation-4" style="height: calc(100vh / 0.9); overflow-y: auto;">
+    
+    <a href="{% url 'home' %}" class="brand-link sidebar-brand-hub navbar-custom-fix text-decoration-none">
+        <div class="sidebar-central-hub-icon">
+          <i class="bi bi-people-fill text-info" style="font-size: 1.2rem; line-height: 1;"></i>
+        </div>        
+        <span class="brand-text sidebar-system-text ms-2">Sistema de Gestión RRHH</span>
     </a>
-
 
     <div class="sidebar">
         <nav class="mt-2">
@@ -191,7 +261,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             <img id="previewAvatar" src="{{ request.user.persona.avatar.url }}" 
                                 class="img-circle elevation-2" style="width: 90px; height: 90px; object-fit: cover;">
                         {% else %}
-                            <div id="defaultAvatarIcon" class="bg-secondary img-circle d-flex justify-content-center align-items-center text-white elevation-2" style="width: 70px; height: 70px;">
+                            <div id="defaultAvatarIcon" class="bg-secondary img-circle d-flex text-white elevation-2">
                             <i class="fas fa-user" style="font-size: 2rem;"></i>
                             </div>
                         {% endif %}

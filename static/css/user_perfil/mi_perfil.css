@@ -87,3 +87,19 @@
   .tab-pane.active {
     display: block !important;
   }
+
+
+
+
+  .perfil-card-marcada {
+    border: 1px solid #babcbe !important;
+    border-radius: 14px !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+    background-color: transparent !important;
+    padding: 1.5rem !important;
+    margin-bottom: 1.5rem;
+}
+
+body.dark-mode .perfil-card-marcada {
+    border-color: rgba(255, 255, 255, 0.18) !important;
+}

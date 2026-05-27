@@ -10,8 +10,8 @@
     <div class="card shadow-sm border-0">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-sm table-hover table-striped table-bordered align-middle text-center">
-                    <thead>
+                <table class="table table-sm table-hover table-striped table-bordered align-middle table-compact mb-0 w-100 text-center" style="font-size: 0.95rem;">
+                    <thead class="text-center">
                         <tr>
                             <th>Fecha</th>
                             <th>Departamento</th>
@@ -22,7 +22,7 @@
                             <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="text-center">
                         {% for s in solicitudes %}
                         <tr>
                             <td>{{ s.fecha_solicitud|date:"d/m/y" }}</td>
@@ -38,8 +38,8 @@
                                 </span>
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalDetalle{{ s.id }}">
-                                    <i class="bi bi-search"></i> Revisar
+                                <button class="btn btn-sm btn-primary py-0 d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#modalDetalle{{ s.id }}">
+                                    <i class="bi bi-search me-1"></i> Revisar
                                 </button>
                             </td>
                         </tr>
@@ -55,7 +55,7 @@
             </div>
 
             <nav aria-label="Paginación">
-                <ul class="pagination justify-content-center mt-2">
+                <ul class="pagination justify-content-center mt-3">
                   {% if solicitudes.has_previous %}
                     <li class="page-item">
                       <a class="page-link" href="?page={{ solicitudes.previous_page_number }}">&laquo;</a>

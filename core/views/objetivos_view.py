@@ -55,6 +55,7 @@ def objetivos(request):
 def obtener_datos_por_depto(request):
     depto_id = request.GET.get('depto_id')
     tipo = request.GET.get('tipo')  
+    objetivo_id = request.GET.get('objetivo_id')
 
     if not depto_id:
         return JsonResponse({'data': []})
@@ -64,13 +65,40 @@ def obtener_datos_por_depto(request):
             empleadocargo__cargo__cargodepartamento__departamento_id=depto_id,
             empleadocargo__fecha_fin__isnull=True
         ).distinct()
-        data = [{'id': e.id, 'nombre': f"{e.nombre} {e.apellido}"} for e in empleados]
+
+        asignados_ids = []
+        if objetivo_id:
+            asignados_ids = list(ObjetivoEmpleado.objects.filter(
+                objetivo_id=objetivo_id
+            ).values_list('empleado_id', flat=True))
+
+        data = [
+            {
+                'id': e.id, 
+                'nombre': f"{e.nombre} {e.apellido}",
+                'ya_asignado': e.id in asignados_ids
+            } for e in empleados
+        ]
 
     elif tipo == 'cargo':
         cargos = Cargo.objects.filter(
             cargodepartamento__departamento_id=depto_id
         ).distinct()
-        data = [{'id': c.id, 'nombre': c.nombre} for c in cargos]
+
+        cargos_asignados_ids = []
+        if objetivo_id:
+            cargos_asignados_ids = list(ObjetivoEmpleado.objects.filter(
+                objetivo_id=objetivo_id,
+                cargo__isnull=False
+            ).values_list('cargo_id', flat=True).distinct())
+
+        data = [
+            {
+                'id': c.id, 
+                'nombre': c.nombre,
+                'ya_asignado': c.id in cargos_asignados_ids 
+            } for c in cargos
+        ]
     
     else:
         return JsonResponse({'error': 'Tipo no válido'}, status=400)
@@ -139,20 +167,35 @@ def asignar_objetivo(request):
     elif tipo == "cargo":
         cargo_id = request.POST.get("cargo_id")
         cargo_obj = get_object_or_404(Cargo, id=cargo_id)
-        empleados_del_cargo = Empleado.objects.filter(cargo=cargo_obj)
         
-        for emp in empleados_del_cargo:
-            ObjetivoEmpleado.objects.get_or_create(
-                objetivo=objetivo,
-                empleado=emp,
-                fecha_asignacion=date.today(),
-                defaults={
-                    'cargo': cargo_obj, 
-                    'completado': False,
-                    'fecha_limite': objetivo.fecha_fin
-                }
-            )
-        messages.success(request, f"Objetivo asignado a todos los empleados del cargo {cargo_obj.nombre}.")
+        asignaciones_puestos = EmpleadoCargo.objects.filter(
+            cargo=cargo_obj,
+            fecha_fin__isnull=True 
+        ).select_related('empleado')
+        
+        contador_altas = 0
+        for asignacion in asignaciones_puestos:
+            emp = asignacion.empleado
+            if emp:
+#                if getattr(emp, 'usuario', None) and getattr(emp.usuario, 'rol', None) == 'admin':
+#                    continue
+
+                ObjetivoEmpleado.objects.get_or_create(
+                    objetivo=objetivo,
+                    empleado=emp,
+                    fecha_asignacion=date.today(),
+                    defaults={
+                        'cargo': cargo_obj, 
+                        'completado': False,
+                        'fecha_limite': objetivo.fecha_fin
+                    }
+                )
+                contador_altas += 1
+
+        if contador_altas > 0:
+            messages.success(request, f"Objetivo asignado con éxito. Se generaron {contador_altas} registros en la base de datos.")
+        else:
+            messages.warning(request, f"No se encontraron empleados activos vinculados actualmente al cargo {cargo_obj.nombre}.")
 
     return redirect("objetivos")
 

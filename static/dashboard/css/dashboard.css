@@ -14,7 +14,7 @@
 }
 body { background: var(--bg); color: var(--text); }
 .container-fluid { max-width: 1400px; margin: 0 auto; }
-.card { background: var(--card); border: none; border-radius: .8rem; box-shadow: 0 4px 16px rgba(3,10,25,0.06); }
+.card { background: var(--card); border: none; border-radius: .9rem; box-shadow: 0 4px 16px rgba(3,10,25,0.06); }
 .kpi { font-weight:700; font-size:1.6rem; }
 .small-muted { color: var(--muted); font-size: .85rem; }
 .chart-card { min-height: 260px; }

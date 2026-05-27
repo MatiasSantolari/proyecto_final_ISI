@@ -5,9 +5,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.12.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-  <div  id="app-root" class="container-fluid p-0 bg-transparent mb-5">
+  <div  id="app-root" class="container-fluid p-0 bg-transparent mb-5 ml-3 mr-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-2">
+    <div class="d-flex justify-content-between align-items-center mb-0">
       <div class="d-flex gap-2 align-items-center">
         <div class="form-check form-switch">
         </div>
@@ -16,9 +16,9 @@
 
     
     <!-- KPIs -->
-    <div class="row g-2 kpi-deck mb-1">
+    <div class="row g-2 kpi-deck mb-0">
       <div class="col-6 col-md-2">
-        <a href="{% url 'empleados_detalle'%}" class="card kpi-link border-0 shadow-sm" style="min-height: 80px;">
+        <a href="{% url 'empleados_detalle'%}" class="card kpi-link border-0 shadow-sm" style="min-height: 70px;">
           <div class="card-body py-2 px-2 d-flex align-items-center gap-3">
             <div class="d-flex align-items-center justify-content-center rounded" style="width: 36px; height: 36px; background-color: rgba(13, 110, 253, 0.1); flex-shrink: 0;">
               <i class="bi bi-people text-primary fs-4"></i>
@@ -34,7 +34,7 @@
       </div>
 
       <div class="col-6 col-md-3">
-        <a href="{% url 'asistencias_detalle'%}" class="card kpi-link border-0 shadow-sm" style="min-height: 80px;">
+        <a href="{% url 'asistencias_detalle'%}" class="card kpi-link border-0 shadow-sm" style="min-height: 70px;">
           <div class="card-body py-2 px-3 d-flex align-items-center gap-3">
             <div class="d-flex align-items-center justify-content-center rounded" style="width: 36px; height: 36px; background-color: rgba(25, 135, 84, 0.1); flex-shrink: 0;">
               <i class="bi bi-calendar-x text-success fs-4"></i>
@@ -50,7 +50,7 @@
       </div>
 
       <div class="col-6 col-md-3">
-        <a href="{% url 'nominas_detalle'%}" class="card kpi-link border-0 shadow-sm" style="min-height: 80px;">
+        <a href="{% url 'nominas_detalle'%}" class="card kpi-link border-0 shadow-sm" style="min-height: 70px;">
           <div class="card-body py-2 px-3 d-flex align-items-center gap-3">
             <div class="d-flex align-items-center justify-content-center rounded" style="width: 36px; height: 36px; background-color: rgba(111, 66, 193, 0.1); flex-shrink: 0;">
               <i class="bi bi-cash-stack fs-4" style="color: #6f42c1;"></i>
@@ -66,7 +66,7 @@
       </div>
 
       <div class="col-6 col-md-4 d-flex align-items-center gap-2">
-        <a href="{% url 'evaluaciones_detalle'%}" class="card kpi-link border-0 shadow-sm flex-grow-1" style="min-height: 80px;">
+        <a href="{% url 'evaluaciones_detalle'%}" class="card kpi-link border-0 shadow-sm flex-grow-1" style="min-height: 70px;">
           <div class="card-body py-2 px-3 d-flex align-items-center gap-3">
             <div class="d-flex align-items-center justify-content-center rounded" style="width: 36px; height: 36px; background-color: rgba(220, 53, 69, 0.1); flex-shrink: 0;">
               <i class="bi bi-graph-up-arrow text-danger fs-4"></i>
@@ -80,9 +80,15 @@
           </div>
         </a>
 
-        <div class="dropdown ms-4">
-          <button class="btn btn-link text-muted p-1" type="button" id="dropdownMenuReport" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 2rem; line-height: 1;">
-            <i class="bi bi-three-dots-vertical"></i>
+        <div class="dropdown ms-2">
+          <button class="btn btn-link p-1 d-flex align-items-center justify-content-center" 
+                  type="button" 
+                  id="dropdownMenuReport" 
+                  data-bs-toggle="dropdown" 
+                  aria-expanded="false" 
+                  style="font-size: 2.2rem; line-height: 1; text-decoration: none; cursor: pointer;"
+                  title="Informes e IA">
+            <i class="bi bi-stars" style="color: #6f42c1;"></i>
           </button>
           <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="dropdownMenuReport">
             <li>
@@ -99,7 +105,7 @@
             </li>
             <li><hr class="dropdown-divider"></li>
             <li>
-              <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-secondary" href="{% url 'historial_reportes_ia' %}">
+              <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'historial_reportes_ia' %}">
                 <i class="bi bi-folder-symlink-fill"></i>
                 <span>Ver Historial de Informes</span>
               </a>
@@ -107,7 +113,7 @@
           </ul>
         </div>
       </div>
-    </div>
+    </div> 
 
 
     <!-- Row: Vacaciones + Asistencias -->
@@ -175,11 +181,12 @@
             <canvas id="attendanceChart"></canvas>
           </div>
         </div>
+      </div>
     </div>
 
 
     <!-- Distribucion de calificaciones + Nomina -->
-    <div class="row g-2 mb-1">
+    <div class="row g-2 mb-3">
       <div class="col-lg-6">
         <div class="card p-4 chart-card h-100">
           <div class="d-flex justify-content-between mb-0">

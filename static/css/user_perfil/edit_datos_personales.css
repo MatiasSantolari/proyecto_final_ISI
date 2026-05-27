@@ -8,8 +8,8 @@
 
 #avatarContainerEdit {
     position: relative;
-    width: 100px;
-    height: 100px;
+    width: 90px;
+    height: 90px;
     border-radius: 50%;
     margin: 0;
 }
@@ -26,12 +26,12 @@
 #avatarPlus {
     position: absolute;
     z-index: 10;
-    bottom: 5px; 
-    right: 5px;  
+    bottom: 2px; 
+    right: 2px;  
     background: rgba(0, 113, 6, 0.8);
     color: white;
-    width: 30px;
-    height: 30px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     display: none;
     justify-content: center;
@@ -96,3 +96,28 @@
     border: 1px solid #ccc;
     background-color: #f8f9fa !important;
   }
+
+
+
+
+
+#avatarContainerEdit #defaultAvatarIcon i.bi-person-circle {
+    display: inline-block !important;
+    font-size: 6.5rem !important; 
+    line-height: 1 !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+.perfil-card-marcada {
+    border: 1px solid #babcbe !important;
+    border-radius: 14px !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+    background-color: transparent !important;
+    padding: 1.5rem !important;
+    margin-bottom: 1.5rem;
+}
+
+body.dark-mode .perfil-card-marcada {
+    border-color: rgba(255, 255, 255, 0.18) !important;
+}

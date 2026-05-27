@@ -79,7 +79,7 @@
     <div class="card shadow-sm border-0">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-sm table-hover table-striped table-bordered align-middle table-compact mb-0" style="font-size: 0.95rem;">
+                <table class="table table-sm table-hover table-striped table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
                     <thead class="table-dark text-center">
                         <tr>
                             <th style="width: 20%;">Inicio</th>
@@ -131,7 +131,9 @@
                                     </div>
                                 </div>
                                 {% else %}
-                                <span class="text-muted small fw-bold">-</span>
+                                <span class="badge bg-secondary-subtle text-secondary border shadow-sm px-2 py-1 small fw-bold">
+                                    <i class="bi bi-slash-circle me-1"></i> Sin Acciones
+                                </span>
                                 {% endif %}
                             </td>
                         </tr>

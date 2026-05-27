@@ -698,8 +698,8 @@ def api_dashboard_empleado(request):
         Q(fecha_limite__gte=hoy) | Q(fecha_limite__isnull=True)
     )
 
-    with translation.override('es'):
-        fecha_str = hoy.strftime("%A, %d de %B %Y").capitalize()
+    from django.utils.formats import date_format
+    fecha_str = date_format(hoy, "l, d \d\e F Y").capitalize()
 
     data = {
         "fecha_formateada": fecha_str,
