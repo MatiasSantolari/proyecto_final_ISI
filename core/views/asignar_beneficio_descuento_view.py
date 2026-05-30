@@ -1,5 +1,4 @@
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
 from ..models import *
 from ..forms import *
 from django.shortcuts import render, redirect, get_object_or_404
@@ -11,6 +10,7 @@ from django.utils.timezone import now
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.db.models import Q
+from django.core.paginator import Paginator
 
 
 def _get_empleado_de_user(user):
@@ -115,6 +115,10 @@ def asignador_view(request):
 
     empleados_qs = empleados_qs.distinct().order_by('apellido', 'nombre')
 
+    paginator = Paginator(empleados_qs, 10) 
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     descuentos_disponibles = Descuento.objects.filter(fijo=False, activo=True).order_by('descripcion')
     beneficios_disponibles = Beneficio.objects.filter(
             fijo=False, 
@@ -127,7 +131,8 @@ def asignador_view(request):
     departamentos = Departamento.objects.all().order_by('nombre')
 
     context = {
-        'empleados': empleados_qs,
+        'empleados': page_obj, 
+        'page_obj': page_obj, 
         'departamentos': departamentos,
         'departamento_sel': departamento_sel,
         'descuentos_disponibles': descuentos_disponibles,
@@ -136,7 +141,6 @@ def asignador_view(request):
         'texto_buscado': search_texto,
     }
     return render(request, 'asignador_beneficios_descuentos.html', context)
-
 
 
 

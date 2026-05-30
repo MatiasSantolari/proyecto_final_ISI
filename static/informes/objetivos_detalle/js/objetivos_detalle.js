@@ -69,10 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const typeBadge = `<span class="badge bg-${item.es_recurrente ? 'info' : 'secondary'} text-white" style="font-size: 0.65rem;">${item.es_recurrente ? 'Diario' : 'Único'}</span>`;
             const statusBadge = `<span class="badge bg-${item.completado ? 'success' : 'warning'} text-dark" style="min-width: 80px;">${item.completado ? 'Listo' : 'Pendiente'}</span>`;
-            
-            const fechaFinHtml = item.es_recurrente 
-                ? `<span class="text-body">${item.fecha_limite}</span>` 
-                : `<span class="text-body">${item.fecha_limite}</span>`;
+
+            const fechaFinHtml = item.fecha_limite;
 
             row.innerHTML = `
                 <td>${nombreHtml}</td>
@@ -80,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="text-start text-body">${item.objetivo_titulo}</td>
                 <td>${typeBadge}</td>
                 <td class="text-body">${item.departamento}</td>
-                <td>${fechaFinHtml}</td>
+                <td class="text-body">${fechaFinHtml}</td>
                 <td>${statusBadge}</td>
             `;
             tbody.appendChild(row);

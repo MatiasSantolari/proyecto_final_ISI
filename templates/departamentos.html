@@ -8,21 +8,20 @@
   
   <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
   <div class="container-fluid p-5 my-3">
-    <h4 class="mb-4" style="color: var(--color-primario);">Gestión de Departamentos</h4>
+    <h4 class="page-title-custom fw-bold mb-3">Gestión de Departamentos</h4>
 
     <div class="card mb-2">
       <div class="card-header d-flex justify-content-between align-items-center mb-0">
-        <button type="button" class="btn mb-3 btn-primary" data-bs-toggle="modal" data-bs-target="#modalDepartamento">
+        <button type="button" class="btn btn-sm p-2 btn-primary" data-bs-toggle="modal" data-bs-target="#modalDepartamento">
           + Crear Nuevo Departamento
         </button>
       </div>
     </div>
 
-    <!-- Tabla de Departamentos -->
     <div class="card shadow-sm border-0">
       <div class="card-body">
         <div class="table-responsive">
-        <table class="table table-sm table-hover table-striped table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
+        <table class="table table-sm table-hover table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
             <thead class="table-light text-center">
               <tr>
                 <th style="width:20%;">Nombre</th>
@@ -78,9 +77,10 @@
               {% endfor %}
             </tbody>
           </table>
+        </div>
 
           <nav aria-label="Paginación departamentos">
-            <ul class="pagination justify-content-center mt-3">
+            <ul class="pagination justify-content-center mt-3 mb-2">
               {% if departamentos.has_previous %}
                 <li class="page-item">
                   <a class="page-link" href="?page={{ departamentos.previous_page_number }}">&laquo;</a>
@@ -109,7 +109,6 @@
             </ul>
           </nav>
 
-        </div>
       </div>
     </div>
   

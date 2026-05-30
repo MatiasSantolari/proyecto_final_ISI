@@ -14,13 +14,23 @@
 }
 body { background: var(--bg); color: var(--text); }
 .container-fluid { max-width: 1400px; margin: 0 auto; }
-.card { background: var(--card); border: none; border-radius: .9rem; box-shadow: 0 4px 16px rgba(3,10,25,0.06); }
+.card { background: var(--card); border: none; border-radius: .95rem; box-shadow: 0 4px 16px rgba(3,10,25,0.06); }
 .kpi { font-weight:700; font-size:1.6rem; }
 .small-muted { color: var(--muted); font-size: .85rem; }
 .chart-card { min-height: 260px; }
 .kpi-deck .card { min-height: 110px; }
 .progress { height: 8px; border-radius: 8px; overflow: hidden; }
 .progress-bar { background: var(--accent); }
+
+.kpi-deck {
+    margin-left: -4px !important; 
+    margin-right: -4px !important;
+}
+
+.kpi-deck > [class*="col-"] {
+    padding-left: 4px !important;  
+    padding-right: 4px !important; 
+}
 
 .kpi-link {
     text-decoration: none; 
@@ -44,6 +54,16 @@ body { background: var(--bg); color: var(--text); }
     margin-left: 0.25rem;
 }
 
+
+.charts-deck {
+    margin-left: -4px !important;  
+    margin-right: -4px !important;
+}
+
+.charts-deck > [class*="col-"] {
+    padding-left: 4px !important; 
+    padding-right: 4px !important; 
+}
 
 
 @media print {
@@ -74,10 +94,8 @@ body { background: var(--bg); color: var(--text); }
     width: 100% !important;
     display: block !important; 
     background: #fff !important;
-    
     margin: 0 !important;
     padding: 0 !important;
-    
     float: none !important;
   }
 
@@ -157,3 +175,40 @@ body { background: var(--bg); color: var(--text); }
   .modal.show .modal-dialog {
     transform: scale(1);
   }
+
+
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px !important; 
+    height: 6px !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent !important; 
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1 !important; 
+    border-radius: 10px !important;
+}
+
+
+body.dark-mode .custom-scrollbar::-webkit-scrollbar-thumb,
+[data-theme="dark"] .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #334155 !important;
+    border: 1px solid #1e293b !important;
+}
+
+body.dark-mode .custom-scrollbar::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #475569 !important; 
+}
+
+.custom-scrollbar {
+    scrollbar-width: thin !important;
+    scrollbar-color: #cbd5e1 transparent !important;
+}
+body.dark-mode .custom-scrollbar,
+[data-theme="dark"] .custom-scrollbar {
+    scrollbar-color: #334155 transparent !important;
+}

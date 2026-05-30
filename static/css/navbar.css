@@ -1,12 +1,13 @@
 .navbar-main-custom {
-  background-color: #1f2a44 !important;
-  color: white !important;
-  height: 53px;
+  background-color: #27324a !important; 
+  color: #cfd4da !important;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  border: none;
 }
 
 .navbar-main-custom .nav-link,
@@ -20,15 +21,6 @@
 .navbar-main-custom .dropdown-item:hover,
 .navbar-main-custom .dropdown-toggle:hover {
   color: #ffffff !important;
-}
-
-.navbar-main-custom {
-  background-color: #27324a !important;
-  border: none;
-}
-
-.navbar-main-custom {
-  color: #cfd4da !important;
 }
 
 .navbar-main-custom .dropdown-item:hover {
@@ -221,4 +213,151 @@ body.dark-mode .badge.bg-warning {
 .dark-mode #aiReportText li,
 .dark-mode #aiReportText div {
   color: #f1f1f1 !important;
+}
+
+
+
+
+
+body.dark-mode .table-responsive,
+body.dark-mode table.table {
+  background-color: #1e1e1e !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode table.table tbody tr td,
+body.dark-mode table.table tbody tr th {
+  background-color: #1e1e1e !important;
+  color: #ffffff !important;
+  border-color: #3d3d3d !important;
+}
+
+body.dark-mode table.table thead th,
+body.dark-mode table.table thead.table-light th,
+body.dark-mode .table thead th {
+  background-color: #2b2b2b !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  border-bottom: 2px solid #444444 !important;
+  border-color: #444444 !important;
+}
+
+body.dark-mode table.table-striped tbody tr:nth-of-type(odd) td,
+body.dark-mode table.table-striped tbody tr:nth-of-type(odd) th {
+  background-color: #252525 !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode table.table-hover tbody tr:hover td,
+body.dark-mode table.table-hover tbody tr:hover th {
+  background-color: #323232 !important;
+  color: #ffffff !important;
+}
+
+
+
+
+body.dark-mode .accordion-item {
+    background-color: #1e1e1e !important;
+    border-color: #3d3d3d !important;
+}
+
+
+body.dark-mode .accordion-button {
+    background-color: #27324a !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .accordion-button:not(.collapsed) {
+    background-color: #32405f !important;
+    color: #0dcaf0 !important; 
+    box-shadow: inset 0 -1px 0 rgba(255,255,255,.1) !important;
+}
+
+body.dark-mode .accordion-button::after {
+    filter: invert(1) grayscale(1) brightness(2);
+}
+
+body.dark-mode .accordion-body {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+    border-top: 1px solid #3d3d3d !important;
+}
+
+
+body.dark-mode .accordion-body .form-select,
+body.dark-mode .accordion-body .form-control {
+    background-color: #2b2b2b !important;
+    border-color: #444444 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .btn-outline-primary {
+    color: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+}
+body.dark-mode .btn-outline-primary:hover {
+    background-color: #3b82f6 !important;
+    color: #fff !important;
+}
+
+body.dark-mode .btn-outline-info {
+    color: #0dcaf0 !important;
+    border-color: #0dcaf0 !important;
+}
+body.dark-mode .btn-outline-info:hover {
+    background-color: #0dcaf0 !important;
+    color: #212529 !important;
+}
+
+body.dark-mode .text-success,
+body.dark-mode h4.text-success {
+  color: #2ecc71 !important; 
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); 
+}
+
+
+
+
+.acordeon-cargo-activo {
+  border-left: 4px solid #28a745 !important; 
+}
+
+body.dark-mode .acordeon-cargo-activo {
+  border-left: 4px solid #2ecc71 !important;
+  border-top-color: #3d3d3d !important;
+  border-right-color: #3d3d3d !important;
+  border-bottom-color: #3d3d3d !important;
+}
+
+.acordeon-cargo-cerrado {
+  border-left: 4px solid #dc3545 !important; 
+}
+
+body.dark-mode .acordeon-cargo-cerrado {
+  border-left: 4px solid #ff6b6b !important;
+  border-top-color: #3d3d3d !important;
+  border-right-color: #3d3d3d !important;
+  border-bottom-color: #3d3d3d !important;
+}
+
+
+
+
+body.dark-mode .dataTables_wrapper .dataTables_length,
+body.dark-mode .dataTables_wrapper .dataTables_filter,
+body.dark-mode .dataTables_wrapper .dataTables_info,
+body.dark-mode .dataTables_wrapper .dataTables_paginate {
+    color: #ffffff !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .page-link {
+    background-color: #2b2b2b !important;
+    border-color: #444444 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .page-item.active .page-link {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
 }

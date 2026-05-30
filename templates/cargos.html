@@ -7,26 +7,26 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
 <div class="container-fluid p-5 my-2">
-  <h4 class="mb-2" style="color: var(--color-primario);">Gestión de Cargos</h4>
+  <h4 class="page-title-custom fw-bold mb-3">Gestión de Cargos</h4>
 
   <div class="card mb-2">
-    <div class="card-header p-3 d-flex justify-content-between align-items-center mb-0 mt-0 bg-light border-bottom">
-      <button type="button" class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalCargo" id="btnCrearCargo">
+    <div class="card-header p-2 d-flex justify-content-between align-items-center mb-0 mt-0 bg-light border-bottom">
+      <button type="button" class="btn btn-primary btn-sm p-2 fw-bold" data-bs-toggle="modal" data-bs-target="#modalCargo" id="btnCrearCargo">
         <i class="bi bi-briefcase-fill"></i> Crear Nuevo Cargo
       </button>
     </div>
 
-    <div class="card-body bg-light">
+    <div class="card-body bg-light pt-2">
       <form method="get" action="" id="formFiltrosCargos" class="row g-3 align-items-end">
         
-        <div class="col-md-5">
-          <label class="form-label fw-bold">Buscar por Nombre de Cargo</label>
-          <input type="text" class="form-control input-filtro-dinamico" name="nombre_cargo" id="buscadorNombreCargo" placeholder="Nombre Cargo" value="{{ nombre_cargo_buscado }}">
+        <div class="col-md-4">
+          <label class="form-label fw-bold small text-uppercase">Buscar por Nombre de Cargo</label>
+          <input type="text" class="form-control form-control-sm input-filtro-dinamico" name="nombre_cargo" id="buscadorNombreCargo" placeholder="Nombre Cargo" value="{{ nombre_cargo_buscado }}">
         </div>
 
         <div class="col-md-5">
-          <label class="form-label fw-bold">Filtrar por Departamento</label>
-          <select name="departamento" id="departamento" class="form-select select-filtro-dinamico">
+          <label class="form-label fw-bold small text-uppercase">Filtrar por Departamento</label>
+          <select name="departamento" id="departamento" class="form-select form-select-sm select-filtro-dinamico">
             <option value="todos" {% if not departamento_seleccionado or departamento_seleccionado == 'todos' %}selected{% endif %}>Todos</option>
             {% for dept in departamentos %}
               <option value="{{ dept.id }}" {% if dept.id|stringformat:"s" == departamento_seleccionado %}selected{% endif %}>
@@ -37,8 +37,8 @@
         </div>
 
         <div class="col-md-2">
-          <a href="{% url 'cargos' %}" class="btn btn-outline-danger w-100 fw-bold" data-bs-toggle="tooltip" title="Limpiar todos los filtros">
-            <i class="bi bi-trash"></i> Limpiar
+          <a href="{% url 'cargos' %}" class="btn btn-primary w-100 fw-bold shadow-sm btn-sm p-2" data-bs-toggle="tooltip" title="Limpiar todos los filtros">
+            <i class="bi bi-arrow-clockwise me-1"></i> Limpiar Filtros
           </a>
         </div>
 
@@ -49,7 +49,7 @@
   <div class="card shadow-sm border-0">
     <div class="card-body" id="contenedor-tabla-dinamica">
       <div class="table-responsive">
-        <table class="table table-sm table-hover table-striped table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
+        <table class="table table-sm table-hover table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
           <thead class="table-light text-center">
             <tr>
               <th>Nombre</th>
@@ -121,9 +121,10 @@
             {% endfor %}
           </tbody>
         </table>
+      </div>
 
         <nav aria-label="Paginación">
-          <ul class="pagination justify-content-center mt-4">
+          <ul class="pagination justify-content-center mt-3 mb-2">
             {% if page_obj.has_previous %}
               <li class="page-item">
                 <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if departamento_seleccionado %}&departamento={{ departamento_seleccionado }}{% endif %}{% if nombre_cargo_buscado %}&nombre_cargo={{ nombre_cargo_buscado }}{% endif %}">&laquo;</a>
@@ -152,7 +153,6 @@
           </ul>
         </nav>
 
-      </div>
     </div>
   </div>
 

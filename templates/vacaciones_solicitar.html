@@ -22,7 +22,7 @@
 </style>
 
 <div class="container-fluid p-5 my-3">
-    <h4 class="mb-3" style="color: var(--color-primario); font-weight: bold;">Solicitar Vacaciones</h4>
+    <h4 class="page-title-custom fw-bold mb-2">Solicitar Vacaciones</h4>
 
     <div class="card shadow-sm border-0 mb-3">
         <div class="card-body py-3">
@@ -40,17 +40,17 @@
 
                     <div class="col-md-1 ms-auto"></div>
 
-                    <div class="col-md-2">
-                        <label class="form-label fw-bold small text-secondary mb-1" for="{{ form.fecha_inicio.id_for_label }}">Fecha de Inicio</label>
+                    <div class="col-md-2 mt-1">
+                        <label class="form-label fw-bold small text-uppercase text-secondary mb-1" for="{{ form.fecha_inicio.id_for_label }}">Fecha de Inicio</label>
                         {% render_field form.fecha_inicio class="form-control form-control-sm shadow-sm" type="date" %}
                     </div>
 
-                    <div class="col-md-2">
-                        <label class="form-label fw-bold small text-secondary mb-1" for="{{ form.fecha_fin.id_for_label }}">Fecha de Fin</label>
+                    <div class="col-md-2 mt-1">
+                        <label class="form-label fw-bold small text-uppercase text-secondary mb-1" for="{{ form.fecha_fin.id_for_label }}">Fecha de Fin</label>
                         {% render_field form.fecha_fin class="form-control form-control-sm shadow-sm" type="date" %}
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-3 mt-1">
                         <button type="submit" class="btn btn-success btn-sm w-100 fw-bold p-2 mt-4 shadow-sm action-btn-custom" style="padding-top: 9px !important; padding-bottom: 9px !important;">
                             <i class="bi bi-send-fill me-2"></i> Enviar Solicitud
                         </button>
@@ -74,12 +74,12 @@
         </div>    
     </div>
 
-    <h4 class="mt-4 mb-2" style="color: var(--color-primario); font-weight: bold;">Historial de Mis Solicitudes</h4>
+    <h4 class="page-title-custom fw-bold mb-2">Historial de Mis Solicitudes</h4>
     
     <div class="card shadow-sm border-0">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-sm table-hover table-striped table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
+                <table class="table table-sm table-hover table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
                     <thead class="table-dark text-center">
                         <tr>
                             <th style="width: 20%;">Inicio</th>
@@ -131,7 +131,7 @@
                                     </div>
                                 </div>
                                 {% else %}
-                                <span class="badge bg-secondary-subtle text-secondary border shadow-sm px-2 py-1 small fw-bold">
+                                <span class="badge bg-secondary text-white border-0 shadow-sm px-2 py-1 small fw-bold">
                                     <i class="bi bi-slash-circle me-1"></i> Sin Acciones
                                 </span>
                                 {% endif %}
@@ -142,10 +142,11 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                </div>
 
-                <div class="d-flex justify-content-center mt-4">
+                <div class="d-flex justify-content-center mt-4 mb-2">
                     <nav aria-label="Paginación">
-                        <ul class="pagination pagination-sm mb-0 shadow-sm">
+                        <ul class="pagination mb-0 shadow-sm">
                             {% if solicitudes.has_previous %}
                                 <li class="page-item">
                                     <a class="page-link" href="?page={{ solicitudes.previous_page_number }}">&laquo;</a>
@@ -182,7 +183,6 @@
                         </ul>
                     </nav>
                 </div>
-            </div>
         </div>
     </div>
 </div>

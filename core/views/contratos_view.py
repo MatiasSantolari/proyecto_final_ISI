@@ -183,16 +183,18 @@ def mis_contratos(request):
     except Empleado.DoesNotExist:
         contratos = HistorialContrato.objects.none()
     else:
-        contratos = HistorialContrato.objects.filter(
+        contratos = HistorialContrato.objects.select_related('cargo', 'contrato').filter(
             empleado=empleado
         ).order_by("-fecha_inicio")
 
     page_number = request.GET.get("page")
     paginator = Paginator(contratos, 10)
+    
     page_obj = paginator.get_page(page_number)
 
     return render(request, "mis_contratos.html", {
         "contratos": page_obj,
+        "page_obj": page_obj,
     })
 
 

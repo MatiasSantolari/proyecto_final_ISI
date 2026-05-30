@@ -8,20 +8,20 @@
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
 
 <div class="container-fluid p-5 my-2">
-  <h4 class="mb-2" style="color: var(--color-primario); font-weight: bold;">Solicitudes de Vacaciones</h4>
+  <h4 class="page-title-custom fw-bold mb-2">Solicitudes de Vacaciones</h4>
 
-  <div class="card mb-3 shadow-sm border-0">
-    <div class="card-header bg-dark text-white fw-bold">Filtros de Búsqueda</div>
+  <div class="card mb-2 shadow-sm border-0">
+    <div class="card-header fw-bold p-2 ml-2 small text-uppercase">Filtros de Búsqueda</div>
     <div class="card-body pt-2 pb-3">
       <form method="GET" action="{% url 'gestionar_vacaciones' %}" id="filterForm" class="row g-3 align-items-center">
         
         <div class="col-md-3">
-          <label for="filterNombre" class="form-label fw-bold small">Buscar Empleado</label>
+          <label for="filterNombre" class="form-label fw-bold small text-uppercase">Buscar Empleado</label>
           <input type="text" name="nombre" id="filterNombre" class="form-control form-control-sm shadow-sm" placeholder="Escribe un nombre..." value="{{ request.GET.nombre|default:'' }}">
         </div>
 
         <div class="col-md-3">
-          <label for="filterDepartamento" class="form-label fw-bold small">Departamento</label>
+          <label for="filterDepartamento" class="form-label fw-bold small text-uppercase">Departamento</label>
           <select name="departamento_id" id="filterDepartamento" class="form-select form-select-sm shadow-sm">
             <option value="">Todos los sectores</option>
             {% for d in departamentos %}
@@ -31,7 +31,7 @@
         </div>
 
         <div class="col-md-3">
-          <label for="filterEstado" class="form-label fw-bold small">Estado</label>
+          <label for="filterEstado" class="form-label fw-bold small text-uppercase">Estado</label>
           <select name="estado" id="filterEstado" class="form-select form-select-sm shadow-sm">
             <option value="">Todos los estados</option>
             <option value="pendiente" {% if request.GET.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
@@ -53,7 +53,7 @@
   <div class="card shadow-sm border-0">
     <div class="card-body" id="tablaContenedor">
       <div class="table-responsive">
-        <table class="table table-sm table-hover table-striped table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
+        <table class="table table-sm table-hover table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
           <thead class="table-light text-center">
             <tr>
               <th>Empleado</th>
@@ -74,10 +74,10 @@
               <td>{{ s.fecha_inicio|date:"d/m/Y" }}</td>
               <td>{{ s.fecha_fin|date:"d/m/Y" }}</td>
               <td>
-                <span class="badge bg-light text-dark border p-2 shadow-sm">{{ s.cant_dias_solicitados }} días</span>
+                <span class="badge bg-light text-dark border shadow-sm">{{ s.cant_dias_solicitados }} días</span>
               </td>
               <td>
-                <span class="badge bg-info p-2 text-dark fw-bold">{{ s.empleado.cantidad_dias_disponibles }} días</span>
+                <span class="badge bg-info text-dark fw-bold">{{ s.empleado.cantidad_dias_disponibles }} días</span>
               </td>
               <td>
                 {% if s.estado == "rechazado" %}
@@ -90,14 +90,16 @@
               </td>
               <td>
                 {% if s.estado == "pendiente" %}
-                <button class="btn btn-outline-success btn-sm border-2 me-3" data-bs-toggle="modal" data-bs-target="#modalAprobar{{ s.id }}" title="Aprobar Solicitud">
-                  <i class="bi bi-check-lg"></i>
-                </button>
-                <button class="btn btn-outline-danger border-2 btn-sm" data-bs-toggle="modal" data-bs-target="#modalRechazar{{ s.id }}" title="Rechazar Solicitud">
-                  <i class="bi bi-x-lg"></i>
-                </button>
+                  <button class="btn btn-outline-success btn-sm border-2 me-3" data-bs-toggle="modal" data-bs-target="#modalAprobar{{ s.id }}" title="Aprobar Solicitud">
+                    <i class="bi bi-check-lg"></i>
+                  </button>
+                  <button class="btn btn-outline-danger border-2 btn-sm" data-bs-toggle="modal" data-bs-target="#modalRechazar{{ s.id }}" title="Rechazar Solicitud">
+                    <i class="bi bi-x-lg"></i>
+                  </button>
                 {% else %}
-                  <span class="text-muted small fw-bold">-</span>
+                  <span class="badge bg-secondary text-white border-0 shadow-sm px-2 py-1 small fw-bold">
+                      <i class="bi bi-slash-circle me-1"></i> Sin Acciones
+                  </span>
                 {% endif %}
               </td>
             </tr>
@@ -147,8 +149,9 @@
             {% endfor %}
           </tbody>
         </table>
+      </div>
 
-        <div class="d-flex justify-content-center mt-3" id="paginadorContenedor">
+        <div class="d-flex justify-content-center mt-4 mb-1" id="paginadorContenedor">
           <nav aria-label="Paginación">
             <ul class="pagination mb-1 shadow-sm">
               {% if solicitudes.has_previous %}
@@ -186,7 +189,6 @@
               {% endif %}
             </ul>
           </nav>
-        </div>
       </div>
     </div>
   </div>

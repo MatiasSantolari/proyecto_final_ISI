@@ -5,25 +5,25 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
 <div class="container-fluid p-5 my-2">
-  <h4 class="mb-3" style="color: var(--color-primario);">Asignador - Descuentos y Beneficios</h4>
+<h5 class="page-title-custom fw-bold mb-3">Asignador - Descuentos y Beneficios</h5>
 
-  <div class="row g-2 mb-3">
+  <div class="row g-2">
     <div class="col-xl-6 col-lg-12">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-header py-2 bg-light fw-bold text-muted small">
+      <div class="card shadow-sm border-0 mb-2">
+        <div class="card-header py-2 bg-light fw-bold text-muted small text-uppercase">
           <i class="bi bi-funnel-fill"></i> Búsqueda y Filtrado
         </div>
-        <div class="card-body p-2">
+        <div class="card-body pl-3 pr-3 pt-1">
           <form method="get" action="" id="formFiltrosAsignador" class="row g-2 align-items-end">
             
             <div class="col-sm-5">
-              <label class="form-label mb-1 small fw-bold">Buscar Empleado</label>
+              <label class="form-label mb-1 small text-uppercase fw-bold">Buscar Empleado</label>
               <input type="text" class="form-control form-control-sm input-filtro-dinamico" name="search_texto" id="buscadorEmpleados" placeholder="Nombre, apellido o DNI..." value="{{ texto_buscado }}">
             </div>
 
             <div class="col-sm-5">
               {% if mostrar_filtro_departamentos %}
-                <label for="departamento" class="form-label mb-1 small fw-bold">Departamento</label>
+                <label for="departamento" class="form-label mb-1 small text-uppercase fw-bold">Departamento</label>
                 <select class="form-select form-select-sm select-filtro-dinamico" name="departamento" id="departamento">
                   <option value="">-- Todos --</option>
                   {% for d in departamentos %}
@@ -35,9 +35,9 @@
               {% endif %}
             </div>
 
-            <div class="col-sm-2">
-              <a href="?" class="btn btn-sm btn-outline-danger w-100 fw-bold" data-bs-toggle="tooltip" title="Limpiar filtros" style="padding-top: 0.25rem; padding-bottom: 0.25rem;">
-                <i class="bi bi-trash"></i> Limpiar
+            <div class="col-sm-2 pb-0">
+              <a href="?" class="btn btn-primary btn-sm w-100 fw-bold shadow-sm p-2" data-bs-toggle="tooltip" title="Limpiar filtros">
+                <i class="bi bi-arrow-clockwise me-1"></i> Limpiar
               </a>
             </div>
 
@@ -47,18 +47,18 @@
     </div>
 
     <div class="col-xl-6 col-lg-12">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-header py-2 bg-light fw-bold text-muted small">
-          <i class="bi bi-plus-circle-fill"></i> Panel de Asignación
-        </div>
+      <form id="formAsignar" method="post" action="{% url 'asignar_beneficio_descuento_empleados' %}">
+      {% csrf_token %}
+        <div class="card shadow-sm border-0 mb-2">
+          <div class="card-header py-2 bg-light fw-bold text-muted small">
+            <i class="bi bi-plus-circle-fill"></i> Panel de Asignación
+          </div>
 
-        <form id="formAsignar" method="post" action="{% url 'asignar_beneficio_descuento_empleados' %}">
-          {% csrf_token %}
-          <div class="card-body p-2">
+          <div class="card-body pl-3 pr-3 pt-1">
             <div class="row g-2 align-items-end">
               
               <div class="col-sm-5">
-                <label for="selectDescuento" class="form-label mb-1 small fw-bold text-danger">Descuentos No Fijos</label>
+                <label for="selectDescuento" class="form-label mb-1 small text-uppercase fw-bold text-danger">Descuentos No Fijos</label>
                 <select id="selectDescuento" class="form-select form-select-sm" name="descuento_id">
                   <option value="">-- Ninguno --</option>
                   {% for d in descuentos_disponibles %}
@@ -68,7 +68,7 @@
               </div>
 
               <div class="col-sm-5">
-                <label for="selectBeneficio" class="form-label mb-1 small fw-bold text-success">Beneficios No Fijos</label>
+                <label for="selectBeneficio" class="form-label mb-1 small text-uppercase fw-bold text-success">Beneficios No Fijos</label>
                 <select id="selectBeneficio" class="form-select form-select-sm" name="beneficio_id">
                   <option value="">-- Ninguno --</option>
                   {% for b in beneficios_disponibles %}
@@ -77,8 +77,8 @@
                 </select>
               </div>
 
-              <div class="col-sm-2">
-                <button type="button" id="btnAsignar" class="btn btn-sm btn-success fw-bold w-100" data-bs-toggle="modal" data-bs-target="#modalConfirmarAsignacion" style="padding-top: 0.25rem; padding-bottom: 0.25rem;">
+              <div class="col-sm-2 pb-0">
+                <button type="button" id="btnAsignar" class="btn btn-sm btn-success fw-bold w-100 p-2" data-bs-toggle="modal" data-bs-target="#modalConfirmarAsignacion">
                   Asignar
                 </button>
               </div>
@@ -93,8 +93,8 @@
   <div class="card shadow-sm border-0">
     <div class="card-body" id="contenedor-tabla-dinamica">
       <div class="table-responsive">
-        <table class="table table-sm table-hover table-striped table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
-          <thead class="table-light">
+       <table class="table table-sm table-hover table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
+          <thead class="table-light text-center">
             <tr>
               <th style="width:40px"><input id="checkAll" type="checkbox"></th>
               <th>Empleado</th>
@@ -105,7 +105,7 @@
               <th style="width:10%;">Acciones</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="text-center">
             {% for emp in empleados %}
               <tr>
                 <td><input class="chkEmpleado" type="checkbox" name="empleado_ids[]" value="{{ emp.id }}"></td>
@@ -130,6 +130,43 @@
           </tbody>
         </table>
       </div>
+      
+      <nav aria-label="Paginación de empleados" class="d-flex justify-content-center">
+        <ul class="pagination justify-content-center mt-3 mb-2">   
+          {% if page_obj.has_previous %}
+              <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if texto_buscado %}&search_texto={{ texto_buscado }}{% endif %}">&laquo;</a>
+              </li>
+          {% else %}
+              <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+              {% if page_obj.number == num %}
+                  <li class="page-item active" aria-current="page"><span class="page-link">{{ num }}</span></li>
+              {% elif num > page_obj.number|add:-3 and num < page_obj.number|add:3 %}
+                  <li class="page-item">
+                      <a class="page-link" href="?page={{ num }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if texto_buscado %}&search_texto={{ texto_buscado }}{% endif %}">{{ num }}</a>
+                  </li>
+              {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                  <li class="page-item">
+                      <a class="page-link" href="?page={{ num }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if texto_buscado %}&search_texto={{ texto_buscado }}{% endif %}">{{ num }}</a>
+                  </li>
+              {% elif num == page_obj.number|add:-3 or num == page_obj.number|add:3 %}
+                  <li class="page-item disabled"><span class="page-link">...</span></li>
+              {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+              <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if texto_buscado %}&search_texto={{ texto_buscado }}{% endif %}">&raquo;</a>
+              </li>
+          {% else %}
+              <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+
     </div>
   </div>
 
@@ -196,192 +233,175 @@
 {% endblock %}
 
 {% block extra_js %}
+
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-  
-    const selectD = document.getElementById('selectDescuento');
-    const selectB = document.getElementById('selectBeneficio');
+
+if (typeof window.empleadosSeleccionados === 'undefined') {
+    window.empleadosSeleccionados = new Set();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    var selectD = document.getElementById('selectDescuento');
+    var selectB = document.getElementById('selectBeneficio');
+    var contenedorTabla = document.getElementById("contenedor-tabla-dinamica");
+    var formFiltros = document.getElementById("formFiltrosAsignador");
+    var timeoutBusqueda = null;
+
+    if (contenedorTabla) {
+        var observer = new MutationObserver(function() { restaurarCheckboxes(); });
+        observer.observe(contenedorTabla, { childList: true, subtree: true });
+    }
 
     if (selectD && selectB) {
-      selectD.addEventListener('change', () => {
-        if (selectD.value) selectB.value = "";
-      });
-      selectB.addEventListener('change', () => {
-        if (selectB.value) selectD.value = "";
-      });
+        selectD.addEventListener('change', function() { if (selectD.value) selectB.value = ""; });
+        selectB.addEventListener('change', function() { if (selectB.value) selectD.value = ""; });
     }
 
     document.addEventListener('change', function(e) {
-      if (e.target && e.target.id === 'checkAll') {
-        document.querySelectorAll('.chkEmpleado').forEach(ch => ch.checked = e.target.checked);
-      }
+        if (e.target && e.target.id === 'checkAll') {
+            document.querySelectorAll('.chkEmpleado').forEach(function(ch) {
+                ch.checked = e.target.checked;
+                if (e.target.checked) window.empleadosSeleccionados.add(ch.value);
+                else window.empleadosSeleccionados.delete(ch.value);
+            });
+        }
+        if (e.target && e.target.classList.contains('chkEmpleado')) {
+            if (e.target.checked) window.empleadosSeleccionados.add(e.target.value);
+            else window.empleadosSeleccionados.delete(e.target.value);
+            actualizarCheckAllStatus();
+        }
     });
 
-    const btnAsignar = document.getElementById('btnAsignar');
-    if (btnAsignar) {
-      btnAsignar.addEventListener('click', () => {
-        const descuentoId = selectD.value;
-        const beneficioId = selectB.value;
-        const selected = Array.from(document.querySelectorAll('.chkEmpleado:checked')).map(i => i.value);
-
-        if (!descuentoId && !beneficioId) {
-          alert('Seleccione un descuento o un beneficio antes de asignar.');
-          return;
-        }
-        if (selected.length === 0) {
-          alert('Seleccione al menos un empleado.');
-          return;
-        }
-
-        const tipo = descuentoId ? 'descuento' : 'beneficio';
-        const itemId = descuentoId || beneficioId;
-
-        document.getElementById('textoConfirmar').textContent = `Se asignará el ${tipo} seleccionado a ${selected.length} empleado(s). ¿Confirmar?`;
-        
-        const listDiv = document.getElementById('listSeleccionados');
-        if (listDiv) listDiv.textContent = selected.join(', ');
-
-        document.getElementById('modal_tipo').value = tipo;
-        document.getElementById('modal_item_id').value = itemId;
-
-        const cont = document.getElementById('modal_empleados_container');
-        cont.innerHTML = '';
-        selected.forEach(id => {
-          const inp = document.createElement('input');
-          inp.type = 'hidden';
-          inp.name = 'empleado_ids[]';
-          inp.value = id;
-          cont.appendChild(inp);
+    function restaurarCheckboxes() {
+        document.querySelectorAll(".chkEmpleado").forEach(function(checkbox) {
+            if (window.empleadosSeleccionados.has(checkbox.value)) checkbox.checked = true;
         });
-      });
+        actualizarCheckAllStatus();
     }
 
-    document.addEventListener('click', function(e) {
-      const btnOne = e.target.closest('.btn-assign-one');
-      if (btnOne) {
-        const empId = btnOne.getAttribute('data-id');
-        const empNombre = btnOne.getAttribute('data-nombre');
+    function actualizarCheckAllStatus() {
+        var checkAll = document.getElementById("checkAll");
+        if (!checkAll) return;
+        var visibles = document.querySelectorAll(".chkEmpleado");
+        var marcadosVisibles = document.querySelectorAll(".chkEmpleado:checked");
+        checkAll.checked = (visibles.length > 0 && visibles.length === marcadosVisibles.length);
+    }
 
-        document.querySelectorAll('.chkEmpleado').forEach(ch => ch.checked = false);
-        
-        const cont = document.getElementById('modal_empleados_container');
-        cont.innerHTML = '';
-        const inp = document.createElement('input');
-        inp.type = 'hidden'; 
-        inp.name = 'empleado_ids[]'; 
-        inp.value = empId;
-        cont.appendChild(inp);
+    var btnAsignar = document.getElementById('btnAsignar');
+    if (btnAsignar) {
+        btnAsignar.addEventListener('click', function() {
+            var descuentoId = selectD.value;
+            var beneficioId = selectB.value;
+            var selected = Array.from(window.empleadosSeleccionados);
+            if (!descuentoId && !beneficioId) { alert('Seleccione un descuento o beneficio.'); return; }
+            if (selected.length === 0) { alert('Seleccione al menos un empleado.'); return; }
+            var tipo = descuentoId ? 'descuento' : 'beneficio';
+            var itemId = descuentoId || beneficioId;
+            document.getElementById('textoConfirmar').textContent = "Asignar " + tipo + " a " + selected.length + " empleado(s) de todas las hojas. ¿Confirmar?";
+            var listDiv = document.getElementById('listSeleccionados');
+            if (listDiv) listDiv.textContent = "IDs: " + selected.join(', ');
+            document.getElementById('modal_tipo').value = tipo;
+            document.getElementById('modal_item_id').value = itemId;
+            var cont = document.getElementById('modal_empleados_container');
+            if (cont) {
+                cont.innerHTML = '';
+                selected.forEach(function(id) {
+                    var inp = document.createElement('input');
+                    inp.type = 'hidden'; inp.name = 'empleado_ids[]'; inp.value = id;
+                    cont.appendChild(inp);
+                });
+            }
+        });
+    }
 
-        const descuentoId = selectD.value;
-        const beneficioId = selectB.value;
-        if (!descuentoId && !beneficioId) {
-          alert('Seleccione un descuento o un beneficio antes de asignar.');
-          return;
+        document.addEventListener('click', function(e) {
+        var btnOne = e.target.closest('.btn-assign-one');
+        if (btnOne) {
+            var empId = btnOne.getAttribute('data-id');
+            var empNombre = btnOne.getAttribute('data-nombre');
+            var cont = document.getElementById('modal_empleados_container');
+            if (cont) {
+                cont.innerHTML = '';
+                var inp = document.createElement('input');
+                inp.type = 'hidden'; inp.name = 'empleado_ids[]'; inp.value = empId;
+                cont.appendChild(inp);
+            }
+            var tipo = selectD.value ? 'descuento' : 'beneficio';
+            var itemId = selectD.value || selectB.value;
+            if (!itemId) { alert('Seleccione un descuento o beneficio.'); return; }
+            document.getElementById('modal_tipo').value = tipo;
+            document.getElementById('modal_item_id').value = itemId;
+            document.getElementById('textoConfirmar').textContent = "Asignar " + tipo + " al empleado " + empNombre + ". ¿Confirmar?";
+            document.getElementById('listSeleccionados').textContent = empNombre;
+            new bootstrap.Modal(document.getElementById('modalConfirmarAsignacion')).show();
         }
-        
-        const tipo = descuentoId ? 'descuento' : 'beneficio';
-        const itemId = descuentoId || beneficioId;
-        
-        document.getElementById('modal_tipo').value = tipo;
-        document.getElementById('modal_item_id').value = itemId;
-        
-        document.getElementById('textoConfirmar').textContent = `Se asignará el ${tipo} seleccionado al empleado ${empNombre}. ¿Confirmar?`;
-        document.getElementById('listSeleccionados').textContent = empNombre;
-
-        const modal = new bootstrap.Modal(document.getElementById('modalConfirmarAsignacion'));
-        modal.show();
-      }
     });
 
     document.addEventListener('click', function(e) {
-      const btnVer = e.target.closest('.btn-ver-asignaciones');
-      if (btnVer) {
-        const empId = btnVer.getAttribute('data-id');
-        
-        fetch(`/asignador_beneficio_descuento/ver/${empId}/`)
-          .then(r => r.json())
-          .then(data => {
-            document.getElementById('vaEmpleado').textContent = data.empleado;
-            const ulD = document.getElementById('vaDescuentos');
-            const ulB = document.getElementById('vaBeneficios');
-            ulD.innerHTML = '';
-            ulB.innerHTML = '';
-
-            if (data.descuentos.length === 0) {
-              ulD.innerHTML = '<li class="list-group-item text-muted">Sin descuentos pendientes</li>';
-            } else {
-              data.descuentos.forEach(d => {
-                const li = document.createElement('li');
-                li.className = 'list-group-item';
-                li.textContent = `${d.descripcion} ${d.monto ? '($' + d.monto + ')' : (d.porcentaje ? '('+ d.porcentaje + '%)' : '')}`;
-                ulD.appendChild(li);
-              });
-            }
-
-            if (data.beneficios.length === 0) {
-              ulB.innerHTML = '<li class="list-group-item text-muted">Sin beneficios pendientes</li>';
-            } else {
-              data.beneficios.forEach(b => {
-                const li = document.createElement('li');
-                li.className = 'list-group-item';
-                li.textContent = `${b.descripcion} ${b.monto ? '($' + b.monto + ')' : (b.porcentaje ? '('+ b.porcentaje + '%)' : '')}`;
-                ulB.appendChild(li);
-              });
-            }
-
-            const modal = new bootstrap.Modal(document.getElementById('modalVerAsignaciones'));
-            modal.show();
-          })
-          .catch(err => console.error("Error al capturar asignaciones actuales:", err));
-      }
+        var btnVer = e.target.closest('.btn-ver-asignaciones');
+        if (btnVer) {
+            fetch('/asignador_beneficio_descuento/ver/' + btnVer.getAttribute('data-id') + '/')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    document.getElementById('vaEmpleado').textContent = data.empleado;
+                    var ulD = document.getElementById('vaDescuentos');
+                    var ulB = document.getElementById('vaBeneficios');
+                    if (ulD) ulD.innerHTML = data.descuentos.length === 0 ? '<li class="list-group-item text-muted">Sin descuentos</li>' : '';
+                    if (ulB) ulB.innerHTML = data.beneficios.length === 0 ? '<li class="list-group-item text-muted">Sin beneficios</li>' : '';
+                    if (data.descuentos && ulD) {
+                        data.descuentos.forEach(function(d) {
+                            var li = document.createElement('li'); li.className = 'list-group-item';
+                            li.textContent = d.descripcion + (d.monto ? ' ($' + d.monto + ')' : (d.porcentaje ? ' (' + d.porcentaje + '%)' : ''));
+                            ulD.appendChild(li);
+                        });
+                    }
+                    if (data.beneficios && ulB) {
+                        data.beneficios.forEach(function(b) {
+                            var li = document.createElement('li'); li.className = 'list-group-item';
+                            li.textContent = b.descripcion + (b.monto ? ' ($' + b.monto + ')' : (b.porcentaje ? ' (' + b.porcentaje + '%)' : ''));
+                            ulB.appendChild(li);
+                        });
+                    }
+                    new bootstrap.Modal(document.getElementById('modalVerAsignaciones')).show();
+                });
+        }
     });
 
-    const formFiltros = document.getElementById("formFiltrosAsignador");
-    const contenedorTabla = document.getElementById("contenedor-tabla-dinamica");
-    let timeoutBusqueda = null;
-
-    function filtrarAsignadorSinRecargar() {
+    function filtrarAsignadorSinRecargar(urlDestino) {
         if (!formFiltros || !contenedorTabla) return;
-
-        const formData = new FormData(formFiltros);
-        const params = new URLSearchParams(formData);
-
-        fetch(`?${params.toString()}`)
-            .then(response => response.text())
-            .then(htmlTexto => {
-                const parser = new DOMParser();
-                const docVirtual = parser.parseFromString(htmlTexto, 'text/html');
-                const nuevaTabla = docVirtual.getElementById("contenedor-tabla-dinamica");
-                
-                if (nuevaTabla) {
-                    contenedorTabla.innerHTML = nuevaTabla.innerHTML;
-                }
-            })
-            .catch(error => console.error("Error en el filtro asíncrono del asignador:", error));
+        var urlTarget = urlDestino || "?" + new URLSearchParams(new FormData(formFiltros)).toString();
+        fetch(urlTarget)
+            .then(function(r) { return r.text(); })
+            .then(function(html) {
+                var nuevaTabla = new DOMParser().parseFromString(html, 'text/html').getElementById("contenedor-tabla-dinamica");
+                if (nuevaTabla) contenedorTabla.innerHTML = nuevaTabla.innerHTML;
+            });
     }
 
-    const inputsTexto = document.querySelectorAll(".input-filtro-dinamico");
-    inputsTexto.forEach(input => {
+    if (contenedorTabla) {
+        contenedorTabla.addEventListener('click', function(e) {
+            var enlace = e.target.closest('.page-link');
+            if (enlace && enlace.getAttribute('href')) {
+                e.preventDefault();
+                filtrarAsignadorSinRecargar(enlace.getAttribute('href'));
+            }
+        });
+    }
+
+    document.querySelectorAll(".input-filtro-dinamico").forEach(function(input) {
         input.addEventListener("input", function() {
             clearTimeout(timeoutBusqueda);
-            timeoutBusqueda = setTimeout(() => {
-                filtrarAsignadorSinRecargar();
-            }, 400);
-        });
-
-        input.addEventListener("focus", function() {
-            const strLength = this.value.length;
-            this.setSelectionRange(strLength, strLength);
+            timeoutBusqueda = setTimeout(function() { filtrarAsignadorSinRecargar(); }, 400);
         });
     });
 
-    const selectoresDropdown = document.querySelectorAll(".select-filtro-dinamico");
-    selectoresDropdown.forEach(select => {
-        select.addEventListener("change", function() {
-            filtrarAsignadorSinRecargar();
-        });
+    document.querySelectorAll(".select-filtro-dinamico").forEach(function(select) {
+        select.addEventListener("change", function() { filtrarAsignadorSinRecargar(); });
     });
 
-  });
+    restaurarCheckboxes();
+});
+
 </script>
+
 {% endblock %}

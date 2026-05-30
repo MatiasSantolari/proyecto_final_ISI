@@ -7,21 +7,20 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
 <div class="container-fluid p-5 my-2">
-  <h4 class="mb-3" style="color: var(--color-primario);">Gestión de Instituciones</h4>
+  <h4 class="page-title-custom fw-bold mb-3">Gestión de Instituciones</h4>
 
   <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center mb-0">
-      <button type="button" class="btn mb-0 btn-primary" data-bs-toggle="modal" data-bs-target="#modalInstitucion">
+      <button type="button" class="btn mb-0 btn-sm p-2 btn-primary" data-bs-toggle="modal" data-bs-target="#modalInstitucion">
         + Crear Nueva Institucion
       </button>
     </div>
   </div>
   
-  <!-- Tabla de Instituciones -->
   <div class="card shadow-sm border-0">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-sm table-hover table-striped table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
+        <table class="table table-sm table-hover table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
           <thead class="table-light text-center">
             <tr>
               <th>Nombre</th>
@@ -76,9 +75,9 @@
             {% endfor %}
           </tbody>
         </table>
-
+      </div>
         <nav aria-label="Paginación">
-          <ul class="pagination justify-content-center mt-4">
+          <ul class="pagination justify-content-center mt-3 mb-2">
             {% if instituciones.has_previous %}
               <li class="page-item">
                 <a class="page-link" href="?page={{ instituciones.previous_page_number }}">&laquo;</a>
@@ -107,7 +106,6 @@
           </ul>
         </nav>
 
-      </div>
     </div>
   </div>
 

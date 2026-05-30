@@ -57,8 +57,8 @@
           <div class="tab-content">
             {% include "user_perfil-edit_datos_personales.html" %}
                     
-            <div class="tab-pane fade p-2" id="datos-academicos" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mb-3 p-1 bg-white rounded shadow-sm">
+            <div class="tab-pane fade pr-5 pl-5 pt-1 pb-2" id="datos-academicos" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-1 p-1 rounded shadow-sm">
                     <p class="mb-0 fw-semibold text-muted">Aquí podrás ver tus datos académicos registrados.</p>
                     <button class="gradient-btn btn-academico d-flex align-items-center" id="addAcademicoBtn">
                         <i class="bi bi-plus me-1"></i> Nuevo
@@ -68,19 +68,19 @@
                  </div>
             </div>
 
-        <div class="tab-pane fade p-2" id="certificaciones" role="tabpanel">
-          <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-white rounded shadow-sm">
+        <div class="tab-pane fade pr-5 pl-5 pt-1 pb-2" id="certificaciones" role="tabpanel">
+          <div class="d-flex justify-content-between align-items-center mb-1 p-2 rounded shadow-sm">
               <p class="mb-0 fw-semibold text-muted">Aquí podrás registrar tus certificaciones.</p>
               <button class="gradient-btn btn-certificaciones d-flex align-items-center" id="addCertificacionBtn">
                   <i class="bi bi-plus me-1"></i> Nueva
               </button>
           </div>
-          <div id="certificacionesContainer" class="row g-3 justify-content-center">
+          <div id="certificacionesContainer" class="row g-1 justify-content-center">
           </div>
         </div>
 
-        <div class="tab-pane fade p-2" id="experiencia" role="tabpanel">
-          <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-white rounded shadow-sm">
+        <div class="tab-pane fade pr-5 pl-5 pt-1 pb-2" id="experiencia" role="tabpanel">
+          <div class="d-flex justify-content-between align-items-center mb-1 p-2 rounded shadow-sm">
               <p class="mb-0 fw-semibold text-muted">Aquí podrás registrar tu experiencia laboral.</p>
               <button class="gradient-btn btn-experiencia d-flex align-items-center" id="addExperienciaBtn">
                   <i class="bi bi-plus me-1"></i> Nuevo
@@ -540,7 +540,7 @@
 
     if (modoVer) {
         card.innerHTML = `
-        <div class="card shadow-sm p-3 position-relative" style="max-width: 950px;">
+        <div class="card shadow-sm p-3 mb-1 position-relative" style="max-width: 950px;">
             <div class="d-flex">
                 <div class="me-4 d-flex align-items-center">
                     <i class="bi bi-mortarboard-fill fs-1 text-primary"></i>
@@ -560,7 +560,7 @@
         `;
     } else {
         card.innerHTML = `
-        <div class="card shadow-sm p-3 position-relative" style="max-width: 950px;">
+        <div class="card shadow-sm p-3 mb-1 position-relative" style="max-width: 950px;">
             <div class="d-flex">
                 <div class="me-4 d-flex align-items-center">
                     <i class="bi bi-mortarboard-fill fs-1 text-primary"></i>
@@ -788,7 +788,7 @@ if (document.getElementById('addAcademicoBtn')) {
 
       if (modoVer) {
           card.innerHTML = `
-          <div class="card shadow-sm p-3 position-relative" style="max-width: 950px;">
+          <div class="card shadow-sm p-3 mb-1 position-relative" style="max-width: 950px;">
               <div class="d-flex">
                   <div class="me-4 d-flex align-items-center">
                       <i class="bi bi-award-fill fs-1 text-warning"></i>
@@ -807,7 +807,7 @@ if (document.getElementById('addAcademicoBtn')) {
           `;
       } else {
           card.innerHTML = `
-          <div class="card shadow-sm p-3 position-relative" style="max-width: 950px;">
+          <div class="card shadow-sm p-3 mb-1 position-relative" style="max-width: 950px;">
               <div class="d-flex">
                   <div class="me-4 d-flex align-items-center">
                       <i class="bi bi-award-fill fs-1 text-warning"></i>
@@ -997,7 +997,7 @@ if (document.getElementById('addAcademicoBtn')) {
 
       if (modoVer) {
           card.innerHTML = `
-          <div class="card shadow-sm p-3 position-relative" style="max-width: 950px;">
+          <div class="card shadow-sm p-3 mb-1 position-relative" style="max-width: 950px;">
               <div class="d-flex">
                   <div class="me-4 d-flex align-items-center">
                       <i class="bi bi-briefcase-fill fs-1 text-primary"></i>
@@ -1017,7 +1017,7 @@ if (document.getElementById('addAcademicoBtn')) {
           `;
       } else {
           card.innerHTML = `
-          <div class="card shadow-sm p-3 position-relative" style="max-width: 950px;">
+          <div class="card shadow-sm p-3 mb-1 position-relative" style="max-width: 950px;">
               <input type="hidden" class="datoExperienciaId" value="${id}">
               <input type="text" class="form-control mb-2 cargo_expExperiencia" placeholder="Cargo_exp" value="${cargo_exp}">
               <input type="text" class="form-control mb-2 empresaExperiencia" placeholder="Empresa" value="${empresa}">

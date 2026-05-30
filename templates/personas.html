@@ -8,11 +8,11 @@
   <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
 
   <div class="container-fluid p-5 my-2">
-    <h4 class="mb-2" style="color: var(--color-primario);">Gestión de Personas</h4>
+    <h4 class="page-title-custom fw-bold mb-2">Gestión de Personas</h4>
 
     <div class="card mb-2">
-      <div class="card-header p-3 d-flex justify-content-between align-items-center mb-0 mt-0 bg-light border-bottom">
-        <button type="button" class="btn btn-primary fw-bold" id="btnCrearPersona"
+      <div class="card-header p-2 d-flex justify-content-between align-items-center mb-0 mt-0 bg-light border-bottom">
+        <button type="button" class="btn btn-primary btn-sm fw-bold p-2" id="btnCrearPersona"
           data-bs-toggle="modal" data-bs-target="#modalPersona">
             <i class="bi bi-person-plus-fill"></i> Crear Nueva Persona
         </button>
@@ -22,18 +22,18 @@
         <form method="get" action="" id="formFiltros" class="row g-3 align-items-end">
           
           <div class="col-md-1">
-            <label class="form-label fw-bold">DNI</label>
-            <input type="text" class="form-control input-filtro-dinamico" name="dni" id="buscadorDNI" placeholder="DNI" value="{{ dni_buscado }}">
+            <label class="form-label fw-bold small text-uppercase">DNI</label>
+            <input type="text" class="form-control form-control-sm input-filtro-dinamico" name="dni" id="buscadorDNI" placeholder="DNI" value="{{ dni_buscado }}">
           </div>
 
           <div class="col-md-2">
-            <label class="form-label fw-bold">Nombre/Apellido</label>
-            <input type="text" class="form-control input-filtro-dinamico" name="nombre_apellido" placeholder="Name" value="{{ nombre_apellido_buscado }}">
+            <label class="form-label fw-bold small text-uppercase">Nombre/Apellido</label>
+            <input type="text" class="form-control form-control-sm input-filtro-dinamico" name="nombre_apellido" placeholder="Nombre" value="{{ nombre_apellido_buscado }}">
           </div>
 
           <div class="col-md-2">
-            <label class="form-label fw-bold">Departamento</label>
-            <select class="form-select select-filtro-dinamico" name="departamento">
+            <label class="form-label fw-bold small text-uppercase">Departamento</label>
+            <select class="form-select form-select-sm select-filtro-dinamico" name="departamento">
               <option value="" {% if not departamento_seleccionado %}selected{% endif %}>Todos</option>
               {% for dep in departamentos %}
               <option value="{{ dep.id }}" {% if departamento_seleccionado == dep.id|stringformat:"s" %}selected{% endif %}>
@@ -44,8 +44,8 @@
           </div>
 
           <div class="col-md-2">
-            <label class="form-label fw-bold">Tipo de Usuario</label>
-            <select class="form-select select-filtro-dinamico" name="tipo_usuario">
+            <label class="form-label fw-bold small text-uppercase">Tipo de Usuario</label>
+            <select class="form-select form-select-sm select-filtro-dinamico" name="tipo_usuario">
               <option value="" {% if not tipo_usuario_seleccionado %}selected{% endif %}>Todos</option>
               <option value="normal" {% if tipo_usuario_seleccionado == "normal" %}selected{% endif %}>Normal</option>
               <option value="empleado" {% if tipo_usuario_seleccionado == "empleado" %}selected{% endif %}>Empleado</option>
@@ -56,8 +56,8 @@
           </div>
 
           <div class="col-md-2">
-            <label class="form-label fw-bold">Estado</label>
-            <select class="form-select select-filtro-dinamico" name="estado">
+            <label class="form-label fw-bold small text-uppercase">Estado</label>
+            <select class="form-select form-select-sm select-filtro-dinamico" name="estado">
               <option value="" {% if not estado_seleccionado %}selected{% endif %}>Todos</option>
               <option value="1" {% if estado_seleccionado == "1" %}selected{% endif %}>Activo</option>
               <option value="2" {% if estado_seleccionado == "2" %}selected{% endif %}>Inactivo</option>
@@ -70,8 +70,8 @@
           </div>
 
           <div class="col-md-2">
-            <a href="{% url 'personas' %}" class="btn btn-outline-danger w-100 fw-bold" data-bs-toggle="tooltip" title="Limpiar todos los filtros">
-              <i class="bi bi-trash"></i> Limpiar Filtros
+            <a href="{% url 'personas' %}" class="btn btn-primary btn-sm w-100 fw-bold shadow-sm p-2" data-bs-toggle="tooltip" title="Limpiar todos los filtros">
+              <i class="bi bi-arrow-clockwise me-1"></i> Limpiar Filtros
             </a>
           </div>
 
@@ -83,7 +83,7 @@
     <div class="card shadow-sm border-0">
       <div class="card-body" id="contenedor-tabla-dinamica">
         <div class="table-responsive" style="overflow-x: auto;">
-                <table class="table table-sm table-hover table-striped table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
+          <table class="table table-sm table-hover table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
             <thead class="table-light text-center">
               <tr>
                 <th>Apellido</th>
@@ -183,9 +183,10 @@
               {% endfor %}
             </tbody>
           </table>
+        </div>
 
           <nav aria-label="Paginación">
-            <ul class="pagination justify-content-center mt-3">        
+            <ul class="pagination justify-content-center mt-3 mb-2">        
               {% if page_obj.has_previous %}
                 <li class="page-item">
                   <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if departamento_seleccionado %}&departamento={{ departamento_seleccionado }}{% endif %}{% if nombre_apellido_buscado %}&nombre_apellido={{ nombre_apellido_buscado }}{% endif %}{% if tipo_usuario_seleccionado %}&tipo_usuario={{ tipo_usuario_seleccionado }}{% endif %}{% if estado_seleccionado %}&estado={{ estado_seleccionado }}{% endif %}">&laquo;</a>
@@ -216,7 +217,6 @@
             </ul>
           </nav>
 
-        </div>
       </div>
     </div>
   </div>

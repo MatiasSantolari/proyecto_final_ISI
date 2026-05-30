@@ -7,15 +7,17 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
 <div class="container-fluid p-5 my-3">
-  <h4 class="mb-3" style="color: var(--color-primario);">Mis Contratos</h4>
+  <h4 class="page-title-custom fw-bold mb-3">Mis Contratos</h4>
 
   {% if contratos %}
   <div class="card shadow-sm border-0">
     <div class="card-body p-3">
       <div class="table-responsive">
-        <table class="table table-sm table-hover table-striped table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
+        <table class="table table-sm table-hover table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
           <thead class="table-light text-center">
             <tr>
+              <th>Cargo / Puesto</th>
+              <th>Tipo de Contrato</th>
               <th>Fecha Inicio</th>
               <th>Fecha Fin</th>
               <th>Monto Extra</th>
@@ -26,6 +28,8 @@
           <tbody class="text-center">
             {% for contrato in contratos %}
             <tr style="height: 28px;">
+              <td class="fw-bold text-dark ps-2">{{ contrato.cargo.nombre|default:"Sin asignar" }}</td>
+              <td class="ps-2">{{ contrato.contrato.descripcion|default:"Particular / No especificado" }}</td>
               <td>{{ contrato.fecha_inicio|date:"d/m/Y" }}</td>
               <td>
                 {% if contrato.fecha_fin %}
@@ -71,7 +75,8 @@
                   </div>
                   <div class="modal-body">
                     <ul class="list-group list-group-flush">
-                      <li class="list-group-item"><strong>Cargo:</strong> {{ contrato.cargo }}</li>
+                      <li class="list-group-item"><strong>Cargo / Puesto asignado:</strong> {{ contrato.cargo.nombre|default:"Sin asignar" }}</li>
+                      <li class="list-group-item"><strong>Tipo estipulado:</strong> {{ contrato.contrato.descripcion|default:"Particular / No especificado" }}</li>
                       <li class="list-group-item"><strong>Fecha Inicio:</strong> {{ contrato.fecha_inicio|date:"d/m/Y" }}</li>
                       <li class="list-group-item"><strong>Fecha Fin:</strong> 
                         {% if contrato.fecha_fin %}
@@ -98,6 +103,12 @@
                           <span class="badge bg-secondary">{{ contrato.estado|capfirst }}</span>
                         {% endif %}
                       </li>
+                      <li class="list-group-item">
+                        <strong>Condiciones del Contrato:</strong>
+                        <div class="mt-1 text-secondary p-2 rounded" style="font-size: 0.85rem; max-height: 120px; overflow-y: auto; white-space: pre-wrap;">
+                          {{ contrato.condiciones|default:"No se han registrado cláusulas o condiciones particulares para este período legal." }}
+                        </div>
+                      </li>
                     </ul>
                   </div>
                   <div class="modal-footer">
@@ -110,9 +121,9 @@
             {% endfor %}
           </tbody>
         </table>
-
+      </div>
         <nav aria-label="Paginación">
-          <ul class="pagination justify-content-center mt-4">
+          <ul class="pagination justify-content-center mt-4 mb-2">
             {% if contratos.has_previous %}
               <li class="page-item">
                 <a class="page-link" href="?page={{ contratos.previous_page_number }}">&laquo;</a>
@@ -141,7 +152,6 @@
           </ul>
         </nav>
 
-      </div>
     </div>
   </div>
   {% else %}

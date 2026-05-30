@@ -85,3 +85,19 @@
     break-inside: avoid !important;
   }
 }
+
+
+
+.badge.bg-warning,
+#objectivesTableBody .badge.bg-warning {
+    background-color: #d97706 !important; 
+    color: #ffffff !important;            
+    font-weight: 600 !important;         
+    border: none !important;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2); 
+}
+
+.badge.bg-warning:hover {
+    background-color: #b45309 !important; 
+    color: #ffffff !important;
+}

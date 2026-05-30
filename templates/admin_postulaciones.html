@@ -2,9 +2,9 @@
 {% block title %}Postulaciones por Cargo{% endblock %}
 
 {% block content %}
-<div class="container mt-5 mb-5">
-    <div class="d-flex justify-content-between align-items-center mb-3 pt-3">
-        <h3 class="mb-0" style="color: var(--color-primario);">Postulaciones Recibidas</h3>
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-2 pt-4">
+        <h4 class="page-title-custom fw-bold mb-3">Postulaciones Recibidas</h4>
         <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalHistoricoPostulaciones">
             Ver histórico de postulaciones
         </button>
@@ -14,15 +14,14 @@
         <div class="card-body pt-0 pb-3">
 
             {% if cargos_visibles_por_dpto or cargos_no_visibles_por_dpto %}
-
                 <!-- CARGOS ACTIVOS -->
                 {% if cargos_visibles_por_dpto %}
                 <h4 class="mt-4 text-success">Cargos con búsqueda activa</h4>
                 {% for departamento, relaciones in cargos_visibles_por_dpto.items %}
                     <h5 class="mt-4 ps-2 border-start border-3 border-success">{{ departamento }}</h5>
-                    <div class="accordion mb-4 shadow-sm" id="accordionVisibles-{{ forloop.counter }}">
+                    <div class="accordion mb-4 shadow-sm overflow-hidden" id="accordionVisibles-{{ forloop.counter }}">
                     {% for rel in relaciones %}
-                        <div class="accordion-item mb-2 shadow-sm border-start border-2 border-success" id="accordion-cargo-{{ rel.cargo.id }}">
+                        <div class="accordion-item mb-2 shadow-sm border-start border-2 acordeon-cargo-activo" id="accordion-cargo-{{ rel.cargo.id }}">
                             <h2 class="accordion-header" id="heading{{ rel.cargo.id }}">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ rel.cargo.id }}" aria-expanded="false" aria-controls="collapse{{ rel.cargo.id }}">
                                 {{ rel.cargo.nombre }}
@@ -31,7 +30,8 @@
                             <div id="collapse{{ rel.cargo.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ rel.cargo.id }}">
                                 <div class="accordion-body">
                                 {% if rel.cargo.solicitudes_visibles %}
-                                    <table class="table table-bordered table-hover">
+                                <div class="table-responsive">
+                                <table class="table table-sm table-hover table-bordered align-middle table-compact mb-0 w-100">
                                     <thead class="table-light">
                                         <tr>
                                         <th>Nombre</th>
@@ -68,21 +68,24 @@
                                         </tr>
                                         {% endfor %}
                                     </tbody>
-                                    </table>
+                                </table>
+                                </div>
                                 {% else %}
                                     <p class="text-muted">No hay postulantes aún.</p>
                                 {% endif %}
 
                                 <form method="post">
                                     {% csrf_token %}
-                                    <button type="button" class="btn btn-sm btn-danger finalizar-postulaciones mt-2" data-cargo-id="{{ rel.cargo.id }}">
-                                        Finalizar postulaciones para este cargo
-                                    </button>
-                                    {% if rel.cargo.solicitudes_visibles %}
-                                        <button type="button" class="btn btn-sm btn-warning limpiar-postulantes mt-2 ms-2" data-cargo-id="{{ rel.cargo.id }}">
-                                            Limpiar postulantes
+                                    <div class="d-flex gap-2 mt-3">
+                                        <button type="button" class="btn btn-sm btn-danger finalizar-postulaciones mt-2" data-cargo-id="{{ rel.cargo.id }}">
+                                            Finalizar postulaciones para este cargo
                                         </button>
-                                    {% endif %}
+                                        {% if rel.cargo.solicitudes_visibles %}
+                                            <button type="button" class="btn btn-sm btn-warning limpiar-postulantes mt-2 ms-2" data-cargo-id="{{ rel.cargo.id }}">
+                                                Limpiar postulantes
+                                            </button>
+                                        {% endif %}
+                                    </div>
                                 </form>
 
                                 </div>
@@ -135,7 +138,7 @@
                 <h5 class="mt-4 ps-2 border-start border-3 border-danger">{{ departamento }}</h5>
                 <div class="accordion mb-4 shadow-sm" id="accordionNoVisibles-{{ forloop.counter }}">
                 {% for rel in relaciones %}
-                    <div class="accordion-item mb-2 shadow-sm border-start border-2 border-danger" id="accordion-cargo-{{ rel.cargo.id }}">
+                    <div class="accordion-item mb-2 shadow-sm border-start border-2 overflow-hidden acordeon-cargo-cerrado" id="accordion-cargo-{{ rel.cargo.id }}">
                         <h2 class="accordion-header" id="heading{{ rel.cargo.id }}">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ rel.cargo.id }}" aria-expanded="false" aria-controls="collapse{{ rel.cargo.id }}">
                             {{ rel.cargo.nombre }}
@@ -144,7 +147,8 @@
                         <div id="collapse{{ rel.cargo.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ rel.cargo.id }}">
                             <div class="accordion-body">
                             {% if rel.cargo.solicitudes_visibles %}
-                                <table class="table table-bordered table-hover">
+                            <div class="table-responsive">
+                            <table class="table table-sm table-hover table-bordered align-middle table-compact mb-0 w-100">
                                 <thead class="table-light">
                                     <tr>
                                     <th>Nombre</th>
@@ -181,21 +185,23 @@
                                     </tr>
                                     {% endfor %}
                                 </tbody>
-                                </table>
-
+                            </table>
+                            </div>
                             {% else %}
                                 <p class="text-muted">No hay postulantes aún.</p>
                             {% endif %}
                                 <form method="post">
                                     {% csrf_token %}
-                                    <button type="button" class="btn btn-sm btn-success mostrar-cargo mt-2" data-cargo-id="{{ rel.cargo.id }}">
-                                        Reabrir búsqueda para este cargo
-                                    </button>
-                                    {% if rel.cargo.solicitudes_visibles %}
-                                        <button type="button" class="btn btn-sm btn-warning limpiar-postulantes mt-2 ms-2" data-cargo-id="{{ rel.cargo.id }}">
-                                            Limpiar postulantes
+                                    <div class="d-flex gap-2 mt-3">    
+                                        <button type="button" class="btn btn-sm btn-success mostrar-cargo mt-2" data-cargo-id="{{ rel.cargo.id }}">
+                                            Reabrir búsqueda para este cargo
                                         </button>
-                                    {% endif %}    
+                                        {% if rel.cargo.solicitudes_visibles %}
+                                            <button type="button" class="btn btn-sm btn-warning limpiar-postulantes mt-2 ms-2" data-cargo-id="{{ rel.cargo.id }}">
+                                                Limpiar postulantes
+                                            </button>
+                                        {% endif %}  
+                                    </div>  
                                 </form>    
                             </div>
                         </div>
@@ -293,7 +299,8 @@
         <div class="modal-body">
 
             {% if todas %}
-            <table class="table table-bordered table-hover table-sm">
+            <div class="table-responsive">
+            <table class="table table-sm table-hover table-bordered align-middle table-compact mb-0 w-100" id="tablaHistorico">
                 <thead class="table-light">
                 <tr>
                     <th>Departamento</th>
@@ -315,9 +322,8 @@
                             <td>{{ rel.cargo.nombre }}</td>
                             <td>{{ solicitud.persona.apellido }}, {{ solicitud.persona.nombre }}</td>
                             <td>{{ solicitud.persona.dni }}</td>
-                            <td>{{ solicitud.fecha|date:"d/m/Y" }}</td>
+                            <td data-order="{{ solicitud.fecha|date:'Ymd' }}">{{ solicitud.fecha|date:"d/m/Y" }}</td>
                             <td>{{ solicitud.estado|capfirst }}</td>
-                        
                             <td>
                                 {% if solicitud.persona.cvitae %}
                                 <a href="{{ solicitud.persona.cvitae.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Ver CV</a>
@@ -334,6 +340,7 @@
                 {% endfor %}
                 </tbody>
             </table>
+            </div>
             {% else %}
             <p class="text-muted">No hay solicitudes registradas.</p>
             {% endif %}
@@ -342,7 +349,6 @@
         </div>
     </div>
     </div>
-
     
 </div>
 
@@ -488,10 +494,41 @@ function mostrarModalFeedback(mensaje, titulo = "Mensaje", color = "success") {
     document.getElementById('modalFeedbackLabel').textContent = titulo;
 
     const header = document.querySelector('#modalFeedback .modal-header');
-    header.className = `modal-header bg-${color} text-white`; // Cambia el color según tipo
+    header.className = `modal-header bg-${color} text-white`; 
 
     modal.show();
 }
+
+
+
+
+$(document).ready(function() {
+    $('#tablaHistorico').DataTable({
+        "pageLength": 10, 
+        "ordering": true, 
+        "order": [[4, "desc"]], 
+        "language": {
+            "search": "Buscar:",
+            "lengthMenu": "Mostrar _MENU_ registros por página",
+            "info": "Mostrando _START_ a _END_ de _TOTAL_ postulaciones",
+            "infoEmpty": "Mostrando 0 a 0 de 0 registros",
+            "infoFiltered": "(filtrado de un total de _MAX_ registros)",
+            "zeroRecords": "No se encontraron resultados coincidentes",
+            "paginate": {
+                "first": "Primero",
+                "last": "Último",
+                "next": "Siguiente",
+                "previous": "Anterior"
+            }
+        },
+        "dom": '<"d-flex justify-content-between align-items-center mb-3"lf>rt<"d-flex justify-content-between align-items-center mt-3"ip>'
+    });
+
+    $('#modalHistoricoPostulaciones').on('shown.bs.modal', function () {
+        $($.fn.dataTable.tables(true)).DataTable().columns.adjust();
+    });
+});
+
 
 
 </script>

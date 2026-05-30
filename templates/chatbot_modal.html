@@ -3,31 +3,37 @@
 <link rel="stylesheet" href="{% static 'css/chatbot_modal.css' %}">
 
 <div id="chatbot-button" class="chatbot-btn">
-  <i class="bi bi-chat-dots-fill"></i>
-  <span class="chatbot-tooltip">Chatbot RRHH</span>
+  <i class="bi bi-robot"></i>
+  <span class="chatbot-tooltip">Asistente IA</span>
 </div>
 
+
 <div id="chatbot-window" class="chatbot-window d-none">
+  
   <div class="chatbot-header">
-    <span>Chatbot RRHH</span>
-    <div>
-      <button id="clear-chat" class="chatbot-icon me-2" title="Limpiar chat">🗑️</button>
-      <button id="minimize-chat" class="chatbot-icon" style="font-size: 0.75rem; vertical-align: middle;">—</button>
-      <button id="close-chat" class="chatbot-icon fw-bold" style="font-size: 1.5rem; line-height: 1; vertical-align: middle;">&times;</button>
+    <span class="fw-bold"><i class="bi bi-robot me-2"></i>Asistente IA</span>
+    <div class="chatbot-actions-wrapper">
+      <button id="minimize-chat" class="chatbot-icon btn-header-min" title="Minimizar">—</button>
+      <button id="close-chat" class="chatbot-icon btn-header-close" title="Cerrar">&times;</button>
     </div>
   </div>
+ 
   <div class="chatbot-body" id="chatbox"></div>
   
   <div id="quick-replies-container" class="quick-replies-tray" style="display: none;"></div>
 
   <div class="chatbot-input">
-    <input type="text" id="inputChat" placeholder="Escribe un mensaje...">
-    <button onclick="sendMessage()">
+    <button id="clear-chat" class="btn-reset-chat me-1" title="Reiniciar conversación">
+      <i class="bi bi-trash3-fill"></i>
+    </button>
+    
+    <input type="text" id="inputChat" placeholder="Escribe un mensaje..." autocomplete="off">
+    
+    <button onclick="sendMessage()" class="btn-send-chat" id="btnEnviarMsg">
       <i class="bi bi-send-fill"></i>
     </button>
   </div>
 </div>
-
 
 <script>
   const chatWindow = document.getElementById("chatbot-window");
@@ -38,11 +44,24 @@
   const inputChat = document.getElementById("inputChat");
   const chatbox = document.getElementById("chatbox");
   const quickRepliesContainer = document.getElementById("quick-replies-container");
+  const btnEnviarMsg = document.getElementById("btnEnviarMsg"); // Captura de la flecha
   
   let minimized = false;
   let scriptMarkedLoaded = false;
   let currentAttendanceStatus = "NO_ENTRY"; 
   let isConfirming = false; 
+
+  // Ocultar botón de enviar por defecto estilo WhatsApp al cargar la interfaz
+  if (btnEnviarMsg && inputChat) {
+      btnEnviarMsg.style.display = "none";
+      inputChat.addEventListener("input", function() {
+          if (this.value.trim().length > 0) {
+              btnEnviarMsg.style.display = "flex";
+          } else {
+              btnEnviarMsg.style.display = "none";
+          }
+      });
+  }
 
   function saveChat(messages) {
     localStorage.setItem('hrChatHistory', JSON.stringify(messages));
@@ -72,42 +91,31 @@
       callback();
       return;
     }
-    
     const script = document.createElement('script');
     script.src = "https://jsdelivr.net";
-    
-    const timeoutSeguridad = setTimeout(() => {
-      callback();
-    }, 400);
-
+    const timeoutSeguridad = setTimeout(() => { callback(); }, 400);
     script.onload = () => {
       clearTimeout(timeoutSeguridad);
-      if (typeof marked !== 'undefined') {
-        marked.setOptions({ gfm: true, breaks: true });
-      }
+      if (typeof marked !== 'undefined') { marked.setOptions({ gfm: true, breaks: true }); }
       scriptMarkedLoaded = true;
       callback();
     };
-
-    script.onerror = () => {
-      clearTimeout(timeoutSeguridad);
-      callback();
-    };
-
+    script.onerror = () => { clearTimeout(timeoutSeguridad); callback(); };
     document.head.appendChild(script);
   }
 
-  chatButton.addEventListener("click", () => {
+    chatButton.addEventListener("click", () => {
     const isHidden = chatWindow.classList.contains("d-none");
     if (isHidden) {
         loadMarkedLibrary(() => {
             chatWindow.classList.remove("d-none");
-            chatbox.style.display = "block";
             
+            chatButton.style.setProperty("display", "none", "important");
+            
+            chatbox.style.display = "block";
             const inputContainer = chatWindow.querySelector(".chatbot-input");
             if (inputContainer) inputContainer.style.setProperty("display", "flex", "important");
             if (quickRepliesContainer) quickRepliesContainer.style.setProperty("display", "flex", "important");
-            
             minimized = false;
             loadChat(); 
         });
@@ -116,11 +124,15 @@
     }
   });
 
-  closeChat.addEventListener("click", () => {
-    chatWindow.classList.add("d-none");
+
+  closeChat.addEventListener("click", () => { 
+    chatWindow.classList.add("d-none"); 
+    
+    chatButton.style.setProperty("display", "flex", "important");
   });
   
   clearChatButton.addEventListener("click", clearChat);
+
 
   minimizeChat.addEventListener("click", () => {
     const body = chatWindow.querySelector(".chatbot-body");
@@ -128,9 +140,7 @@
     if (minimized) {
       body.style.display = "block";
       input.style.display = "flex";
-      if (currentAttendanceStatus !== "COMPLETED") {
-        quickRepliesContainer.style.display = "flex";
-      }
+      if (currentAttendanceStatus !== "COMPLETED") quickRepliesContainer.style.display = "flex";
       minimized = false;
     } else {
       body.style.display = "none";
@@ -143,73 +153,32 @@
   function showQuickReplies(status = null) {
     if (status) currentAttendanceStatus = status;
     if (isConfirming) return;
-
     quickRepliesContainer.innerHTML = "";
     quickRepliesContainer.style.display = "flex";
-    
     let suggestions = [];
-
-    if (currentAttendanceStatus === "NO_ENTRY") {
-        suggestions.push("⏰ Fichar Entrada");
-    } else if (currentAttendanceStatus === "HAS_ENTRY") {
-        suggestions.push("⏰ Fichar Salida");
-    } else if (currentAttendanceStatus === "COMPLETED") {
-        quickRepliesContainer.style.display = "none";
-        return;
-    }
-
+    if (currentAttendanceStatus === "NO_ENTRY") suggestions.push("⏰ Fichar Entrada");
+    else if (currentAttendanceStatus === "HAS_ENTRY") suggestions.push("⏰ Fichar Salida");
+    else if (currentAttendanceStatus === "COMPLETED") { quickRepliesContainer.style.display = "none"; return; }
     suggestions.forEach(text => {
-      let btn = document.createElement("button");
-      btn.className = "quick-reply-btn";
-      btn.innerText = text;
+      let btn = document.createElement("button"); btn.className = "quick-reply-btn"; btn.innerText = text;
       btn.onclick = () => {
-        if (text === "⏰ Fichar Entrada") {
-            askForAttendanceConfirmation("entrada");
-        } else if (text === "⏰ Fichar Salida") {
-            askForAttendanceConfirmation("salida");
-        }
+        if (text === "⏰ Fichar Entrada") askForAttendanceConfirmation("entrada");
+        else if (text === "⏰ Fichar Salida") askForAttendanceConfirmation("salida");
       };
       quickRepliesContainer.appendChild(btn);
     });
   }
 
   function askForAttendanceConfirmation(tipo) {
-    isConfirming = true; 
-    quickRepliesContainer.innerHTML = ""; 
-    
-    let systemAlert = document.createElement("div");
-    systemAlert.className = "chat-message-wrapper";
-    systemAlert.innerHTML = `
-      <div class="chat-message bot-message" style="border-left: 4px solid #3c8dbc; background-color: rgba(60, 141, 188, 0.08);">
-        ⚠️ <b>Confirmación Requerida:</b> ¿Estás seguro de que deseas registrar tu <b>${tipo}</b> para la jornada de hoy?
-      </div>`;
-    chatbox.appendChild(systemAlert);
-    chatbox.scrollTop = chatbox.scrollHeight;
-
-    let btnSi = document.createElement("button");
-    btnSi.className = "quick-reply-btn";
-    btnSi.style.borderColor = "#28a745";
-    btnSi.style.color = "#28a745";
-    btnSi.innerText = `Sí, registrar ${tipo}`;
-    btnSi.onclick = () => {
-        isConfirming = false; 
-        inputChat.value = `Sí, registrar ${tipo}`;
-        sendMessage(); 
-    };
-
-    let btnNo = document.createElement("button");
-    btnNo.className = "quick-reply-btn";
-    btnNo.style.borderColor = "#dc3545";
-    btnNo.style.color = "#dc3545";
-    btnNo.innerText = "No, cancelar";
-    btnNo.onclick = () => {
-        isConfirming = false; 
-        inputChat.value = "No, cancelar";
-        sendMessage(); 
-    };
-
-    quickRepliesContainer.appendChild(btnSi);
-    quickRepliesContainer.appendChild(btnNo);
+    isConfirming = true; quickRepliesContainer.innerHTML = ""; 
+    let systemAlert = document.createElement("div"); systemAlert.className = "chat-message-wrapper";
+    systemAlert.innerHTML = `<div class="chat-message bot-message" style="border-left: 4px solid #27324a; background-color: rgba(60, 141, 188, 0.08);">⚠️ <b>Confirmación Requerida:</b> ¿Estás seguro de registrar tu <b>${tipo}</b>?</div>`;
+    chatbox.appendChild(systemAlert); chatbox.scrollTop = chatbox.scrollHeight;
+    let btnSi = document.createElement("button"); btnSi.className = "quick-reply-btn"; btnSi.style.borderColor = "#28a745"; btnSi.style.color = "#28a745"; btnSi.innerText = `Sí, registrar ${tipo}`;
+    btnSi.onclick = () => { isConfirming = false; inputChat.value = `Sí, registrar ${tipo}`; sendMessage(); };
+    let btnNo = document.createElement("button"); btnNo.className = "quick-reply-btn"; btnNo.style.borderColor = "#dc3545"; btnNo.style.color = "#dc3545"; btnNo.innerText = "No, cancelar";
+    btnNo.onclick = () => { isConfirming = false; inputChat.value = "No, cancelar"; sendMessage(); };
+    quickRepliesContainer.appendChild(btnSi); quickRepliesContainer.appendChild(btnNo);
   }
 
   async function syncAttendanceStatus() {
@@ -220,56 +189,36 @@
               headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie('csrftoken') },
               body: JSON.stringify({ message: "Sincronizar estado de asistencia de manera silenciosa" })
          });
-         let data = await response.json();
-         showQuickReplies(data.attendance_status);
-     } catch (e) {
-         showQuickReplies("NO_ENTRY");
-     }
+         let data = await response.json(); showQuickReplies(data.attendance_status);
+     } catch (e) { showQuickReplies("NO_ENTRY"); }
   }
 
   function addMessage(sender, message, save = true, msgIndex = null) {
-    if (!message && sender === 'bot') {
-        return msgIndex;
-    }
-
-    let messageContainer = document.createElement("div");
-    messageContainer.classList.add('chat-message-wrapper'); 
-    let bubble = document.createElement("div");
-    bubble.classList.add('chat-message');
-
+    if (!message && sender === 'bot') return msgIndex;
+    let messageContainer = document.createElement("div"); messageContainer.classList.add('chat-message-wrapper'); 
+    let bubble = document.createElement("div"); bubble.classList.add('chat-message');
     if (sender === 'user') {
-        bubble.classList.add('user-message');
-        bubble.innerHTML = `<b>Tú:</b> ${escapeHTML(message)}`;
+        bubble.classList.add('user-message'); bubble.innerHTML = `<b>Tú:</b> ${escapeHTML(message)}`;
         messageContainer.appendChild(bubble);
     } else {
         bubble.classList.add('bot-message');
-        if (typeof marked !== 'undefined') {
-            bubble.innerHTML = `<b>Bot:</b> ${marked.parse(message)}`;
-        } else {
-            bubble.innerHTML = `<b>Bot:</b> ${message.replace(/\n/g, "<br>")}`;
-        }
+        if (typeof marked !== 'undefined') { bubble.innerHTML = `<b>Bot:</b> ${marked.parse(message)}`; }
+        else { bubble.innerHTML = `<b>Bot:</b> ${message.replace(/\n/g, "<br>")}`; }
         messageContainer.appendChild(bubble);
-
-        let feedbackRow = document.createElement("div");
-        feedbackRow.className = "feedback-row";
-        feedbackRow.innerHTML = `
-          <button class="feedback-btn" onclick="sendFeedback(${msgIndex}, 'up', this)">👍</button>
-          <button class="feedback-btn" onclick="sendFeedback(${msgIndex}, 'down', this)">👎</button>
-        `;
+        let feedbackRow = document.createElement("div"); feedbackRow.className = "feedback-row";
+        feedbackRow.innerHTML = `<button class="feedback-btn" onclick="sendFeedback(${msgIndex}, 'up', this)">👍</button><button class="feedback-btn" onclick="sendFeedback(${msgIndex}, 'down', this)">👎</button>`;
         messageContainer.appendChild(feedbackRow);
     }
-
-    chatbox.appendChild(messageContainer);
-    chatbox.scrollTop = chatbox.scrollHeight;
-
+    chatbox.appendChild(messageContainer); chatbox.scrollTop = chatbox.scrollHeight;
     if (save) {
         const history = JSON.parse(localStorage.getItem('hrChatHistory') || '[]');
-        history.push({ sender: sender, message: message });
-        saveChat(history);
-        return history.length - 1;
+        history.push({ sender: sender, message: message }); saveChat(history); return history.length - 1;
     }
     return msgIndex;
   }
+
+
+   // --- SEGUNDA PARTE DEL SCRIPT (COMPLETA Y CONFIGURADA) ---
 
   async function sendFeedback(msgIndex, type, buttonElement) {
     const history = JSON.parse(localStorage.getItem('hrChatHistory') || '[]');
@@ -314,7 +263,9 @@
     if (!message) return;
     inputChat.value = "";
     
-    quickRepliesContainer.style.display = "none";
+    // Oculta la flecha inmediatamente tras procesar el envío
+    if (btnEnviarMsg) btnEnviarMsg.style.display = "none";
+    if (quickRepliesContainer) quickRepliesContainer.style.display = "none";
 
     let userIndex = null;
     if (!message.includes("Sincronizar estado de asistencia")) {
@@ -339,11 +290,9 @@
           const nextIndex = userIndex !== null ? userIndex + 1 : null;
           addMessage('bot', data.response, true, nextIndex);
       }
-      
       if (data.attendance_status) {
           currentAttendanceStatus = data.attendance_status;
       }
-      
     } catch (error) {
       const indicator = document.getElementById("loading-indicator");
       if (indicator) chatbox.removeChild(indicator); 
@@ -351,7 +300,6 @@
           addMessage('bot', "Lo siento, experimenté un problema de conexión con el servidor central.");
       }
     }
-
     showQuickReplies();
   }
 
@@ -364,11 +312,7 @@
 
   function escapeHTML(str) {
     return str.replace(/[&<>'"]/g, tag => ({ 
-      '&': '&amp;', 
-      '<': '&lt;', 
-      '>': '&gt;', 
-      "'": '&#39;', 
-      '"': '&quot;' 
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' 
     }[tag] || tag));
   }
 

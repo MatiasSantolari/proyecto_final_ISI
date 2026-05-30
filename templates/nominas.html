@@ -5,11 +5,20 @@
 {% block title %}Gestión de Nóminas{% endblock %}
 
 {% block content %}
+
+<style>
+  .badge.bg-warning {
+      background-color: #d97706 !important; 
+      color: #ffffff !important;            
+      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2); 
+  }
+</style>
+
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
 
 <div class="container-fluid p-5 my-2">
   <div class="container-fluid mt-0">
-    <h4 class="mb-2" style="color: var(--color-primario);">Gestión de Nóminas</h4>
+    <h4 class="page-title-custom fw-bold mb-2">Gestión de Nóminas</h4>
     {% if mostrar_boton_regreso %}
         <a href="{{ url_regreso }}" class="btn btn-secondary mb-3">
             <i class="bi bi-arrow-left"></i> Volver al Detalle de Empleado
@@ -21,17 +30,17 @@
     <div class="card-header p-3 d-flex justify-content-between align-items-center mb-0 mt-0 bg-light border-bottom">
       <div>
         {% if pendientes > 0 %}
-          <button class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#modalRegenerarNominas">
+          <button class="btn btn-warning me-2 btn-sm p-2" data-bs-toggle="modal" data-bs-target="#modalRegenerarNominas">
             <i class="bi bi-arrow-repeat"></i> Regenerar Nóminas Pendientes ({{ pendientes }})
           </button>
         {% endif %}
 
-        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalGenerarNominas">
+        <button class="btn btn-success btn-sm p-2" data-bs-toggle="modal" data-bs-target="#modalGenerarNominas">
           <i class="bi bi-file-earmark-plus"></i> Generar Nóminas Período Actual ({{ faltantes }})
         </button>
       </div>
       {% if pendientes > 0 %}
-      <button class="btn btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modalConfirmarNominas">
+      <button class="btn btn-primary ms-auto btn-sm p-2" data-bs-toggle="modal" data-bs-target="#modalConfirmarNominas">
         <i class="bi bi-check2-circle"></i> Confirmar Nóminas ({{ pendientes }})
       </button>
       {% endif %}
@@ -40,9 +49,9 @@
     <div class="card-body pt-2 pb-0 bg-light">
       <form method="get" action="" id="formFiltrosNominas" class="row g-3 mb-4 align-items-end">
 
-        <div class="col-md-4">
-            <label for="departamento" class="form-label fw-bold">Departamento</label>
-            <select class="form-select select-filtro-dinamico" name="departamento" id="departamento">
+        <div class="col-md-3">
+            <label for="departamento" class="form-label fw-bold small text-uppercase">Departamento</label>
+            <select class="form-select form-select-sm select-filtro-dinamico" name="departamento" id="departamento">
               <option value="">-- Todos --</option>
               {% for dep in departamentos %}
                 <option value="{{ dep.nombre }}" {% if dep.nombre == departamento_sel %}selected{% endif %}>
@@ -52,9 +61,9 @@
             </select>
           </div>
 
-          <div class="col-md-3">
-              <label for="mes" class="form-label fw-bold">Mes</label>
-              <select class="form-select select-filtro-dinamico" name="mes" id="mes">
+          <div class="col-md-2">
+              <label for="mes" class="form-label fw-bold small text-uppercase">Mes</label>
+              <select class="form-select form-select-sm select-filtro-dinamico" name="mes" id="mes">
                   <option value="">-- Seleccionar --</option>
                   {% for i in meses %}
                     <option value="{{ i }}" {% if mes_seleccionado == i|stringformat:"s" %}selected{% endif %}>{{ i }}</option>
@@ -62,14 +71,14 @@
               </select>
           </div>
 
-          <div class="col-md-3">
-              <label for="anio" class="form-label fw-bold">Año</label>
-              <input type="number" class="form-control input-filtro-dinamico" name="anio" id="anio" value="{{ anio_seleccionado }}" placeholder="Ingresar Año (AAAA)">
+          <div class="col-md-2">
+              <label for="anio" class="form-label fw-bold small text-uppercase">Año</label>
+              <input type="number" class="form-control form-control-sm input-filtro-dinamico" name="anio" id="anio" value="{{ anio_seleccionado }}" placeholder="Ingresar Año (AAAA)">
           </div>
 
           <div class="col-md-2">
-              <a href="{% url 'nominas' %}" class="btn btn-outline-danger w-100 fw-bold" data-bs-toggle="tooltip" title="Limpiar todos los filtros">
-                <i class="bi bi-trash"></i> Limpiar
+              <a href="{% url 'nominas' %}" class="btn btn-primary btn-sm w-100 fw-bold shadow-sm p-2" data-bs-toggle="tooltip" title="Limpiar todos los filtros">
+                <i class="bi bi-arrow-clockwise me-1"></i> Limpiar Filtros
               </a>
           </div>
       </form>
@@ -80,7 +89,7 @@
   <div class="card shadow-sm border-0">
     <div class="card-body" id="contenedor-tabla-dinamica">
       <div class="table-responsive">
-        <table class="table table-sm table-hover table-striped table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
+        <table class="table table-sm table-hover table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
           <thead class="table-light text-center">
             <tr>
               <th>Empleado</th>
@@ -145,9 +154,10 @@
             {% endfor %}
           </tbody>
         </table>
+      </div>
 
         <nav aria-label="Paginación nominas">
-          <ul class="pagination justify-content-center mt-4">
+          <ul class="pagination justify-content-center mt-3 mb-2">
             
             {% if nominas.has_previous %}
               <li class="page-item">
@@ -178,7 +188,6 @@
             {% endif %}            
           </ul>
         </nav>
-      </div>
     </div>
   </div>
 </div>

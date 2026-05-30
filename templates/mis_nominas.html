@@ -7,7 +7,7 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
 <div class="container-fluid p-5 my-2">
-  <h4 class="mb-3">Historial de Nóminas</h4>
+  <h4 class="page-title-custom fw-bold mb-3">Historial de Nóminas</h4>
 
   {% if error %}
     <div class="alert alert-danger">{{ error }}</div>
@@ -17,7 +17,7 @@
   <div class="card shadow-sm border-0">
     <div class="card-body">
       <div class="table-responsive">  
-        <table class="table table-sm table-hover table-striped table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
+        <table class="table table-sm table-hover table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
             <thead class="table-light text-center">
               <tr>
                 <th>Fecha Pagado</th>
@@ -146,9 +146,10 @@
                 {% endfor %}
               </tbody>
           </table>
+        </div>
 
           <nav aria-label="Paginación">
-            <ul class="pagination justify-content-center mt-4">
+            <ul class="pagination justify-content-center mt-4 mb-2">
               {% if nominas.has_previous %}
                 <li class="page-item">
                   <a class="page-link" href="?page={{ nominas.previous_page_number }}">&laquo;</a>
@@ -177,7 +178,6 @@
             </ul>
           </nav>
 
-          </div>
         </div>
       </div>
   {% else %}

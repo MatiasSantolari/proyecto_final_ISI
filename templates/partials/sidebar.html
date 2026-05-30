@@ -52,12 +52,62 @@
         margin-right: auto !important;
     }
 
-    .calendar-table td.today, td.today {
-        background-color: #28a745 !important;
-        color: white !important;
-        border-radius: 50%;
-        font-weight: bold;
+    .calendar-container {
+    background-color: #ffffff !important;
+    color: #212529 !important;
     }
+
+    .calendar-container #monthYear {
+    color: #0d6efd !important;
+    }
+
+    .calendar-container table.table,
+    .calendar-container table.table tr,
+    .calendar-container table.table th,
+    .calendar-container table.table td {
+    background-color: #ffffff !important;
+    color: #212529 !important;
+    border: none !important;
+    }
+
+    .calendar-container table.table td.today,
+    .calendar-container td.today {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+    border-radius: 50% !important;
+    font-weight: bold !important;
+    }
+
+    body.dark-mode .calendar-container {
+    background-color: #2c3852 !important; 
+    color: #ffffff !important;
+    }
+
+    body.dark-mode .calendar-container #monthYear {
+    color: #0dcaf0 !important;
+    }
+
+    body.dark-mode .calendar-container button {
+    color: #ffffff !important;
+    }
+
+    body.dark-mode .calendar-container table.table,
+    body.dark-mode .calendar-container table.table tr,
+    body.dark-mode .calendar-container table.table th,
+    body.dark-mode .calendar-container table.table td {
+    background-color: #2c3852 !important;
+    color: #ffffff !important;
+    border: none !important;
+    }
+
+    body.dark-mode .calendar-container table.table td.today,
+    body.dark-mode .calendar-container td.today {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+    border-radius: 50% !important;
+    font-weight: bold !important;
+    }
+
 
     #avatarContainer, #previewAvatar, #defaultAvatarIcon {
         transition: width 0.2s ease-in-out, height 0.2s ease-in-out, margin 0.2s ease-in-out !important;
@@ -273,7 +323,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 <!-- CALENDARIO -->
                 <li class="nav-item px-2 brand-text">
-                    <div class="calendar-container bg-white rounded p-2 text-dark shadow-sm">
+                    <div class="calendar-container rounded p-2 shadow-sm">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <button id="prevMonth" class="btn btn-xs btn-link p-0"><i class="fas fa-chevron-left"></i></button>
                             <small id="monthYear" class="fw-bold text-primary"></small>
@@ -348,69 +398,77 @@ document.addEventListener("DOMContentLoaded", function() {
                     </li>
 
                     <hr class="my-2 border-secondary">            
-                    <li id="header-accesos-rapidos" class="nav-header" style="font-size: 0.95rem; color: #ffc107; cursor: pointer; user-select: none;">
-                        <i class="fas fa-bolt me-1"></i> Accesos Rápidos
+                    <li class="nav-header" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107;">
+                        <i class="fas fa-user-cog me-2"></i> Mi Autogestión
                     </li>
-
-                        <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-clock"></i><p>Registrar Asistencia</p></a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="fas fa-check-double nav-icon"></i> <p>Confirmar Asistencia</p></a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cartelera Cursos</p></a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-file-pdf"></i><p>Mis Nóminas</p></a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-search-plus nav-icon"></i><p>Ofertas de Empleo</p></a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_cargos' %}"><i class="nav-icon fas fa-user-plus"></i><p>Solicitar Nuevo Personal</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-clock"></i><p>Registrar Asistencia</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-file-pdf"></i><p>Mis Nóminas</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'mis_contratos' %}"><i class="nav-icon fas fa-file-signature"></i><p>Mis contratos</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cartelera Cursos</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-search-plus nav-icon"></i><p>Ofertas de Empleo</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_cargos' %}"><i class="nav-icon fas fa-user-plus"></i><p>Solicitar Nuevo Personal</p></a></li>
 
                 {% endif %}
-
 
                 {% if request.session.rol_actual == 'empleado' %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-clock"></i><p>Registrar Asistencia</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Mis Nóminas</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'mis_contratos' %}"><i class="nav-icon fas fa-file-signature"></i><p>Mis contratos</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="nav-icon fas fa-bullhorn"></i><p>Ofertas de Empleo</p></a></li>        
                 {% endif %}
 
                 {% if request.session.rol_actual == 'gerente' %}
-                    <hr class="my-2 border-secondary">    
-                    <li id="header-accesos-rapidos" class="nav-header" style="font-size: 0.95rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107; cursor: pointer; user-select: none;">
-                        <i class="fas fa-bolt me-1"></i> Accesos Rápidos
+                    <li class="nav-header" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #17a2b8;">
+                        <i class="fas fa-users me-2"></i> Gestión de Equipos
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-clock"></i><p>Registrar Asistencia</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="fas fa-calendar-check nav-icon"></i> <p>Confirmar Asistencia</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'objetivos' %}"><i class="fas fa-tasks nav-icon"></i><p>Gestor de Objetivos</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'evaluaciones' %}"><i class="fas fa-user-graduate nav-icon"></i><p>Administrar Evaluaciones</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="fas fa-plane-departure nav-icon"></i> <p>Gestionar Vacaciones</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}"><i class="fas fa-hand-holding-heart nav-icon"></i><p>Asignar Benef/Desc</p></a></li>       
                     <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_cargos' %}"><i class="nav-icon fas fa-user-plus"></i><p>Solicitar Nuevo Personal</p></a></li>
+                    
+                    <hr class="my-2 border-secondary">    
+                    <li class="nav-header" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107;">
+                        <i class="fas fa-user-cog me-2"></i> Mi Autogestión
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-clock"></i><p>Registrar Asistencia</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Mis Nóminas</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'mis_contratos' %}"><i class="nav-icon fas fa-file-signature"></i><p>Mis contratos</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-bullhorn nav-icon"></i><p>Ofertas de Empleo</p></a></li>
                 {% endif %}
 
                 {% if request.session.rol_actual == 'jefe' %}
-                    <hr class="my-2 border-secondary">            
-                    <li id="header-accesos-rapidos" class="nav-header" style="font-size: 0.95rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107; cursor: pointer; user-select: none;">
-                        <i class="fas fa-bolt me-1"></i> Accesos Rápidos
+                    <li class="nav-header" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #17a2b8;">
+                        <i class="fas fa-users me-2"></i> Gestión de Equipos
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-clock"></i><p>Registrar Asistencia</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'confirmar_asistencias' %}"><i class="fas fa-calendar-check nav-icon"></i> <p>Confirmar Asistencia</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'objetivos' %}"><i class="fas fa-tasks nav-icon"></i><p>Gestor de Objetivos</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'evaluaciones' %}"><i class="fas fa-user-graduate nav-icon"></i><p>Administrar Evaluaciones</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_vacaciones' %}"><i class="fas fa-plane-departure nav-icon"></i> <p>Gestionar Vacaciones</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'asignador_beneficios_descuentos' %}"><i class="fas fa-hand-holding-heart nav-icon"></i><p>Asignar Benef/Desc</p></a></li>       
                     <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_cargos' %}"><i class="nav-icon fas fa-user-plus"></i><p>Solicitar Nuevo Personal</p></a></li>
+                    
+                    <hr class="my-2 border-secondary">            
+                    <li class="nav-header" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #ffc107;">
+                        <i class="fas fa-user-cog me-2"></i> Mi Autogestión
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'registrar_asistencia' %}"><i class="nav-icon fas fa-clock"></i><p>Registrar Asistencia</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'mis_nominas' %}"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Mis Nóminas</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'mis_contratos' %}"><i class="nav-icon fas fa-file-signature"></i><p>Mis contratos</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'solicitar_vacaciones' %}"><i class="nav-icon fas fa-umbrella-beach"></i><p>Mis Vacaciones</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="fas fa-bullhorn nav-icon"></i><p>Ofertas de Empleo</p></a></li>
                 {% endif %}
 
                 {% if request.session.rol_actual == 'normal' %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="nav-icon fas fa-bullhorn"></i><p>Ofertas de Empleo</p></a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>    
+                    <li class="nav-item"><a class="nav-link" href="{% url 'ofertas_empleo' %}"><i class="nav-icon fas fa-bullhorn"></i><p>Ofertas de Empleo</p></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'cartelera_capacitaciones' %}"><i class="fas fa-graduation-cap nav-icon"></i><p>Cursos/Capacitaciones</p></a></li>    
                 {% endif %}
 
                 

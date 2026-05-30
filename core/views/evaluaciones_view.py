@@ -15,11 +15,17 @@ from django.core.paginator import Paginator
 
 @login_required
 def evaluaciones(request):
-    evaluaciones = Evaluacion.objects.prefetch_related('evaluacioncriterio_set__criterio__tipo_criterio').order_by('-fecha_evaluacion')   
+    evaluaciones_list = Evaluacion.objects.prefetch_related('evaluacioncriterio_set__criterio__tipo_criterio').order_by('-fecha_evaluacion')   
     tipos_criterio = TipoCriterio.objects.prefetch_related('criterio_set').all()
     form = EvaluacionForm()
+
+    paginator = Paginator(evaluaciones_list, 10) 
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'evaluaciones.html', {
-        'evaluaciones': evaluaciones,
+        'evaluaciones': page_obj, 
+        'page_obj': page_obj, 
         'tipos_criterio': tipos_criterio,
         'form': form
     })
