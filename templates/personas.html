@@ -140,6 +140,8 @@
                             data-calle="{{ persona.calle }}"
                             data-numero="{{ persona.numero }}"
                             data-tipo-usuario="{{ persona.tipo_usuario }}"
+                            data-banco="{{ persona.banco_nombre|default:'' }}"
+                            data-cbu="{{ persona.cbu_cuenta|default:'' }}"
                             {% if persona.tipo_persona != 'normal' %}
                               data-estado="{{ persona.estado }}"                  
                             {% else %}
@@ -223,7 +225,7 @@
 
   <!-- Modal para Crear/Editar Persona -->
   <div class="modal position-fixed fade" id="modalPersona" tabindex="-1" aria-labelledby="modalPersonaLabel" aria-hidden="true" style="z-index: 9999;">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" style="margin-top: 2rem;">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" style="margin-top: 1.5rem;">
       <div class="modal-content">
         <div class="modal-header py-2" style="background-color: #3c8dbc;">
           <h5 class="modal-title text-white" id="modalPersonaLabel">Crear/Editar Persona</h5>
@@ -317,14 +319,34 @@
               </div>
             </div>
           
-            <div class="mb-2 mt-2">
-              <label for="id_tipo_usuario" class="form-label mb-1">Tipo de Usuario</label>
-              {{ form.tipo_usuario }}
-            </div>
+            <div class="row g-3 mb-2">
+              <div class="col-md-6">
+                <label for="id_tipo_usuario" class="form-label mb-1">Tipo de Usuario</label>
+                {{ form.tipo_usuario }}
+              </div>
 
-            <div id="campoEstado" class="mb-2" style="display: none;" data-personas-target="campoEstado">
-              <label for="id_estado" class="form-label mb-1">Estado</label>
-              {{ form.estado }}
+              <div class="col-md-6" id="campoEstado" style="display: none;" data-personas-target="campoEstado">
+                <label for="id_estado" class="form-label mb-1">Estado</label>
+                {{ form.estado }}
+              </div>
+            </div>
+            
+            <div class="row g-3 mb-2" id="contenedor_bancario_dinamico" style="display: none;">
+              <div class="col-md-6">
+                <label for="id_banco_nombre" class="form-label mb-1 fw-bold small text-uppercase">Entidad Bancaria</label>
+                {{ form.banco_nombre }}
+                {% for error in form.banco_nombre.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md-6">
+                <label for="id_cbu_cuenta" class="form-label mb-1 fw-bold small text-uppercase">CBU Cuenta Sueldo</label>
+                {{ form.cbu_cuenta }}
+                <div id="alerta_cbu_html" class="text-danger small mt-1 d-none fw-semibold">El CBU debe contener exactamente 22 números.</div>
+                {% for error in form.cbu_cuenta.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
             </div>
 
             <div class="row g-3 mb-2">
@@ -364,7 +386,7 @@
   <!-- Modal para Ver Detalles -->
   {% for persona in personas %}
   <div class="modal fade" id="modalVerPersona{{ persona.id }}" tabindex="-1" aria-labelledby="modalVerPersonaLabel{{ persona.id }}" aria-hidden="true">
-    <div class="modal-dialog" style="margin-top: 6rem;">
+    <div class="modal-dialog" style="margin-top: 5rem;">
       <div class="modal-content">
         <div class="modal-header"  style="background-color: #3c8dbc;">
           <h5 class="modal-title" id="modalVerPersonaLabel{{ persona.id }}">Detalles de la Persona</h5>
@@ -385,7 +407,22 @@
             <p><strong>Estado del Empleado:</strong> <span>{{ persona.estado|capfirst }}</span></p>
             <p><strong>Departamento:</strong> <span>{{ persona.departamento_nombre }}</span></p>
             <p><strong>Cargo:</strong> <span>{{ persona.nombre_cargo }}</span></p>
-        {% endif %}
+            <p><strong>Banco Acreditación:</strong> <span>{{ persona.banco_nombre|default:"No asignado" }}</span></p>
+            <p class="d-flex align-items-center gap-2">
+              <strong>CBU Cuenta:</strong> 
+              <span class="font-monospace text-primary fw-bold" id="cbu_texto_{{ persona.id }}">
+                {{ persona.cbu_cuenta|default:"No asignado" }}
+              </span>
+              {% if persona.cbu_cuenta %}
+                <button type="button" class="btn btn-xs btn-outline-secondary p-1 border-0" 
+                        onclick="copiarCbuAlPortapapeles('{{ persona.id }}')" 
+                        data-bs-toggle="tooltip" title="Copiar CBU">
+                  <i class="bi bi-clipboard" id="icono_copiar_{{ persona.id }}"></i>
+                </button>
+              {% endif %}
+            </p>
+          {% endif %}
+
         </div>
       </div>
     </div>
@@ -428,6 +465,19 @@
       const campoCargo = document.getElementById('campoCargo');
       const campoDepartamento = document.getElementById('campoDepartamento');
       const idPersona = document.getElementById('id_persona').value;
+      const contenedorBancario = document.getElementById('contenedor_bancario_dinamico');
+      const inputCbu = document.getElementById('id_cbu_cuenta');
+      const selectBanco = document.getElementById('id_banco_nombre');
+
+      if (tipoUsuario === 'normal' || tipoUsuario === '') {
+        if (contenedorBancario) contenedorBancario.style.display = 'none';
+        if (inputCbu) { inputCbu.required = false; inputCbu.value = ''; }
+        if (selectBanco) { selectBanco.required = false; selectBanco.value = ''; }
+      } else {
+        if (contenedorBancario) contenedorBancario.style.display = 'flex';
+        if (inputCbu) inputCbu.required = true;
+        if (selectBanco) selectBanco.required = true;
+      }
 
       if (tipoUsuario === 'admin') {
         campoDepartamento.style.display = 'none';
@@ -446,6 +496,8 @@
       }
       campoEstado.style.display = (mostrar && idPersona) ? 'block' : 'none';
     }
+
+
 
     function cargarCargos(deptId, tipoUsuario, cargoSeleccionado = null) {
       if (!deptId) {
@@ -491,6 +543,8 @@
       form.reset();
       document.getElementById('id_persona').value = '';
       document.getElementById('modalPersonaLabel').textContent = 'Crear Nueva Persona';
+      const alerta = document.getElementById('alerta_cbu_html');
+      if (alerta) alerta.classList.add('d-none');
       document.querySelector('#formPersona button[type="submit"]').textContent = 'Guardar';
       departamentoSelect.selectedIndex = 0;
       cargoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
@@ -519,6 +573,15 @@
       document.getElementById('id_ciudad').value = button.getAttribute('data-ciudad');
       document.getElementById('id_calle').value = button.getAttribute('data-calle');
       document.getElementById('id_numero').value = button.getAttribute('data-numero');
+      
+      const cbuActual = button.getAttribute('data-cbu') || '';
+      const bancoActual = button.getAttribute('data-banco') || '';
+      if (document.getElementById('id_cbu_cuenta')) document.getElementById('id_cbu_cuenta').value = cbuActual;
+      if (document.getElementById('id_banco_nombre')) document.getElementById('id_banco_nombre').value = bancoActual;
+      
+      const alerta = document.getElementById('alerta_cbu_html');
+      if (alerta) alerta.classList.add('d-none');
+      
       tipoUsuarioSelect.value = tipoUsuario;
 
       toggleCampos();
@@ -532,7 +595,6 @@
 
       if (departamento) {
         departamentoSelect.value = departamento;
-        // Solo cargar cargos si el tipo_usuario necesita mostrar cargos
         if (['empleado'].includes(tipoUsuario)) {
           cargarCargos(departamento, tipoUsuario, cargo);
         } else {
@@ -547,14 +609,12 @@
       document.querySelector('#formPersona button[type="submit"]').textContent = 'Actualizar';
     }
 
-    // Listener para cuando cambia el tipo_usuario
     tipoUsuarioSelect.addEventListener('change', function () {
       toggleCampos();
 
       const deptId = departamentoSelect.value;
       const tipoUsuario = this.value;
 
-      // Si el tipo_usuario es empleado y hay departamento, cargar cargos
       if (deptId && ['empleado'].includes(tipoUsuario)) {
         cargarCargos(deptId, tipoUsuario);
       } else {
@@ -562,7 +622,6 @@
       }
     });
 
-    // Listener para cuando cambia el departamento
     departamentoSelect.addEventListener('change', function () {
       const deptId = this.value;
       const tipoUsuario = tipoUsuarioSelect.value;
@@ -579,12 +638,10 @@
       form.action = `/personas/${personaId}/eliminar/`;
     });
 
-        // --- MOTOR AJAX DINÁMICO SOBRE EL MISMO ARCHIVO (SIN RECARGA) ---
     const formFiltros = document.getElementById("formFiltros");
     const contenedorTabla = document.getElementById("contenedor-tabla-dinamica");
     let timeoutBusqueda = null;
 
-    // Función que consulta al servidor en segundo plano y extrae solo la tabla
     function filtrarSinRecargar(urlOpciones = null) {
         let url = urlOpciones;
         
@@ -594,29 +651,22 @@
             url = `?${params.toString()}`;
         }
 
-        // Petición en segundo plano a Django
         fetch(url)
             .then(response => response.text())
             .then(htmlTexto => {
-                // Parseamos el HTML recibido en memoria
                 const parser = new DOMParser();
                 const docVirtual = parser.parseFromString(htmlTexto, 'text/html');
                 
-                // Extraemos la tabla nueva filtrada
                 const nuevaTabla = docVirtual.getElementById("contenedor-tabla-dinamica");
                 
                 if (nuevaTabla && contenedorTabla) {
-                    // Reemplazamos el contenido de forma instantánea
-                    contenedorTabla.innerHTML = nuevaTabla.innerHTML;
-                    
-                    // Volvemos a activar los clicks en los nuevos botones de la paginación
+                    contenedorTabla.innerHTML = nuevaTabla.innerHTML;                    
                     actualizarEventosPaginacion();
                 }
             })
             .catch(error => console.error("Error al procesar el filtro dinámico:", error));
     }
 
-    // Escucha los clicks de la paginación para que no recarguen la página
     function actualizarEventosPaginacion() {
         const linksPaginacion = document.querySelectorAll(".pagination .page-link");
         linksPaginacion.forEach(link => {
@@ -630,24 +680,21 @@
         });
     }
 
-    // Listeners con retraso de 400ms para inputs de texto (DNI y Nombre/Apellido)
     const inputsTexto = document.querySelectorAll(".input-filtro-dinamico");
     inputsTexto.forEach(input => {
         input.addEventListener("input", function() {
             clearTimeout(timeoutBusqueda);
             timeoutBusqueda = setTimeout(() => {
-                filtrarSinRecargar(); // Filtra tras 400ms de inactividad (evita recargas constantes)
+                filtrarSinRecargar(); 
             }, 400);
         });
 
-        // Mantiene el cursor al final del texto al recuperar el foco
         input.addEventListener("focus", function() {
             const strLength = this.value.length;
             this.setSelectionRange(strLength, strLength);
         });
     });
 
-    // Listeners para los selectores dropdown (Filtra de inmediato al cambiar la opción)
     const selectoresDropdown = document.querySelectorAll(".select-filtro-dinamico");
     selectoresDropdown.forEach(select => {
         select.addEventListener("change", function() {
@@ -655,14 +702,53 @@
         });
     });
 
-    // Inicializar los eventos de paginación al cargar la pantalla por primera vez
+
+    const inputCbu = document.getElementById('id_cbu_cuenta');
+    if (inputCbu) {
+        inputCbu.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, ''); 
+            
+            const alerta = document.getElementById('alerta_cbu_html');
+            if (alerta) {
+                if (this.value.length > 0 && this.value.length !== 22) {
+                    alerta.classList.remove('d-none');
+                } else {
+                    alerta.classList.add('d-none');
+                }
+            }
+        });
+    }
+
+
     actualizarEventosPaginacion();
 
-    // --- CONSERVAR LÓGICAS OPERATIVAS ORIGINALES ---
     window.editarPersona = editarPersona;
     toggleCampos();
 
 });
+
+
+
+function copiarCbuAlPortapapeles(personaId) {
+      const elementoTexto = document.getElementById('cbu_texto_' + personaId);
+      if (!elementoTexto) return;
+      
+      const textoCbu = elementoTexto.textContent.trim();
+      const icono = document.getElementById('icono_copiar_' + personaId);
+      navigator.clipboard.writeText(textoCbu).then(() => {
+          if (icono) {
+              icono.className = "bi bi-check2 text-success";
+              setTimeout(() => {
+                  icono.className = "bi bi-clipboard";
+              }, 2000);
+          }
+      }).catch(err => {
+          console.error('Error al intentar copiar el CBU corporativo:', err);
+      });
+  }
+  window.copiarCbuAlPortapapeles = copiarCbuAlPortapapeles;
+
+
 
 
 function setAccion(valor) {

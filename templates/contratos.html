@@ -221,8 +221,11 @@
             </select>
           </div>
           <div class="mb-3">
-            <label>Fecha Inicio</label>
-            {{ form.fecha_inicio }}
+            <label class="fw-bold">Fecha Inicio <span class="text-danger">*</span></label>
+            {{ form.fecha_inicio|add_class:"form-control field-fecha-inicio" }}
+            <div id="alerta_fecha_inicio" class="text-danger small mt-1 d-none fw-semibold">
+              ⚠️ Debe ingresar una fecha de inicio válida para continuar.
+            </div>
           </div>
           <div class="mb-3">
             <label>Fecha Fin</label>

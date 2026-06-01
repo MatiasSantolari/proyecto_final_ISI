@@ -1,0 +1,177 @@
+{% load humanize %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { 
+            size: A4; 
+            margin: 1.2cm; 
+        }
+        body { 
+            font-family: 'Helvetica', 'Arial', sans-serif; 
+            color: #000000; 
+            font-size: 10px; 
+            line-height: 1.4; 
+        }
+        .encabezado { 
+            border: 1px solid #000000; 
+            padding: 8px; 
+            margin-bottom: 12px; 
+            text-align: center;
+        }
+        .titulo { 
+            font-size: 14px; 
+            font-weight: bold; 
+            margin: 0 0 3px 0; 
+            text-transform: uppercase; 
+        }
+        .sub { 
+            font-size: 9px; 
+            color: #333333; 
+            margin: 0; 
+            letter-spacing: 0.5px;
+        }
+        .tabla-datos { 
+            width: 100%; 
+            margin-bottom: 12px; 
+        }
+        .tabla-datos td { 
+            padding: 4px 6px; 
+            border: 1px solid #000000; 
+            font-size: 9.5px;
+        }
+        
+        .tabla-conceptos { 
+            width: 100%; 
+            border: 1px solid #000000;
+        }
+        .tabla-conceptos th { 
+            background-color: #e5e5e5;
+            border: 1px solid #000000; 
+            padding: 6px; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            font-size: 9px;
+        }
+        .tabla-conceptos td { 
+            padding: 5px 6px; 
+            border: 1px solid #000000; 
+            font-size: 9.5px;
+        }
+        
+        .text-end { text-align: right; }
+        .text-center { text-align: center; }
+        
+        .totales-box { 
+            width: 100%; 
+            border: 1px solid #000000; 
+            background-color: #ffffff; 
+            margin-top: 8px; 
+        }
+        .totales-box td { 
+            padding: 8px; 
+            font-weight: bold; 
+            font-size: 11px; 
+            border: 1px solid #000000;
+        }
+        .firmas { 
+            margin-top: 60px; 
+            width: 100%; 
+        }
+        .firmas td { 
+            width: 50%; 
+            text-align: center; 
+            font-size: 9.5px; 
+        }
+        .linea-firma { 
+            width: 160px; 
+            border-top: 1px solid #000000; 
+            margin: 0 auto 4px auto; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="encabezado">
+        <h3 class="titulo">Recibo de Haberes (Ley 20.744)</h3>
+        <p class="sub">ORIGINAL - COMPROBANTE DE PAGO DE HABERES</p>
+    </div>
+
+    <table class="tabla-datos">
+        <tr>
+            <td style="width: 50%;"><strong>Empresa:</strong> Mi Empresa S.A.</td>
+            <td style="width: 50%;"><strong>Período Liquidado:</strong> {{ periodo }}</td>
+        </tr>
+        <tr>
+            <td><strong>CUIT:</strong> 30-71112223-3</td>
+            <td><strong>Fecha de Liquidación:</strong> {{ nomina.fecha_pago|date:"d/m/Y"|default:fecha_impresion }}</td>
+        </tr>
+        <tr>
+            <td><strong>Colaborador:</strong> {{ empleado.apellido }}, {{ empleado.nombre }}</td>
+            <td><strong>DNI / CUIL:</strong> {{ empleado.dni }}</td>
+        </tr>
+        <tr>
+            <td><strong>Categoría / Cargo:</strong> {{ nomina.cargo|default:"-" }}</td>
+            <td><strong>Departamento:</strong> {{ nomina.departamento|default:"-" }}</td>
+        </tr>
+    </table>
+
+    <table class="tabla-conceptos">
+        <thead>
+            <tr>
+                <th style="width: 55px;" class="text-center">Cód</th>
+                <th style="width: 280px; text-align: left;">Conceptos / Descripción</th>
+                <th style="width: 75px;" class="text-center">Alícuota</th>
+                <th style="width: 85px; text-align: right;">Haberes</th>
+                <th style="width: 85px; text-align: right;">Retenciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in conceptos %}
+            <tr>
+                <td style="width: 55px;" class="text-center">{{ c.codigo }}</td>
+                <td style="width: 280px;">{{ c.descripcion }}</td>
+                <td style="width: 75px;" class="text-center">{{ c.porcentaje_unidades }}</td>
+                <td style="width: 85px;" class="text-end">
+                    {% if c.haberes %}${{ c.haberes|floatformat:2|intcomma }}{% else %}-{% endif %}
+                </td>
+                <td style="width: 85px;" class="text-end">
+                    {% if c.descuentos %}${{ c.descuentos|floatformat:2|intcomma }}{% else %}-{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            <tr><td style="width: 55px;" class="text-center">&nbsp;</td><td style="width: 280px;"></td><td style="width: 75px;"></td><td style="width: 85px;"></td><td style="width: 85px;"></td></tr>
+            <tr><td style="width: 55px;" class="text-center">&nbsp;</td><td style="width: 280px;"></td><td style="width: 75px;"></td><td style="width: 85px;"></td><td style="width: 85px;"></td></tr>
+        </tbody>
+    </table>
+
+    <table class="totales-box">
+        <tr>
+            <td style="width: 33.33%; text-align: right;">Total Bruto: ${{ nomina.monto_bruto|floatformat:2|intcomma }}</td>
+            <td style="width: 33.33%; text-align: right;">Total Retenciones: ${{ nomina.total_descuentos|floatformat:2|intcomma }}</td>
+            <td style="width: 33.34%; text-align: right; background-color: #e5e5e5; font-weight: bold;">NETO COBRADO: ${{ nomina.monto_neto|floatformat:2|intcomma }}</td>
+        </tr>
+    </table>
+
+
+    <p style="font-size: 8.5px; margin-top: 15px; color: #333333; font-style: italic;">
+        * Recibo de haberes digital emitido de manera automatizada conforme a los registros de acreditación bancaria masiva.
+    </p>
+
+    <table class="firmas">
+        <tr>
+            <td>
+                <div class="linea-firma"></div>
+                Firma del Empleador
+            </td>
+            <td>
+                <div class="linea-firma"></div>
+                Firma del Recibí Conforme
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>

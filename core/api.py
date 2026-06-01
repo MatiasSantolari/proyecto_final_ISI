@@ -12,6 +12,9 @@ from django.db.models.functions import TruncDay, TruncMonth, TruncWeek
 import calendar
 from django.db.models.functions import Round
 import locale
+from django.db.models import Sum, Q
+from decimal import Decimal
+
 
 from core.models import (
     Empleado,
@@ -31,6 +34,7 @@ from core.models import (
     LogroEmpleado,
     Logro,
     CapacitacionEmpleado,
+    HistorialContrato,
 )
 
 
@@ -39,7 +43,7 @@ def to_float(value):
         return float(value) if value is not None else 0.0
     except:
         return 0.0
-    
+
 ####
 try:
     locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
@@ -53,7 +57,7 @@ except:
 def api_kpis(request):
     today = timezone.localdate()
     rol_actual = request.session.get('rol_actual', request.user.rol)
-    
+
     empleados_qs = Empleado.objects.filter(estado='activo')
     asistencias_qs = HistorialAsistencia.objects.all()
     nominas_qs = Nomina.objects.all()
@@ -62,22 +66,22 @@ def api_kpis(request):
     if rol_actual in ['jefe', 'gerente']:
         try:
             empleado_usuario = request.user.persona.empleado
-            
+
             departamento = empleado_usuario.departamento_actual()
-            
+
             if departamento:
                 empleados_qs = empleados_qs.filter(
                     empleadocargo__cargo__cargodepartamento__departamento=departamento
                 ).distinct()
-                
+
                 asistencias_qs = asistencias_qs.filter(
                     empleado__empleadocargo__cargo__cargodepartamento__departamento=departamento
                 ).distinct()
-                
+
                 nominas_qs = nominas_qs.filter(
                     empleado__empleadocargo__cargo__cargodepartamento__departamento=departamento
                 ).distinct()
-                
+
                 evaluaciones_qs = evaluaciones_qs.filter(
                     empleado__empleadocargo__cargo__cargodepartamento__departamento=departamento
                 ).distinct()
@@ -86,7 +90,7 @@ def api_kpis(request):
                 asistencias_qs = asistencias_qs.none()
                 nominas_qs = nominas_qs.none()
                 evaluaciones_qs = evaluaciones_qs.none()
-                
+
         except (AttributeError, Empleado.DoesNotExist):
             return JsonResponse({"error": "Usuario sin perfil de empleado"}, status=403)
 
@@ -99,22 +103,24 @@ def api_kpis(request):
         licencia=False
     ).distinct().count()
 
-    ultima_nomina = nominas_qs.order_by('-fecha_generacion').first()
-    
+    nominas_validas = nominas_qs.exclude(estado__iexact="anulado")
+    ultima_nomina = nominas_validas.order_by('-fecha_generacion').first()
+
     if ultima_nomina:
         fecha_datos = ultima_nomina.fecha_generacion
         nombre_mes_costo = fecha_datos.strftime('%B %Y').capitalize()
-        payroll_cost = nominas_qs.filter(
+
+        payroll_cost = nominas_validas.filter(
             fecha_generacion__month=fecha_datos.month,
             fecha_generacion__year=fecha_datos.year
-        ).aggregate(total=Sum('monto_neto'))['total'] or 0
+        ).aggregate(total=Sum('monto_bruto'))['total'] or 0
     else:
         nombre_mes_costo = "Sin datos"
         payroll_cost = 0
 
     start_eval = today - timedelta(days=365)
     rango_eval = f"{start_eval.strftime('%b %Y')} - {today.strftime('%b %Y')}".capitalize()
-    
+
     eval_avg = evaluaciones_qs.filter(
         fecha_registro__gte=start_eval,
         empleado__estado='activo'
@@ -143,12 +149,12 @@ def api_vacaciones(request):
     rol_actual = request.session.get('rol_actual', request.user.rol)
 
     periodos_map = {
-        '1m': 0, '2m': 2, '3m': 3, '6m': 6, '12m': 12, 
+        '1m': 0, '2m': 2, '3m': 3, '6m': 6, '12m': 12,
         '24m': 24, '60m': 60
     }
 
     base_qs = VacacionesSolicitud.objects.all()
-    
+
     if rol_actual in ['jefe', 'gerente']:
         try:
             depto = request.user.persona.empleado.departamento_actual()
@@ -219,8 +225,8 @@ def api_asistencias(request):
         '3m':  {'days': 90, 'group': 'week'},
         '6m':  {'days': 180, 'group': 'month'},
         '12m': {'days': 365, 'group': 'month'},
-        '24m': {'days': 730, 'group': 'month'},  
-        '60m': {'days': 1825, 'group': 'month'}, 
+        '24m': {'days': 730, 'group': 'month'},
+        '60m': {'days': 1825, 'group': 'month'},
     }
 
     if periodo_solicitado == 'all':
@@ -264,7 +270,7 @@ def api_asistencias(request):
             late.append(m['c_late'])
             ausent.append(m['c_ausent'])
             licenses.append(m['c_licenses'])
-    
+
     elif group_by == 'month':
         current_date = start_date.replace(day=1)
         while current_date <= today:
@@ -277,14 +283,14 @@ def api_asistencias(request):
             current_date += relativedelta(months=1)
 
     elif group_by == 'week':
-        current_date = start_date - timedelta(days=start_date.weekday()) 
+        current_date = start_date - timedelta(days=start_date.weekday())
         while current_date <= today:
             if current_date + timedelta(days=6) < start_date:
                 current_date += timedelta(days=7)
                 continue
             week_end = min(current_date + timedelta(days=6), today)
             labels.append(f"{current_date.strftime('%d %b')} - {week_end.strftime('%d %b')}")
-            
+
             m = metrics_dict.get(current_date, {'c_present': 0, 'c_late': 0, 'c_ausent': 0, 'c_licenses': 0})
             present.append(m['c_present'])
             late.append(m['c_late'])
@@ -293,14 +299,14 @@ def api_asistencias(request):
             current_date += timedelta(days=7)
 
     return JsonResponse({
-        "labels": labels, 
-        "present": present, 
-        "late": late, 
+        "labels": labels,
+        "present": present,
+        "late": late,
         "ausent": ausent,
         "licenses": licenses,
         "start_date_formatted": start_date.strftime('%d %b %Y'),
         "end_date_formatted": today.strftime('%d %b %Y'),
-        "active_period": periodo_solicitado 
+        "active_period": periodo_solicitado
     })
 
 
@@ -317,15 +323,15 @@ def to_float(value):
 @login_required
 def api_evaluaciones(request):
     today = timezone.localdate()
-    
+
     periodo_solicitado = request.GET.get('periodo')
     if not periodo_solicitado or periodo_solicitado.strip() == "":
         periodo_solicitado = '12m'
-        
+
     rol_actual = request.session.get('rol_actual', request.user.rol)
-    
+
     periodos_map = {
-        '1m': 1, '2m': 2, '3m': 3, '6m': 6, '12m': 12, 
+        '1m': 1, '2m': 2, '3m': 3, '6m': 6, '12m': 12,
         '24m': 24, '60m': 60
     }
 
@@ -368,7 +374,7 @@ def api_evaluaciones(request):
             continue
 
     return JsonResponse({
-        "labels": ["1","2","3","4","5","6","7","8","9","10"], 
+        "labels": ["1","2","3","4","5","6","7","8","9","10"],
         "counts": counts,
         "start_date_formatted": start_date.strftime('%b %Y') if start_date else "Inicio",
         "end_date_formatted": today.strftime('%b %Y'),
@@ -377,32 +383,36 @@ def api_evaluaciones(request):
 
 
 
+
+def to_float(val):
+    if val is None:
+        return 0.0
+    return float(val)
+
+
 @require_GET
 @login_required
 def api_nominas(request):
     rol_actual = request.session.get('rol_actual', request.user.rol)
-    
-    periodo_solicitado = request.GET.get('periodo')
-    if not periodo_solicitado or periodo_solicitado.strip() == "":
-        periodo_solicitado = '1m'
-        
+    periodo_solicitado = request.GET.get('periodo', '1m')
+
     qs_base = Nomina.objects.all()
 
     if rol_actual in ['jefe', 'gerente']:
         try:
             depto = request.user.persona.empleado.departamento_actual()
             if depto:
-                qs_base = qs_base.filter(
-                    empleado__empleadocargo__cargo__cargodepartamento__departamento=depto,
-                    empleado__empleadocargo__fecha_fin__isnull=True
-                ).distinct()
+                empleados_ids = Empleado.objects.filter(
+                    empleadocargo__cargo__cargodepartamento__departamento=depto
+                ).values_list('id', flat=True).distinct()
+                qs_base = qs_base.filter(empleado_id__in=empleados_ids)
             else:
                 qs_base = qs_base.none()
         except (AttributeError, Empleado.DoesNotExist):
             qs_base = qs_base.none()
 
     ultima_nomina = qs_base.order_by('-fecha_generacion').only('fecha_generacion').first()
-    
+
     if not ultima_nomina:
         return JsonResponse({
             "base": 0.0, "benefits": 0.0, "discounts": 0.0, "extras": 0.0,
@@ -410,12 +420,7 @@ def api_nominas(request):
         })
 
     ultimo_mes_con_datos = ultima_nomina.fecha_generacion.replace(day=1)
-    
-    periodos_map = {
-        '1m': 1, '2m': 2, '3m': 3, '6m': 6, '12m': 12, 
-        '24m': 24, '60m': 60
-    }
-
+    periodos_map = {'1m': 1, '2m': 2, '3m': 3, '6m': 6, '12m': 12, '24m': 24, '60m': 60}
     end_date = ultimo_mes_con_datos + relativedelta(months=1, days=-1)
 
     if periodo_solicitado == 'all':
@@ -425,30 +430,63 @@ def api_nominas(request):
         num_months = periodos_map.get(periodo_solicitado, 1)
         start_date = ultimo_mes_con_datos - relativedelta(months=(num_months - 1))
 
-    qs_final = qs_base.filter(fecha_generacion__range=[start_date, end_date])
+    nominas_periodo = qs_base.filter(fecha_generacion__range=[start_date, end_date]).exclude(estado__iexact="anulado")
 
-    totales = qs_final.aggregate(
-        s_bruto=Sum('monto_bruto'),
-        s_beneficios=Sum('total_beneficios'),
-        s_descuentos=Sum('total_descuentos'),
-        s_extras=Sum('monto_extra_pactado')
+    empleados_con_nomina_ids = nominas_periodo.values_list('empleado_id', flat=True).distinct()
+
+    contratos_vigentes = HistorialContrato.objects.filter(
+        empleado_id__in=empleados_con_nomina_ids,
+        fecha_inicio__lte=end_date
+    ).filter(
+        Q(fecha_fin__gte=start_date) | Q(fecha_fin__isnull=True)
     )
 
-    base = totales['s_bruto'] or 0
-    benefits = totales['s_beneficios'] or 0
-    discounts = totales['s_descuentos'] or 0
-    extras = totales['s_extras'] or 0
-    
-    start_date_formatted = start_date.strftime('%b. %Y').capitalize()
-    
+    total_extras = Decimal('0.00')
+    for contrato in contratos_vigentes:
+        total_nominas_empleado = nominas_periodo.filter(empleado=contrato.empleado).count()
+        if contrato.monto_extra_pactado:
+            total_extras += contrato.monto_extra_pactado * Decimal(str(total_nominas_empleado))
+
+    totales = nominas_periodo.aggregate(
+        s_bruto=Sum('monto_bruto'),
+        s_beneficios=Sum('total_beneficios'),
+        s_descuentos=Sum('total_descuentos')
+    )
+
+    bruto_total = totales['s_bruto'] or Decimal('0.00')
+    benefits = totales['s_beneficios'] or Decimal('0.00')
+    discounts = totales['s_descuentos'] or Decimal('0.00')
+
+    base_pura = bruto_total - benefits - total_extras
+
+    if base_pura < 0:
+        base_pura = Decimal('0.00')
+
     return JsonResponse({
-        "base": to_float(base - extras),
+        "base": to_float(base_pura),
         "benefits": to_float(benefits),
         "discounts": to_float(discounts),
-        "extras": to_float(extras),
-        "start_date_formatted": start_date_formatted,
-        "end_date_formatted": end_date.strftime('%b. %Y').capitalize() if periodo_solicitado != '1m' else start_date_formatted,
+        "extras": to_float(total_extras),  
+        "start_date_formatted": start_date.strftime('%b. %Y').capitalize(),
+        "end_date_formatted": end_date.strftime('%b. %Y').capitalize() if periodo_solicitado != '1m' else start_date.strftime('%b. %Y').capitalize(),
     })
+
+
+
+def calcular_costos_mensuales_por_anio(year, depto_filter):
+    costs = Nomina.objects.filter(
+        fecha_generacion__year=year,
+        **depto_filter
+    ).exclude(
+        estado__iexact="anulado"
+    ).annotate(
+        month=ExtractMonth('fecha_generacion')
+    ).values('month').annotate(
+        total_cost=Sum('monto_bruto')  
+    ).order_by('month')
+
+    monthly_data = {item['month']: float(item['total_cost'] or 0) for item in costs}
+    return [monthly_data.get(month, 0) for month in range(1, 13)]
 
 
 
@@ -475,23 +513,9 @@ def api_labor_cost_comparison(request):
         except (AttributeError, Empleado.DoesNotExist):
             depto_filter = {'id__isnull': True}
 
-    def get_monthly_costs(year):
-        costs = Nomina.objects.filter(
-            fecha_generacion__year=year,
-            **depto_filter 
-        ).annotate(
-            month=ExtractMonth('fecha_generacion')
-        ).values('month').annotate(
-            total_cost=Sum('monto_neto')
-        ).order_by('month')
-        
-        monthly_data = {item['month']: float(item['total_cost'] or 0) for item in costs}
-        
-        return [monthly_data.get(month, 0) for month in range(1, 13)]
+    data_year1 = calcular_costos_mensuales_por_anio(year1, depto_filter)
+    data_year2 = calcular_costos_mensuales_por_anio(year2, depto_filter)
 
-    data_year1 = get_monthly_costs(year1)
-    data_year2 = get_monthly_costs(year2)
-    
     months_labels = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
 
     return JsonResponse({
@@ -508,7 +532,7 @@ def api_labor_cost_comparison(request):
 @login_required
 def api_estructura(request):
     rol_actual = request.session.get('rol_actual', request.user.rol)
-    
+
     if rol_actual in ['jefe', 'gerente']:
         try:
             empleado_usuario = request.user.persona.empleado
@@ -528,10 +552,10 @@ def api_estructura(request):
     for d in depts:
         cargos_ids = CargoDepartamento.objects.filter(departamento=d).values_list('cargo_id', flat=True)
         emp_count = EmpleadoCargo.objects.filter(
-            cargo_id__in=cargos_ids, 
+            cargo_id__in=cargos_ids,
             fecha_fin__isnull=True
         ).values('empleado').distinct().count()
-        
+
         labels.append(d.nombre)
         counts.append(emp_count)
 
@@ -558,14 +582,14 @@ def api_objetivos(request):
         try:
             empleado_usuario = request.user.persona.empleado
             depto_usuario = empleado_usuario.departamento_actual()
-            
+
             if depto_usuario:
                 objs_queryset = objs_queryset.filter(departamento=depto_usuario)
             else:
                 return JsonResponse({"items": []})
         except (AttributeError, Empleado.DoesNotExist):
             return JsonResponse({"items": []})
-            
+
     elif department_id and department_id != 'todos':
         try:
             objs_queryset = objs_queryset.filter(departamento_id=int(department_id))
@@ -575,7 +599,7 @@ def api_objetivos(request):
     items = []
     for o in objs_queryset[:50]:
         total = o.total_asig
-        
+
         if total > 0:
             avg_progress = (o.total_comp * 100) // total
             tipo_label = "Por Cargo" if o.tiene_cargo > 0 else "Directo"
@@ -607,13 +631,13 @@ def api_objetivos(request):
 def api_capacitaciones(request):
     today = timezone.localdate()
     rol_actual = request.session.get('rol_actual', request.user.rol)
-    
+
     periodo_solicitado = request.GET.get('periodo')
     if not periodo_solicitado or periodo_solicitado.strip() == "":
-        periodo_solicitado = '6m' 
-        
+        periodo_solicitado = '6m'
+
     periodos_map = {
-        '1m': 1, '2m': 2, '3m': 3, '6m': 6, '12m': 12, 
+        '1m': 1, '2m': 2, '3m': 3, '6m': 6, '12m': 12,
         '24m': 24, '60m': 60
     }
 
@@ -652,11 +676,11 @@ def api_capacitaciones(request):
 
     labels, internas, externas = [], [], []
     current_date = start_date
-    
+
     while current_date <= today:
         labels.append(current_date.strftime('%b %y').capitalize())
         m = metrics_dict.get(current_date, {'c_internas': 0, 'c_externas': 0})
-        
+
         internas.append(m['c_internas'])
         externas.append(m['c_externas'])
         current_date += relativedelta(months=1)
@@ -686,12 +710,12 @@ def api_capacitaciones(request):
 @login_required
 def api_dashboard_empleado(request):
     persona = getattr(request.user, 'persona', None)
-    
+
     if not persona:
         return JsonResponse({'error': 'Perfil incompleto'}, status=403)
     empleado = Empleado.objects.get(id=persona.id)
     hoy = timezone.localtime(timezone.now()).date()
-    
+
     qs = ObjetivoEmpleado.objects.filter(empleado=empleado, objetivo__activo=True).select_related('objetivo')
     qs_diarios = qs.filter(objetivo__es_recurrente=True, fecha_asignacion=hoy)
     qs_cargo_vigentes = qs.filter(objetivo__es_recurrente=False).filter(
@@ -704,19 +728,19 @@ def api_dashboard_empleado(request):
     data = {
         "fecha_formateada": fecha_str,
         "diarios": [
-            {"id": o.id, "titulo": o.objetivo.titulo, "descripcion": o.objetivo.descripcion, "completado": o.completado} 
+            {"id": o.id, "titulo": o.objetivo.titulo, "descripcion": o.objetivo.descripcion, "completado": o.completado}
             for o in qs_diarios
         ],
         "cargo": [
             {
                 "id": o.id, "titulo": o.objetivo.titulo, "completado": o.completado,
                 "descripcion": o.objetivo.descripcion,
-                "fecha_completa": o.fecha_limite.isoformat() if o.fecha_limite else None, 
+                "fecha_completa": o.fecha_limite.isoformat() if o.fecha_limite else None,
                 "vence": o.fecha_limite.strftime("%d/%m/%Y") if o.fecha_limite else None,
                 "atrasado": o.fecha_limite < hoy if o.fecha_limite else False,
-                "es_hoy": o.fecha_limite == hoy if o.fecha_limite else False 
+                "es_hoy": o.fecha_limite == hoy if o.fecha_limite else False
             } for o in qs_cargo_vigentes
-        ]   
+        ]
     }
     return JsonResponse(data)
 
@@ -728,22 +752,22 @@ def api_asistencia_empleado(request):
     persona = getattr(request.user, 'persona', None)
     if not persona:
         return JsonResponse({'error': 'Perfil incompleto'}, status=403)
-    
+
     try:
         empleado = Empleado.objects.get(id=persona.id)
     except Empleado.DoesNotExist:
         return JsonResponse({'error': 'Empleado no encontrado'}, status=44)
-    
-    hoy = timezone.localtime(timezone.now()).date() 
+
+    hoy = timezone.localtime(timezone.now()).date()
     primer_dia_mes = hoy.replace(day=1)
-    
+
     total_dias_laborables_contados = 0
     dias_asistidos = 0
 
     current_day = primer_dia_mes
     while current_day <= hoy:
-        if current_day.weekday() not in [5, 6]: 
-            
+        if current_day.weekday() not in [5, 6]:
+
             registro_asistencia_dia = HistorialAsistencia.objects.filter(
                 empleado=empleado,
                 fecha_asistencia=current_day
@@ -755,7 +779,7 @@ def api_asistencia_empleado(request):
                 total_dias_laborables_contados += 1
                 if registro_asistencia_dia and registro_asistencia_dia.confirmado:
                     dias_asistidos += 1
-                
+
         current_day += timedelta(days=1)
 
     porcentaje_asistencia = (dias_asistidos / total_dias_laborables_contados * 100) if total_dias_laborables_contados > 0 else 0
@@ -787,9 +811,9 @@ def api_evaluaciones_empleado(request):
         return JsonResponse({'error': 'Perfil incompleto'}, status=403)
     empleado = Empleado.objects.get(id=persona.id)
 
-    hoy = timezone.localtime(timezone.now()).date() 
+    hoy = timezone.localtime(timezone.now()).date()
     hace_un_año = hoy - timedelta(days=365)
-    
+
     promedio_evaluaciones = EvaluacionEmpleado.objects.filter(
         empleado=empleado,
         fecha_registro__gte=hace_un_año
@@ -830,7 +854,7 @@ def api_beneficios_empleado(request):
     beneficios_asignados_ids = BeneficioEmpleadoNomina.objects.filter(empleado=empleado).values_list('beneficio_id', flat=True)
 
     beneficios_asignados = Beneficio.objects.filter(id__in=beneficios_asignados_ids)
-    
+
     lista_asignados = [
         {
             'id': b.id,
@@ -855,7 +879,7 @@ def api_beneficios_empleado(request):
         }
         for b in beneficios_potenciales
     ]
-    
+
     return JsonResponse({
         "asignados": lista_asignados,
         "potenciales": lista_potenciales,
@@ -870,14 +894,14 @@ def api_logros_empleado(request):
     persona = getattr(request.user, 'persona', None)
     if not persona:
         return JsonResponse({'error': 'Perfil incompleto'}, status=403)
-    
+
     try:
         empleado = Empleado.objects.get(id=persona.id)
     except Empleado.DoesNotExist:
         return JsonResponse({'error': 'Empleado no encontrado'}, status=404)
 
     todos_los_logros = Logro.objects.all()
-    
+
     logros_del_empleado = {le.logro_id: le for le in LogroEmpleado.objects.filter(empleado=empleado)}
 
     anios_map = {
@@ -887,10 +911,10 @@ def api_logros_empleado(request):
     }
 
     lista_logros = []
-    
+
     for logro in todos_los_logros:
         registro_usuario = logros_del_empleado.get(logro.id)
-        
+
         tipo = logro.tipo
         requisito_texto = ""
 
@@ -909,7 +933,7 @@ def api_logros_empleado(request):
             'tipo': tipo,
             'requisito': requisito_texto
         })
-    
+
     lista_logros.sort(key=lambda x: (not x['completado'], x['titulo']))
 
     return JsonResponse({
@@ -923,7 +947,7 @@ def api_logros_empleado(request):
 @require_GET
 def api_capacitaciones_empleado(request):
     try:
-        empleado = request.user.persona.empleado 
+        empleado = request.user.persona.empleado
     except AttributeError:
         return JsonResponse({'error': 'Perfil incompleto'}, status=403)
 
@@ -936,7 +960,7 @@ def api_capacitaciones_empleado(request):
     lista_capacitaciones = []
     for cap in capacitaciones_activas:
         es_externo = cap.capacitacion.es_externo
-        
+
         estado_display = cap.get_estado_display()
         if cap.estado == 'INSCRIPTO':
             estado_display = "Interesado" if es_externo else "Inscripto"

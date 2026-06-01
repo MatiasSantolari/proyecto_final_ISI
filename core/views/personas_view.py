@@ -28,7 +28,9 @@ def personas(request):
         form = PersonaForm()
         abrir_modal_error = False
 
-    personas_qs = Persona.objects.select_related('empleado', 'usuario').order_by('apellido', 'nombre')
+    personas_qs = Persona.objects.select_related('empleado', 'usuario').prefetch_related(
+        'empleado__datos_bancarios', 
+    ).order_by('apellido', 'nombre')
 
     dep_id = request.GET.get("departamento")
     search_dni = request.GET.get("dni", "").strip()
@@ -86,7 +88,9 @@ def personas(request):
         email_persona = ""
         tipo_usuario = ""
         departamento_id = ""
-        departamento_nombre = ""
+        departamento_nombre = ""        
+        banco_nombre = ""
+        cbu_cuenta = ""
 
         if hasattr(persona, 'usuario'):
             email_persona = persona.usuario.email
@@ -94,6 +98,11 @@ def personas(request):
 
             if tipo_usuario in ['empleado', 'jefe', 'gerente', 'admin'] and hasattr(persona, 'empleado'):
                 estado = persona.empleado.estado
+                
+                if hasattr(persona.empleado, 'datos_bancarios'):
+                    banco_nombre = persona.empleado.datos_bancarios.banco_nombre
+                    cbu_cuenta = persona.empleado.datos_bancarios.cbu_cuenta
+
                 ultimo_cargo = persona.empleado.empleadocargo_set.filter(fecha_fin__isnull=True).first()
                 if ultimo_cargo:
                     cargo = ultimo_cargo.cargo
@@ -130,6 +139,8 @@ def personas(request):
             'departamento_id': departamento_id,
             'departamento_nombre': departamento_nombre,
             'telefono_completo': (persona.prefijo_pais or "") + (persona.telefono or ""),
+            'banco_nombre': banco_nombre,
+            'cbu_cuenta': cbu_cuenta,
         })
 
     form = PersonaForm()
@@ -147,6 +158,7 @@ def personas(request):
         'estado_seleccionado': filtro_estado,
         'tipo_usuario_seleccionado': filtro_tipo_usuario,
     })
+
 
 
 
@@ -168,8 +180,7 @@ def crear_persona(request):
                 query_dni = query_dni.exclude(id=id_persona)
                 
             if query_dni.exists():
-                messages.error(request, f'¡Error! El DNI {dni_input} ya se encuentra registrado en el sistema.')
-                
+                messages.error(request, f'¡Error! El DNI {dni_input} ya se encuentra registrado en el sistema.')   
                 request.session['form_data_persona_error'] = request.POST
                 return redirect('personas')
 
@@ -308,6 +319,20 @@ def crear_persona(request):
                         if cargo:
                             empleado.cargo = cargo
                         empleado.save()
+
+
+                    banco_nombre = form.cleaned_data.get('banco_nombre')
+                    cbu_cuenta = form.cleaned_data.get('cbu_cuenta', '').strip()
+                    if cbu_cuenta:
+                        from core.models import DatosBancariosEmpleado
+                        DatosBancariosEmpleado.objects.update_or_create(
+                            empleado=empleado,
+                            defaults={
+                                'banco_nombre': banco_nombre if banco_nombre else "Banco Galicia",
+                                'cbu_cuenta': cbu_cuenta
+                            }
+                        )
+
 
                     if cargo:
                         ultimo_cargo = EmpleadoCargo.objects.filter(

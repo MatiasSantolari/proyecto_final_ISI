@@ -9,7 +9,7 @@ from .departamento import Departamento
 from .descuento_empleado_nomina import DescuentoEmpleadoNomina
 from .descuento import Descuento
 from .empleado_cargo import EmpleadoCargo
-from .empleado import Empleado
+from .empleado import Empleado, DatosBancariosEmpleado
 from .evaluacion import Evaluacion
 from .evaluacion_empleado import EvaluacionEmpleado
 from .evaluacion_criterio import EvaluacionCriterio

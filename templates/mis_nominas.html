@@ -135,9 +135,13 @@
 
                       </div>
 
-                      <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                      <div class="modal-footer d-flex justify-content-between">
+                        <button type="button" id="btnDescargarPDFRecibo" class="btn btn-primary fw-bold btn-sm px-3 p-2">
+                          <i class="bi bi-file-earmark-pdf-fill"></i> Descargar Recibo (PDF)
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm p-2" data-bs-dismiss="modal">Cerrar</button>
                       </div>
+
 
                     </div>
                   </div>
@@ -181,20 +185,31 @@
         </div>
       </div>
   {% else %}
-      <div class="alert alert-info">Todavía no tienes nóminas generadas.</div>
+      <div class="alert alert-info border border-secondary border-opacity-10 shadow-2xs">Todavía no tienes nóminas generadas o confirmadas en tu historial.</div>
   {% endif %}
 </div>
+
+
 
 <script>
     function formatCurrency(amount, isDiscount = false) {
         const val = parseFloat(amount) || 0;
         const sign = isDiscount && val > 0 ? '-' : ''; 
-        return `${sign}$${val.toFixed(2)}`;
+        
+        const numeroFormateado = new Intl.NumberFormat('es-AR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(val);
+        
+        return `${sign}$${numeroFormateado}`;
     }
 
     document.addEventListener("DOMContentLoaded", function () {
         const modalElement = document.getElementById('modalVerNomina');
-        const modal = new bootstrap.Modal(modalElement);
+        let modal = null;
+        if (modalElement) {
+            modal = new bootstrap.Modal(modalElement);
+        }
         
         document.querySelectorAll('.btn-ver-nomina').forEach(btn => {
             btn.addEventListener('click', function () {
@@ -203,71 +218,80 @@
                 fetch(`/nominas/ver/${id}/`) 
                     .then(res => res.json())
                     .then(data => {
-                        
                         document.getElementById('verEmpleado').textContent = data.empleado;
                         document.getElementById('verDNI').textContent = data.dni;
                         document.getElementById('verCargo').textContent = data.cargo;
                         document.getElementById('verDepartamento').textContent = data.departamento;
                         document.getElementById('verFecha').textContent = data.fecha_generacion;
-                        document.getElementById('verNumero').textContent = data.numero;
+                        document.getElementById('verNumero').textContent = data.numero;                        
                         document.getElementById('verBruto').textContent = formatCurrency(data.monto_bruto).substring(1);
                         document.getElementById('verNeto').textContent = formatCurrency(data.monto_neto).substring(1);
                         document.getElementById('verDescuentos').textContent = formatCurrency(data.total_descuentos, true);
                         document.getElementById('verBeneficios').textContent = formatCurrency(data.total_beneficios).substring(1);
+                        document.getElementById('btnDescargarPDFRecibo').onclick = function() {
+                            window.location.href = `/mis-nominas/${id}/pdf/`;
+                        };
                         
                         const montoExtraContainer = document.getElementById('id_monto_extra_pactado');
                         if (parseFloat(data.monto_extra_pactado) > 0) {
                             document.getElementById('verMontoExtraPactado').textContent = formatCurrency(data.monto_extra_pactado).substring(1);
-                            montoExtraContainer.style.display = "block";
+                            if (montoExtraContainer) montoExtraContainer.style.display = "block";
                         } else {
-                            montoExtraContainer.style.display = "none";
+                            if (montoExtraContainer) montoExtraContainer.style.display = "none";
                         }
 
                         const estadoSpan = document.getElementById("verEstado");
-                        estadoSpan.innerHTML = "";
-                        let estadoClass = "";
-                        if (data.estado === "pendiente") estadoClass = "badge bg-warning text-dark";
-                        else if (data.estado === "pagado") estadoClass = "badge bg-success";
-                        else if (data.estado === "anulado") estadoClass = "badge bg-danger";
-                        else estadoClass = "badge bg-secondary";
-                        estadoSpan.innerHTML = `<span class="${estadoClass} fs-6">${data.estado}</span>`;
+                        if (estadoSpan) {
+                            estadoSpan.innerHTML = "";
+                            let estadoClass = "";
+                            if (data.estado === "pendiente") estadoClass = "badge bg-warning text-white";
+                            else if (data.estado === "pagado") estadoClass = "badge bg-success text-white";
+                            else if (data.estado === "anulado") estadoClass = "badge bg-danger text-white";
+                            else estadoClass = "badge bg-secondary text-white";
+                            estadoSpan.innerHTML = `<span class="${estadoClass} fs-6 px-2 py-1">${data.estado}</span>`;
+                        }
                         
                         const fechaPagoContainer = document.getElementById("fechaPagoContainer");
                         if (data.fecha_pago) {
                             document.getElementById("verFechaPago").innerText = data.fecha_pago;
-                            fechaPagoContainer.style.display = "block";
+                            if (fechaPagoContainer) fechaPagoContainer.style.display = "block";
                         } else {
-                            fechaPagoContainer.style.display = "none";
+                            if (fechaPagoContainer) fechaPagoContainer.style.display = "none";
                         }
 
                         populateList('verDescuentosDetalle', data.descuentos_detalle, 'text-danger', true);
                         populateList('verBeneficiosDetalle', data.beneficios_detalle, 'text-success', false);
 
-                        modal.show();
-                    });
+                        if (modal) modal.show();
+                    })
+                    .catch(err => console.error("Error al procesar el recibo de autogestión:", err));
             });
         });
 
         function populateList(ulId, items, amountClass, isDiscountList) {
             const ul = document.getElementById(ulId);
+            if (!ul) return;
             ul.innerHTML = '';
+            
             if (items && items.length > 0) {
                 items.forEach(d => {
                     const li = document.createElement('li');
-                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center p-2 border-bottom border-secondary border-opacity-10';
+                    li.style.backgroundColor = 'transparent';
                     
-                    const value = (d.monto && d.monto > 0) ? formatCurrency(d.monto, isDiscountList) : 
-                                  (d.porcentaje && d.porcentaje > 0) ? formatCurrency(d.porcentaje, isDiscountList) : '';
+                    const valorMoneda = parseFloat(d.monto_final) || 0;
+                    const valueStr = formatCurrency(valorMoneda, isDiscountList);
                     
                     li.innerHTML = `
-                      <span>${d.descripcion}</span>
-                      <span class="${amountClass} fw-semibold">${value}</span>
+                      <span class="small opacity-90">${d.descripcion}</span>
+                      <span class="${amountClass} fw-semibold small">${valueStr}</span>
                     `;
                     ul.appendChild(li);
                 });
+            } else {
+                ul.innerHTML = `<li class="list-group-item text-center text-muted small p-2 bg-transparent">Sin novedades registradas</li>`;
             }
         }
     });
 </script>
-
 {% endblock %}

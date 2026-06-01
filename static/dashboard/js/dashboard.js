@@ -8,7 +8,7 @@
     laboral_cost: '/dashboard/api/costo_laboral_comp/',
     structure: '/dashboard/api/estructura/',
     objectives: '/dashboard/api/objetivos/',
-    capacitaciones: '/dashboard/api/capacitaciones/', 
+    capacitaciones: '/dashboard/api/capacitaciones/',
   };
 
   // theme handling
@@ -36,7 +36,7 @@
           document.getElementById('kpiEmployees').innerText = kpis.employees_total ?? '0';
           document.getElementById('kpiAbsences').innerText = kpis.absences_count ?? '0';
           document.getElementById('kpiEvalAvg').innerText = kpis.eval_avg ? kpis.eval_avg.toFixed(2) : '0.00';
-          
+
           if (kpis.payroll_cost) {
               document.getElementById('kpiPayroll').innerText = new Intl.NumberFormat('es-AR', {
                   style: 'currency', currency: 'ARS', maximumFractionDigits: 0
@@ -54,7 +54,7 @@
     function generateModernPalette(count) {
         const colors = [];
         for (let i = 0; i < count; i++) {
-            const hue = (i * 137.5) % 360; 
+            const hue = (i * 137.5) % 360;
             colors.push(`hsl(${hue}, 65%, 55%)`);
         }
         return colors;
@@ -68,35 +68,35 @@
         const modernColors = generateModernPalette(labels.length);
 
         const parent = document.getElementById('deptChartParent');
-        
+
         if (labels.length > 8) {
             parent.style.height = (labels.length * 45) + 'px';
         } else {
-            parent.style.height = '100%'; 
+            parent.style.height = '100%';
         }
 
         if (!deptChart) {
             deptChart = new Chart(ctx, {
                 type: 'bar',
-                data: { 
-                    labels, 
-                    datasets: [{ 
-                        label: 'Empleados', 
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Empleados',
                         data,
-                        backgroundColor: modernColors, 
-                        borderRadius: 20,           
+                        backgroundColor: modernColors,
+                        borderRadius: 20,
                         borderSkipped: false,
-                        barPercentage: 0.7,         
+                        barPercentage: 0.7,
                         categoryPercentage: 0.8,
-                        hoverBackgroundColor: modernColors.map(c => c.replace('%)', ', 0.8)')), 
+                        hoverBackgroundColor: modernColors.map(c => c.replace('%)', ', 0.8)')),
                     }]
                 },
-                options: { 
-                    indexAxis: 'y', 
+                options: {
+                    indexAxis: 'y',
                     responsive: true,
-                    maintainAspectRatio: false, 
+                    maintainAspectRatio: false,
                     layout: { padding: { top: 10, bottom: 10, left: 0, right: 25 } },
-                    plugins: { 
+                    plugins: {
                         legend: { display: false },
                         tooltip: {
                             backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -107,7 +107,7 @@
                         }
                     },
                     scales: {
-                        x: { 
+                        x: {
                             beginAtZero: true,
                             border: { display: false },
                             grid: { color: 'rgba(156, 163, 175, 0.1)', drawTicks: false },
@@ -119,7 +119,7 @@
                         },
                         y: {
                             border: { display: false },
-                            grid: { display: false }, 
+                            grid: { display: false },
                             ticks: {
                                 color: '#9ca3af',
                                 font: { size: 11, weight: '500' }
@@ -129,15 +129,15 @@
                     animation: { duration: 1200, easing: 'easeOutQuart' }
                 }
             });
-        } else { 
-            deptChart.data.labels = labels; 
-            deptChart.data.datasets[0].data = data; 
+        } else {
+            deptChart.data.labels = labels;
+            deptChart.data.datasets[0].data = data;
             deptChart.data.datasets[0].backgroundColor = modernColors;
-            deptChart.update(); 
+            deptChart.update();
         }
     }
 
-    
+
   }
 
 
@@ -146,14 +146,14 @@
     beforeDatasetsDraw(chart, args, options) {
         const { ctx, data, chartArea: { top, bottom, left, right, width, height } } = chart;
         ctx.save();
-        
-        const totalValue = chart.canvas.dataset.totalVacations || '—'; 
 
-        ctx.font = 'bold 32px sans-serif'; 
-        ctx.fillStyle = '#b6b5b5ff'; 
+        const totalValue = chart.canvas.dataset.totalVacations || '—';
+
+        ctx.font = 'bold 32px sans-serif';
+        ctx.fillStyle = '#b6b5b5ff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        
+
         const centerX = width / 2 + left;
         const centerY = height / 2 + top;
 
@@ -169,13 +169,13 @@
     const periodSelector = document.getElementById('vacationPeriodSelector');
     const p = isFirstLoadVac ? '' : (periodSelector ? periodSelector.value : '1m');
     const apiUrl = `${API.vacations}?periodo=${p}`;
-    
+
     const vac = await safeFetch(apiUrl);
 
     if(vac){
         if (isFirstLoadVac && vac.active_period && periodSelector) {
             periodSelector.value = vac.active_period;
-            isFirstLoadVac = false; 
+            isFirstLoadVac = false;
         }
         const dateRangeEl = document.getElementById('vacationDateRange');
         if (dateRangeEl && vac.start_date_formatted && vac.end_date_formatted) {
@@ -188,7 +188,7 @@
         const labels = ['Aprobadas', 'Pendientes', 'Rechazadas', 'Canceladas'];
         const rawValues = [vac.approved || 0, vac.pending || 0, vac.rejected || 0, vac.cancelled || 0];
         const customColors = ['#198754', '#ffc107', '#dc3545', '#adb5bd'];
-        
+
         const total = rawValues.reduce((a, b) => a + b, 0);
         const hasData = total > 0;
 
@@ -199,7 +199,7 @@
         document.getElementById('vacationTotalCenter').textContent = hasData ? total : '0';
 
         const legendContainer = document.getElementById('vacationCustomLegend');
-        legendContainer.innerHTML = ''; 
+        legendContainer.innerHTML = '';
 
         labels.forEach((label, i) => {
             const val = rawValues[i];
@@ -220,22 +220,22 @@
         });
 
         const ctx = document.getElementById('vacChart').getContext('2d');
-        
+
         if(!vacChart){
             vacChart = new Chart(ctx, {
                 type: 'doughnut',
-                data: { 
-                    labels: chartLabels, 
-                    datasets: [{ 
-                        data: chartValues, 
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        data: chartValues,
                         backgroundColor: chartColors,
                         hoverOffset: hasData ? 6 : 0,
                         borderWidth: 0
                     }]
                 },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
                     cutout: '60%',
                     plugins: {
                         legend: { display: false },
@@ -251,12 +251,12 @@
                     }
                 }
             });
-        } else { 
+        } else {
             vacChart.data.labels = chartLabels;
-            vacChart.data.datasets[0].data = chartValues; 
-            vacChart.data.datasets[0].backgroundColor = chartColors; 
+            vacChart.data.datasets[0].data = chartValues;
+            vacChart.data.datasets[0].backgroundColor = chartColors;
             vacChart.options.plugins.tooltip.enabled = hasData;
-            vacChart.update(); 
+            vacChart.update();
         }
     }
   }
@@ -281,14 +281,14 @@
         const canvas = document.getElementById('attendanceChart');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-        
+
         const extraLegendPadding = {
             id: 'extraLegendPadding',
             beforeInit(chart) {
                 const originalFit = chart.legend.fit;
                 chart.legend.fit = function fit() {
                     originalFit.bind(chart.legend)();
-                    this.height += 25; 
+                    this.height += 25;
                 };
             }
         };
@@ -298,12 +298,12 @@
             attendanceChart.data.datasets[0].data = att.present || [];
             attendanceChart.data.datasets[1].data = att.late || [];
             attendanceChart.data.datasets[2].data = att.ausent || [];
-            attendanceChart.data.datasets[3].data = att.licenses || []; 
+            attendanceChart.data.datasets[3].data = att.licenses || [];
             attendanceChart.update();
-            return; 
+            return;
         }
 
-        const existingChart = Chart.getChart(canvas); 
+        const existingChart = Chart.getChart(canvas);
         if (existingChart) {
             existingChart.destroy();
         }
@@ -320,8 +320,8 @@
             { label: 'Licencias', data: att.licenses || [], backgroundColor: '#6c757d', stack: 'stack1', borderRadius: 6, borderSkipped: false, barPercentage: 0.7 }
             ]
         },
-        options: { 
-            responsive: true, 
+        options: {
+            responsive: true,
             maintainAspectRatio: false,
             plugins: {
             legend: {
@@ -331,13 +331,13 @@
             },
             tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: 12, cornerRadius: 8 }
             },
-            scales: { 
-            x: { stacked: true, border: { display: false }, grid: { display: false }, ticks: { color: '#9ca3af' } }, 
-            y: { 
-                stacked: true, 
-                border: { display: false }, 
+            scales: {
+            x: { stacked: true, border: { display: false }, grid: { display: false }, ticks: { color: '#9ca3af' } },
+            y: {
+                stacked: true,
+                border: { display: false },
                 grid: { color: 'rgba(156, 163, 175, 0.1)', drawTicks: false },
-                ticks: { stepSize: 1, color: '#9ca3af', callback: (value) => Number.isInteger(value) ? value : null }, 
+                ticks: { stepSize: 1, color: '#9ca3af', callback: (value) => Number.isInteger(value) ? value : null },
                 min: 0
             }
             }
@@ -379,12 +379,12 @@
               datasets: [{
                 label: 'Cantidad',
                 data: data,
-                backgroundColor: colors, 
-                borderRadius: 10,     
-                borderSkipped: false,       
-                barPercentage: 0.6,         
-                categoryPercentage: 0.8,    
-                hoverBackgroundColor: colors.map(c => c + 'CC'), 
+                backgroundColor: colors,
+                borderRadius: 10,
+                borderSkipped: false,
+                barPercentage: 0.6,
+                categoryPercentage: 0.8,
+                hoverBackgroundColor: colors.map(c => c + 'CC'),
               }]
             },
             options: {
@@ -393,10 +393,10 @@
               plugins: {
                 legend: { display: false },
                 tooltip: {
-                  backgroundColor: 'rgba(0, 0, 0, 0.8)', 
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
                   padding: 12,
                   cornerRadius: 8,
-                  displayColors: false, 
+                  displayColors: false,
                   callbacks: {
                     label: function(context) {
                       return ` Cantidad: ${context.raw} evaluaciones`;
@@ -407,14 +407,14 @@
               scales: {
                 y: {
                   beginAtZero: true,
-                  border: { display: false }, 
+                  border: { display: false },
                   ticks: {
-                    stepSize: 1,      
+                    stepSize: 1,
                     precision: 0,
-                    color: '#9ca3af' 
+                    color: '#9ca3af'
                   },
                   grid: {
-                    color: 'rgba(156, 163, 175, 0.1)', 
+                    color: 'rgba(156, 163, 175, 0.1)',
                     drawTicks: false
                   }
                 },
@@ -423,7 +423,7 @@
                   ticks: {
                     color: '#9ca3af'
                   },
-                  grid: { display: false } 
+                  grid: { display: false }
                 }
               },
               animation: {
@@ -450,69 +450,70 @@
       return '$' + num.toFixed(0);
   }
 
-  async function loadPayroll() {
+    async function loadPayroll() {
       const periodSelector = document.getElementById('payrollPeriodSelector');
       const selectedPeriod = periodSelector ? periodSelector.value : '1m';
       const apiUrl = `${API.payroll}?periodo=${selectedPeriod}`;
 
       const pay = await safeFetch(apiUrl);
       if (pay) {
-        
-          const labels = ['Sueldo Base', 'Beneficios', 'Descuentos', 'Extras'];
-          const rawValues = [pay.base || 0, pay.benefits || 0, pay.discounts || 0, pay.extras || 0];
-          const colors = ['#3c8dbc', '#28a745', '#dc3545', '#ffc107'];
-          
-          const total = rawValues.reduce((a, b) => a + b, 0);
-          const hasData = total > 0;
-
-          const chartValues = hasData ? rawValues : [1]; 
-          const chartColors = hasData ? colors : ['#e9ecef'];
-          const chartLabels = hasData ? labels : ['Sin datos registrados'];
-
-          document.getElementById('payrollTotalCenter').textContent = hasData ? formatAbbreviated(total) : '$0';
-
+          const chartLabels = ['Sueldo Base', 'Beneficios', 'Extras'];
+          const chartColors = ['#3c8dbc', '#28a745', '#ffc107'];
+          const chartValues = [pay.base || 0, pay.benefits || 0, pay.extras || 0];
+          const legendLabels = ['Sueldo Base', 'Beneficios', 'Extras', 'Descuentos'];
+          const legendValues = [pay.base || 0, pay.benefits || 0, pay.extras || 0, pay.discounts || 0];
+          const legendColors = ['#3c8dbc', '#28a745', '#ffc107', '#dc3545'];
+          const totalCostoEmpresa = chartValues.reduce((a, b) => a + b, 0);
+          const hasData = totalCostoEmpresa > 0;
+          const finalChartValues = hasData ? chartValues : [1];
+          const finalChartColors = hasData ? chartColors : ['#e9ecef'];
+          const finalChartLabels = hasData ? chartLabels : ['Sin datos registrados'];
+          document.getElementById('payrollTotalCenter').textContent = hasData ? formatAbbreviated(totalCostoEmpresa) : '$0';
           const legendContainer = document.getElementById('payrollCustomLegend');
-          legendContainer.innerHTML = ''; 
-          labels.forEach((label, i) => {
-              const val = rawValues[i];
-              const percentage = hasData ? ((val / total) * 100).toFixed(1) : '0';
+          legendContainer.innerHTML = '';
+
+          legendLabels.forEach((label, i) => {
+              const val = legendValues[i];
+              const percentage = hasData ? ((val / totalCostoEmpresa) * 100).toFixed(1) : '0';
+              const signo = (label === 'Descuentos' && val > 0) ? '-' : '';
+
               legendContainer.innerHTML += `
-                  <div class="d-flex align-items-center justify-content-between mb-2">
-                      <div class="d-flex align-items-center">
-                          <div style="width: 4px; height: 22px; background-color: ${hasData ? colors[i] : '#dee2e6'}; border-radius: 2px;" class="me-2"></div>
-                          <div style="line-height: 1.1;">
-                              <div style="font-size: 1rem; font-weight: 600;" class="text-reset">${label}</div>
-                              <small class="text-muted" style="font-size: 0.9rem;">${percentage}%</small>
-                          </div>
-                      </div>
-                      <div class="text-end fw-bold" style="font-size: 0.9rem;">
-                          ${hasData ? formatAbbreviated(val) : '-'}
-                      </div>
-                  </div>`;
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-1 linea-leyenda-sutil">
+                        <div class="d-flex align-items-center">
+                            <div style="width: 4px; height: 22px; background-color: ${hasData ? legendColors[i] : '#dee2e6'}; border-radius: 2px;" class="me-2"></div>
+                            <div style="line-height: 1.1;">
+                                <div style="font-size: 1rem; font-weight: 600;" class="text-reset ${label === 'Descuentos' ? 'text-danger' : ''}">${label}</div>
+                                <small class="text-muted" style="font-size: 0.9rem;">${label === 'Descuentos' ? 'Deducido del sueldo' : percentage + '%'}</small>
+                            </div>
+                        </div>
+                        <div class="text-end fw-bold ${label === 'Descuentos' ? 'text-danger' : ''}" style="font-size: 0.9rem;">
+                            ${hasData ? signo + formatAbbreviated(val) : '-'}
+                        </div>
+                    </div>`;
           });
 
           const ctx = document.getElementById('payrollChart').getContext('2d');
-          
+
           if (!payrollChart) {
               payrollChart = new Chart(ctx, {
                   type: 'doughnut',
                   data: {
-                      labels: chartLabels,
+                      labels: finalChartLabels,
                       datasets: [{
-                          data: chartValues,
-                          backgroundColor: chartColors,
+                          data: finalChartValues,
+                          backgroundColor: finalChartColors,
                           borderWidth: 0,
-                          hoverOffset: 6 
+                          hoverOffset: hasData ? 6 : 0
                       }]
                   },
                   options: {
                       responsive: true,
                       maintainAspectRatio: false,
-                      cutout: '60%', 
+                      cutout: '65%',
                       plugins: {
                           legend: { display: false },
                           tooltip: {
-                              enabled: hasData, 
+                              enabled: hasData,
                               callbacks: {
                                   label: function(context) {
                                       let label = context.label || '';
@@ -526,31 +527,33 @@
                   }
               });
           } else {
-              payrollChart.data.labels = chartLabels;
-              payrollChart.data.datasets[0].data = chartValues;
-              payrollChart.data.datasets[0].backgroundColor = chartColors;
+              payrollChart.data.labels = finalChartLabels;
+              payrollChart.data.datasets[0].data = finalChartValues;
+              payrollChart.data.datasets[0].backgroundColor = finalChartColors;
               payrollChart.options.plugins.tooltip.enabled = hasData;
               payrollChart.update();
           }
 
           const dateRangeEl = document.getElementById('payrollDateRange');
           if (dateRangeEl && pay.start_date_formatted) {
-              const rangeText = (pay.start_date_formatted === pay.end_date_formatted) 
-                  ? pay.start_date_formatted 
+              const rangeText = (pay.start_date_formatted === pay.end_date_formatted)
+                  ? pay.start_date_formatted
                   : `${pay.start_date_formatted} - ${pay.end_date_formatted}`;
-              
+
               dateRangeEl.textContent = `Periodo: ${rangeText}`;
           }
       }
-  }
+    }
+
+
 
 
 
   // Laboral Cost Comparison
   function populateYearSelectors() {
     const currentYear = new Date().getFullYear();
-    const startYear = 2020; 
-    
+    const startYear = 2020;
+
     const selector1 = document.getElementById('yearSelector1');
     const selector2 = document.getElementById('yearSelector2');
 
@@ -560,15 +563,15 @@
     for (let i = currentYear; i >= startYear; i--) {
         const option1 = new Option(i, i);
         const option2 = new Option(i, i);
-        
+
         selector1.add(option1);
         selector2.add(option2);
     }
-    
-    selector1.value = currentYear - 1; 
+
+    selector1.value = currentYear - 1;
     selector2.value = currentYear;
   }
-  
+
 
   async function loadLaborCostComparison() {
       const selector1 = document.getElementById('yearSelector1');
@@ -579,26 +582,26 @@
       const year2 = selector2.value;
 
       const apiUrl = `${API.laboral_cost}?year1=${year1}&year2=${year2}`;
-      const response = await safeFetch(apiUrl); 
-      
+      const response = await safeFetch(apiUrl);
+
       const chartCanvas = document.getElementById('laborCostComparisonChart');
       const noDataMessage = document.getElementById('noComparisonDataMessage');
 
-      const isEmpty = !response || 
-                      (response.data_year1.every(v => v === 0) && 
+      const isEmpty = !response ||
+                      (response.data_year1.every(v => v === 0) &&
                       response.data_year2.every(v => v === 0));
 
       if (isEmpty) {
           if(chartCanvas) chartCanvas.style.opacity = '0';
           if(noDataMessage) noDataMessage.style.display = 'block';
-          return; 
+          return;
       }
 
       if(chartCanvas) chartCanvas.style.opacity = '1';
       if(noDataMessage) noDataMessage.style.display = 'none';
 
       const ctx = chartCanvas.getContext('2d');
-      
+
       const grad1 = ctx.createLinearGradient(0, 0, 0, 350);
       grad1.addColorStop(0, 'rgba(0, 123, 255, 0.2)');
       grad1.addColorStop(1, 'rgba(0, 123, 255, 0)');
@@ -614,14 +617,14 @@
       window.laborCostChart = new Chart(ctx, {
           type: 'line',
           data: {
-              labels: response.labels, 
+              labels: response.labels,
               datasets: [{
                   label: `Año ${year1}`,
                   data: response.data_year1,
-                  borderColor: '#007bff', 
+                  borderColor: '#007bff',
                   backgroundColor: grad1,
                   fill: true,
-                  tension: 0.4, 
+                  tension: 0.4,
                   borderWidth: 3,
                   pointRadius: 0,
                   pointHoverRadius: 6,
@@ -629,10 +632,10 @@
               }, {
                   label: `Año ${year2}`,
                   data: response.data_year2,
-                  borderColor: '#28a745', 
+                  borderColor: '#28a745',
                   backgroundColor: grad2,
                   fill: true,
-                  tension: 0.4, 
+                  tension: 0.4,
                   borderWidth: 3,
                   pointRadius: 0,
                   pointHoverRadius: 6,
@@ -678,11 +681,11 @@
               },
               elements: {
                   point: {
-                      radius: 0,          
-                      hitRadius: 20,      
-                      hoverRadius: 6,     
+                      radius: 0,
+                      hitRadius: 20,
+                      hoverRadius: 6,
                       hoverBorderWidth: 3,
-                      hoverBackgroundColor: '#fff' 
+                      hoverBackgroundColor: '#fff'
                   }
               }
           }
@@ -695,16 +698,16 @@
       const departmentSelector = document.getElementById('departmentSelector');
       const selectedDepartmentId = departmentSelector ? departmentSelector.value : 'todos';
 
-      const apiUrl = selectedDepartmentId !== 'todos' 
-          ? `${API.objectives}?departamento_id=${selectedDepartmentId}` 
+      const apiUrl = selectedDepartmentId !== 'todos'
+          ? `${API.objectives}?departamento_id=${selectedDepartmentId}`
           : API.objectives;
 
       const objs = await safeFetch(apiUrl);
-      
+
       const listDanger = document.getElementById('objectivesListDanger');
       const listWarning = document.getElementById('objectivesListWarning');
       const listSuccess = document.getElementById('objectivesListSuccess');
-      
+
       if (!listDanger || !listWarning || !listSuccess) return;
 
       listDanger.innerHTML = '';
@@ -712,40 +715,40 @@
       listSuccess.innerHTML = '';
 
       if (objs && objs.items && objs.items.length > 0) {
-        
+
         objs.items.sort((a, b) => a.progress - b.progress);
 
         objs.items.forEach(o => {
-          let progressClass = 'bg-primary'; 
+          let progressClass = 'bg-primary';
           let textColor = 'text-primary';
           let targetContainer = listSuccess;
 
-          if (o.progress < 35) { 
-              progressClass = 'bg-danger'; 
-              textColor = 'text-danger'; 
-              targetContainer = listDanger; 
+          if (o.progress < 35) {
+              progressClass = 'bg-danger';
+              textColor = 'text-danger';
+              targetContainer = listDanger;
           }
-          else if (o.progress < 75) { 
-              progressClass = 'bg-warning'; 
-              textColor = 'text-warning'; 
-              targetContainer = listWarning; 
+          else if (o.progress < 75) {
+              progressClass = 'bg-warning';
+              textColor = 'text-warning';
+              targetContainer = listWarning;
           }
-          else { 
-              progressClass = 'bg-success'; 
-              textColor = 'text-success'; 
-              targetContainer = listSuccess; 
+          else {
+              progressClass = 'bg-success';
+              textColor = 'text-success';
+              targetContainer = listSuccess;
           }
 
           const wrap = document.createElement('div');
           wrap.className = 'd-flex flex-column border rounded-2 mb-2';
-          
+
           wrap.style.cssText = `
-              padding: 0.5rem 0.65rem !important; 
-              background-color: rgba(128, 128, 128, 0.04); 
+              padding: 0.5rem 0.65rem !important;
+              background-color: rgba(128, 128, 128, 0.04);
               border-color: rgba(128, 128, 128, 0.12) !important;
               transition: transform 0.15s ease;
           `;
-          
+
           wrap.onmouseover = () => { wrap.style.transform = 'translateX(4px)'; wrap.style.backgroundColor = 'rgba(128, 128, 128, 0.08)'; };
           wrap.onmouseout = () => { wrap.style.transform = 'translateX(0)'; wrap.style.backgroundColor = 'rgba(128, 128, 128, 0.04)'; };
 
@@ -759,7 +762,7 @@
                 <div class="text-muted" style="font-size: 0.65rem; margin-top: 1px;">
                   <span class="badge text-muted fw-normal p-1" style="background: rgba(128,128,128,0.08); border: 1px solid rgba(128,128,128,0.15); font-size: 0.6rem; padding: 1px 4px !important;">
                       ${o.type}
-                  </span> 
+                  </span>
                   <span class="ms-1 text-truncate d-inline-block align-middle" style="max-width: 90px;">${o.owner || '—'}</span>
                 </div>
               </div>
@@ -768,15 +771,15 @@
               </div>
             </div>
             <div class="progress" style="height: 4px; background-color: rgba(128, 128, 128, 0.15); border-radius: 6px;">
-              <div class="progress-bar ${progressClass}" role="progressbar" 
-                  style="width: ${o.progress}%; border-radius: 6px; transition: width 0.8s ease;" 
+              <div class="progress-bar ${progressClass}" role="progressbar"
+                  style="width: ${o.progress}%; border-radius: 6px; transition: width 0.8s ease;"
                   aria-valuenow="${o.progress}" aria-valuemin="0" aria-valuemax="100">
               </div>
             </div>
           `;
           targetContainer.appendChild(wrap);
         });
-        
+
         const fallbackHTML = `<div class="text-center py-4 text-muted small style="font-size: 0.75rem;">Sin metas en este rango.</div>`;
         if (listDanger.innerHTML === '') listDanger.innerHTML = fallbackHTML;
         if (listWarning.innerHTML === '') listWarning.innerHTML = fallbackHTML;
@@ -810,7 +813,7 @@
           }
 
           const ctx = document.getElementById('capChart').getContext('2d');
-          
+
           const extraLegendPadding = {
               id: 'extraLegendPadding',
               beforeInit(chart) {
@@ -829,20 +832,20 @@
                   data: {
                       labels: data.labels,
                       datasets: [
-                          { 
-                              label: 'Inscripciones Internas', 
-                              data: data.internas, 
-                              backgroundColor: '#3c8dbc', 
-                              borderRadius: 20, 
+                          {
+                              label: 'Inscripciones Internas',
+                              data: data.internas,
+                              backgroundColor: '#3c8dbc',
+                              borderRadius: 20,
                               borderSkipped: false,
-                              barPercentage: 0.6, 
-                              categoryPercentage: 0.7 
+                              barPercentage: 0.6,
+                              categoryPercentage: 0.7
                           },
-                          { 
-                              label: 'Interés Externo', 
-                              data: data.externas, 
-                              backgroundColor: '#28a745', 
-                              borderRadius: 20, 
+                          {
+                              label: 'Interés Externo',
+                              data: data.externas,
+                              backgroundColor: '#28a745',
+                              borderRadius: 20,
                               borderSkipped: false,
                               barPercentage: 0.6,
                               categoryPercentage: 0.7
@@ -852,12 +855,12 @@
                   options: {
                       responsive: true,
                       maintainAspectRatio: false,
-                      plugins: { 
-                          legend: { 
+                      plugins: {
+                          legend: {
                               position: 'top',
                               align: 'end',
                               labels: {
-                                  usePointStyle: true, 
+                                  usePointStyle: true,
                                   pointStyle: 'circle',
                                   padding: 20,
                                   font: { size: 12, weight: '500' }
@@ -873,20 +876,20 @@
                           }
                       },
                       scales: {
-                          y: { 
-                              beginAtZero: true, 
+                          y: {
+                              beginAtZero: true,
                               border: { display: false },
-                              ticks: { 
+                              ticks: {
                                   stepSize: 1,
                                   color: '#9ca3af',
-                                  precision: 0 
+                                  precision: 0
                               },
                               grid: {
                                   color: 'rgba(156, 163, 175, 0.1)',
                                   drawTicks: false
                               }
                           },
-                          x: { 
+                          x: {
                               border: { display: false },
                               grid: { display: false },
                               ticks: { color: '#9ca3af' }
@@ -910,11 +913,11 @@
 
 
 
-  
+
   async function ejecutarAnalisisDashboardIA() {
     const spinner = document.getElementById('aiReportSpinner');
     const txtContenedor = document.getElementById('aiReportText');
-    
+
     if (!spinner || !txtContenedor) return;
 
     spinner.classList.remove('d-none');
@@ -1011,9 +1014,9 @@
     loadAttendance();
     loadEvaluations();
     populateYearSelectors();
-    loadLaborCostComparison(); 
+    loadLaborCostComparison();
     loadCapacitaciones();
-    
+
     const selectorYear1 = document.getElementById('yearSelector1');
     const selectorYear2 = document.getElementById('yearSelector2');
     if (selectorYear1){
@@ -1030,7 +1033,7 @@
     if (selectorAttendance) {
         selectorAttendance.addEventListener('change', loadAttendance);
     }
-    const selectorPayRoll = document.getElementById('payrollPeriodSelector');    
+    const selectorPayRoll = document.getElementById('payrollPeriodSelector');
     if (selectorPayRoll) {
         selectorPayRoll.addEventListener('change', loadPayroll);
     }
@@ -1044,22 +1047,22 @@
     }
     const selectorCap = document.getElementById('capPeriodSelector');
     if (selectorCap) selectorCap.addEventListener('change', loadCapacitaciones);
-  
+
 
     const btnIA = document.getElementById('btnGenerateAIReport');
     if (btnIA) {
         btnIA.addEventListener('click', ejecutarAnalisisDashboardIA);
     }
-  
-    
-  
+
+
+
 
     const btnCopy = document.getElementById('btnCopyAIText');
     if (btnCopy) {
         btnCopy.addEventListener('click', () => {
             const contenido = document.getElementById('aiReportText');
             if (!contenido || contenido.classList.contains('d-none')) return;
-            
+
             navigator.clipboard.writeText(contenido.innerText)
                 .then(() => {
                     const originalText = btnCopy.innerHTML;
@@ -1083,7 +1086,7 @@
             try {
                 const res = await fetch('/dashboard/api/ultimo-pdf-ia/');
                 const data = await res.json();
-                
+
                 if (data.url_pdf) {
                     window.open(data.url_pdf, '_blank');
                 } else {
@@ -1100,7 +1103,7 @@
 
     function ejecutarInforme() {
             const charts = [vacChart, attendanceChart, evalChart, payrollChart, deptChart, laborCostChart, capChart];
-            
+
             charts.forEach(chart => {
                 if (chart && typeof chart.options !== 'undefined') {
                     chart.options.responsive = false;

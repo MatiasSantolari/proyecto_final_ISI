@@ -13,20 +13,22 @@ from django.core.paginator import Paginator
 @login_required
 def descuentos(request):
     form = DescuentoForm()
-    descuentosList = Descuento.objects.all()
 
-    for b in descuentosList:
-        if b.descripcion:
-            b.descripcion = b.descripcion.capitalize()
+    descuentos_qs = Descuento.objects.all().order_by('id')
 
-    paginator = Paginator(descuentosList, 10)
+    paginator = Paginator(descuentos_qs, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
+
+    for b in page_obj.object_list:
+        if b.descripcion:
+            b.descripcion = b.descripcion.capitalize()
 
     return render(request, 'descuentos.html', {
         'form': form,
         'descuentos': page_obj,
     })
+
 
 
 @login_required

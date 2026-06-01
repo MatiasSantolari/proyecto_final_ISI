@@ -122,6 +122,8 @@ urlpatterns = [
     path('asignador_beneficio_descuento/', asignar_beneficio_descuento_view.asignador_view, name='asignador_beneficios_descuentos'),
     path('asignador_beneficio_descuento/asignar/', asignar_beneficio_descuento_view.asignar_a_empleados, name='asignar_beneficio_descuento_empleados'),
     path('asignador_beneficio_descuento/ver/<int:empleado_id>/', asignar_beneficio_descuento_view.ver_asignaciones_empleado, name='ver_benef_desc_empleado'),
+    path('asignador_beneficio_descuento/eliminar-descuento/<int:id_asignacion>/', asignar_beneficio_descuento_view.eliminar_asignacion_descuento, name='eliminar_asignacion_descuento'),
+    path('asignador_beneficio_descuento/eliminar-beneficio/<int:id_asignacion>/', asignar_beneficio_descuento_view.eliminar_asignacion_beneficio, name='eliminar_asignacion_beneficio'),
 
 
     ## NOMINAS ##
@@ -133,6 +135,8 @@ urlpatterns = [
     path('nominas/generar/', nominas_view.generar_nominas, name='generar_nominas'),
     path('nominas/confirmar/', nominas_view.confirmar_nominas, name='confirmar_nominas'),
     path("mis-nominas/", nominas_view.mis_nominas, name="mis_nominas"), # Empleado
+    path('mis-nominas/<int:id_nomina>/pdf/', nominas_view.exportar_recibo_pdf, name='exportar_recibo_pdf'),
+    path('nominas/exportar-banco/', nominas_view.exportar_pago_bancario_txt, name='exportar_pago_bancario'),
 
 
     ## ASISTENCIA ##

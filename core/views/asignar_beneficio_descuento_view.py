@@ -218,30 +218,128 @@ def asignar_a_empleados(request):
 
 
 @login_required
+@require_POST
+def eliminar_asignacion_descuento(request, id_asignacion):
+    """Elimina la relación mensual de un descuento asignado a un empleado"""
+    asignacion = get_object_or_404(DescuentoEmpleadoNomina, id=id_asignacion)
+    
+    if asignacion.nomina is not None:
+        return JsonResponse({"status": "error", "message": "No es posible eliminar una relación que ya fue liquidada en una nómina cerrada."}, status=400)
+
+    user_empleado = _get_empleado_de_user(request.user)
+    hoy = now().date()
+    
+    if _user_es_admin(request.user, empleado_obj=user_empleado):
+        empleados_permitidos_qs = Empleado.objects.all()
+    else:
+        if user_empleado:
+            cargo_act = user_empleado.empleadocargo_set.filter(fecha_inicio__lte=hoy, fecha_fin__isnull=True).order_by('-fecha_inicio').first()
+            if cargo_act and cargo_act.cargo.es_jefe:
+                dept_ids = list(cargo_act.cargo.cargodepartamento_set.values_list('departamento_id', flat=True))
+                empleados_permitidos_qs = Empleado.objects.filter(empleadocargo__cargo__cargodepartamento__departamento_id__in=dept_ids, empleadocargo__fecha_fin__isnull=True).distinct()
+            else:
+                empleados_permitidos_qs = Empleado.objects.filter(id=user_empleado.id)
+        else:
+            empleados_permitidos_qs = Empleado.objects.none()
+
+    if asignacion.empleado_id not in set(empleados_permitidos_qs.values_list('id', flat=True)):
+        return JsonResponse({"status": "error", "message": "Acceso denegado: No posee permisos para modificar las novedades de este colaborador."}, status=403)
+
+    asignacion.delete()
+    return JsonResponse({"status": "success", "message": "Relación de descuento eliminada con éxito."})
+
+
+
+@login_required
+@require_POST
+def eliminar_asignacion_beneficio(request, id_asignacion):
+    """Elimina la relación mensual de un beneficio asignado a un empleado"""
+    asignacion = get_object_or_404(BeneficioEmpleadoNomina, id=id_asignacion)
+    
+    if asignacion.nomina is not None:
+        return JsonResponse({"status": "error", "message": "No es posible eliminar una relación que ya fue liquidada en una nómina cerrada."}, status=400)
+
+    user_empleado = _get_empleado_de_user(request.user)
+    hoy = now().date()
+    
+    if _user_es_admin(request.user, empleado_obj=user_empleado):
+        empleados_permitidos_qs = Empleado.objects.all()
+    else:
+        if user_empleado:
+            cargo_act = user_empleado.empleadocargo_set.filter(fecha_inicio__lte=hoy, fecha_fin__isnull=True).order_by('-fecha_inicio').first()
+            if cargo_act and cargo_act.cargo.es_jefe:
+                dept_ids = list(cargo_act.cargo.cargodepartamento_set.values_list('departamento_id', flat=True))
+                empleados_permitidos_qs = Empleado.objects.filter(empleadocargo__cargo__cargodepartamento__departamento_id__in=dept_ids, empleadocargo__fecha_fin__isnull=True).distinct()
+            else:
+                empleados_permitidos_qs = Empleado.objects.filter(id=user_empleado.id)
+        else:
+            empleados_permitidos_qs = Empleado.objects.none()
+
+    if asignacion.empleado_id not in set(empleados_permitidos_qs.values_list('id', flat=True)):
+        return JsonResponse({"status": "error", "message": "Acceso denegado: No posee permisos para modificar las novedades de este colaborador."}, status=403)
+
+    asignacion.delete()
+    return JsonResponse({"status": "success", "message": "Relación de beneficio eliminada con éxito."})
+
+
+
+@login_required
 def ver_asignaciones_empleado(request, empleado_id):
+    """
+    Endpoint AJAX que recopila en una única respuesta JSON tanto los conceptos
+    fijos generales por ley como las asignaciones variables del mes del empleado.
+    """
     empleado = get_object_or_404(Empleado, pk=empleado_id)
 
-    descuentos = DescuentoEmpleadoNomina.objects.filter(empleado=empleado, nomina__isnull=True).select_related('descuento')
-    beneficios = BeneficioEmpleadoNomina.objects.filter(empleado=empleado, nomina__isnull=True).select_related('beneficio')
+    descuentos_list = []
 
-    descuentos_list = [
-        {
-            "id": d.id,
-            "descripcion": getattr(d.descuento, 'descripcion', '') or getattr(d.descuento, 'nombre', '') or '',
-            "monto": float(d.descuento.monto) if d.descuento.monto is not None else None,
-            "porcentaje": float(getattr(d.descuento, 'porcentaje', 0)) if getattr(d.descuento, 'porcentaje', None) is not None else None,
-        }
-        for d in descuentos
-    ]
-    beneficios_list = [
-        {
-            "id": b.id,
-            "descripcion": getattr(b.beneficio, 'descripcion', '') or getattr(b.beneficio, 'nombre', '') or '',
-            "monto": float(b.beneficio.monto) if b.beneficio.monto is not None else None,
-            "porcentaje": float(getattr(b.beneficio, 'porcentaje', 0)) if getattr(b.beneficio, 'porcentaje', None) is not None else None,
-        }
-        for b in beneficios
-    ]
+    descuentos_fijos = Descuento.objects.filter(fijo=True, activo=True).order_by('descripcion')
+    for df in descuentos_fijos:
+        descuentos_list.append({
+            "id": None, 
+            "descripcion": f"{df.descripcion} (Fijo de Sistema)",
+            "monto": float(df.monto) if df.monto is not None else None,
+            "porcentaje": float(df.porcentaje) if df.porcentaje is not None else None,
+        })
+
+    descuentos_variables = DescuentoEmpleadoNomina.objects.filter(
+        empleado=empleado, 
+        nomina__isnull=True
+    ).select_related('descuento').order_by('id')
+    
+    for dv in descuentos_variables:
+        desc_obj = dv.descuento
+        descuentos_list.append({
+            "id": dv.id,
+            "descripcion": getattr(desc_obj, 'descripcion', '') or getattr(desc_obj, 'nombre', '') or '',
+            "monto": float(desc_obj.monto) if desc_obj.monto is not None else None,
+            "porcentaje": float(desc_obj.porcentaje) if desc_obj.porcentaje is not None else None,
+        })
+
+    beneficios_list = []
+
+    beneficios_fijos = Beneficio.objects.filter(fijo=True, activo=True).order_by('descripcion')
+    for bf in beneficios_fijos:
+        beneficios_list.append({
+            "id": None,
+            "descripcion": f"{bf.descripcion} (Fijo de Sistema)",
+            "monto": float(bf.monto) if bf.monto is not None else None,
+            "porcentaje": float(bf.porcentaje) if bf.porcentaje is not None else None,
+        })
+
+    beneficios_variables = BeneficioEmpleadoNomina.objects.filter(
+        empleado=empleado, 
+        nomina__isnull=True
+    ).select_related('beneficio').order_by('id')
+    
+    for bv in beneficios_variables:
+        ben_obj = bv.beneficio
+        beneficios_list.append({
+            "id": bv.id,
+            "descripcion": getattr(ben_obj, 'descripcion', '') or getattr(ben_obj, 'nombre', '') or '',
+            "monto": float(ben_obj.monto) if ben_obj.monto is not None else None,
+            "porcentaje": float(ben_obj.porcentaje) if ben_obj.porcentaje is not None else None,
+        })
 
     return JsonResponse({
         "empleado": f"{empleado.nombre} {empleado.apellido}",

@@ -2,6 +2,7 @@ from django.db import models
 from .cargo import Cargo
 from .persona import Persona
 from core.constants import ESTADO_EMPLEADO_CHOICES
+from django.core.exceptions import ValidationError
 
 
 class Empleado(Persona):
@@ -42,3 +43,45 @@ class Empleado(Persona):
             return cargo_activo.cargo.nombre
         return "-"
     
+
+
+    def cbu_actual_o_vacio(self):
+        """Devuelve el CBU si está cargado; de lo contrario, una cadena de 22 ceros para que el banco no rebote el archivo."""
+        if hasattr(self, 'datos_bancarios') and self.datos_bancarios.cbu_cuenta:
+            return self.datos_bancarios.cbu_cuenta
+        return "0000000000000000000000"
+
+
+class DatosBancariosEmpleado(models.Model):
+    empleado = models.OneToOneField(
+        Empleado, 
+        on_delete=models.CASCADE, 
+        related_name='datos_bancarios',
+        verbose_name="Empleado"
+    )
+    banco_nombre = models.CharField(
+        max_length=50, 
+        default="Banco Galicia", 
+        verbose_name="Entidad Bancaria"
+    )
+    cbu_cuenta = models.CharField(
+        max_length=22, 
+        verbose_name="CBU Cuenta Sueldo"
+    )
+
+    class Meta:
+        db_table = 'datos_bancarios_empleado'
+        verbose_name = 'Datos Bancarios'
+        verbose_name_plural = 'Datos Bancarios'
+
+    def clean(self):
+        super().clean()
+        if self.cbu_cuenta:
+            self.cbu_cuenta = self.cbu_cuenta.strip()
+            if len(self.cbu_cuenta) != 22:
+                raise ValidationError('El CBU debe contener exactamente 22 caracteres numéricos.')
+            if not self.cbu_cuenta.isdigit():
+                raise ValidationError('El CBU solo puede contener caracteres numéricos del 0 al 9.')
+
+    def __str__(self):
+        return f"{self.empleado.apellido} {self.empleado.nombre} - {self.banco_nombre}: {self.cbu_cuenta}"

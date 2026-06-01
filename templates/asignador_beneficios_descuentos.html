@@ -189,7 +189,7 @@
         </div>
         <div class="modal-body">
           <p id="textoConfirmar">¿Seguro que desea asignar esto a los empleados seleccionados?</p>
-          <div id="listSeleccionados" class="small text-muted" style="word-break: break-all;"></div>
+<!--          <div id="listSeleccionados" class="small text-muted" style="word-break: break-all;"></div>-->
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -252,9 +252,37 @@ document.addEventListener('DOMContentLoaded', function () {
         observer.observe(contenedorTabla, { childList: true, subtree: true });
     }
 
-    if (selectD && selectB) {
-        selectD.addEventListener('change', function() { if (selectD.value) selectB.value = ""; });
-        selectB.addEventListener('change', function() { if (selectB.value) selectD.value = ""; });
+
+    if (selectD && selectB) {        
+        selectD.addEventListener('change', function() {
+            if (selectD.value !== "") {
+                selectB.value = "";
+                selectB.disabled = true;
+                selectB.style.opacity = "0.5";
+                selectB.style.backgroundColor = "rgba(128, 128, 128, 0.1)";
+                selectB.style.cursor = "not-allowed"; 
+            } else {
+                selectB.disabled = false;
+                selectB.style.opacity = "1";
+                selectB.style.backgroundColor = "";
+                selectB.style.cursor = "default";    
+            }
+        });
+
+        selectB.addEventListener('change', function() {
+            if (selectB.value !== "") {
+                selectD.value = "";
+                selectD.disabled = true;
+                selectD.style.opacity = "0.5";
+                selectD.style.backgroundColor = "rgba(128, 128, 128, 0.1)";
+                selectD.style.cursor = "not-allowed"; 
+            } else {
+                selectD.disabled = false;
+                selectD.style.opacity = "1";
+                selectD.style.backgroundColor = "";
+                selectD.style.cursor = "default";
+            }
+        });
     }
 
     document.addEventListener('change', function(e) {
@@ -314,30 +342,50 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-        document.addEventListener('click', function(e) {
+    document.addEventListener('click', function(e) {
         var btnOne = e.target.closest('.btn-assign-one');
         if (btnOne) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var descuentoId = selectD ? selectD.value : '';
+            var beneficioId = selectB ? selectB.value : '';
+            var itemId = descuentoId || beneficioId;
+
+            if (!itemId) { 
+                alert('⚠️ Por favor, primero seleccione un descuento o beneficio en los selectores superiores.'); 
+                return; 
+            }
+
             var empId = btnOne.getAttribute('data-id');
-            var empNombre = btnOne.getAttribute('data-nombre');
+            var empNombre = btnOne.getAttribute('data-nombre') || 'Empleado';
+            
             var cont = document.getElementById('modal_empleados_container');
             if (cont) {
                 cont.innerHTML = '';
                 var inp = document.createElement('input');
-                inp.type = 'hidden'; inp.name = 'empleado_ids[]'; inp.value = empId;
+                inp.type = 'hidden'; 
+                inp.name = 'empleado_ids[]'; 
+                inp.value = empId;
                 cont.appendChild(inp);
             }
-            var tipo = selectD.value ? 'descuento' : 'beneficio';
-            var itemId = selectD.value || selectB.value;
-            if (!itemId) { alert('Seleccione un descuento o beneficio.'); return; }
+
+            var tipo = descuentoId ? 'descuento' : 'beneficio';
             document.getElementById('modal_tipo').value = tipo;
             document.getElementById('modal_item_id').value = itemId;
-            document.getElementById('textoConfirmar').textContent = "Asignar " + tipo + " al empleado " + empNombre + ". ¿Confirmar?";
-            document.getElementById('listSeleccionados').textContent = empNombre;
-            new bootstrap.Modal(document.getElementById('modalConfirmarAsignacion')).show();
+            document.getElementById('textoConfirmar').textContent = "¿Confirmar asignación de " + tipo + " al empleado " + empNombre + "?";
+            
+            var listDiv = document.getElementById('listSeleccionados');
+            if (listDiv) listDiv.textContent = empNombre;
+
+            var modalConfirmar = document.getElementById('modalConfirmarAsignacion');
+            if (modalConfirmar) {
+                bootstrap.Modal.getOrCreateInstance(modalConfirmar).show();
+            }
         }
     });
 
-    document.addEventListener('click', function(e) {
+      document.addEventListener('click', function(e) {
         var btnVer = e.target.closest('.btn-ver-asignaciones');
         if (btnVer) {
             fetch('/asignador_beneficio_descuento/ver/' + btnVer.getAttribute('data-id') + '/')
@@ -346,26 +394,50 @@ document.addEventListener('DOMContentLoaded', function () {
                     document.getElementById('vaEmpleado').textContent = data.empleado;
                     var ulD = document.getElementById('vaDescuentos');
                     var ulB = document.getElementById('vaBeneficios');
+                    
                     if (ulD) ulD.innerHTML = data.descuentos.length === 0 ? '<li class="list-group-item text-muted">Sin descuentos</li>' : '';
                     if (ulB) ulB.innerHTML = data.beneficios.length === 0 ? '<li class="list-group-item text-muted">Sin beneficios</li>' : '';
+                    
                     if (data.descuentos && ulD) {
                         data.descuentos.forEach(function(d) {
-                            var li = document.createElement('li'); li.className = 'list-group-item';
-                            li.textContent = d.descripcion + (d.monto ? ' ($' + d.monto + ')' : (d.porcentaje ? ' (' + d.porcentaje + '%)' : ''));
+                            var li = document.createElement('li'); 
+                            
+                            var valorTexto = d.monto ? ' ($' + d.monto + ')' : (d.porcentaje ? ' (' + d.porcentaje + '%)' : '');
+                            
+                            if (d.id === null) {
+                                li.className = 'list-group-item d-flex justify-content-between align-items-center border-secondary border-opacity-10 opacity-75';
+                                li.style.background = 'rgba(128, 128, 128, 0.04)';
+                                li.innerHTML = '<span>' + d.descripcion + valorTexto + '</span><span class="text-muted small"><i class="bi bi-lock-fill"></i></span>';
+                            } else {
+                                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                                li.innerHTML = '<span>' + d.descripcion + valorTexto + '</span><button class="btn btn-sm btn-link text-danger p-0 border-0" onclick="eliminarAsignacionDescuento(' + d.id + ')"><i class="bi bi-x-circle"></i></button>';
+                            }
                             ulD.appendChild(li);
                         });
                     }
                     if (data.beneficios && ulB) {
                         data.beneficios.forEach(function(b) {
-                            var li = document.createElement('li'); li.className = 'list-group-item';
-                            li.textContent = b.descripcion + (b.monto ? ' ($' + b.monto + ')' : (b.porcentaje ? ' (' + b.porcentaje + '%)' : ''));
+                            var li = document.createElement('li'); 
+                            
+                            var valorTexto = b.monto ? ' ($' + b.monto + ')' : (b.porcentaje ? ' (' + b.porcentaje + '%)' : '');
+                            
+                            if (b.id === null) {
+                                li.className = 'list-group-item d-flex justify-content-between align-items-center border-secondary border-opacity-10 opacity-75';
+                                li.style.background = 'rgba(128, 128, 128, 0.04)';
+                                li.innerHTML = '<span>' + b.descripcion + valorTexto + '</span><span class="text-muted small"><i class="bi bi-lock-fill"></i></span>';
+                            } else {
+                                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                                li.innerHTML = '<span>' + b.descripcion + valorTexto + '</span><button class="btn btn-sm btn-link text-danger p-0 border-0" onclick="eliminarAsignacionBeneficio(' + b.id + ')"><i class="bi bi-x-circle"></i></button>';
+                            }
                             ulB.appendChild(li);
                         });
                     }
+                    
                     new bootstrap.Modal(document.getElementById('modalVerAsignaciones')).show();
                 });
         }
     });
+
 
     function filtrarAsignadorSinRecargar(urlDestino) {
         if (!formFiltros || !contenedorTabla) return;
@@ -400,7 +472,63 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     restaurarCheckboxes();
-});
+    
+    window.filtrarAsignadorSinRecargar = filtrarAsignadorSinRecargar;
+}); 
+
+
+function eliminarAsignacionDescuento(idAsignacion) {
+    if (confirm('⚠️ ¿Seguro que deseas desvincular este descuento variable para este colaborador en este mes?')) {
+        fetch('/asignador_beneficio_descuento/eliminar-descuento/' + idAsignacion + '/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.status === 'success') {
+                var modalEl = document.getElementById('modalVerAsignaciones');
+                var mInstancia = bootstrap.Modal.getInstance(modalEl);
+                if (mInstancia) mInstancia.hide();
+
+                if (window.filtrarAsignadorSinRecargar) window.filtrarAsignadorSinRecargar();
+            } else {
+                alert('Error al dar de baja el descuento: ' + data.message);
+            }
+        })
+        .catch(function(err) { console.error("Error en comunicación AJAX:", err); });
+    }
+}
+
+function eliminarAsignacionBeneficio(idAsignacion) {
+    if (confirm('⚠️ ¿Seguro que deseas desvincular este beneficio variable para este colaborador en este mes?')) {
+        fetch('/asignador_beneficio_descuento/eliminar-beneficio/' + idAsignacion + '/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.status === 'success') {
+                var modalEl = document.getElementById('modalVerAsignaciones');
+                var mInstancia = bootstrap.Modal.getInstance(modalEl);
+                if (mInstancia) mInstancia.hide();
+
+                if (window.filtrarAsignadorSinRecargar) window.filtrarAsignadorSinRecargar();
+            } else {
+                alert('Error al dar de baja el beneficio: ' + data.message);
+            }
+        })
+        .catch(function(err) { console.error("Error en comunicación AJAX:", err); });
+    }
+}
+
+window.eliminarAsignacionDescuento = eliminarAsignacionDescuento;
+window.eliminarAsignacionBeneficio = eliminarAsignacionBeneficio;
 
 </script>
 

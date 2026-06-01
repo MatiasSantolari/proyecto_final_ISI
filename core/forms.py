@@ -6,6 +6,7 @@ import holidays
 from datetime import timedelta, date
 from dateutil.relativedelta import relativedelta
 from .constants import *
+from django.core.exceptions import ValidationError
 
 
 class LoginForm(forms.Form):
@@ -225,7 +226,7 @@ class PersonaFormEditar(forms.ModelForm):
             'calle', 'numero', 'avatar', 'cvitae'
         ]
 
-############
+
 
 class PersonaForm(forms.ModelForm):
     tipo_usuario = forms.ChoiceField(
@@ -238,7 +239,6 @@ class PersonaForm(forms.ModelForm):
         choices=ESTADO_EMPLEADO_CHOICES2,
         required=False,
         widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_estado'})
-
     )
 
     departamento = forms.ModelChoiceField(
@@ -290,6 +290,32 @@ class PersonaForm(forms.ModelForm):
         })
     )
 
+    banco_nombre = forms.ChoiceField(
+        choices=[
+            ('', 'Elegir banco...'),
+            ('Banco Galicia', 'Banco Galicia'),
+            ('Banco Santander', 'Banco Santander'),
+            ('Banco Nación', 'Banco Nación'),
+            ('Banco Macro', 'Banco Macro'),
+            ('BBVA Francés', 'BBVA Francés'),
+        ],
+        required=False,
+        label="Entidad Bancaria",
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_banco_nombre'})
+    )
+    
+    cbu_cuenta = forms.CharField(
+        max_length=22,
+        required=False,
+        label="CBU Cuenta Sueldo",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ingrese los 22 dígitos del CBU',
+            'maxlength': '22',
+            'id': 'id_cbu_cuenta'
+        })
+    )
+
     class Meta:
         model = Persona
         fields = [
@@ -313,7 +339,6 @@ class PersonaForm(forms.ModelForm):
         departamento_id = kwargs.pop('departamento_id', None)
         tipo_usuario = None
 
-
         if 'data' in kwargs:
             tipo_usuario = kwargs['data'].get('tipo_usuario')
         elif 'initial' in kwargs:
@@ -321,14 +346,22 @@ class PersonaForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
+        if self.instance and self.instance.pk:
+            try:
+                empleado_instancia = Empleado.objects.filter(id=self.instance.pk).first()
+                if empleado_instancia and hasattr(empleado_instancia, 'datos_bancarios'):
+                    self.initial['banco_nombre'] = empleado_instancia.datos_bancarios.banco_nombre
+                    self.initial['cbu_cuenta'] = empleado_instancia.datos_bancarios.cbu_cuenta
+            except Exception as e:
+                print(f"Error al precargar datos bancarios en el form: {e}")
+
         departamentos_qs = Departamento.objects.all()
         if tipo_usuario != "admin":
             departamentos_qs = departamentos_qs.exclude(nombre__iexact="ADMIN")
 
         self.fields['departamento'].queryset = departamentos_qs
 
-
-        # Filtro inicial
+        # Filtro inicial de puestos
         if tipo_usuario == 'admin':
             self.fields['cargo'].queryset = Cargo.objects.none()
             return
@@ -353,10 +386,21 @@ class PersonaForm(forms.ModelForm):
                     id__in=CargoDepartamento.objects.filter(
                         departamento_id=departamento_id,
                         vacante__gt=0
-                        ).values_list('cargo_id', flat=True)
-            )
+                    ).values_list('cargo_id', flat=True)
+                )
 
             self.fields['cargo'].queryset = cargos_qs
+
+    def clean_cbu_cuenta(self):
+        cbu = self.cleaned_data.get('cbu_cuenta', '').strip()
+        tipo_usuario = self.cleaned_data.get('tipo_usuario') or self.data.get('tipo_usuario')
+
+        if tipo_usuario != 'normal' and cbu:
+            if len(cbu) != 22:
+                raise ValidationError('El CBU debe contener exactamente 22 caracteres numéricos.')
+            if not cbu.isdigit():
+                raise ValidationError('El CBU solo puede contener números del 0 al 9.')
+        return cbu
 
     
 ############################

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% load widget_tweaks %}
 {% load static %}
 
@@ -8,134 +9,182 @@
 
 <style>
   .badge.bg-warning {
-      background-color: #d97706 !important; 
-      color: #ffffff !important;            
-      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2); 
+      background-color: #d97706 !important;
+      color: #ffffff !important;
+      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
   }
 </style>
 
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
 
 <div class="container-fluid p-5 my-2">
-  <div class="container-fluid mt-0">
-    <h4 class="page-title-custom fw-bold mb-2">Gestión de Nóminas</h4>
-    {% if mostrar_boton_regreso %}
-        <a href="{{ url_regreso }}" class="btn btn-secondary mb-3">
-            <i class="bi bi-arrow-left"></i> Volver al Detalle de Empleado
-        </a>
-    {% endif %}
-  </div>
 
-  <div class="card mb-2">
-    <div class="card-header p-3 d-flex justify-content-between align-items-center mb-0 mt-0 bg-light border-bottom">
-      <div>
-        {% if pendientes > 0 %}
-          <button class="btn btn-warning me-2 btn-sm p-2" data-bs-toggle="modal" data-bs-target="#modalRegenerarNominas">
-            <i class="bi bi-arrow-repeat"></i> Regenerar Nóminas Pendientes ({{ pendientes }})
-          </button>
-        {% endif %}
-
-        <button class="btn btn-success btn-sm p-2" data-bs-toggle="modal" data-bs-target="#modalGenerarNominas">
-          <i class="bi bi-file-earmark-plus"></i> Generar Nóminas Período Actual ({{ faltantes }})
-        </button>
-      </div>
-      {% if pendientes > 0 %}
-      <button class="btn btn-primary ms-auto btn-sm p-2" data-bs-toggle="modal" data-bs-target="#modalConfirmarNominas">
-        <i class="bi bi-check2-circle"></i> Confirmar Nóminas ({{ pendientes }})
-      </button>
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-2 mt-0">
+    <div class="d-flex align-items-center gap-3">
+      <h4 class="page-title-custom fw-bold m-0">Gestión de Nóminas</h4>
+      {% if mostrar_boton_regreso %}
+          <a href="{{ url_regreso }}" class="btn btn-secondary btn-sm py-1">
+              <i class="bi bi-arrow-left"></i> Volver
+          </a>
       {% endif %}
     </div>
 
-    <div class="card-body pt-2 pb-0 bg-light">
-      <form method="get" action="" id="formFiltrosNominas" class="row g-3 mb-4 align-items-end">
+    <div class="d-flex flex-wrap align-items-center gap-2">      
+      <div class="d-flex align-items-center gap-2 px-2 py-1 border rounded shadow-2xs" 
+           style="border-color: rgba(84, 143, 182, 0.4) !important; background: rgba(70, 77, 218, 0.15); height: 34px; border-width: 1.2px;">
+        <i class="bi bi-cash-coin text-primary fs-6"></i>
+        <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 700;">Gasto Total Empresa:</span>
+        <span class="fw-bold fs-6 text-primary" style="letter-spacing: 0.2px;">${{ gasto_total_empresa|floatformat:2|intcomma }}</span>
+      </div>
 
+      <div class="d-flex align-items-center gap-2 px-2 py-1 border rounded shadow-2xs" 
+           style="border-color: rgba(25, 135, 84, 0.4) !important; background: rgba(25, 135, 84, 0.12); height: 34px; border-width: 1.2px;">
+        <i class="bi bi-check-circle text-success fs-6"></i>
+        <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 700;">Pagadas:</span>
+        <span class="fw-bold fs-6 text-success" style="letter-spacing: 0.2px;">{{ pagadas }}</span>
+      </div>
+
+      <div class="d-flex align-items-center gap-2 px-2 py-1 border rounded shadow-2xs" 
+           style="border-color: rgba(217, 119, 6, 0.4) !important; background: rgba(217, 119, 6, 0.12); height: 34px; border-width: 1.2px;">
+        <i class="bi bi-exclamation-circle text-warning fs-6" style="color: #d97706 !important;"></i>
+        <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 700;">Pendientes:</span>
+        <span class="fw-bold fs-6 text-warning" style="letter-spacing: 0.2px; color: #d97706 !important;">{{ pendientes }}</span>
+      </div>      
+    </div>
+  </div>
+
+  <div class="card mb-2 border-0 shadow-sm">
+    <div class="card-header p-2 d-flex align-items-center mb-0 mt-0 bg-light border-bottom" style="border-radius: 8px 8px 0 0; min-height: 46px;">
+      
+      <div class="d-flex gap-2">
+        {% if pendientes > 0 %}
+          <button class="btn btn-warning btn-sm py-1 px-2 fw-medium shadow-2xs" data-bs-toggle="modal" data-bs-target="#modalRegenerarNominas">
+            <i class="bi bi-arrow-repeat"></i> Regenerar Pendientes ({{ pendientes }})
+          </button>
+        {% endif %}
+
+        <button class="btn btn-success btn-sm py-1 px-2 fw-medium shadow-2xs" data-bs-toggle="modal" data-bs-target="#modalGenerarNominas">
+          <i class="bi bi-file-earmark-plus"></i> Generar Período Actual ({{ faltantes }})
+        </button>
+      </div>
+      
+      <div class="ms-auto me-auto">
+        {% if pendientes > 0 %}
+          <button class="btn btn-primary btn-sm py-1 px-3 fw-bold shadow-2xs" data-bs-toggle="modal" data-bs-target="#modalConfirmarNominas">
+            <i class="bi bi-check2-circle"></i> Confirmar Nóminas ({{ pendientes }})
+          </button>
+        {% endif %}
+      </div>
+
+      <div class="d-flex gap-2">
+        {% now "F Y" as mes_actual %}
+        <button type="button" id="btnExportarBanco" 
+                class="btn btn-outline-success btn-sm py-1 px-2 fw-bold" 
+                data-bs-toggle="modal" 
+                data-bs-target="#modalConfirmarBanco"
+                title="Descargar Layout para Home Banking">
+          <i class="bi bi-bank"></i> 
+          <span id="textoBtnBanco">Descargar {{ mes_actual|capfirst }}</span>
+        </button>
+      </div>
+
+
+    </div>
+
+
+
+    <div class="card-body pt-2 pb-2 mb-2 bg-light" style="border-radius: 0 0 8px 8px;">
+      <form method="get" action="" id="formFiltrosNominas" class="row g-2 mb-0 align-items-end">
         <div class="col-md-3">
-            <label for="departamento" class="form-label fw-bold small text-uppercase">Departamento</label>
-            <select class="form-select form-select-sm select-filtro-dinamico" name="departamento" id="departamento">
-              <option value="">-- Todos --</option>
-              {% for dep in departamentos %}
-                <option value="{{ dep.nombre }}" {% if dep.nombre == departamento_sel %}selected{% endif %}>
-                    {{ dep.nombre }}
-                </option>
+          <label for="departamento" class="form-label fw-bold" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.3px;">Departamento</label>
+          <select class="form-select form-select-sm select-filtro-dinamico" name="departamento" id="departamento">
+            <option value="">-- Todos --</option>
+            {% for dep in departamentos %}
+              <option value="{{ dep.nombre }}" {% if dep.nombre == departamento_sel %}selected{% endif %}>{{ dep.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-2">
+          <label for="mes" class="form-label fw-bold" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.3px;">Mes</label>
+          <select class="form-select form-select-sm select-filtro-dinamico" name="mes" id="mes">
+              <option value="">-- Seleccionar --</option>
+              {% for i in meses %}
+                <option value="{{ i }}" {% if mes_seleccionado == i|stringformat:"s" %}selected{% endif %}>{{ i }}</option>
               {% endfor %}
-            </select>
-          </div>
+          </select>
+        </div>
 
-          <div class="col-md-2">
-              <label for="mes" class="form-label fw-bold small text-uppercase">Mes</label>
-              <select class="form-select form-select-sm select-filtro-dinamico" name="mes" id="mes">
-                  <option value="">-- Seleccionar --</option>
-                  {% for i in meses %}
-                    <option value="{{ i }}" {% if mes_seleccionado == i|stringformat:"s" %}selected{% endif %}>{{ i }}</option>
-                  {% endfor %}
-              </select>
-          </div>
+        <div class="col-md-2">
+          <label for="anio" class="form-label fw-bold" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.3px;">Año</label>
+          <input type="number" class="form-control form-control-sm input-filtro-dinamico" name="anio" id="anio" value="{{ anio_seleccionado }}" placeholder="AAAA">
+        </div>
 
-          <div class="col-md-2">
-              <label for="anio" class="form-label fw-bold small text-uppercase">Año</label>
-              <input type="number" class="form-control form-control-sm input-filtro-dinamico" name="anio" id="anio" value="{{ anio_seleccionado }}" placeholder="Ingresar Año (AAAA)">
-          </div>
+        <div class="col-md-2">
+          <a href="{% url 'nominas' %}" class="btn btn-outline-primary btn-sm w-100 fw-bold py-1 pb-2" data-bs-toggle="tooltip" title="Limpiar todos los filtros">
+            <i class="bi bi-arrow-clockwise"></i> Limpiar Filtros
+          </a>
+        </div>
 
-          <div class="col-md-2">
-              <a href="{% url 'nominas' %}" class="btn btn-primary btn-sm w-100 fw-bold shadow-sm p-2" data-bs-toggle="tooltip" title="Limpiar todos los filtros">
-                <i class="bi bi-arrow-clockwise me-1"></i> Limpiar Filtros
-              </a>
-          </div>
       </form>
     </div>
   </div>
 
-
   <div class="card shadow-sm border-0">
-    <div class="card-body" id="contenedor-tabla-dinamica">
+    <div class="card-body p-3" id="contenedor-tabla-dinamica">
+
       <div class="table-responsive">
         <table class="table table-sm table-hover table-bordered align-middle table-compact mb-0 w-100" style="font-size: 0.95rem;">
           <thead class="table-light text-center">
             <tr>
               <th>Empleado</th>
               <th>Departamento</th>
-              <th style="width: 15%;">Fecha Generación</th>
-              <th style="width: 15%;">Monto Final</th>
+              <th style="width: 12%;">Fecha Generación</th>
+              <th style="width: 13%;">Monto Bruto</th>
+              <th style="width: 13%;">Monto Final (Neto)</th>
               <th style="width: 10%;">Estado</th>
               <th style="width: 10%;">Acciones</th>
             </tr>
           </thead>
           <tbody class="text-center">
+
             {% for nomina in nominas %}
             <tr>
               <td>{{ nomina.empleado.apellido }} {{ nomina.empleado.nombre }}</td>
               <td>{{ nomina.empleado.departamento_actual_nombre }}</td>
               <td>{{ nomina.fecha_generacion|date:"d/m/Y" }}</td>
-              <td>${{ nomina.monto_neto }}</td>
+
+              <td class="text-muted small">${{ nomina.monto_bruto|floatformat:2|intcomma }}</td>
+              <td><span class="fw-bold text-dark">${{ nomina.monto_neto|floatformat:2|intcomma }}</span></td>
+
               <td>
-                {% if nomina.estado == "anulado" %}
-                    <span class="badge bg-danger">{{ nomina.estado }}</span>
-                {% elif nomina.estado == "pendiente" %}
-                    <span class="badge bg-warning">{{ nomina.estado }}</span>
-                {% elif nomina.estado == "pagado" %}
-                    <span class="badge bg-success">{{ nomina.estado }}</span>
+                 {% if nomina.estado|lower == "anulado" %}
+                    <span class="badge bg-danger">Anulado</span>
+                {% elif nomina.estado|lower == "pendiente" %}
+                    <span class="badge bg-warning">Pendiente</span>
+                {% elif nomina.estado|lower == "pagado" %}
+                    <span class="badge bg-success">Pagado</span>
+                {% else %}
+                    <span class="badge bg-secondary">{{ nomina.estado }}</span>
                 {% endif %}
               </td>
               <td>
-                <button class="btn btn-sm btn-outline-info btn-ver-nomina me-2 mb-1" 
+                <button class="btn btn-sm btn-outline-info btn-ver-nomina me-2 mb-1"
                         data-id="{{ nomina.id }}"
                         data-bs-toggle="tooltip" title="Ver">
                         <i class="bi bi-eye"></i>
                 </button>
-                {% if nomina.estado == "pendiente" or nomina.estado == "pagado" %}
-                  <button class="btn btn-sm btn-outline-danger btn-anular me-1 mb-1" 
-                          data-bs-toggle="modal" 
-                          data-bs-target="#modalAnularNomina"
+                
+                {% if nomina.estado|lower == "pendiente" or nomina.estado|lower == "pagado" %}
+                  <button class="btn btn-sm btn-outline-danger btn-anular me-1 mb-1"
                           data-id="{{ nomina.id }}"
                           data-nombre="{{ nomina.empleado.nombre }}"
                           data-apellido="{{ nomina.empleado.apellido }}"
                           data-bs-toggle="tooltip" title="Anular">
                       <i class="bi bi-trash3"></i>
                   </button>
-                {% elif nomina.estado == "anulado" %}
-                  <button class="btn btn-sm btn-outline-success btn-restaurar me-1 mb-1" 
-                          data-bs-toggle="modal" 
-                          data-bs-target="#modalRestaurarNomina"
+                {% elif nomina.estado|lower == "anulado" %}
+                  <button class="btn btn-sm btn-outline-success btn-restaurar me-1 mb-1"
                           data-id="{{ nomina.id }}"
                           data-nombre="{{ nomina.empleado.nombre }}"
                           data-apellido="{{ nomina.empleado.apellido }}"
@@ -147,7 +196,7 @@
             </tr>
             {% empty %}
             <tr>
-              <td colspan="6" class="text-center text-muted">
+              <td colspan="7" class="text-center text-muted">
                 No hay registros de nóminas con esos filtros.
               </td>
             </tr>
@@ -156,43 +205,40 @@
         </table>
       </div>
 
-        <nav aria-label="Paginación nominas">
-          <ul class="pagination justify-content-center mt-3 mb-2">
-            
-            {% if nominas.has_previous %}
-              <li class="page-item">
-                <a class="page-link" href="?page={{ nominas.previous_page_number }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes_seleccionado %}&mes={{ mes_seleccionado }}{% endif %}{% if anio_seleccionado %}&anio={{ anio_seleccionado }}{% endif %}">&laquo;</a>
-              </li>
-            {% else %}
-              <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
-            {% endif %}
+      <nav aria-label="Paginación nominas">
+        <ul class="pagination justify-content-center mt-3 mb-2">
+          {% if nominas.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ nominas.previous_page_number }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes_seleccionado %}&mes={{ mes_seleccionado }}{% endif %}{% if anio_seleccionado %}&anio={{ anio_seleccionado }}{% endif %}">&laquo;</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+          {% endif %}
 
-            {% for num in rango_paginas %}
-              {% if nominas.number == num %}
-                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-              {% elif num == '…' or num == '...' %}
-                <li class="page-item disabled"><span class="page-link">{{ num }}</span></li>
-              {% else %}
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ num }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes_seleccionado %}&mes={{ mes_seleccionado }}{% endif %}{% if anio_seleccionado %}&anio={{ anio_seleccionado }}{% endif %}">{{ num }}</a>
-                </li>
-              {% endif %}
-            {% endfor %}
-
-            {% if nominas.has_next %}
-              <li class="page-item">
-                <a class="page-link" href="?page={{ nominas.next_page_number }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes_seleccionado %}&mes={{ mes_seleccionado }}{% endif %}{% if anio_seleccionado %}&anio={{ anio_seleccionado }}{% endif %}">&raquo;</a>
-              </li>
+          {% for num in rango_paginas %}
+            {% if nominas.number == num %}
+              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num == '…' or num == '...' %}
+              <li class="page-item disabled"><span class="page-link">{{ num }}</span></li>
             {% else %}
-              <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
-            {% endif %}            
-          </ul>
-        </nav>
-    </div>
+              <li class="page-item">
+              <a class="page-link" href="?page={{ num }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes_seleccionado %}&mes={{ mes_seleccionado }}{% endif %}{% if anio_seleccionado %}&anio={{ anio_seleccionado }}{% endif %}">{{ num }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        {% if nominas.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ nominas.next_page_number }}{% if departamento_sel %}&departamento={{ departamento_sel }}{% endif %}{% if mes_seleccionado %}&mes={{ mes_seleccionado }}{% endif %}{% if anio_seleccionado %}&anio={{ anio_seleccionado }}{% endif %}">&raquo;</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+        {% endif %}
+      </ul>
+    </nav>
   </div>
 </div>
 
-<!-- Modal Ver Recibo Detallado -->
 <div class="modal fade" id="modalVerNomina" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
@@ -268,7 +314,6 @@
   </div>
 </div>
 
-<!-- Modal Anular o Eliminar -->
 <div class="modal fade" id="modalAnularNomina" tabindex="-1" aria-labelledby="modalAnularNominaLabel" aria-hidden="true">
   <div class="modal-dialog" style="margin-top: 12rem;">
     <div class="modal-content">
@@ -294,7 +339,6 @@
   </div>
 </div>
 
-<!-- Modal Restaurar -->
 <div class="modal fade" id="modalRestaurarNomina" tabindex="-1" aria-labelledby="modalRestaurarNominaLabel" aria-hidden="true">
   <div class="modal-dialog" style="margin-top: 12rem;">
     <div class="modal-content">
@@ -314,7 +358,6 @@
   </div>
 </div>
 
-<!-- Modal Generar -->
 <div class="modal fade" id="modalGenerarNominas" tabindex="-1">
   <div class="modal-dialog" style="margin-top: 12rem;">
     <div class="modal-content">
@@ -339,7 +382,6 @@
   </div>
 </div>
 
-<!-- Modal Regenerar -->
 <div class="modal fade" id="modalRegenerarNominas" tabindex="-1">
   <div class="modal-dialog" style="margin-top: 12rem;">
     <div class="modal-content">
@@ -364,7 +406,6 @@
   </div>
 </div>
 
-<!-- Modal Confirmar -->
 <div class="modal fade" id="modalConfirmarNominas" tabindex="-1" aria-labelledby="modalConfirmarNominasLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -391,62 +432,106 @@
 </div>
 
 
+
+<div class="modal fade" id="modalConfirmarBanco" tabindex="-1" aria-labelledby="modalConfirmarBancoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+    <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
+      <div class="modal-header border-bottom py-3 px-4" style="background-color: rgba(60, 141, 188, 0.08); border-color: rgba(128, 128, 128, 0.2) !important;">
+        <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="modalConfirmarBancoLabel" style="font-size: 1rem; letter-spacing: 0.3px;">
+          <i class="bi bi-bank text-success" style="font-size: 1.15rem;"></i> Exportación Masiva de Haberes
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar" style="font-size: 0.75rem;"></button>
+      </div>      
+      <div class="modal-body p-4">
+        <p class="text-secondary small mb-3" style="font-size: 0.88rem; line-height: 1.4;">
+          Se procederá a compilar el archivo de acreditación para las liquidaciones confirmadas del período:
+        </p>
+        <div class="d-flex align-items-center justify-content-center gap-3 py-3 px-4 my-3 border rounded shadow-2xs" 
+             style="background: rgba(46, 204, 113, 0.08); border-color: rgba(46, 204, 113, 0.35) !important; border-width: 1.2px; border-radius: 8px;">
+          <i class="bi bi-calendar3 text-success" style="font-size: 1.8rem;"></i>
+          <div class="text-start">
+            <span class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.65rem; letter-spacing: 1px;">Período a Exportar</span>
+            <h4 class="m-0 fw-bolder text-success" id="modalBancoPeriodoTexto" style="letter-spacing: 0.5px; font-size: 1.35rem;">Junio 2026</h4>
+          </div>
+        </div>
+        <div class="p-3 border rounded mt-3" style="background: rgba(128, 128, 128, 0.05); border-color: rgba(128, 128, 128, 0.15) !important; border-radius: 8px;">
+          <p class="text-secondary small m-0" style="font-size: 0.8rem; line-height: 1.5;">
+            <i class="bi bi-info-circle text-info me-1" style="font-size: 0.95rem;"></i> <strong>¿Desea cambiar el mes?</strong> 
+            Cierre esta ventana, ajuste los selectores de 
+            <strong class="px-1.5 py-0.5 rounded" style="background: rgba(128, 128, 128, 0.15); font-size: 0.72rem; border: 1px solid rgba(128, 128, 128, 0.25);">Mes</strong> y 
+            <strong class="px-1.5 py-0.5 rounded" style="background: rgba(128, 128, 128, 0.15); font-size: 0.72rem; border: 1px solid rgba(128, 128, 128, 0.25);">Año</strong> 
+            en la barra superior de filtros y vuelva a presionar el botón.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer border-top py-2.5 px-4 d-flex justify-content-end gap-2" style="background-color: rgba(128, 128, 128, 0.04); border-color: rgba(128, 128, 128, 0.15) !important;">
+        <button type="button" class="btn btn-sm btn-outline-secondary fw-semibold px-3 py-1.5" style="font-size: 0.82rem;" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" id="btnModalAceptarDescarga" class="btn btn-sm btn-success fw-bold px-3 py-1.5 shadow-2xs" style="font-size: 0.82rem; background-color: #28a745; border-color: #28a745;">
+          <i class="bi bi-cloud-arrow-down me-1"></i> Descargar Layout
+        </button>
+      </div>      
+    </div>
+  </div>
+</div>
+
+
+
 <script>
-  let modalVerInstancia = null;
-
   document.addEventListener('DOMContentLoaded', function () {
-    
 
+    let modalVerInstancia = null;
     const modalVerElemento = document.getElementById('modalVerNomina');
     if (modalVerElemento) {
       modalVerInstancia = new bootstrap.Modal(modalVerElemento);
     }
 
-
-    const modalAnular = document.getElementById('modalAnularNomina');
-    if (modalAnular) {
-      modalAnular.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const nominaId = button.getAttribute('data-id');
-        const nombre = button.getAttribute('data-nombre') || '';
-        const apellido = button.getAttribute('data-apellido') || '';
-
-        const modalBody = modalAnular.querySelector('.modal-body');
-        if (modalBody) {
-          modalBody.innerHTML = `¿Estás seguro de que deseas ELIMINAR o ANULAR la nómina de <strong>${nombre} ${apellido}</strong>?`;
-        }
-
-        document.getElementById('formAnularNomina').action = `/nominas/anular/${nominaId}/`;
-        document.getElementById('formEliminarNomina').action = `/nominas/eliminar/${nominaId}/`;
-      });
-    }
-
-
-    const modalRestaurar = document.getElementById('modalRestaurarNomina');
-    if (modalRestaurar) {
-      modalRestaurar.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const nominaId = button.getAttribute('data-id');    
-        const nombre = button.getAttribute('data-nombre') || '';
-        const apellido = button.getAttribute('data-apellido') || '';
-
-        const modalBody = modalRestaurar.querySelector('.modal-body');
-        if (modalBody) {
-          modalBody.innerHTML = `¿Estás seguro de que deseas RESTAURAR la nómina de <strong>${nombre} ${apellido}</strong>?`;
-        }
-
-        document.getElementById('formRestaurarNomina').action = `/nominas/anular/${nominaId}/`;
-      });
-    }
-
-
     const formFiltros = document.getElementById("formFiltrosNominas");
     const contenedorTabla = document.getElementById("contenedor-tabla-dinamica");
     let timeoutBusqueda = null;
 
+
+    function formatCurrency(amount, isDiscount = false) {
+        const val = parseFloat(amount) || 0;
+        const sign = isDiscount && val > 0 ? '-' : '';
+
+        const numeroFormateado = new Intl.NumberFormat('es-AR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(val);
+
+        return `${sign}$${numeroFormateado}`;
+    }
+
+    
+    function populateList(ulId, items, amountClass, isDiscountList) {
+        const ul = document.getElementById(ulId);
+        if (!ul) return;
+        ul.innerHTML = '';
+
+        if (items && items.length > 0) {
+            items.forEach(d => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center p-2 border-bottom border-secondary border-opacity-10';
+                li.style.backgroundColor = 'transparent';
+
+                const valorMoneda = parseFloat(d.monto_final) || 0;
+                const valueStr = formatCurrency(valorMoneda, isDiscountList);
+
+                li.innerHTML = `
+                  <span class="text-light small">${d.descripcion}</span>
+                  <span class="${amountClass} fw-semibold small">${valueStr}</span>
+                `;
+                ul.appendChild(li);
+            });
+        } else {
+            ul.innerHTML = `<li class="list-group-item text-center text-muted small p-2 bg-transparent">Sin conceptos registrados</li>`;
+        }
+    }
+
+   
     function filtrarSinRecargar(urlOpciones = null) {
         let url = urlOpciones;
-        
+
         if (!url && formFiltros) {
             const formData = new FormData(formFiltros);
             const params = new URLSearchParams(formData);
@@ -461,7 +546,7 @@
                 const parser = new DOMParser();
                 const docVirtual = parser.parseFromString(htmlTexto, 'text/html');
                 const nuevaTabla = docVirtual.getElementById("contenedor-tabla-dinamica");
-                
+
                 if (nuevaTabla && contenedorTabla) {
                     contenedorTabla.innerHTML = nuevaTabla.innerHTML;
                     actualizarEventosPaginacion();
@@ -483,7 +568,6 @@
         });
     }
 
-
     const inputsTexto = document.querySelectorAll(".input-filtro-dinamico");
     inputsTexto.forEach(input => {
         input.addEventListener("input", function() {
@@ -494,7 +578,6 @@
         });
     });
 
-
     const selectoresDropdown = document.querySelectorAll(".select-filtro-dinamico");
     selectoresDropdown.forEach(select => {
         select.addEventListener("change", function() {
@@ -502,104 +585,190 @@
         });
     });
 
-
     actualizarEventosPaginacion();
-  });
+
+    
 
 
-  function formatCurrency(amount, isDiscount = false) {
-      const val = parseFloat(amount) || 0;
-      const sign = isDiscount && val > 0 ? '-' : ''; 
-      return `${sign}$${val.toFixed(2)}`;
-  }
+     const selectMes = document.getElementById('mes');
+        const selectAnio = document.getElementById('anio');
+        const txtBtnBanco = document.getElementById('textoBtnBanco');
 
-  function populateList(ulId, items, amountClass, isDiscountList) {
-      const ul = document.getElementById(ulId);
-      if (!ul) return;
-      ul.innerHTML = ''; 
-      if (items && items.length > 0) {
-          items.forEach(d => {
-              const li = document.createElement('li');
-              li.className = 'list-group-item d-flex justify-content-between align-items-center';
-              
-              let value;
-              if (d.monto && d.monto > 0) {
-                  value = formatCurrency(d.monto, isDiscountList);
-              } else if (d.porcentaje && d.porcentaje > 0) {
-                  value = formatCurrency(d.porcentaje, isDiscountList); 
-              } else {
-                  value = '';
-              }
+        const nombresMeses = {
+            "1": "Enero", "2": "Febrero", "3": "Marzo", "4": "Abril", "5": "Mayo", "6": "Junio",
+            "7": "Julio", "8": "Agosto", "9": "Septiembre", "10": "Octubre", "11": "Noviembre", "12": "Diciembre"
+        };
 
-              li.innerHTML = `
-                <span>${d.descripcion}</span>
-                <span class="${amountClass} fw-semibold">${value}</span>
-              `;
-              ul.appendChild(li);
-          });
-      }
-  }
+        function actualizarTextoBotonBanco() {
+            if (!txtBtnBanco) return;
+            
+            let mes = selectMes ? selectMes.value : '';
+            let anio = selectAnio ? selectAnio.value : '';
+
+            if (!mes || !anio) {
+                const fechaActual = new Date();
+                const numeroMesActual = String(fechaActual.getMonth() + 1); 
+                const anioActual = fechaActual.getFullYear();
+                
+                const nombreMes = nombresMeses[numeroMesActual] || "";
+                txtBtnBanco.textContent = `Descargar ${nombreMes} ${anioActual}`;
+            } else {
+                const nombreMes = nombresMeses[mes] || ("Mes " + mes);
+                txtBtnBanco.textContent = `Descargar ${nombreMes} ${anio}`;
+            }
+        }
+
+        if (selectMes) selectMes.addEventListener('change', actualizarTextoBotonBanco);
+        if (selectAnio) selectAnio.addEventListener('change', actualizarTextoBotonBanco);
+
+        actualizarTextoBotonBanco();
 
 
-  document.addEventListener('click', function (e) {
-      const btnVer = e.target.closest('.btn-ver-nomina');
-      if (btnVer && modalVerInstancia) {
-          const id = btnVer.getAttribute('data-id');
 
-          fetch(`/nominas/ver/${id}/`)
-              .then(res => res.json())
-              .then(data => {
-                  document.getElementById('verEmpleado').textContent = data.empleado;
-                  document.getElementById('verDNI').textContent = data.dni;
-                  document.getElementById('verCargo').textContent = data.cargo;
-                  document.getElementById('verDepartamento').textContent = data.departamento;
-                  document.getElementById('verFecha').textContent = data.fecha_generacion;
-                  document.getElementById('verNumero').textContent = data.numero;
-                  
-                  document.getElementById('verBruto').textContent = formatCurrency(data.monto_bruto).substring(1);
-                  document.getElementById('verNeto').textContent = formatCurrency(data.monto_neto).substring(1);
-                  
-                  document.getElementById('verDescuentos').textContent = formatCurrency(data.total_descuentos, true);
-                  document.getElementById('verBeneficios').textContent = formatCurrency(data.total_beneficios).substring(1);
-                  
-                  const montoExtraContainer = document.getElementById('id_monto_extra_pactado');
-                  if (montoExtraContainer) {
-                      if (parseFloat(data.monto_extra_pactado) > 0) {
-                          document.getElementById('verMontoExtraPactado').textContent = formatCurrency(data.monto_extra_pactado).substring(1);
-                          montoExtraContainer.style.display = "block";
-                      } else {
-                          montoExtraContainer.style.display = "none";
-                      }
-                  }
 
-                  const estadoSpan = document.getElementById("verEstado");
-                  if (estadoSpan) {
-                      estadoSpan.innerHTML = "";
-                      let estadoClass = "";
-                      if (data.estado === "pendiente") estadoClass = "badge bg-warning";
-                      else if (data.estado === "pagado") estadoClass = "badge bg-success";
-                      else if (data.estado === "anulado") estadoClass = "badge bg-danger";
-                      else estadoClass = "badge bg-secondary";
-                      estadoSpan.innerHTML = `<span class="${estadoClass} fs-6">${data.estado}</span>`;
-                  }
+    document.addEventListener('click', function (e) {
 
-                  const fechaPagoContainer = document.getElementById("fechaPagoContainer");
-                  if (fechaPagoContainer) {
-                      if (data.fecha_pago) {
-                          document.getElementById("verFechaPago").innerText = data.fecha_pago;
-                          fechaPagoContainer.style.display = "block";
-                      } else {
-                          fechaPagoContainer.style.display = "none";
-                      }
-                  }
+        const btnAnular = e.target.closest('.btn-anular');
+        if (btnAnular) {
+            const nominaId = btnAnular.getAttribute('data-id');
+            const nombre = btnAnular.getAttribute('data-nombre') || '';
+            const apellido = btnAnular.getAttribute('data-apellido') || '';
 
-                  populateList('verDescuentosDetalle', data.descuentos_detalle, 'text-danger', true);
-                  populateList('verBeneficiosDetalle', data.beneficios_detalle, 'text-success', false);
+            const modalAnularElemento = document.getElementById('modalAnularNomina');
+            const modalBody = modalAnularElemento.querySelector('.modal-body');
+            if (modalBody) {
+                modalBody.innerHTML = `¿Estás seguro de que deseas ELIMINAR o ANULAR la nómina de <strong>${nombre} ${apellido}</strong>?`;
+            }
 
-                  modalVerInstancia.show();
-              })
-              .catch(err => console.error("Error al renderizar el recibo AJAX:", err));
-      }
+            document.getElementById('formAnularNomina').action = `/nominas/anular/${nominaId}/`;
+            document.getElementById('formEliminarNomina').action = `/nominas/eliminar/${nominaId}/`;
+
+   
+            const modalInstancia = bootstrap.Modal.getOrCreateInstance(modalAnularElemento);
+            modalInstancia.show();
+            return;
+        }
+
+        const btnRestaurar = e.target.closest('.btn-restaurar');
+        if (btnRestaurar) {
+            const nominaId = btnRestaurar.getAttribute('data-id');
+            const nombre = btnRestaurar.getAttribute('data-nombre') || '';
+            const apellido = btnRestaurar.getAttribute('data-apellido') || '';
+
+            const modalRestaurarElemento = document.getElementById('modalRestaurarNomina');
+            const modalBody = modalRestaurarElemento.querySelector('.modal-body');
+            if (modalBody) {
+                modalBody.innerHTML = `¿Estás seguro de que deseas RESTAURAR la nómina de <strong>${nombre} ${apellido}</strong>?`;
+            }
+
+            document.getElementById('formRestaurarNomina').action = `/nominas/anular/${nominaId}/`;
+
+   
+            const modalInstancia = bootstrap.Modal.getOrCreateInstance(modalRestaurarElemento);
+            modalInstancia.show();
+            return;
+        }
+
+   
+        const btnVer = e.target.closest('.btn-ver-nomina');
+        if (btnVer && modalVerInstancia) {
+            const id = btnVer.getAttribute('data-id');
+
+            fetch(`/nominas/ver/${id}/`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('verEmpleado').textContent = data.empleado;
+                    document.getElementById('verDNI').textContent = data.dni;
+                    document.getElementById('verCargo').textContent = data.cargo;
+                    document.getElementById('verDepartamento').textContent = data.departamento;
+                    document.getElementById('verFecha').textContent = data.fecha_generacion;
+                    document.getElementById('verNumero').textContent = data.numero;
+
+                    document.getElementById('verBruto').textContent = formatCurrency(data.monto_bruto).substring(1);
+                    document.getElementById('verNeto').textContent = formatCurrency(data.monto_neto).substring(1);
+                    document.getElementById('verDescuentos').textContent = formatCurrency(data.total_descuentos, true);
+                    document.getElementById('verBeneficios').textContent = formatCurrency(data.total_beneficios);
+
+                    const montoExtraContainer = document.getElementById('id_monto_extra_pactado');
+                    if (montoExtraContainer) {
+                        if (parseFloat(data.monto_extra_pactado) > 0) {
+                            document.getElementById('verMontoExtraPactado').textContent = formatCurrency(data.monto_extra_pactado).substring(1);
+                            montoExtraContainer.style.display = "block";
+                        } else {
+                            montoExtraContainer.style.display = "none";
+                        }
+                    }
+
+                    const estadoSpan = document.getElementById("verEstado");
+                    if (estadoSpan) {
+                        estadoSpan.innerHTML = "";
+                        let estadoClass = "";
+                        if (data.estado === "pendiente") estadoClass = "badge bg-warning text-white";
+                        else if (data.estado === "pagado") estadoClass = "badge bg-success text-white";
+                        else if (data.estado === "anulado") estadoClass = "badge bg-danger text-white";
+                        else estadoClass = "badge bg-secondary text-white";
+                        estadoSpan.innerHTML = `<span class="${estadoClass} fs-6 px-2 py-1">${data.estado}</span>`;
+                    }
+
+                    const fechaPagoContainer = document.getElementById("fechaPagoContainer");
+                    if (fechaPagoContainer) {
+                        if (data.fecha_pago) {
+                            document.getElementById("verFechaPago").innerText = data.fecha_pago;
+                            fechaPagoContainer.style.display = "block";
+                        } else {
+                            fechaPagoContainer.style.display = "none";
+                        }
+                    }
+
+                    populateList('verDescuentosDetalle', data.descuentos_detalle, 'text-danger', true);
+                    populateList('verBeneficiosDetalle', data.beneficios_detalle, 'text-success', false);
+
+                    modalVerInstancia.show();
+                })
+                .catch(err => console.error("Error al renderizar el recibo AJAX:", err));
+        }
+
+
+        
+        const btnBancoPrincipal = e.target.closest('#btnExportarBanco');
+        if (btnBancoPrincipal) {
+            const mesVal = document.getElementById('mes')?.value || '';
+            const anioVal = document.getElementById('anio')?.value || '';
+            
+            let textoPeriodo = "";
+            if (!mesVal || !anioVal) {
+                const textoBotonOriginal = document.getElementById('textoBtnBanco')?.textContent || '';
+                textoPeriodo = textoBotonOriginal.replace('Descargar ', '').trim();
+            } else {
+                const nombreMes = nombresMeses[mesVal] || ("Mes " + mesVal);
+                textoPeriodo = `${nombreMes} ${anioVal}`;
+            }
+
+            const modalTextoEl = document.getElementById('modalBancoPeriodoTexto');
+            if (modalTextoEl) modalTextoEl.textContent = textoPeriodo;
+            return;
+        }
+
+        const btnAceptarModal = e.target.closest('#btnModalAceptarDescarga');
+        if (btnAceptarModal) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const mesSel = document.getElementById('mes')?.value || '';
+            const anioSel = document.getElementById('anio')?.value || '';
+            const deptoSel = document.getElementById('departamento')?.value || '';
+
+            const urlDescarga = `/nominas/exportar-banco/?mes=${mesSel}&anio=${anioSel}&departamento=${deptoSel}`;
+            
+            const modalElemento = document.getElementById('modalConfirmarBanco');
+            const modalInstancia = bootstrap.Modal.getInstance(modalElemento);
+            if (modalInstancia) modalInstancia.hide();
+
+            window.location.href = urlDescarga;
+            return;
+        }
+    });
+
   });
 </script>
 {% endblock %}
