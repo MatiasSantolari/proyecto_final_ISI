@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% load widget_tweaks %}
 {% load static %}
 
@@ -73,7 +74,7 @@
               </td>
               <td>
                 {% if cargo.sueldo_base %}
-                  ${{ cargo.sueldo_base }}
+                  ${{ cargo.sueldo_base|floatformat:2|intcomma }}
                 {% else %}
                   Sin sueldo registrado
                 {% endif %}
@@ -211,7 +212,7 @@
           <p><strong>Descripción:</strong> {{ cargo.descripcion }}</p>
           <p><strong>Sueldo Base:</strong> 
               {% if cargo.sueldo_base %}
-                ${{ cargo.sueldo_base }}
+                ${{ cargo.sueldo_base|floatformat:2|intcomma }}
               {% else %}
                 Sin sueldo registrado
               {% endif %}

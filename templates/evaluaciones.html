@@ -7,6 +7,16 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+<style>
+  .table-responsive {
+      overflow: visible !important;
+  }
+
+  div.dropdown-menu {
+      position: fixed !important;
+      margin: 0 !important;
+  }
+</style>
 <div class="container-fluid p-5 my-3">
   <h4 class="page-title-custom fw-bold mb-3">Gestión de Evaluaciones</h4>
 
@@ -69,10 +79,13 @@
 
                   <div class="dropdown">
                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="accionesDropdown{{ eval.id }}" 
-                            data-bs-toggle="dropdown" aria-expanded="false">
+                            data-bs-toggle="dropdown"
+                            data-bs-popper-config='{"strategy":"fixed"}' 
+                            data-bs-boundary="viewport" 
+                            aria-expanded="false">
                       <i class="bi bi-three-dots"></i>
                     </button>
-                    <ul class="dropdown-menu " aria-labelledby="accionesDropdown{{ eval.id }}">
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accionesDropdown{{ eval.id }}" style="z-index: 2000;">
                       <li>
                         <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalEvaluacion"
                                 data-id="{{ eval.id }}" data-descripcion="{{ eval.descripcion }}" data-fecha="{{ eval.fecha_evaluacion }}"
@@ -269,13 +282,12 @@
 
 
 <script>
-
   function formatPonderacion(value) {
     let num = parseFloat(value);
     if (isNaN(num)) return value;
     let text = num.toString();
     if (text.includes('.')) {
-      let decimals = text.split('.')[1];
+      let decimals = text.split('.');
       if (decimals.length === 1) {
         return num.toFixed(2);
       } else {
@@ -286,36 +298,45 @@
     }
   }
 
-
 document.addEventListener("DOMContentLoaded", function () {
+  function inicializarDropdowns() {
+    var dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'));
+    dropdownElementList.map(function (dropdownToggleEl) {
+      if (!bootstrap.Dropdown.getInstance(dropdownToggleEl)) {
+        return new bootstrap.Dropdown(dropdownToggleEl);
+      }
+    });
+  }
+  inicializarDropdowns(); 
+
   const modal = document.getElementById("modalDesactivarEvaluacion");
   const descripcionSpan = document.getElementById("evaluacionDescripcion");
   const formEliminar = document.getElementById("formEliminarEvaluacion");
   const formDesactivar = document.getElementById("formDesactivarEvaluacion");
 
-  document.querySelectorAll(".btn-abrir-modal-desactivar").forEach(btn => {
-    btn.addEventListener("click", function () {
-      const evalId = this.dataset.id;
-      const descripcion = this.dataset.descripcion;
-
-      descripcionSpan.textContent = descripcion;
-
-      formEliminar.action = `/evaluaciones/${evalId}/eliminar/`;
-      formDesactivar.action = `/evaluaciones/${evalId}/desactivar/`;
-    });
+  document.addEventListener("click", function(e) {
+    const btn = e.target.closest(".btn-abrir-modal-desactivar");
+    if (btn) {
+      const evalId = btn.dataset.id;
+      const descripcion = btn.dataset.descripcion;
+      if (descripcionSpan) descripcionSpan.textContent = descripcion;
+      if (formEliminar) formEliminar.action = `/evaluaciones/${evalId}/eliminar/`;
+      if (formDesactivar) formDesactivar.action = `/evaluaciones/${evalId}/desactivar/`;
+    }
   });
 
+  const modalVerEl = document.getElementById('modalVerEvaluacion');
+  const modalVer = modalVerEl ? new bootstrap.Modal(modalVerEl) : null;
 
-  const modalVer = new bootstrap.Modal(document.getElementById('modalVerEvaluacion'));
-
-  document.querySelectorAll('.btn-ver-evaluacion').forEach(btn => {
-    btn.addEventListener('click', function () {
-      const id = this.dataset.id;
-
+  document.addEventListener("click", function(e) {
+    const btn = e.target.closest('.btn-ver-evaluacion');
+    if (btn && modalVer) {
+      const id = btn.dataset.id;
       fetch(`/evaluaciones/ver/${id}/`)
         .then(res => res.json())
         .then(data => {
           const container = document.getElementById('verCriteriosContainer');
+          if (!container) return;
           container.innerHTML = `<p><strong>${data.descripcion}</strong> (${data.fecha_evaluacion})</p>`;
 
           for (const [tipo, criterios] of Object.entries(data.tipos)) {
@@ -332,19 +353,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
             container.appendChild(tipoDiv);
           }
-
           modalVer.show();
         });
-    });
+    }
   });
-
 
   const selectTipo = document.getElementById('selectTipo');
   const criteriosContainer = document.getElementById('criteriosContainer');
   const agregarTipoBtn = document.getElementById('agregarTipoBtn');
   const tiposSeleccionados = document.getElementById('tiposSeleccionados');
   const modalEvaluacion = document.getElementById('modalEvaluacion');
-
 
   const criteriosData = {
     {% for tipo in tipos_criterio %}
@@ -356,26 +374,30 @@ document.addEventListener("DOMContentLoaded", function () {
     {% endfor %}
   };
 
-
   window.editarEvaluacion = function(btn) {
     const id = btn.dataset.id;
-    document.getElementById('id_evaluacion').value = id;
+    const inputEval = document.getElementById('id_evaluacion');
+    if (inputEval) inputEval.value = id;
 
     fetch(`/evaluaciones/ver/${id}/`)
       .then(res => res.json())
       .then(data => {
-        document.getElementById('id_descripcion').value = data.descripcion;
-         const partes = data.fecha_evaluacion.split('/'); // ["dd","mm","yyyy"]
-         const fechaISO = `${partes[2]}-${partes[1]}-${partes[0]}`; // "yyyy-mm-dd"
-         document.getElementById('id_fecha_evaluacion').value = fechaISO;
+        const inputDesc = document.getElementById('id_descripcion');
+        const inputFecha = document.getElementById('id_fecha_evaluacion');
+        if (inputDesc) inputDesc.value = data.descripcion;
+        
+        if (inputFecha && data.fecha_evaluacion) {
+          const partes = data.fecha_evaluacion.split('/'); 
+          const fechaISO = `${partes[2]}-${partes[1]}-${partes[0]}`; 
+          inputFecha.value = fechaISO;
+        }
 
-
-        tiposSeleccionados.innerHTML = '';
-        criteriosContainer.innerHTML = '';
-        selectTipo.value = '';
-
+        if (tiposSeleccionados) tiposSeleccionados.innerHTML = '';
+        if (criteriosContainer) criteriosContainer.innerHTML = '';
+        if (selectTipo) selectTipo.value = '';
 
         for (const [tipoDesc, criterios] of Object.entries(data.tipos)) {
+          if (!selectTipo) continue;
           const tipoOption = Array.from(selectTipo.options).find(opt => opt.text === tipoDesc);
           if (!tipoOption) continue;
           const tipoId = tipoOption.value;
@@ -390,7 +412,7 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
             <div class="criterios-list"></div>
           `;
-          tiposSeleccionados.appendChild(divTipo);
+          if (tiposSeleccionados) tiposSeleccionados.appendChild(divTipo);
           divTipo.querySelector('.eliminar-tipo-btn').addEventListener('click', ()=> divTipo.remove());
 
           const lista = divTipo.querySelector('.criterios-list');
@@ -399,9 +421,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const divC = document.createElement('div');
             divC.classList.add('d-flex','justify-content-between','align-items-center','criterio-item','my-1');
             divC.dataset.id = c.id;
-            
-            const criterioId = parseInt(c.id) || 0;
-            const ponderacionVal = parseFloat(formatPonderacion(c.ponderacion)) || 0;
 
             divC.innerHTML = `
               <span>${c.descripcion}</span>
@@ -414,12 +433,10 @@ document.addEventListener("DOMContentLoaded", function () {
             `;
             lista.appendChild(divC);
 
-
             divC.querySelector('.eliminar-criterio-btn').addEventListener('click', ()=> {
               divC.remove();
               if(lista.querySelectorAll('.criterio-item').length === 0) divTipo.remove();
             });
-
 
             const inputEdit = divC.querySelector('.ponderacion-edit');
             const hiddenP = divC.querySelector('input[name="ponderacion"]');
@@ -437,171 +454,185 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
+  if (selectTipo) {
+    selectTipo.addEventListener('change', function() {
+      const tipoId = this.value;
+      if (criteriosContainer) criteriosContainer.innerHTML = '';
+      if(!tipoId) return;
 
-  selectTipo.addEventListener('change', function() {
-    const tipoId = this.value;
-    criteriosContainer.innerHTML = '';
-    if(!tipoId) return;
+      const criteriosUsados = tiposSeleccionados 
+        ? Array.from(tiposSeleccionados.querySelectorAll('.criterio-item')).map(d => d.dataset.id.toString())
+        : [];
 
-     const criteriosUsados = Array.from(tiposSeleccionados.querySelectorAll('.criterio-item'))
-                                 .map(d => d.dataset.id.toString());
+      const listaData = criteriosData[tipoId] || [];
+      const criteriosDisponibles = listaData.filter(c => !criteriosUsados.includes(c.id));
 
-    const criteriosDisponibles = criteriosData[tipoId].filter(c => !criteriosUsados.includes(c.id));
-
-    if (criteriosDisponibles.length === 0) {
-        criteriosContainer.innerHTML = `
-          <div class="alert alert-warning py-2 text-center">
-            Ya no hay más criterios de este tipo para elegir
-          </div>`;
-        return;
-    }
-
-
-    criteriosDisponibles.forEach(c => {
-        const div = document.createElement('div');
-        div.classList.add('d-flex','align-items-center','mb-2','criterio-row');
-        div.innerHTML = `
-          <div class="form-check me-2">
-            <input class="form-check-input criterio-check" type="checkbox" id="criterio${c.id}">
-            <label class="form-check-label" for="criterio${c.id}">${c.descripcion}</label>
-          </div>
-          <input type="number" min="0" max="1" step="0.01"
-                class="form-control form-control-sm ponderacion-input ms-auto"
-                placeholder="Ponderación" style="width:106px;" disabled>
-          <input type="hidden" class="criterio-id" value="${c.id}">
-        `;
-        criteriosContainer.appendChild(div);
-    });
-
-    criteriosContainer.querySelectorAll('.criterio-check').forEach(cb => {
-      cb.addEventListener('change', function(){
-        const input = this.closest('.criterio-row').querySelector('.ponderacion-input');
-        input.disabled = !this.checked;
-        if (!this.checked) input.value = '';
-      });
-    });
-  });
-
-
-  agregarTipoBtn.addEventListener('click', function(){
-    const tipoId = selectTipo.value;
-    if(!tipoId) return alert('Seleccione un tipo');
-    const tipoDescripcion = selectTipo.options[selectTipo.selectedIndex].text;
-
-    const criteriosChecked = [];
-    criteriosContainer.querySelectorAll('.criterio-row').forEach(row => {
-      const cb = row.querySelector('.criterio-check');
-      if (cb && cb.checked) {
-        const id = row.querySelector('.criterio-id').value;
-        const desc = row.querySelector('label').textContent.trim();
-        let ponder = parseFloat(row.querySelector('.ponderacion-input').value) || 0;
-        criteriosChecked.push({ id, desc, ponder });
+      if (criteriosDisponibles.length === 0) {
+          if (criteriosContainer) {
+            criteriosContainer.innerHTML = `
+              <div class="alert alert-warning py-2 text-center">
+                Ya no hay más criterios de este tipo para elegir
+              </div>`;
+          }
+          return;
       }
-    });
 
+      criteriosDisponibles.forEach(c => {
+          const div = document.createElement('div');
+          div.classList.add('d-flex','align-items-center','mb-2','criterio-row');
+          div.innerHTML = `
+            <div class="form-check me-2">
+              <input class="form-check-input criterio-check" type="checkbox" id="criterio${c.id}">
+              <label class="form-check-label" for="criterio${c.id}">${c.descripcion}</label>
+            </div>
+            <input type="number" min="0" max="1" step="0.01"
+                  class="form-control form-control-sm ponderacion-input ms-auto"
+                  placeholder="Ponderación" style="width:106px;" disabled>
+            <input type="hidden" class="criterio-id" value="${c.id}">
+          `;
+          if (criteriosContainer) criteriosContainer.appendChild(div);
+      });
 
-
-    let totalPonder = criteriosChecked.reduce((acc,c)=>acc+c.ponder,0);
-    if(totalPonder !== 1){
-        const n = criteriosChecked.length;
-        const base = Math.floor((1/n)*100)/100;
-        let resto = 1 - (base * n);
-
-        criteriosChecked.forEach((c, i) => {
-            c.ponder = base;
-            if(i === n - 1) c.ponder += resto;
-            c.ponder = Math.round(c.ponder * 100) / 100;
+      criteriosContainer.querySelectorAll('.criterio-check').forEach(cb => {
+        cb.addEventListener('change', function(){
+          const input = this.closest('.criterio-row').querySelector('.ponderacion-input');
+          if (input) {
+            input.disabled = !this.checked;
+            if (!this.checked) input.value = '';
+          }
         });
-    }
-
-
-    if(criteriosChecked.length === 0) return alert('Seleccione al menos un criterio');
-
-    let divTipo = tiposSeleccionados.querySelector(`.tipo-block[data-tipo="${tipoId}"]`);
-    const sumaActual = divTipo ? Array.from(divTipo.querySelectorAll('.ponderacion-edit')).reduce((acc,input)=>acc+parseFloat(input.value),0) : 0;
-    const sumaNueva = criteriosChecked.reduce((acc,c)=>acc+c.ponder,0);
-    if(sumaActual + sumaNueva > 1) return alert('No puede exceder suma de ponderaciones 1 para este tipo');
-
-    if(!divTipo){
-      divTipo = document.createElement('div');
-      divTipo.classList.add('mb-3','border','p-2','tipo-block');
-      divTipo.dataset.tipo = tipoId;
-      divTipo.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center">
-          <strong>${tipoDescripcion}</strong>
-          <button type="button" class="btn btn-sm btn-outline-danger eliminar-tipo-btn">&times;</button>
-        </div>
-        <div class="criterios-list"></div>
-      `;
-      tiposSeleccionados.appendChild(divTipo);
-      divTipo.querySelector('.eliminar-tipo-btn').addEventListener('click', ()=>divTipo.remove());
-    }
-
-    const lista = divTipo.querySelector('.criterios-list');
-
-    criteriosChecked.forEach(c => {
-      if(lista.querySelector(`.criterio-item[data-id="${c.id}"]`)) return;
-      const divC = document.createElement('div');
-      divC.classList.add('d-flex','justify-content-between','align-items-center','criterio-item','my-1');
-      divC.dataset.id = c.id.toString();
-      divC.innerHTML = `
-        <span>${c.desc}</span>
-        <div class="d-flex align-items-center gap-2">
-          <input type="number" min="0" max="1" step="0.01" class="form-control form-control-sm ponderacion-edit" value="${c.ponder}" style="width:80px;">
-          <input type="hidden" name="criterio" value="${c.id}">
-          <input type="hidden" name="ponderacion" value="${c.ponder}">
-          <button type="button" class="btn btn-sm btn-outline-danger eliminar-criterio-btn">&times;</button>
-        </div>
-      `;
-      lista.appendChild(divC);
-
-      divC.querySelector('.eliminar-criterio-btn').addEventListener('click', ()=> {
-        divC.remove();
-        if(lista.querySelectorAll('.criterio-item').length === 0) divTipo.remove();
-      });
-
-      const inputEdit = divC.querySelector('.ponderacion-edit');
-      const hiddenP = divC.querySelector('input[name="ponderacion"]');
-      inputEdit.addEventListener('input', ()=> {
-        let v = parseFloat(inputEdit.value);
-        if(v<0) v=0;
-        if(v>1) v=1;
-        inputEdit.value = v;
-        hiddenP.value = v;
       });
     });
+  }
 
-    selectTipo.value = '';
-    criteriosContainer.innerHTML = '';
-  });
+  if (agregarTipoBtn) {
+    agregarTipoBtn.addEventListener('click', function(){
+      const tipoId = selectTipo.value;
+      if(!tipoId) return alert('Seleccione un tipo');
+      const tipoDescripcion = selectTipo.options[selectTipo.selectedIndex].text;
 
+      const criteriosChecked = [];
+      if (criteriosContainer) {
 
-  document.getElementById('formEvaluacion').addEventListener('submit', function(e){
-    const tipos = tiposSeleccionados.querySelectorAll('.tipo-block');
-    for(const tipo of tipos){
-      const suma = Array.from(tipo.querySelectorAll('.ponderacion-edit'))
-                      .reduce((acc,input)=>acc+parseFloat(input.value),0);
-      const sumaRedondeada = Math.round(suma * 100) / 100;  
-      if(sumaRedondeada !== 1){
-        alert(`La suma de ponderaciones del tipo "${tipo.querySelector('strong').textContent}" debe ser 1`);
-        e.preventDefault();
-        return false;
+        criteriosContainer.querySelectorAll('.criterio-row').forEach(row => {
+          const cb = row.querySelector('.criterio-check');
+          if (cb && cb.checked) {
+            const id = row.querySelector('.criterio-id').value;
+            const desc = row.querySelector('label').textContent.trim();
+            let ponder = parseFloat(row.querySelector('.ponderacion-input').value) || 0;
+            criteriosChecked.push({ id, desc, ponder });
+          }
+        });
       }
-    }
-  });
 
+      let totalPonder = criteriosChecked.reduce((acc, c) => acc + c.ponder, 0);
+      if (totalPonder !== 1 && criteriosChecked.length > 0) {
+          const n = criteriosChecked.length;
+          const base = Math.floor((1 / n) * 100) / 100;
+          let resto = 1 - (base * n);
 
-  modalEvaluacion.addEventListener('hidden.bs.modal', function () {
-    document.getElementById('id_evaluacion').value = '';
-    document.getElementById('id_descripcion').value = '';
-    document.getElementById('id_fecha_evaluacion').value = '';
-    tiposSeleccionados.innerHTML = '';
-    criteriosContainer.innerHTML = '';
-    selectTipo.value = '';
-  });
+          criteriosChecked.forEach((c, i) => {
+              c.ponder = base;
+              if (i === n - 1) c.ponder += resto;
+              c.ponder = Math.round(c.ponder * 100) / 100;
+          });
+      }
 
+      if (criteriosChecked.length === 0) return alert('Seleccione al menos un criterio');
+
+      let divTipo = tiposSeleccionados ? tiposSeleccionados.querySelector(`.tipo-block[data-tipo="${tipoId}"]`) : null;
+      const sumaActual = divTipo ? Array.from(divTipo.querySelectorAll('.ponderacion-edit')).reduce((acc, input) => acc + parseFloat(input.value), 0) : 0;
+      const sumaNueva = criteriosChecked.reduce((acc, c) => acc + c.ponder, 0);
+      if (sumaActual + sumaNueva > 1) return alert('No puede exceder suma de ponderaciones 1 para este tipo');
+
+      if (!divTipo && tiposSeleccionados) {
+        divTipo = document.createElement('div');
+        divTipo.classList.add('mb-3', 'border', 'p-2', 'tipo-block');
+        divTipo.dataset.tipo = tipoId;
+        divTipo.innerHTML = `
+          <div class="d-flex justify-content-between align-items-center">
+            <strong>${tipoDescripcion}</strong>
+            <button type="button" class="btn btn-sm btn-outline-danger eliminar-tipo-btn">&times;</button>
+          </div>
+          <div class="criterios-list"></div>
+        `;
+        tiposSeleccionados.appendChild(divTipo);
+        divTipo.querySelector('.eliminar-tipo-btn').addEventListener('click', () => divTipo.remove());
+      }
+
+      const lista = divTipo.querySelector('.criterios-list');
+
+      criteriosChecked.forEach(c => {
+        if (lista.querySelector(`.criterio-item[data-id="${c.id}"]`)) return;
+        const divC = document.createElement('div');
+        divC.classList.add('d-flex', 'justify-content-between', 'align-items-center', 'criterio-item', 'my-1');
+        divC.dataset.id = c.id.toString();
+        divC.innerHTML = `
+          <span>${c.desc}</span>
+          <div class="d-flex align-items-center gap-2">
+            <input type="number" min="0" max="1" step="0.01" class="form-control form-control-sm ponderacion-edit" value="${c.ponder}" style="width:80px;">
+            <input type="hidden" name="criterio" value="${c.id}">
+            <input type="hidden" name="ponderacion" value="${c.ponder}">
+            <button type="button" class="btn btn-sm btn-outline-danger eliminar-criterio-btn">&times;</button>
+          </div>
+        `;
+        lista.appendChild(divC);
+
+        divC.querySelector('.eliminar-criterio-btn').addEventListener('click', () => {
+          divC.remove();
+          if (lista.querySelectorAll('.criterio-item').length === 0) divTipo.remove();
+        });
+
+        const inputEdit = divC.querySelector('.ponderacion-edit');
+        const hiddenP = divC.querySelector('input[name="ponderacion"]');
+        inputEdit.addEventListener('input', function() {
+          let v = parseFloat(this.value);
+          if (isNaN(v)) v = 0;
+          if (v < 0) v = 0;
+          if (v > 1) v = 1;
+          hiddenP.value = v;
+        });
+      });
+
+      if (selectTipo) selectTipo.value = '';
+      if (criteriosContainer) criteriosContainer.innerHTML = '';
+    });
+  }
+
+  const formEval = document.getElementById('formEvaluacion');
+  if (formEval) {
+    formEval.addEventListener('submit', function(e) {
+      if (!tiposSeleccionados) return;
+      const tipos = tiposSeleccionados.querySelectorAll('.tipo-block');
+      for (const tipo of tipos) {
+        const suma = Array.from(tipo.querySelectorAll('.ponderacion-edit'))
+                        .reduce((acc, input) => acc + parseFloat(input.value || 0), 0);
+        const sumaRedondeada = Math.round(suma * 100) / 100;  
+        if (sumaRedondeada !== 1) {
+          alert(`La suma de ponderaciones del tipo "${tipo.querySelector('strong').textContent}" debe ser 1`);
+          e.preventDefault();
+          return false;
+        }
+      }
+    });
+  }
+
+  if (modalEvaluacion) {
+    modalEvaluacion.addEventListener('hidden.bs.modal', function () {
+      const idEval = document.getElementById('id_evaluacion');
+      const idDesc = document.getElementById('id_descripcion');
+      const idFecha = document.getElementById('id_fecha_evaluacion');
+      
+      if (idEval) idEval.value = '';
+      if (idDesc) idDesc.value = '';
+      if (idFecha) idFecha.value = '';
+      if (tiposSeleccionados) tiposSeleccionados.innerHTML = '';
+      if (criteriosContainer) criteriosContainer.innerHTML = '';
+      if (selectTipo) selectTipo.value = '';
+    });
+  }
 });
-</script>
 
+</script>
 
 {% endblock %}

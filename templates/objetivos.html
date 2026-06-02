@@ -218,7 +218,7 @@
 <!-- Modal Ver Detalles -->
 {% for objetivo in objetivos %}
 <div class="modal fade" id="modalVerObjetivo{{ objetivo.id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog" style="margin-top: 10rem;">
         <div class="modal-content">
             <div class="modal-header bg-info text-dark">
                 <h5 class="modal-title fw-bold">Detalle del Objetivo</h5>
@@ -348,6 +348,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+
 function cargarDatosDinamicos() {
     const deptoId = document.getElementById('modalFiltroDepto').value;
     const tipo = document.getElementById('tipoAsignacion').value;
@@ -356,7 +357,7 @@ function cargarDatosDinamicos() {
     const divEmp = document.getElementById('selectorEmpleado');
     const divCargo = document.getElementById('selectorCargo');
     const listaEmp = document.getElementById('listaEmpleadosCheckbox');
-    const selectCargo = document.getElementById('cargoSelect'); // <--- ID EXACTO DE TU CODIGO ORIGINAL
+    const selectCargo = document.getElementById('cargoSelect'); 
 
     if (!divEmp || !divCargo || !listaEmp || !selectCargo) return;
 
@@ -383,7 +384,7 @@ function cargarDatosDinamicos() {
                             <div class="form-check d-flex align-items-center mb-1">
                                 <input class="form-check-input" type="checkbox" name="empleado_id" value="${e.id}" id="emp${e.id}" ${estaCheck}>
                                 <label class="form-check-label ms-2 ${estiloAsignado}" for="emp${e.id}">
-                                    ${e.nombre} ${badgeAsignado}
+                                    ${e.apellido}, ${e.nombre} ${badgeAsignado}
                                 </label>
                             </div>`;
                     });
@@ -391,7 +392,6 @@ function cargarDatosDinamicos() {
                     listaEmp.innerHTML = '<p class="text-danger small m-0">No hay empleados vinculados a este departamento.</p>';
                 }
             } else if (tipo === 'cargo') {
-                // RENDERIZADO INYECTANDO NUEVOS CHECKBOXES DIRECTAMENTE ADENTRO DE TU ID ORIGINAL 'cargoSelect'
                 selectCargo.innerHTML = '';
                 if (res.data && res.data.length > 0) {
                     res.data.forEach(c => {
@@ -414,6 +414,7 @@ function cargarDatosDinamicos() {
         })
         .catch(err => console.error("Error en filtro dinámico:", err));
 }
+
 
 function abrirModalAsignar(id, titulo) {
     document.getElementById('asignarObjetivoId').value = id;

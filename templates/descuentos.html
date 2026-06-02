@@ -1,4 +1,5 @@
 {% extends "base.html"%}
+{% load humanize %}
 {% load widget_tweaks %}
 {% load static %}
 
@@ -37,7 +38,7 @@
                 <td>{{ descuento.descripcion }}</td>
                 <td>
                   {% if descuento.monto %}
-                    ${{ descuento.monto }}
+                    ${{ descuento.monto|floatformat:2|intcomma }}
                   {% else %}
                     -
                   {% endif %}
@@ -199,7 +200,7 @@
             <p><strong>Descripcion:</strong> {{ descuento.descripcion }}</p>
             <p><strong>Monto:</strong> 
               {% if descuento.monto %}
-                ${{ descuento.monto }}
+                ${{ descuento.monto|floatformat:2|intcomma }}
               {% else %}
                 -
               {% endif %}

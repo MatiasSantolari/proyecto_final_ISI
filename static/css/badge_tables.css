@@ -111,3 +111,8 @@ body.dark-mode .page-title-custom {
 body.dark-mode .form-label {
   color: #aaa !important; 
 }
+
+input:disabled {
+  cursor: not-allowed !important;
+  background-color: #e9ecef;
+}

@@ -185,8 +185,8 @@
         </div>
     </div>
 
-<div class="modal fade" id="modalCalificar" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable" style="margin-top: 3rem;">
+<div class="modal fade" id="modalCalificar" tabindex="-1" aria-hidden="true" style="z-index: 9999">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable" style="margin-top: 2rem;">
     <div class="modal-content"></div>
   </div>
 </div>
@@ -243,6 +243,80 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
     asignarBotonesCalificacion();
+
+
+
+    function calcularNotasDinamicas() {
+        const bloquesSeccion = document.querySelectorAll(".tipo-seccion-block");
+        const labelCalificacionGlobal = document.getElementById("calificacionFinalGlobal");
+        
+        let sumaTotalesSecciones = 0;
+        let cantidadSeccionesConDatos = 0;
+
+        if (bloquesSeccion.length === 0) return;
+
+        bloquesSeccion.forEach(bloque => {
+            const inputs = bloque.querySelectorAll(".input-calificacion-criterio");
+            const labelSubtotal = bloque.querySelector(".subtotal-seccion-val");
+            
+            let sumaPonderadaSeccion = 0;
+            let tieneAlgunaNota = false;
+
+            inputs.forEach(inputNota => {
+                let rawPonderacion = (inputNota.dataset.ponderacion || "0").toString().replace(',', '.');
+                let rawNota = (inputNota.value || "").toString().replace(',', '.');
+
+                const notaValue = parseFloat(rawNota);
+                const ponderacionValue = parseFloat(rawPonderacion) || 0;
+
+                if (!isNaN(notaValue)) {
+                    sumaPonderadaSeccion += (notaValue * ponderacionValue);
+                    tieneAlgunaNota = true;
+                }
+            });
+
+            if (labelSubtotal) {
+                if (tieneAlgunaNota) {
+                    labelSubtotal.textContent = sumaPonderadaSeccion.toFixed(2);
+                    sumaTotalesSecciones += sumaPonderadaSeccion;
+                    cantidadSeccionesConDatos++;
+                } else {
+                    labelSubtotal.textContent = "0.00";
+                }
+            }
+        });
+
+        if (labelCalificacionGlobal) {
+            if (cantidadSeccionesConDatos > 0) {
+                let notaGlobalFinal = sumaTotalesSecciones / cantidadSeccionesConDatos;
+                labelCalificacionGlobal.textContent = `${notaGlobalFinal.toFixed(2)} / 10`;
+            } else {
+                labelCalificacionGlobal.textContent = "0.00 / 10";
+            }
+        }
+    }
+
+    ['input', 'change'].forEach(evt => {
+        document.addEventListener(evt, function (e) {
+            if (e.target && e.target.classList.contains("input-calificacion-criterio")) {
+                let val = parseFloat(e.target.value.toString().replace(',', '.'));
+                
+                if (val > 10) e.target.value = 10;
+                if (val < 0) e.target.value = 0;
+                
+                calcularNotasDinamicas();
+            }
+        });
+    });
+
+    const modalCalificarEl = document.getElementById('modalCalificar');
+    if (modalCalificarEl) {
+        modalCalificarEl.addEventListener('shown.bs.modal', function () {
+            calcularNotasDinamicas();
+        });
+    }
+
+
 });
 
 

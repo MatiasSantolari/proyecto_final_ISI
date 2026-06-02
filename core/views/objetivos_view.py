@@ -36,14 +36,26 @@ def objetivos(request):
     todos_departamentos = Departamento.objects.all()
 
     if user.rol == "admin":
-        cargos_modal = Cargo.objects.all().distinct()
+        cargos_modal = Cargo.objects.all().distinct().order_by('nombre')
     else:
-        cargos_modal = Cargo.objects.filter(cargodepartamento__departamento=mi_depto).distinct()
+        cargos_modal = Cargo.objects.filter(
+            cargodepartamento__departamento=mi_depto
+        ).distinct().order_by('nombre')
+
+    if user.rol == "admin":
+        empleados_modal = Empleado.objects.filter(estado="activo").order_by('apellido', 'nombre')
+    else:
+        empleados_modal = Empleado.objects.filter(
+            estado="activo",
+            empleadocargo__cargo__cargodepartamento__departamento=mi_depto,
+            empleadocargo__fecha_fin__isnull=True
+        ).distinct().order_by('apellido', 'nombre')
 
     context = {
         'objetivos': page_obj,
         'departamentos': todos_departamentos,
         'cargos': cargos_modal,
+        'empleados_modal': empleados_modal,    
         'objetivo_a_asignar': request.GET.get("asignar"),
         'hoy': date.today(),
     }
@@ -64,7 +76,7 @@ def obtener_datos_por_depto(request):
         empleados = Empleado.objects.filter(
             empleadocargo__cargo__cargodepartamento__departamento_id=depto_id,
             empleadocargo__fecha_fin__isnull=True
-        ).distinct()
+        ).distinct().order_by('apellido', 'nombre')
 
         asignados_ids = []
         if objetivo_id:
@@ -75,7 +87,8 @@ def obtener_datos_por_depto(request):
         data = [
             {
                 'id': e.id, 
-                'nombre': f"{e.nombre} {e.apellido}",
+                'nombre': e.nombre,
+                'apellido': e.apellido,
                 'ya_asignado': e.id in asignados_ids
             } for e in empleados
         ]
@@ -83,7 +96,7 @@ def obtener_datos_por_depto(request):
     elif tipo == 'cargo':
         cargos = Cargo.objects.filter(
             cargodepartamento__departamento_id=depto_id
-        ).distinct()
+        ).distinct().order_by('nombre')
 
         cargos_asignados_ids = []
         if objetivo_id:
@@ -98,8 +111,7 @@ def obtener_datos_por_depto(request):
                 'nombre': c.nombre,
                 'ya_asignado': c.id in cargos_asignados_ids 
             } for c in cargos
-        ]
-    
+        ]    
     else:
         return JsonResponse({'error': 'Tipo no válido'}, status=400)
 

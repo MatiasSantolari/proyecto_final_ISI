@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% load widget_tweaks %}
 {% load static %}
 
@@ -40,7 +41,7 @@
               </td>
               <td>
                 {% if contrato.monto_extra_pactado and contrato.monto_extra_pactado > 0 %}
-                  <span class="fw-bold text-success">${{ contrato.monto_extra_pactado }}</span>
+                  <span class="fw-bold text-success">${{ contrato.monto_extra_pactado|floatformat:2|intcomma }}</span>
                 {% else %}
                   <span class="text-muted">-</span>
                 {% endif %}
@@ -87,7 +88,7 @@
                       </li>
                       <li class="list-group-item"><strong>Monto Extra Pactado:</strong> 
                         {% if contrato.monto_extra_pactado and contrato.monto_extra_pactado > 0 %}
-                          <span class="text-success fw-bold">${{ contrato.monto_extra_pactado }}</span>
+                          <span class="text-success fw-bold">${{ contrato.monto_extra_pactado|floatformat:2|intcomma }}</span>
                         {% else %}
                           <span class="text-muted">No aplica</span>
                         {% endif %}

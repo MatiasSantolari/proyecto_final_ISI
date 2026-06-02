@@ -610,6 +610,8 @@ def exportar_recibo_pdf(request, id_nomina):
         "conceptos": conceptos_recibo,
         "periodo": nomina.fecha_generacion.strftime("%B %Y").upper(),
         "fecha_impresion": date.today().strftime("%d/%m/%Y"),
+        "cargo": nomina.empleado.cargo_actual_nombre(),
+        "departamento": nomina.empleado.departamento_actual_nombre(),
     }
 
     html_string = render_to_string("recibo_sueldo_pdf.html", context)

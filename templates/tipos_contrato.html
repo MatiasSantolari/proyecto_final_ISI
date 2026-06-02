@@ -111,54 +111,73 @@
     </div>
   </div>
 
-  <!-- Modal Crear/Editar -->
-  <div class="modal fade" id="modalTipoContrato" tabindex="-1" aria-labelledby="modalTipoContratoLabel" aria-hidden="true">
-    <div class="modal-dialog" style="margin-top: 6rem;">
-      <div class="modal-content">
-        <form method="post" action="{% url 'crear_tipo_contrato' %}" id="formTipoContrato">
-          {% csrf_token %}
-          <input type="hidden" name="id_tipo" id="id_tipo">
-          <div class="modal-header" style="background-color: #3c8dbc;">
-            <h5 class="modal-title text-white" id="modalTipoContratoLabel">Crear/Editar Tipo de Contrato</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label class="form-label">Descripción</label>
-              {{ form.descripcion }}
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Duración (meses)</label>
-              {{ form.duracion_meses }}
-            </div>
-          </div>
-          <div class="modal-footer bg-light">
-            <button type="submit" class="btn btn-success w-100 fw-bold">
-              <i class="bi bi-save"></i> Guardar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
 
-  <!-- Modal Ver -->
-  {% for tipo in tipos %}
-  <div class="modal fade" id="modalVerTipo{{ tipo.id }}" tabindex="-1" aria-labelledby="modalVerTipo{{ tipo.id }}Label" aria-hidden="true">
-    <div class="modal-dialog" style="margin-top: 6rem;">
-      <div class="modal-content">
+<!-- Modal Crear/Editar -->
+<div class="modal fade" id="modalTipoContrato" tabindex="-1" aria-labelledby="modalTipoContratoLabel" aria-hidden="true">
+  <div class="modal-dialog" style="margin-top: 6rem;">
+    <div class="modal-content">
+      <form method="post" action="{% url 'crear_tipo_contrato' %}" id="formTipoContrato">
+        {% csrf_token %}
+        <input type="hidden" name="id_tipo" id="id_tipo">
         <div class="modal-header" style="background-color: #3c8dbc;">
-          <h5 class="modal-title text-white">Detalles del Tipo de Contrato</h5>
+          <h5 class="modal-title text-white" id="modalTipoContratoLabel">Crear/Editar Tipo de Contrato</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <p><strong>Descripción:</strong> {{ tipo.descripcion }}</p>
-          <p><strong>Duración:</strong> {{ tipo.duracion_meses }} meses</p>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Descripción</label>
+            {{ form.descripcion }}
+          </div>          
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="chkIndefinido">
+            <label class="form-check-label text-muted" for="chkIndefinido">
+              Contrato por tiempo indefinido (sin límite de meses)
+            </label>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Duración (meses)</label>
+            {{ form.duracion_meses }}
+            <div class="invalid-feedback" id="errorMeses">
+              Debes ingresar los meses o marcar la opción de tiempo indefinido.
+            </div>
+          </div>
         </div>
+        <div class="modal-footer bg-light">
+          <button type="submit" class="btn btn-success w-100 fw-bold">
+            <i class="bi bi-save"></i> Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal Ver -->
+{% for tipo in tipos %}
+<div class="modal fade" id="modalVerTipo{{ tipo.id }}" tabindex="-1" aria-labelledby="modalVerTipo{{ tipo.id }}Label" aria-hidden="true">
+  <div class="modal-dialog" style="margin-top: 12rem;">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #3c8dbc;">
+        <h5 class="modal-title text-white">Detalles del Tipo de Contrato</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Descripción:</strong> {{ tipo.descripcion }}</p>
+        <p>
+          <strong>Duración:</strong> 
+          {% if tipo.duracion_meses %}
+            {{ tipo.duracion_meses }} meses
+          {% else %}
+            <span class="badge bg-primary">Tiempo indefinido</span>
+          {% endif %}
+        </p>
       </div>
     </div>
   </div>
-  {% endfor %}
+</div>
+{% endfor %}
+
 
   <!-- Modal Eliminar -->
   <div class="modal fade" id="modalEliminarTipo" tabindex="-1" aria-labelledby="modalEliminarTipoLabel" aria-hidden="true">
@@ -199,6 +218,63 @@ document.addEventListener('DOMContentLoaded', function () {
     const triggerButton = event.relatedTarget;
     if (!triggerButton.getAttribute('data-id')) limpiarFormulario();
   });
+
+
+  
+  const chkIndefinido = document.getElementById("chkIndefinido");
+  const inputMeses = document.getElementById("id_duracion_meses") || document.querySelector("[name='duracion_meses']");
+  const form = document.getElementById("formTipoContrato");
+  const modalElement = document.getElementById("modalTipoContrato");
+
+  function inicializarEstado() {
+    if (!inputMeses.value || inputMeses.value.trim() === "") {
+      chkIndefinido.checked = true;
+      inputMeses.disabled = true;
+      inputMeses.style.pointerEvents = "auto";
+      inputMeses.value = ""; 
+    } else {
+      chkIndefinido.checked = false;
+      inputMeses.disabled = false;
+    }
+  }
+
+  inicializarEstado();
+
+  if (modalElement) {
+    modalElement.addEventListener('shown.bs.modal', function () {
+      inicializarEstado();
+    });
+  }
+
+  chkIndefinido.addEventListener("change", function () {
+    if (this.checked) {
+      inputMeses.value = ""; 
+      inputMeses.disabled = true;
+      inputMeses.style.pointerEvents = "auto";
+      inputMeses.classList.remove("is-invalid");
+    } else {
+      inputMeses.disabled = false;
+      inputMeses.focus();
+    }
+  });
+
+  form.addEventListener("submit", function (e) {
+    if (!chkIndefinido.checked && inputMeses.value.trim() === "") {
+      e.preventDefault(); 
+      inputMeses.classList.add("is-invalid");
+      inputMeses.focus();
+    } else {
+      inputMeses.classList.remove("is-invalid");
+      inputMeses.disabled = false; 
+    }
+  });
+
+  inputMeses.addEventListener("input", function() {
+    if (this.value.trim() !== "") {
+      this.classList.remove("is-invalid");
+    }
+  });
+
 });
 
 function limpiarFormulario() {

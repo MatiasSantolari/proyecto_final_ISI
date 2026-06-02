@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% load widget_tweaks %}
 {% load static %}
 
@@ -274,7 +275,7 @@
         <p><strong>Fecha Inicio:</strong> {{ contrato.fecha_inicio }}</p>
         <p><strong>Fecha Fin:</strong> {{ contrato.fecha_fin }}</p>
         <p><strong>Condiciones:</strong> {{ contrato.condiciones }}</p>
-        <p><strong>Monto Extra:</strong> ${{ contrato.monto_extra_pactado }}</p>
+        <p><strong>Monto Extra:</strong> ${{ contrato.monto_extra_pactado|intcomma }}</p>
         <p><strong>Estado:</strong> 
           {% if contrato.estado == "finalizado" %}
               <span class="badge bg-danger">{{ contrato.estado }}</span>
@@ -357,7 +358,7 @@
                 <td>{{ contrato.contrato }}</td>
                 <td>{{ contrato.fecha_inicio|date:"d/m/Y" }}</td>
                 <td>{{ contrato.fecha_fin|date:"d/m/Y" }}</td>
-                <td>\${{ contrato.monto_extra_pactado }}</td>
+                <td>${{ contrato.monto_extra_pactado|intcomma }}</td>
                 <td>
                   {% if contrato.estado == "finalizado" %}
                       <span class="badge bg-danger">{{ contrato.estado }}</span>
