@@ -68,11 +68,33 @@ def crear_departamento(request):
                         vacante=1
                     )
 
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': True,
+                        'id': nuevo_departamento.id,
+                        'nombre': nuevo_departamento.nombre
+                    })
+
                 messages.success(request, f"Departamento '{nuevo_departamento.nombre}' creado correctamente.")
             else:
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': True,
+                        'id': nuevo_departamento.id,
+                        'nombre': nuevo_departamento.nombre
+                    })
+
                 messages.success(request, f"Departamento '{nuevo_departamento.nombre}' actualizado correctamente.")
 
             return redirect('departamentos')
+        
+        else:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False, 
+                    'errors': form.errors
+                }, status=400)
+            
     else:
         form = DepartamentoForm()
 

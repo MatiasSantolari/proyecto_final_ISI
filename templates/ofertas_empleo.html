@@ -137,14 +137,14 @@
 
 <!-- Modal confirmación sin CV -->
 <div class="modal fade" id="modalSinCV" tabindex="-1" aria-labelledby="modalSinCVLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered" style="margin-top: 12rem;">
+  <div class="modal-dialog modal-lg modal-dialog-centered" style="margin-top: 4rem;">
     <div class="modal-content rounded-3 shadow">
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="modalSinCVLabel">CV no cargado</h5>
+        <h5 class="modal-title" id="modalSinCVLabel">CV No Cargado</h5>
         <button type="button" class="btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
-        No tenés un CV cargado. ¿Querés continuar sin cargarlo o ir a tu perfil para subirlo?
+        No tiene un CV cargado. Quiere continuar Sin Cargarlo o prefire realizar la Carga?
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary btn-sm p-2 mr-3" data-bs-dismiss="modal">Cancelar</button>
@@ -194,7 +194,6 @@
 </div>
 
 <script>
-  // Mostrar toast si hay mensaje guardado en sessionStorage
   window.addEventListener('DOMContentLoaded', () => {
     const mensaje = sessionStorage.getItem('mensaje_toast');
     const tipo = sessionStorage.getItem('tipo_toast');
@@ -238,7 +237,6 @@
     const cargoId = form.dataset.cargoId;
     const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
 
-    // Armar FormData para enviar POST (forzar_sin_cv inicialmente false)
     const formData = new FormData(form);
     formData.set('forzar_sin_cv', 'false');
 
@@ -252,12 +250,10 @@
     .then(response => response.json())
     .then(data => {
       if (data.requiere_confirmacion_cv) {
-        // Mostrar modal
         const modalEl = document.getElementById('modalSinCV');
         const modal = new bootstrap.Modal(modalEl);
         modal.show();
 
-        // Botón continuar sin CV
         document.getElementById('continuarSinCV').onclick = () => {
           formData.set('forzar_sin_cv', 'true');
           modal.hide();
@@ -302,7 +298,6 @@
 
 
 
-// Manejo del formulario de actualización de CV
 document.getElementById('formActualizarCV').addEventListener('submit', function (e) {
   e.preventDefault();
   const form = e.target;

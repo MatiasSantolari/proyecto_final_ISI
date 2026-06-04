@@ -5,11 +5,22 @@
 {% block title %}Gestión de Capacitaciones{% endblock %}
 
 {% block content %}
+<style>
+    #modalInstitucion ~ .modal-backdrop.show {
+        z-index: 2990 !important;
+    }
+</style>
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
 
 <div class="container-fluid p-5 my-2">
-  <h4 class="page-title-custom fw-bold mb-3">Gestión de Capacitaciones y Cursos</h4>
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+    <h4 class="page-title-custom fw-bold mb-3">Gestión de Capacitaciones y Cursos</h4>
+    <a href="{% url 'instituciones' %}" class="btn btn-warning btn-sm p-1 mr-2">
+      <i class="bi bi-arrow-left"></i> Ir a <strong>Instituciones</strong>
+    </a>
+  </div>
 
+    
   <div class="card mb-2">
       <div class="card-header d-flex justify-content-between align-items-center mb-0">
           <button type="button" class="btn mb-0 btn-sm p-2 btn-primary" data-bs-toggle="modal" data-bs-target="#modalCapacitacion" onclick="limpiarFormularioCap()">
@@ -443,90 +454,109 @@
 
 
     document.addEventListener('DOMContentLoaded', function () {
-      const inputUrl = document.getElementById('id_url_sitio');
-      if (inputUrl) {
-          inputUrl.addEventListener('blur', function() {
-              let valor = this.value.trim();
-              if (valor !== "" && !valor.match(/^[a-zA-Z]+:\/\//)) {
-                  this.value = 'https://' + valor;
-              }
-          });
-      }
+        const inputUrl = document.getElementById('id_url_sitio');
+        if (inputUrl) {
+            inputUrl.addEventListener('blur', function() {
+                let valor = this.value.trim();
+                if (valor !== "" && !valor.match(/^[a-zA-Z]+:\/\//)) {
+                    this.value = 'https://' + valor;
+                }
+            });
+        }
 
-      const checkExterno = document.getElementById('id_es_externo');
-      if (checkExterno) {
-          checkExterno.addEventListener('change', function() {
-              toggleCamposExternos(this.checked);
-          });
-      }
+        const checkExterno = document.getElementById('id_es_externo');
+        if (checkExterno) {
+            checkExterno.addEventListener('change', function() {
+                toggleCamposExternos(this.checked);
+            });
+        }
 
-      const inputInicio = document.getElementById('id_fecha_inicio');
-      const inputFin = document.getElementById('id_fecha_fin');
-      const checkSinInicio = document.getElementById('check_sin_inicio');
-      const checkSinFin = document.getElementById('check_sin_fin');
+        const inputInicio = document.getElementById('id_fecha_inicio');
+        const inputFin = document.getElementById('id_fecha_fin');
+        const checkSinInicio = document.getElementById('check_sin_inicio');
+        const checkSinFin = document.getElementById('check_sin_fin');
 
-      if (checkSinInicio) checkSinInicio.addEventListener('change', () => manejarFecha(inputInicio, checkSinInicio));
-      if (checkSinFin) checkSinFin.addEventListener('change', () => manejarFecha(inputFin, checkSinFin));
+        if (checkSinInicio) checkSinInicio.addEventListener('change', () => manejarFecha(inputInicio, checkSinInicio));
+        if (checkSinFin) checkSinFin.addEventListener('change', () => manejarFecha(inputFin, checkSinFin));
 
-      const checkIlimitado = document.getElementById('check_ilimitado');
-      if (checkIlimitado) {
-          checkIlimitado.addEventListener('change', function() {
-              aplicarBloqueoIlimitado(this.checked);
-          });
-      }
+        const checkIlimitado = document.getElementById('check_ilimitado');
+        if (checkIlimitado) {
+            checkIlimitado.addEventListener('change', function() {
+                aplicarBloqueoIlimitado(this.checked);
+            });
+        }
 
-      const modalEliminar = document.getElementById('modalEliminarCapacitacion');
-      if (modalEliminar) {
-          modalEliminar.addEventListener('show.bs.modal', function (event) {
-              const button = event.relatedTarget;
-              const capId = button.getAttribute('data-id');
-              const form = document.getElementById('formEliminarCapacitacion');
-              form.action = `/capacitaciones/${capId}/eliminar/`;
-          });
-      }
-      
-      const btnAbrirInstitucion = document.getElementById('btnAbrirInstitucion');
-      const modalInstEl = document.getElementById('modalInstitucion');
-      const formInst = document.getElementById('formInstitucion');
-      const selectCapacitacion = document.querySelector('select[name="institucion"]');
 
-      const modalInst = new bootstrap.Modal(modalInstEl);
+        const modalCapacitacion = document.getElementById('modalCapacitacion');
+        const modalInstitucion = document.getElementById('modalInstitucion');
 
-      if (btnAbrirInstitucion) {
-          btnAbrirInstitucion.addEventListener('click', function () {
-              formInst.reset(); 
-              document.getElementById('id_institucion').value = ''; 
-              modalInst.show();
-          });
-      }
+        modalInstitucion.addEventListener('show.bs.modal', function () {
+            if (modalCapacitacion.classList.contains('show')) {
+                modalCapacitacion.style.filter = 'blur(5px)';
+                modalCapacitacion.style.transition = 'filter 0.3s ease';
+            }
+        });
 
-      if (formInst) {
-          formInst.addEventListener('submit', function(e) {
-              if (selectCapacitacion) {
-                  e.preventDefault();
-                  const formData = new FormData(formInst);
+        modalInstitucion.addEventListener('hidden.bs.modal', function () {
+            modalCapacitacion.style.filter = 'none';
+        });
 
-                  fetch(formInst.action, {
-                      method: 'POST',
-                      body: formData,
-                      headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                  })
-                  .then(response => response.json())
-                  .then(data => {
-                      if (data.success) {
-                          const newOption = new Option(data.nombre, data.id, true, true);
-                          selectCapacitacion.add(newOption);
-                          
-                          modalInst.hide();
-                          formInst.reset();
-                      } else {
-                          alert("Error al guardar: " + JSON.stringify(data.errors));
-                      }
-                  })
-                  .catch(error => console.error('Error:', error));
-              }
-          });
-      }        
+
+        const modalEliminar = document.getElementById('modalEliminarCapacitacion');
+        if (modalEliminar) {
+            modalEliminar.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const capId = button.getAttribute('data-id');
+                const form = document.getElementById('formEliminarCapacitacion');
+                form.action = `/capacitaciones/${capId}/eliminar/`;
+            });
+        }
+            
+        const btnAbrirInstitucion = document.getElementById('btnAbrirInstitucion');
+        const modalInstEl = document.getElementById('modalInstitucion');
+        const formInst = document.getElementById('formInstitucion');
+        const selectCapacitacion = document.querySelector('select[name="institucion"]');
+
+        const modalInst = new bootstrap.Modal(modalInstEl);
+
+        if (btnAbrirInstitucion) {
+            btnAbrirInstitucion.addEventListener('click', function () {
+                formInst.reset(); 
+                document.getElementById('id_institucion').value = ''; 
+                modalInst.show();
+            });
+        }
+
+        if (formInst) {
+            formInst.addEventListener('submit', function(e) {
+                e.preventDefault();                
+                const selectInstitucionModal = document.querySelector('#modalCapacitacion select[name="institucion"]');
+                const formData = new FormData(formInst);
+
+                fetch(formInst.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (selectInstitucionModal) {
+                            const newOption = new Option(data.nombre, data.id, true, true);
+                            selectInstitucionModal.add(newOption);                            
+                            selectInstitucionModal.value = data.id;
+                            selectInstitucionModal.dispatchEvent(new Event('change'));
+                        }
+                        modalInst.hide();
+                        formInst.reset();
+                    } else {
+                        alert("Error al guardar: " + JSON.stringify(data.errors));
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        }
+
     });
 
 

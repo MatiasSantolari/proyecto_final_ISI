@@ -6,7 +6,17 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
 <div class="container-fluid p-5 my-2">
-<h5 class="page-title-custom fw-bold mb-3">Asignador - Descuentos y Beneficios</h5>
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+    <h5 class="page-title-custom fw-bold mb-3">Asignador de Beneficios y Descuentos</h5>
+    <div class="d-flex gap-2">
+      <a href="{% url 'beneficios' %}" class="btn btn-warning btn-sm p-1 mr-3">
+          <i class="bi bi-arrow-left"></i> Ir a <strong>Beneficios</strong>
+      </a>
+      <a href="{% url 'descuentos' %}" class="btn btn-warning btn-sm p-1 mr-2">
+          <i class="bi bi-arrow-left"></i> Ir a <strong>Descuentos</strong>
+      </a>
+    </div>
+  </div>
 
   <div class="row g-2">
     <div class="col-xl-6 col-lg-12">

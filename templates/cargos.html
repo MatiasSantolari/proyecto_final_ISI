@@ -6,9 +6,26 @@
 {% block title %}Gestión de Cargos{% endblock %}
 
 {% block content %}
+<style>
+  #modalDepartamento ~ .modal-backdrop.show {
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px); 
+    background-color: rgba(0, 0, 0, 0.4); 
+  }
+  #modalDepartamento {
+      z-index: 1060 !important;
+  }
+</style>
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
+
 <div class="container-fluid p-5 my-2">
-  <h4 class="page-title-custom fw-bold mb-3">Gestión de Cargos</h4>
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+    <h4 class="page-title-custom fw-bold mb-3">Gestión de Cargos</h4>
+    <a href="{% url 'departamentos' %}" class="btn btn-warning btn-sm p-1 mr-2">
+      <i class="bi bi-arrow-left"></i> Ir a <strong>Departamentos</strong>
+    </a>
+  </div>
+
 
   <div class="card mb-2">
     <div class="card-header p-2 d-flex justify-content-between align-items-center mb-0 mt-0 bg-light border-bottom">
@@ -170,7 +187,12 @@
           <div class="modal-body">
             <div class="mb-3">
               <label for="id_departamento" class="form-label">Departamento</label>
-              {{ form.departamento }}
+              <div class="input-group">
+                {{ form.departamento|add_class:"form-select" }}
+                <button type="button" class="btn btn-outline-primary" id="btnAbrirDepartamento">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+              </div>
             </div>
             <div class="mb-3">
               <label for="id_nombre" class="form-label">Nombre</label>
@@ -247,12 +269,84 @@
     </div>
   </div>
 
+
+  <div class="modal fade" id="modalDepartamento" tabindex="-1" aria-labelledby="modalDepartamentoLabel" aria-hidden="true">
+      <div class="modal-dialog" style="margin-top: 6rem;">
+        <div class="modal-content">
+          <form method="post" action="{% url 'crear_departamento' %}" id="formDepartamento">
+            {% csrf_token %}
+            <div class="modal-header" style="background-color: #3c8dbc;">
+              <h5 class="modal-title text-white" id="modalDepartamentoLabel">Crear Departamento</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <input type="hidden" name="id_departamento" id="id_departamento">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="nombreDepartamento" class="form-label">Nombre</label>
+                {{ form.nombre }}
+              </div>
+              <div class="mb-3">
+                <label for="descripcionDepartamento" class="form-label">Descripción</label>
+                {{form.descripcion}}
+              </div>
+            </div>
+            <div class="modal-footer bg-light">
+              <button type="submit" id="btnGuardarDepartamento" class="btn btn-success w-100 fw-bold">  
+                <i class="bi bi-save"></i> Guardar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+
 </div>
 
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-      
+    
+    document.getElementById('formDepartamento').addEventListener('submit', function(e) {
+        e.preventDefault(); 
+
+        const formData = new FormData(this);
+        const url = this.getAttribute('action');
+
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest' 
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+              const selectDepartamento = document.querySelector('#modalCargo select[name="departamento"]'); 
+              if (selectDepartamento) {
+                  const nuevaOpcion = new Option(data.nombre, data.id, true, true);
+                  selectDepartamento.add(nuevaOpcion);
+                  selectDepartamento.value = data.id;
+                  selectDepartamento.dispatchEvent(new Event('change'));
+              } else {
+                  console.error("No se pudo localizar el selector de departamentos dentro de #modalCargo.");
+              }
+              const modalInstance = bootstrap.Modal.getInstance(modalDepartamento);
+              if (modalInstance) {
+                  modalInstance.hide();
+              }
+              formDepartamento.reset();
+          }
+
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ocurrió un error al procesar la solicitud.');
+        });
+    });
+
+
     const modalEliminar = document.getElementById('modalEliminarCargo');
     if (modalEliminar) {
       modalEliminar.addEventListener('show.bs.modal', function (event) {
@@ -271,6 +365,37 @@
           limpiarFormulario();
         }
       });
+    }
+
+
+    const modalCargo = document.getElementById('modalCargo');
+    const modalDepartamento = document.getElementById('modalDepartamento');
+
+    modalDepartamento.addEventListener('show.bs.modal', function () {
+        if (modalCargo.classList.contains('show')) {
+            modalCargo.style.filter = 'blur(5px)';
+            modalCargo.style.transition = 'filter 0.3s ease';
+        }
+    });
+
+    modalDepartamento.addEventListener('hidden.bs.modal', function () {
+        modalCargo.style.filter = 'none';
+    });
+
+
+    const btnAbrirDepartamento = document.getElementById('btnAbrirDepartamento');
+    const modalInstEl = document.getElementById('modalDepartamento');
+    const formInst = document.getElementById('formDepartamento');
+    const selectCapacitacion = document.querySelector('select[name="departamento"]');
+
+    const modalInst = new bootstrap.Modal(modalInstEl);
+
+    if (btnAbrirDepartamento) {
+        btnAbrirDepartamento.addEventListener('click', function () {
+            formInst.reset(); 
+            document.getElementById('id_departamento').value = ''; 
+            modalInst.show();
+        });
     }
 
 
