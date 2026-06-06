@@ -1,5 +1,5 @@
 from core.constants import ESTADO_EMPLEADO_CHOICES
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from datetime import date, datetime, timedelta
 from django.urls import reverse
 from ..models import *
@@ -11,6 +11,9 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Case, When, Value, IntegerField
 from django.db.models import Prefetch
 from django.db.models import F 
+from django.http import JsonResponse
+import json
+from django.contrib import messages
 
 
 @login_required
@@ -344,11 +347,17 @@ def empleado_perfil_detalle_view(request, empleado_id):
     if cargo_activo and cargo_activo.cargo.cargodepartamento_set.first():
         departamento_activo = cargo_activo.cargo.cargodepartamento_set.first().departamento
         
+    todas_las_habilidades = Habilidad.objects.all().order_by('nombre')
+    habilidades_asignadas = empleado.habilidadempleado_set.all().select_related('habilidad')
+
     return render(request, 'informes/empleado_perfil_detalle.html', {
         'empleado': empleado,
         'cargo_activo': cargo_activo,
         'departamento_activo': departamento_activo,
+        'todas_las_habilidades': todas_las_habilidades,
+        'habilidades_asignadas': habilidades_asignadas,
     })
+
 
 
 @login_required
@@ -610,6 +619,79 @@ def api_empleado_objetivos(request, empleado_id):
             'rango_paginas': rango_paginas,  
         }
     })
+
+
+
+
+@login_required
+def api_crear_habilidad_rapida(request):
+    """
+    API para crear una habilidad desde el perfil del empleado vía AJAX
+    y retornarla para actualizar el select de inmediato.
+    """
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            nombre = data.get('nombre', '').strip()
+            descripcion = data.get('descripcion', '').strip()
+
+            if not nombre:
+                return JsonResponse({'success': False, 'error': 'El nombre es obligatorio.'}, status=400)
+
+            if Habilidad.objects.filter(nombre__iexact=nombre).exists():
+                return JsonResponse({'success': False, 'error': 'Esta habilidad ya existe en el catálogo.'}, status=400)
+
+            nueva_habilidad = Habilidad.objects.create(nombre=nombre, descripcion=descripcion)
+
+            return JsonResponse({
+                'success': True,
+                'habilidad': {
+                    'id': nueva_habilidad.id,
+                    'nombre': nueva_habilidad.nombre
+                }
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+            
+    return JsonResponse({'success': False, 'error': 'Método no permitido.'}, status=405)
+
+
+
+@login_required
+def asignar_habilidad_view(request, empleado_id):
+    if request.method == 'POST':
+        empleado = get_object_or_404(Empleado, id=empleado_id)
+        habilidad_id = request.POST.get('habilidad')
+        
+        if habilidad_id:
+            habilidad = get_object_or_404(Habilidad, id=habilidad_id)            
+            relacion_existe = empleado.habilidadempleado_set.filter(habilidad=habilidad).exists()
+            
+            if not relacion_existe:
+                empleado.habilidadempleado_set.create(habilidad=habilidad)
+                messages.success(request, f"Habilidad '{habilidad.nombre}' vinculada con éxito.")
+            else:
+                messages.warning(request, "El empleado ya posee esta habilidad asignada.")
+        else:
+            messages.error(request, "Debe seleccionar una habilidad válida.")
+            
+    return redirect('empleado_perfil_detalle', empleado_id=empleado_id)
+
+
+
+@login_required
+def eliminar_habilidad_empleado_view(request, empleado_id, habilidad_id):
+    if request.method == 'POST':
+        empleado = get_object_or_404(Empleado, id=empleado_id)
+        habilidad_vinculada = empleado.habilidadempleado_set.filter(habilidad_id=habilidad_id).first()
+        
+        if habilidad_vinculada:
+            habilidad_vinculada.delete()
+            messages.success(request, "Habilidad removida del perfil correctamente.")
+        else:
+            messages.error(request, "No se encontró la habilidad en el perfil.")
+            
+    return redirect('empleado_perfil_detalle', empleado_id=empleado_id)
 
 
 

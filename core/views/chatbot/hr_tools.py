@@ -563,6 +563,30 @@ def register_daily_attendance_tool(user_id: int) -> str:
 
 
 
+
+@tool("get_employee_skills", args_schema=GenericUserIDInput)
+def get_employee_skills_tool(user_id: int) -> str:
+    """Busca y lista todas las habilidades y competencias técnicas asignadas al perfil del empleado, incluyendo descripciones y fechas de asignación."""
+    from core.models import HabilidadEmpleado 
+
+    empleado = Empleado.objects.filter(usuario=user_id).first()
+    if not empleado: 
+        return "error: empleado_no_encontrado"
+
+    habilidades = HabilidadEmpleado.objects.filter(empleado=empleado).select_related('habilidad').order_by('-fecha_asignacion')
+    
+    if not habilidades.exists(): 
+        return "info: el_empleado_no_tiene_habilidades_o_competencias_tecnicas_asignadas"
+        
+    lista_hab = []
+    for h in habilidades:
+        fecha_str = h.fecha_asignacion.strftime("%d/%m/%Y") if h.fecha_asignacion else "Sin fecha"
+        desc = f" ({h.habilidad.descripcion})" if h.habilidad.descripcion else ""
+        lista_hab.append(f"[{h.habilidad.nombre}{desc}, Asignada_El: {fecha_str}]")
+        
+    return "habilidades_perfil_tecnico: " + " ; ".join(lista_hab)
+
+
 HR_TOOLS = [
     get_vacation_days_tool, 
     get_benefits_tool, 
@@ -584,4 +608,5 @@ HR_TOOLS = [
     postulate_to_internal_job_tool,
     get_training_status_and_obligations_tool,
     register_daily_attendance_tool,
+    get_employee_skills_tool,
 ]

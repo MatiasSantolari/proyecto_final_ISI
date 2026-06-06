@@ -5,14 +5,16 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
 <div class="container-fluid mt-5 pt-5">
-    <a href="#" onclick="window.history.back(); return false;" class="btn btn-secondary btn-sm p-2 mb-2 mt-1">
-        <i class="bi bi-arrow-left"></i> Volver
-    </a>
 
     <div class="row">
-        <div class="col-md-4">
-            <div class="card p-4">
-                <div class="text-center mb-4">
+        <div class="col-md-3">
+            <div class="card p-4 position-relative">
+                
+                <a href="#" onclick="window.history.back(); return false;" class="btn btn-secondary btn-sm p-2 position-absolute top-0 start-0 m-2">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                
+                <div class="text-center mb-4 mt-4">
                     {% if empleado.avatar %}
                         <img src="{{ empleado.avatar.url }}" alt="Avatar" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
                     {% else %}
@@ -45,7 +47,7 @@
             </div>
         </div>
 
-        <div class="col-md-8">
+        <div class="col-md-9">
             <div class="card p-4">
                 <ul class="nav nav-tabs" id="employeeTabs" role="tablist">
                     <li class="nav-item"><button class="nav-link active" id="cargos-tab" data-bs-toggle="tab" data-bs-target="#cargos" type="button">Historial Cargos</button></li>
@@ -54,6 +56,7 @@
                     <li class="nav-item"><button class="nav-link" id="asistencia-tab" data-bs-toggle="tab" data-bs-target="#asistencia" type="button">Asistencia</button></li>
                     <li class="nav-item"><button class="nav-link" id="vacaciones-tab" data-bs-toggle="tab" data-bs-target="#vacaciones" type="button">Vacaciones</button></li>
                     <li class="nav-item"><button class="nav-link" id="objetivos-tab" data-bs-toggle="tab" data-bs-target="#objetivos" type="button">Objetivos</button></li>
+                    <li class="nav-item"><button class="nav-link" id="habilidades-tab" data-bs-toggle="tab" data-bs-target="#habilidades" type="button">Habilidades</button></li>
                 </ul>
                 
                 <div class="tab-content mt-3">
@@ -72,7 +75,7 @@
                                             {% endfor %}
                                         </td>
                                         <td>{{ ec.fecha_inicio|date:"d M Y" }}</td>
-                                    <td>
+                                        <td>
                                             {% if ec.fecha_fin %}
                                                 {{ ec.fecha_fin|date:"d M Y" }}
                                             {% else %}
@@ -93,7 +96,7 @@
                                 <tbody class="text-center" id="nominasBody"></tbody>
                             </table>
                         </div>
-                        <nav><ul class="pagination justify-content-center" id="nominasPaginationControls"></ul></nav>
+                        <nav><ul class="pagination justify-content-center pt-2" id="nominasPaginationControls"></ul></nav>
                     </div>
 
                     <div class="tab-pane fade" id="evaluaciones" role="tabpanel">
@@ -103,7 +106,7 @@
                                 <tbody class="text-center" id="evaluacionesBody"></tbody>
                             </table>
                         </div>
-                        <nav><ul class="pagination justify-content-center" id="evaluacionesPaginationControls"></ul></nav>
+                        <nav><ul class="pagination justify-content-center pt-2" id="evaluacionesPaginationControls"></ul></nav>
                     </div>
 
                     <div class="tab-pane fade" id="asistencia" role="tabpanel">
@@ -113,7 +116,7 @@
                                 <tbody class="text-center" id="asistenciaBody"></tbody>
                             </table>
                         </div>
-                        <nav><ul class="pagination justify-content-center" id="asistenciasPaginationControls"></ul></nav>
+                        <nav><ul class="pagination justify-content-center pt-2" id="asistenciasPaginationControls"></ul></nav>
                     </div>
 
                     <div class="tab-pane fade" id="vacaciones" role="tabpanel">
@@ -123,11 +126,11 @@
                                 <tbody class="text-center" id="vacacionesBody"></tbody>
                             </table>
                         </div>
-                        <nav><ul class="pagination justify-content-center" id="vacacionesPaginationControls"></ul></nav>
+                        <nav><ul class="pagination justify-content-center pt-2" id="vacacionesPaginationControls"></ul></nav>
                     </div>
                     
                     <div class="tab-pane fade" id="objetivos" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
                             <h5>Objetivos Asignados</h5>
                             <select id="filtroTipoObjetivo" class="form-select w-auto form-select-sm">
                                 <option value="todos">Todos los Objetivos</option>
@@ -138,11 +141,80 @@
                         <div class="table-responsive">
                             <table class="table table-sm table-hover table-bordered align-middle table-compact mb-0 w-100">
                                 <thead class="text-center">
-                                <tr><th>Nombre</th><th>Descripción</th><th>Departamento</th><th>Tipo</th><th>Asignación</th><th>Límite</th><th>Completado</th></tr></thead>
+                                <tr><th>Nombre</th><th>Descripción</th><th>Departamento</th><th>Tipo</th><th>Asignación</th><th>Límite</th><th>Compl.</th></tr></thead>
                                 <tbody class="text-center" id="objetivosBody"></tbody>
                             </table>
                         </div>
-                        <nav><ul class="pagination justify-content-center" id="objetivosPaginationControls"></ul></nav>
+                        <nav><ul class="pagination justify-content-center pt-2" id="objetivosPaginationControls"></ul></nav>
+                    </div>
+
+                    <div class="tab-pane fade" id="habilidades" role="tabpanel">
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-body bg-light rounded border">
+                                <h6 class="fw-bold mb-3 text-secondary"><i class="bi bi-plus-circle-fill me-2"></i>Asignar Habilidad al Empleado</h6>
+                                
+                                <form method="post" action="{% url 'asignar_habilidad' empleado.id %}">
+                                    {% csrf_token %}
+                                    <div class="row g-2 align-items-end">
+                                        <div class="col-md-8">
+                                            <label for="selectHabilidad" class="form-label small fw-bold text-muted">Seleccionar Competencia</label>
+                                            <div class="input-group">
+                                                <select name="habilidad" id="selectHabilidad" class="form-select" required>
+                                                    <option value="" selected disabled>-- Seleccione una habilidad --</option>
+                                                    {% for hab in todas_las_habilidades %}
+                                                        <option value="{{ hab.id }}">{{ hab.nombre }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#modalNuevaHabilidadGlobal" title="Crear nueva habilidad en el catálogo general">
+                                                    <i class="bi bi-plus-lg"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button type="submit" class="btn btn-success w-100 fw-bold">
+                                                <i class="bi bi-check-lg me-1"></i> Vincular al Perfil
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover table-bordered align-middle table-compact mb-0 w-100">
+                                <thead class="text-center table-light">
+                                    <tr>
+                                        <th>Habilidad</th>
+                                        <th>Descripción</th>
+                                        <th>Asignada el</th>
+                                        <th style="width: 12%;">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-center">
+                                    {% for item in habilidades_asignadas %}
+                                    <tr>
+                                        <td class="fw-semibold text-start ps-3">{{ item.habilidad.nombre }}</td>
+                                        <td class="text-muted text-start ps-3">{{ item.habilidad.descripcion|default:"-" }}</td>
+                                        <td>{{ item.fecha_asignacion|date:"d M Y" }}</td>
+                                        <td>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#modalEliminarHabilidad"
+                                                    data-url="{% url 'eliminar_habilidad_empleado' empleado.id item.habilidad.id %}"
+                                                    title="Remover habilidad">
+                                                <i class="bi bi-trash3"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted py-3">Este empleado aún no tiene habilidades asignadas.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                 </div>
@@ -150,6 +222,56 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalNuevaHabilidadGlobal" tabindex="-1" aria-labelledby="modalNuevaHabilidadGlobalLabel" aria-hidden="true">
+    <div class="modal-dialog shadow-lg" style="margin-top: 7rem;">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="modalNuevaHabilidadGlobalLabel"><i class="bi bi-pencil-square me-2"></i>Crear Nueva Habilidad General</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="errorAlertaHabilidad" class="alert alert-danger d-none" role="alert"></div>
+                
+                <div class="mb-3">
+                    <label for="modalNombreHabilidad" class="form-label fw-bold">Nombre de la Habilidad <span class="text-danger">*</span></label>
+                    <input type="text" id="modalNombreHabilidad" class="form-control" maxlength="75" placeholder="Ej: Python Avanzado, Liderazgo, Scrum...">
+                </div>
+                <div class="mb-3">
+                    <label for="modalDescHabilidad" class="form-label fw-bold">Descripción (Opcional)</label>
+                    <textarea id="modalDescHabilidad" class="form-control" rows="3" maxlength="255" placeholder="Breve descripción del alcance de la competencia..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnGuardarHabilidadRapida" class="btn btn-primary fw-bold">Guardar Habilidad</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEliminarHabilidad" tabindex="-1" aria-labelledby="modalEliminarHabilidadLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 12rem;">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #3c8dbc;">
+                <h5 class="modal-title text-white" id="modalEliminarHabilidadLabel">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-start">
+                <p>¿Estás seguro de que deseas remover esta habilidad del perfil del empleado?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="formEliminarHabilidad" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <input type="hidden" id="empleadoId" value="{{ empleado.id }}">
 <script src="{% static 'informes/empleado_perfil_detalle/js/empleado_perfil_detalle.js' %}"></script>
 <link rel="stylesheet" href="{% static 'informes/empleado_perfil_detalle/css/empleado_perfil_detalle.css' %}">

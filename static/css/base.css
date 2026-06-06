@@ -21,7 +21,7 @@ body {
 
 .content-wrapper {
     flex: 1 0 auto;
-    padding: 20px;
+    padding: 20px 32px 45px 32px;
     background-color: #f4f6f9;
     margin-top: 0 !important; 
     min-height: calc(100vh - 57px) !important; 

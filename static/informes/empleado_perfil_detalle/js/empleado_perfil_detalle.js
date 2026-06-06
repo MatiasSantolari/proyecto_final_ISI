@@ -215,6 +215,105 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (event.target.id === 'asistencia-tab') loadAsistencia(1);
             else if (event.target.id === 'vacaciones-tab') loadVacaciones(1);
             else if (event.target.id === 'objetivos-tab') loadObjetivos(1);
+            else if (event.target.id === 'habilidades-tab') {
+                console.log("Pestaña de habilidades abierta.");
+            }
         });
     }
+    const btnGuardarHabilidadRapida = document.getElementById('btnGuardarHabilidadRapida');
+    const selectHabilidad = document.getElementById('selectHabilidad');
+    const modalNombreHabilidad = document.getElementById('modalNombreHabilidad');
+    const modalDescHabilidad = document.getElementById('modalDescHabilidad');
+    const errorAlertaHabilidad = document.getElementById('errorAlertaHabilidad');
+    
+    if (btnGuardarHabilidadRapida) {
+        btnGuardarHabilidadRapida.addEventListener('click', async () => {
+            const nombre = modalNombreHabilidad.value.trim();
+            const descripcion = modalDescHabilidad.value.trim();
+            
+            if (!nombre) {
+                errorAlertaHabilidad.textContent = "El nombre de la habilidad es requerido.";
+                errorAlertaHabilidad.classList.remove('d-none');
+                return;
+            }
+            
+            errorAlertaHabilidad.classList.add('d-none');
+            
+            const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+            const csrfToken = csrfInput ? csrfInput.value : '';
+            
+            try {
+                const response = await fetch('/api/habilidades/crear-rapido/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({ nombre: nombre, descripcion: descripcion })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const nuevaOpcion = document.createElement('option');
+                    nuevaOpcion.value = data.habilidad.id;
+                    nuevaOpcion.textContent = data.habilidad.nombre;
+                    nuevaOpcion.selected = true; 
+                    
+                    selectHabilidad.appendChild(nuevaOpcion);
+                    
+                    modalNombreHabilidad.value = '';
+                    modalDescHabilidad.value = '';
+                    
+                    const modalElement = document.getElementById('modalNuevaHabilidadGlobal');
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
+                    
+                    console.log("Catálogo actualizado. Nueva habilidad inyectada: " + data.habilidad.nombre);
+                } else {
+                    errorAlertaHabilidad.textContent = data.error || "Ocurrió un error inesperado.";
+                    errorAlertaHabilidad.classList.remove('d-none');
+                }
+            } catch (err) {
+                console.error("Error crítico de comunicación AJAX:", err);
+                errorAlertaHabilidad.textContent = "Error al intentar conectar con el servidor.";
+                errorAlertaHabilidad.classList.remove('d-none');
+            }
+        });
+    }
+
+
+
+    const modalEliminar = document.getElementById('modalEliminarHabilidad');
+    if (modalEliminar) {
+        modalEliminar.addEventListener('show.bs.modal', (event) => {
+            const button = event.relatedTarget;
+            const urlEliminar = button.getAttribute('data-url');        
+            const form = document.getElementById('formEliminarHabilidad');
+            if (form) {
+                form.action = urlEliminar;
+            }
+        });
+    }
+
+    const activeTab = localStorage.getItem('selectedEmpTab');
+    if (activeTab) {
+        const tabTrigger = document.querySelector(`button[data-bs-target="${activeTab}"]`);
+        if (tabTrigger) {
+            const tab = new bootstrap.Tab(tabTrigger);
+            tab.show();
+        }
+    }
+
+    const tabButtons = document.querySelectorAll('button[data-bs-toggle="tab"]');
+    tabButtons.forEach(button => {
+        button.addEventListener('shown.bs.tab', (event) => {
+            const targetId = event.target.getAttribute('data-bs-target');
+            localStorage.setItem('selectedEmpTab', targetId);
+        });
+    });
+
+
 });

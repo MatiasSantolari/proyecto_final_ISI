@@ -13,7 +13,7 @@ from django.shortcuts import render
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from .hr_reporter import generar_informe_ia
 from ...models import ReporteDashboardIA  
-from core.models import HistorialAsistencia, EvaluacionEmpleado, Empleado
+from core.models import HistorialAsistencia, EvaluacionEmpleado, Empleado, HabilidadEmpleado
 
 
 
@@ -57,9 +57,18 @@ def api_generar_reporte_ia_view(request):
             } for ev in evaluaciones_bajas
         ]
 
+        
+        empleados_nuevas_habilidades = HabilidadEmpleado.objects.filter(
+            fecha_asignacion__range=[hace_30_dias, hoy]
+        ).values('empleado').distinct().count()
+
+        
         datos_dashboard['detalles_nomina_exclusivos_ia'] = {
             'top_empleados_ausentes_30_dias': lista_ausentes,
-            'empleados_con_bajo_desempeño_calificacion_6': lista_evaluaciones_bajas
+            'empleados_con_bajo_desempeño_calificacion_6': lista_evaluaciones_bajas,
+            'metricas_desarrollo_talento': {
+                'empleados_aprendieron_habilidades_ultimo_mes': empleados_nuevas_habilidades
+            }
         }
 
         html_reporte = generar_informe_ia(
@@ -67,6 +76,7 @@ def api_generar_reporte_ia_view(request):
             rol_actual=rol_actual, 
             tipo_informe=tipo_informe
         )
+        
         
         if "alert-danger" in html_reporte:
             return JsonResponse({"reporte": html_reporte})

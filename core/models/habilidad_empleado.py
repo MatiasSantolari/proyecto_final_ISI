@@ -5,7 +5,8 @@ from .empleado import Empleado
 class HabilidadEmpleado(models.Model):
     habilidad = models.ForeignKey(Habilidad, on_delete=models.CASCADE)
     empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
-
+    fecha_asignacion = models.DateField(auto_now_add=True)
+    
     class Meta:
         verbose_name = 'HabilidadEmpleado'
         verbose_name_plural = 'HabilidadesEmpleados'

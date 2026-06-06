@@ -20,7 +20,8 @@ from .hr_tools import (
     get_attendance_summary_tool,
     get_recommended_courses_tool,
     get_boss_and_manager_info_tool,
-    get_team_members_tool
+    get_team_members_tool,
+    get_employee_skills_tool,
 )
 
 
