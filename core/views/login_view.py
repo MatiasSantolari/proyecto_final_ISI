@@ -24,7 +24,7 @@ def cambiar_vista(request):
         return redirect(reverse('home'))
     
     rol = request.POST.get('rol')
-    if rol in ['admin', 'empleado', 'jefe', 'gerente']:
+    if rol in ['admin', 'empleado', 'jefe', 'gerente', 'normal']:
         request.session['rol_actual'] = rol
         messages.success(request, f"Vista cambiada a {rol.capitalize()}.")
         return redirect('home')

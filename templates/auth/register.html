@@ -12,35 +12,46 @@
 
     <form method="POST" class="text-start">
       {% csrf_token %}
-      {{ form.non_field_errors }}
+      
+      {% if form.non_field_errors or form.captcha.errors %}
+        <div class="alert alert-danger d-flex align-items-center border-0 shadow-sm mb-3 py-2 animate__animated animate__shakeX" role="alert">
+          <i class="bi bi-exclamation-triangle-fill fs-5 me-2"></i>
+          <div class="small fw-semibold">
+            {{ form.non_field_errors }}
+            {% if form.captcha.errors %}
+              Validación de seguridad automática fallida. Intente de nuevo.
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
 
-      <!-- Nombre de usuario -->
       <div class="mb-3 position-relative">
-        {{ form.username.errors }}
-        <input type="text" name="username" class="form-control bg-transparent text-white border-white ps-4 pe-5" placeholder="Nombre de usuario" required>
+        {% for error in form.username.errors %}<div class="text-danger small mb-1 fw-bold">⚠️ {{ error }}</div>{% endfor %}
+        {{ form.username }}
         <i class="bi bi-person-fill position-absolute top-50 end-0 translate-middle-y text-white me-3"></i>
       </div>
 
-      <!-- Correo -->
       <div class="mb-3 position-relative">
-        {{ form.email.errors }}
-        <input type="email" name="email" class="form-control bg-transparent text-white border-white ps-4 pe-5" placeholder="Correo electrónico" required>
+        {% for error in form.email.errors %}<div class="text-danger small mb-1 fw-bold">⚠️ {{ error }}</div>{% endfor %}
+        {{ form.email }}
         <i class="bi bi-envelope-fill position-absolute top-50 end-0 translate-middle-y text-white me-3"></i>
       </div>
+      
       <hr>
-      <!-- Contraseña 1 -->
+      
       <div class="mb-3 position-relative">
-        {{ form.password1.errors }}
-        <input type="password" name="password1" class="form-control bg-transparent text-white border-white ps-4 pe-5" placeholder="Contraseña" required>
+        {% for error in form.password1.errors %}<div class="text-danger small mb-1 fw-bold">⚠️ {{ error }}</div>{% endfor %}
+        {{ form.password1 }}
         <i class="bi bi-lock-fill position-absolute top-50 end-0 translate-middle-y text-white me-3"></i>
       </div>
 
-      <!-- Contraseña 2 -->
       <div class="mb-3 position-relative">
-        {{ form.password2.errors }}
-        <input type="password" name="password2" class="form-control bg-transparent text-white border-white ps-4 pe-5" placeholder="Confirmar contraseña" required>
+        {% for error in form.password2.errors %}<div class="text-danger small mb-1 fw-bold">⚠️ {{ error }}</div>{% endfor %}
+        {{ form.password2 }}
         <i class="bi bi-lock-fill position-absolute top-50 end-0 translate-middle-y text-white me-3"></i>
       </div>
+
+      {{ form.captcha }}
 
       <button type="submit" class="btn btn-success w-100 fw-bold shadow mt-2">
         <i class="bi bi-person-check-fill me-2"></i>Crear cuenta

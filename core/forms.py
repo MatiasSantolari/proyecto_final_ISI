@@ -8,11 +8,42 @@ from dateutil.relativedelta import relativedelta
 from .constants import *
 from django.core.exceptions import ValidationError
 from django.db.models import Q, Case, When, IntegerField
+from django_recaptcha.fields import ReCaptchaField
+from django_recaptcha.widgets import ReCaptchaV3
+from django import forms
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import PasswordResetForm
 
 
-class LoginForm(forms.Form):
-    nombre_usuario = forms.CharField(max_length=50)
-    password = forms.CharField(widget=forms.PasswordInput)
+class LoginForm(AuthenticationForm):
+    username = forms.CharField(
+        max_length=50,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+            'placeholder': 'Usuario',
+            'required': True
+        })
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+            'placeholder': 'Contraseña',
+            'autocomplete': 'off',
+            'required': True
+        })
+    )
+    captcha = ReCaptchaField(widget=ReCaptchaV3)
+
+
+class CustomPasswordResetForm(PasswordResetForm):
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control bg-transparent text-white border-white ps-4 pe-5',
+            'placeholder': 'Correo electrónico',
+            'required': True
+        })
+    )    
+    captcha = ReCaptchaField(widget=ReCaptchaV3)
 
 
 class RegistroForm(UserCreationForm):
@@ -43,9 +74,11 @@ class RegistroForm(UserCreationForm):
             'placeholder': 'Confirmar contraseña',
         })
     )
+    captcha = ReCaptchaField(widget=ReCaptchaV3)
+
     class Meta:
         model = Usuario  
-        fields = ("username", "email", "password1", "password2")
+        fields = ("username", "email", "password1", "password2", "captcha")
 
     def save(self, commit=True):
         user = super().save(commit=False)

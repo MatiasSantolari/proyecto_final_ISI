@@ -61,11 +61,14 @@ class DatosBancariosEmpleado(models.Model):
     )
     banco_nombre = models.CharField(
         max_length=50, 
-        default="Banco Galicia", 
+        null=True, 
+        blank=True, 
         verbose_name="Entidad Bancaria"
     )
     cbu_cuenta = models.CharField(
         max_length=22, 
+        null=True, 
+        blank=True, 
         verbose_name="CBU Cuenta Sueldo"
     )
 
@@ -82,6 +85,7 @@ class DatosBancariosEmpleado(models.Model):
                 raise ValidationError('El CBU debe contener exactamente 22 caracteres numéricos.')
             if not self.cbu_cuenta.isdigit():
                 raise ValidationError('El CBU solo puede contener caracteres numéricos del 0 al 9.')
+
 
     def __str__(self):
         return f"{self.empleado.apellido} {self.empleado.nombre} - {self.banco_nombre}: {self.cbu_cuenta}"

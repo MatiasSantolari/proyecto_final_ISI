@@ -2,8 +2,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-
 from core.auth.views import oauth_complete_safe
+from django.shortcuts import render
+
+
+handler403 = 'app.urls.error_429_view'
+
+def error_429_view(request, exception=None):
+    return render(request, 'errors/429.html', status=403)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

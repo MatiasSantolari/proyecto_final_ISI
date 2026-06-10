@@ -24,9 +24,14 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv('GOOGLE_CLIENT_ID')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
 FRONTEND_URL = os.environ.get("FRONTEND_URL")
 
+RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC_KEY')
+RECAPTCHA_PRIVATE_KEY =  os.getenv('RECAPTCHA_PRIVATE_KEY')
+RECAPTCHA_REQUIRED_SCORE = 0.5 
+
 SITE_ID = 1
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['email', 'profile']
 SOCIAL_AUTH_LOGIN_ERROR_URL = '/auth/login/'
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = 'home'
 
 AUTH_USER_MODEL = 'core.Usuario'
 
@@ -46,6 +51,8 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'sanbamerofactory@gmail.com'     
 EMAIL_HOST_PASSWORD = 'gbyo gdqc qxia gcvc'   
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+RATELIMIT_USE_CACHE = 'default'
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -85,6 +92,7 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django_recaptcha',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
