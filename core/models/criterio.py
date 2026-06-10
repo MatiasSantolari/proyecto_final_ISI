@@ -4,6 +4,7 @@ from .tipo_criterio import TipoCriterio
 class Criterio(models.Model):
     tipo_criterio = models.ForeignKey(TipoCriterio, on_delete=models.CASCADE)
     descripcion = models.CharField(max_length=255, null=True, blank=True, verbose_name='Descripcion del criterio')
+    activo = models.BooleanField(default=True, verbose_name='¿Está Activo?')
     
     class Meta:
         verbose_name = 'Criterio'

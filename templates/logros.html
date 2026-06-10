@@ -33,7 +33,12 @@
           <tbody class="text-center">
             {% for logro in logros %}
             <tr>
-              <td>{{ logro.descripcion }}</td>
+              <td>
+                {{ logro.descripcion }}
+                {% if not logro.activo %}
+                  <span class="badge bg-secondary text-white ms-1" style="font-size: 0.7rem;">Inactivo</span>
+                {% endif %}
+              </td>
               <td>
                   {% if logro.beneficio_asociado %}
                       <span class="badge bg-primary">
@@ -51,7 +56,7 @@
               <td>{{ logro.tipo }}</td> 
               <td>
                 <div class="d-flex justify-content-center gap-2">
-                  <button class="btn btn-sm btn-outline-secondary me-1"
+                  <button class="btn btn-sm btn-outline-secondary"
                           data-bs-toggle="modal" data-bs-target="#modalLogro"
                           data-id="{{ logro.id }}"
                           data-descripcion="{{ logro.descripcion }}"
@@ -59,21 +64,31 @@
                           data-tipo="{{ logro.tipo|default_if_none:'' }}"
                           onclick="editarLogro(this)"
                           data-bs-toggle="tooltip" title="Editar">
-                    <i class="bi bi-pencil-square"></i>
+                    <i class="bi bi-pencil-fill fs-6"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-info me-1"
+                  <button class="btn btn-sm btn-outline-info"
                           data-bs-toggle="modal"
                           data-bs-target="#modalVerLogro{{ logro.id }}"
                           data-bs-toggle="tooltip" title="Ver">
-                    <i class="bi bi-eye"></i>
+                    <i class="bi bi-eye-fill fs-6"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-danger"
-                          data-bs-toggle="modal"
-                          data-bs-target="#modalEliminarLogro"
-                          data-id="{{ logro.id }}"
-                          data-bs-toggle="tooltip" title="Eliminar">
-                    <i class="bi bi-trash3"></i>
-                  </button>
+                  {% if logro.activo %}
+                    <button class="btn btn-sm btn-outline-warning"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalDesactivarLogro"
+                            data-id="{{ logro.id }}"
+                            data-bs-toggle="tooltip" title="Desactivar">
+                      <i class="bi bi-dash-circle-fill fs-6"></i>
+                    </button>
+                  {% else %}
+                    <button class="btn btn-sm btn-outline-success"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalReactivarLogro"
+                            data-id="{{ logro.id }}"
+                            data-bs-toggle="tooltip" title="Reactivar Logro">
+                      <i class="bi bi-arrow-counterclockwise fs-6"></i>
+                    </button>
+                  {% endif %}
                 </div>
               </td>
             </tr>
@@ -210,36 +225,79 @@
 
   {% for logro in logros %}
   <div class="modal fade" id="modalVerLogro{{ logro.id }}" tabindex="-1" aria-labelledby="modalVerLogro{{ logro.id }}Label" aria-hidden="true">
-    <div class="modal-dialog" style="margin-top: 6rem;">
+    <div class="modal-dialog" style="margin-top: 12rem;">
       <div class="modal-content">
         <div class="modal-header" style="background-color: #3c8dbc;">
           <h5 class="modal-title text-white">Detalles del Logro</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <p><strong>Descripción:</strong> {{ logro.descripcion|default:"Sin descripción" }}</p>
+          <p>
+            <strong>Descripción:</strong> {{ logro.descripcion|default:"Sin descripción" }}
+            {% if not logro.activo %}
+              <span class="badge bg-secondary text-white ms-1" style="font-size: 0.7rem;">Inactivo</span>
+            {% endif %}
+          </p>
+          <p>
+            <strong>Logro Beneficio: </strong>
+            {% if logro.beneficio_asociado %}
+              <span class="badge bg-primary">
+                {{ logro.beneficio_asociado }} 
+                {% if logro.beneficio_monto %}
+                    (${{ logro.beneficio_monto }})
+                {% elif logro.beneficio_porcentaje %}
+                    ({{ logro.beneficio_porcentaje }}%)
+                {% endif %}
+              </span>
+            {% else %}
+                <span class="badge bg-secondary">Ninguno</span>
+            {% endif %}
+          </p>  
+          <p><strong>Tipo de Logro:</strong> {{ logro.tipo }}</p>
         </div>
       </div>
     </div>
   </div>
   {% endfor %}
 
-  <!-- Modal Eliminar -->
-  <div class="modal fade" id="modalEliminarLogro" tabindex="-1" aria-labelledby="modalEliminarLogroLabel" aria-hidden="true">
+  <!-- Modal para Confirmar Desactivación -->
+  <div class="modal fade" id="modalDesactivarLogro" tabindex="-1" aria-labelledby="modalDesactivarLogroLabel" aria-hidden="true">
     <div class="modal-dialog" style="margin-top: 12rem;">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: #3c8dbc;">
-          <h5 class="modal-title text-white">Confirmar Eliminación</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      <div class="modal-content shadow-lg border-0">
+        <div class="modal-header bg-warning text-dark py-2.5">
+          <h5 class="modal-title fw-bold" id="modalDesactivarLogroLabel">Confirmar Desactivación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-          <p>¿Estás seguro de que deseas eliminar este logro?</p>
+        <div class="modal-body p-4 text-center">
+          <p class="fs-6 mb-0 text-secondary fw-semibold">¿Estás seguro de que deseas desactivar este Logro? Ya no se evaluará para nuevas metas e insignias corporativas pero se preservará su historial.</p>
         </div>
-        <div class="modal-footer">
-          <form id="formEliminarLogro" method="post">
+        <div class="modal-footer bg-light py-2">
+          <form id="formDesactivarLogro" method="post" class="m-0 w-100 d-flex justify-content-end gap-2">
             {% csrf_token %}
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-danger">Eliminar</button>
+            <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-warning text-dark fw-bold px-4">Desactivar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Confirmar Reactivación -->
+  <div class="modal fade" id="modalReactivarLogro" tabindex="-1" aria-labelledby="modalReactivarLogroLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 12rem;">
+      <div class="modal-content shadow-lg border-0">
+        <div class="modal-header" style="background-color: #28a745;">
+          <h5 class="modal-title text-white fw-bold" id="modalReactivarLogroLabel">Confirmar Reactivación</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4 text-center">
+          <p class="fs-6 mb-0 text-secondary fw-semibold">¿Estás seguro de que deseas reactivar este Logro? Volverá a estar completamente operativo en el sistema para la gamificación del personal.</p>
+        </div>
+        <div class="modal-footer bg-light py-2">
+          <form id="formReactivarLogro" method="post" class="m-0 w-100 d-flex justify-content-end gap-2">
+            {% csrf_token %}
+            <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-success fw-bold px-4">Reactivar</button>
           </form>
         </div>
       </div>
@@ -251,13 +309,23 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    const modalEliminar = document.getElementById('modalEliminarLogro');
-    if (modalEliminar) {
-      modalEliminar.addEventListener('show.bs.modal', function (event) {
+    const modalDesactivar = document.getElementById('modalDesactivarLogro');
+    if (modalDesactivar) {
+      modalDesactivar.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
         const logroId = button.getAttribute('data-id');
-        const form = document.getElementById('formEliminarLogro');
-        form.action = `/logros/${logroId}/eliminar/`; 
+        const form = document.getElementById('formDesactivarLogro');
+        if (form) form.action = `/logros/${logroId}/eliminar/`;
+      });
+    }
+
+    const modalReactivar = document.getElementById('modalReactivarLogro');
+    if (modalReactivar) {
+      modalReactivar.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const logroId = button.getAttribute('data-id');
+        const form = document.getElementById('formReactivarLogro');
+        if (form) form.action = `/logros/${logroId}/reactivar/`;
       });
     }
 
@@ -330,34 +398,29 @@
     document.getElementById('id_logro').value = '';
     
     const selectBeneficio = document.getElementById('id_beneficio');
-    if (selectBeneficio) {
-        selectBeneficio.value = ''; 
-    }
+    if (selectBeneficio) selectBeneficio.value = ''; 
+    
     const selectTipo = document.getElementById('id_tipo');
-    if (selectTipo) {
-        selectTipo.value = ''; 
-    }
+    if (selectTipo) selectTipo.value = ''; 
   }
 
+
   function editarLogro(button) {
+    limpiarFormulario();
+
     const id = button.getAttribute('data-id');
     const descripcion = button.getAttribute('data-descripcion');
     const beneficioId = button.getAttribute('data-beneficioId');
     const tipo = button.getAttribute('data-tipo');
 
     document.getElementById('id_logro').value = id || '';
-    document.getElementById('id_descripcion').value = descripcion || '';
-    
-    const selectTipo = document.getElementById('id_tipo');
-    if (selectTipo && tipo) {
-        selectTipo.value = tipo;
-    }
+    document.getElementById('id_beneficio').value = beneficioId || '';
+    document.getElementById('id_tipo').value = tipo || '';
 
-    const selectBeneficio = document.getElementById('id_beneficio');
-    if (selectBeneficio && beneficioId) {
-        selectBeneficio.value = beneficioId;
-    } else if (selectBeneficio) {
-        selectBeneficio.value = ''; 
+    if (!descripcion || descripcion === 'None' || descripcion.trim() === '') {
+        document.getElementById('id_descripcion').value = ''; 
+    } else {
+        document.getElementById('id_descripcion').value = descripcion;
     }
 
     document.getElementById('modalLogroLabel').textContent = 'Editar Logro';

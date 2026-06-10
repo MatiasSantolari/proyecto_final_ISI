@@ -3,7 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Case, When, Value, IntegerField, Q
+from django.db.models import Case, When, Value, IntegerField, Q, F
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from ..models import *
 from ..forms import *
@@ -77,20 +77,31 @@ def gestionar_vacaciones(request):
 
     departamento = rol.departamento_actual()
 
+
     if user.rol == "admin":
-        solicitudes_list = (VacacionesSolicitud.objects
-            .exclude(estado="cancelado")
-            .annotate(
-                estado_prioridad=Case(
-                    When(estado="pendiente", then=Value(1)),
-                    When(estado="aprobado", then=Value(2)),
-                    When(estado="rechazado", then=Value(3)),
-                    default=Value(4),
-                    output_field=IntegerField(),
-                )
+        solicitudes_list = VacacionesSolicitud.objects.exclude(estado="cancelado").annotate(
+            estado_prioridad=Case(
+                When(estado="pendiente", then=Value(1)),
+                When(estado="aprobado", then=Value(2)),
+                When(estado="rechazado", then=Value(3)),
+                default=Value(4),
+                output_field=IntegerField(),
+            ),
+            fecha_orden_asc=Case(
+                When(estado="pendiente", then=F("fecha_inicio")),
+                default=Value(date(2099, 1, 1)),
+            ),
+            fecha_orden_desc=Case(
+                When(estado="pendiente", then=Value(date(1900, 1, 1))),
+                default=F("fecha_inicio"),
             )
-            .order_by("-fecha_solicitud", "fecha_inicio", "estado_prioridad")
+        )        
+        solicitudes_list = solicitudes_list.order_by(
+            "estado_prioridad", 
+            "fecha_orden_asc", 
+            "-fecha_orden_desc"
         )
+
     else:
         empleado = get_object_or_404(Empleado, usuario=user)
         solicitudes_list = (VacacionesSolicitud.objects

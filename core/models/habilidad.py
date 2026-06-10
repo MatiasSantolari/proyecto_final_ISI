@@ -3,7 +3,8 @@ from django.db import models
 class Habilidad(models.Model):
     nombre = models.CharField(max_length=75, verbose_name='Nombre habilidad')
     descripcion = models.CharField(max_length=255, null=True, blank=True, verbose_name='Descripcion habilidad')
-
+    activo = models.BooleanField(default=True, verbose_name='¿Está Activo?')
+    
     class Meta:
         verbose_name = 'Habilidad'
         verbose_name_plural = 'Habilidades'

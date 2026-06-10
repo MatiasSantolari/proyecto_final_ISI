@@ -30,13 +30,18 @@
             <tr>
               <th>Descripción</th>
               <th style="width:25%;">Duración (meses)</th>
-              <th style="width:15%;">Acciones</th>
+              <th style="width:12%;">Acciones</th>
             </tr>
           </thead>
           <tbody class="text-center">
             {% for tipo in tipos %}
             <tr>
-              <td>{{ tipo.descripcion }}</td>
+              <td>
+                {{ tipo.descripcion }}
+                {% if not tipo.activo %}
+                  <span class="badge bg-secondary text-white ms-1" style="font-size: 0.7rem;">Inactivo</span>
+                {% endif %}
+              </td>
               <td>
                 {% if tipo.duracion_meses %}
                   {{ tipo.duracion_meses }} meses
@@ -46,7 +51,7 @@
               </td>
               <td>
                 <div class="d-flex justify-content-center gap-2">
-                  <button class="btn btn-sm btn-outline-secondary me-1"
+                  <button class="btn btn-sm btn-outline-secondary"
                           data-bs-toggle="modal"
                           data-bs-target="#modalTipoContrato"
                           data-id="{{ tipo.id }}"
@@ -54,24 +59,35 @@
                           data-duracion="{{ tipo.duracion_meses }}"
                           onclick="editarTipo(this)"
                           data-bs-toggle="tooltip" title="Editar">
-                    <i class="bi bi-pencil-square"></i>
+                    <i class="bi bi-pencil-fill fs-6"></i>
                   </button>
 
-                  <button class="btn btn-sm btn-outline-info me-1"
+                  <button class="btn btn-sm btn-outline-info"
                           data-bs-toggle="modal"
                           data-bs-target="#modalVerTipo{{ tipo.id }}"
                           data-bs-toggle="tooltip" title="Ver">
-                    <i class="bi bi-eye"></i>
+                    <i class="bi bi-eye-fill fs-6"></i>
                   </button>
 
-                  <button class="btn btn-sm btn-outline-danger"
-                          data-bs-toggle="modal"
-                          data-bs-target="#modalEliminarTipo"
-                          data-id="{{ tipo.id }}"
-                          data-bs-toggle="tooltip" title="Eliminar">
-                    <i class="bi bi-trash3"></i>
-                  </button>
+                  {% if tipo.activo %}
+                    <button class="btn btn-sm btn-outline-warning"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalEliminarTipo"
+                            data-id="{{ tipo.id }}"
+                            data-bs-toggle="tooltip" title="Desactivar">
+                      <i class="bi bi-dash-circle-fill fs-6"></i>
+                    </button>
+                  {% else %}
+                    <button class="btn btn-sm btn-outline-success"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalReactivarTipo"
+                            data-id="{{ tipo.id }}"
+                            data-bs-toggle="tooltip" title="Reactivar Tipo de Contrato">
+                      <i class="bi bi-arrow-counterclockwise fs-6"></i>
+                    </button>
+                  {% endif %}
                 </div>
+
               </td>
             </tr>
             {% empty %}
@@ -168,7 +184,12 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <p><strong>Descripción:</strong> {{ tipo.descripcion }}</p>
+        <p>
+          <strong>Descripción:</strong> {{ tipo.descripcion }}
+          {% if not tipo.activo %}
+            <span class="badge bg-secondary text-white ms-1" style="font-size: 0.7rem;">Inactivo</span>
+          {% endif %}
+        </p>
         <p>
           <strong>Duración:</strong> 
           {% if tipo.duracion_meses %}
@@ -184,22 +205,44 @@
 {% endfor %}
 
 
-  <!-- Modal Eliminar -->
+  <!-- Modal para Confirmar Desactivación -->
   <div class="modal fade" id="modalEliminarTipo" tabindex="-1" aria-labelledby="modalEliminarTipoLabel" aria-hidden="true">
     <div class="modal-dialog" style="margin-top: 12rem;">
       <div class="modal-content">
-        <div class="modal-header" style="background-color: #3c8dbc;">
-          <h5 class="modal-title text-white">Confirmar Eliminación</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-header bg-warning">
+          <h5 class="modal-title fw-bold" id="modalEliminarTipoLabel">Confirmar Desactivación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>¿Estás seguro de que deseas eliminar este tipo de contrato?</p>
+          <p>¿Estás seguro de que deseas desactivar este tipo de contrato? Dejará de estar disponible para crear nuevos contratos pero se mantendrán todos los registros históricos en el sistema.</p>
         </div>
         <div class="modal-footer">
           <form id="formEliminarTipo" method="post">
             {% csrf_token %}
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-danger">Eliminar</button>
+            <button type="submit" class="btn btn-warning text-dark fw-bold">Desactivar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Confirmar Reactivación -->
+  <div class="modal fade" id="modalReactivarTipo" tabindex="-1" aria-labelledby="modalReactivarTipoLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 12rem;">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: #28a745;">
+          <h5 class="modal-title text-white fw-bold" id="modalReactivarTipoLabel">Confirmar Reactivación</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas reactivar este tipo de contrato? Volverá a estar completamente disponible en el sistema.</p>
+        </div>
+        <div class="modal-footer">
+          <form id="formReactivarTipo" method="post">
+            {% csrf_token %}
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-success">Reactivar</button>
           </form>
         </div>
       </div>
@@ -210,13 +253,27 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
   const modalEliminar = document.getElementById('modalEliminarTipo');
-  modalEliminar.addEventListener('show.bs.modal', function (event) {
-    const button = event.relatedTarget;
-    const tipoId = button.getAttribute('data-id');
-    const form = document.getElementById('formEliminarTipo');
-    form.action = `/tipos_contrato/${tipoId}/eliminar/`;
-  });
+  if (modalEliminar) {
+      modalEliminar.addEventListener('show.bs.modal', function (event) {
+          const button = event.relatedTarget;
+          const tipoId = button.getAttribute('data-id');
+          const form = document.getElementById('formEliminarTipo');
+          form.action = `/tipos_contrato/${tipoId}/eliminar/`;
+      });
+  }
+
+  const modalReactivar = document.getElementById('modalReactivarTipo');
+  if (modalReactivar) {
+      modalReactivar.addEventListener('show.bs.modal', function (event) {
+          const button = event.relatedTarget;
+          const tipoId = button.getAttribute('data-id');
+          const form = document.getElementById('formReactivarTipo');
+          form.action = `/tipos_contrato/${tipoId}/reactivar/`; 
+      });
+  }
+
 
   const modalCrearEditar = document.getElementById('modalTipoContrato');
   modalCrearEditar.addEventListener('show.bs.modal', function (event) {

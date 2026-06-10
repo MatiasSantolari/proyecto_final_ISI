@@ -8,7 +8,7 @@ from django.views.decorators.http import require_POST
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Case, When, IntegerField
 
 
 @login_required
@@ -103,6 +103,11 @@ def crear_contrato(request):
                 fecha_inicio = request.POST.get("fecha_inicio")
                 fecha_fin = request.POST.get("fecha_fin")
 
+                if tipo_id:
+                    tipo_obj = TipoContrato.objects.filter(id=tipo_id).first()
+                    if tipo_obj and (not tipo_obj.duracion_meses or tipo_obj.duracion_meses == 0):
+                        fecha_fin = None
+
                 nuevo = HistorialContrato.objects.create(
                     empleado=empleado,
                     cargo=cargo_actual.cargo if cargo_actual else None,
@@ -126,6 +131,10 @@ def crear_contrato(request):
                     except EmpleadoCargo.DoesNotExist:
                         cargo_actual = contrato.empleado.empleadocargo_set.order_by('-fecha_inicio').first()
                     contrato.cargo = cargo_actual.cargo if cargo_actual else None
+                    
+                    if contrato.contrato and (not contrato.contrato.duracion_meses or contrato.contrato.duracion_meses == 0):
+                        contrato.fecha_fin = None 
+                    
                     contrato.save()
                     messages.success(request, "Contrato editado correctamente.")
                     return redirect("contratos")
@@ -135,8 +144,6 @@ def crear_contrato(request):
 
         else:
             form = ContratoForm(request.POST)
-            
-
             if form.is_valid():
                 contrato = form.save(commit=False)
                 try:
@@ -144,6 +151,10 @@ def crear_contrato(request):
                 except EmpleadoCargo.DoesNotExist:
                     cargo_actual = contrato.empleado.empleadocargo_set.order_by('-fecha_inicio').first()
                 contrato.cargo = cargo_actual.cargo if cargo_actual else None
+                
+                if contrato.contrato and (not contrato.contrato.duracion_meses or contrato.contrato.duracion_meses == 0):
+                    contrato.fecha_fin = None
+                
                 contrato.estado = "activo"
                 contrato.save()
                 messages.success(request, "Contrato creado correctamente.")                
@@ -203,7 +214,18 @@ def mis_contratos(request):
 @login_required
 def tipos_contrato(request):
     form = TipoContratoForm()
-    tipos_list = TipoContrato.objects.all().order_by('descripcion')
+    
+    orden_activos = Case(
+        When(activo=False, then=2),
+        default=1,
+        output_field=IntegerField(),
+    )
+    
+    tipos_list = (
+        TipoContrato.objects.all()
+        .annotate(prioridad_activo=orden_activos)
+        .order_by('prioridad_activo', 'descripcion')
+    )
     
     paginator = Paginator(tipos_list, 10)
     page_number = request.GET.get('page')
@@ -212,7 +234,7 @@ def tipos_contrato(request):
     return render(request, "tipos_contrato.html", {
         "form": form, 
         "tipos": page_obj,
-        })
+    })
 
 
 @login_required
@@ -234,7 +256,10 @@ def crear_tipo_contrato(request):
         return redirect("tipos_contrato")
     else:
         messages.error(request, "Error al guardar. Verifica los datos.")
-        tipos = TipoContrato.objects.all()
+        
+        orden_activos = Case(When(activo=False, then=2), default=1, output_field=IntegerField())
+        tipos = TipoContrato.objects.all().annotate(prioridad_activo=orden_activos).order_by('prioridad_activo', 'descripcion')
+        
         return render(request, "tipos_contrato.html", {"form": form, "tipos": tipos})
 
 
@@ -242,6 +267,20 @@ def crear_tipo_contrato(request):
 @require_POST
 def eliminar_tipo_contrato(request, id_tipo):
     tipo = get_object_or_404(TipoContrato, pk=id_tipo)
-    tipo.delete()
-    messages.success(request, f"Tipo de contrato '{tipo.descripcion}' eliminado correctamente.")
+    
+    tipo.activo = False
+    tipo.save()
+    
+    messages.success(request, f"Tipo de contrato '{tipo.descripcion}' desactivado correctamente.")
+    return redirect("tipos_contrato")
+
+
+@login_required
+@require_POST
+def reactivar_tipo_contrato(request, id_tipo):
+    tipo = get_object_or_404(TipoContrato, pk=id_tipo)
+    tipo.activo = True
+    tipo.save()
+    
+    messages.success(request, f"Tipo de contrato '{tipo.descripcion}' reactivado correctamente.")
     return redirect("tipos_contrato")

@@ -71,7 +71,7 @@
       <div class="ms-auto me-auto">
         {% if pendientes > 0 %}
           <button class="btn btn-primary btn-sm py-1 px-3 fw-bold shadow-2xs" data-bs-toggle="modal" data-bs-target="#modalConfirmarNominas">
-            <i class="bi bi-check2-circle"></i> Confirmar Nóminas ({{ pendientes }})
+            <i class="bi bi-check2-circle"></i> Confirmar/Pagar Nóminas ({{ pendientes }})
           </button>
         {% endif %}
       </div>
@@ -84,7 +84,7 @@
                 data-bs-target="#modalConfirmarBanco"
                 title="Descargar Layout para Home Banking">
           <i class="bi bi-bank"></i> 
-          <span id="textoBtnBanco">Descargar {{ mes_actual|capfirst }}</span>
+          <span id="textoBtnBanco">Descargar {{ texto_periodo_actual }}</span>
         </button>
       </div>
 
@@ -169,29 +169,38 @@
                 {% endif %}
               </td>
               <td>
-                <button class="btn btn-sm btn-outline-info btn-ver-nomina me-2 mb-1"
-                        data-id="{{ nomina.id }}"
-                        data-bs-toggle="tooltip" title="Ver">
-                        <i class="bi bi-eye"></i>
-                </button>
-                
-                {% if nomina.estado|lower == "pendiente" or nomina.estado|lower == "pagado" %}
-                  <button class="btn btn-sm btn-outline-danger btn-anular me-1 mb-1"
+                <div class="d-flex justify-content-center gap-2">
+                  <button class="btn btn-sm btn-outline-info btn-ver-nomina me-1"
                           data-id="{{ nomina.id }}"
-                          data-nombre="{{ nomina.empleado.nombre }}"
-                          data-apellido="{{ nomina.empleado.apellido }}"
-                          data-bs-toggle="tooltip" title="Anular">
-                      <i class="bi bi-trash3"></i>
+                          data-bs-toggle="tooltip" title="Ver">
+                          <i class="bi bi-eye-fill fs-6"></i>
                   </button>
-                {% elif nomina.estado|lower == "anulado" %}
-                  <button class="btn btn-sm btn-outline-success btn-restaurar me-1 mb-1"
-                          data-id="{{ nomina.id }}"
-                          data-nombre="{{ nomina.empleado.nombre }}"
-                          data-apellido="{{ nomina.empleado.apellido }}"
-                          data-bs-toggle="tooltip" title="Restaurar">
-                      <i class="bi bi-arrow-counterclockwise"></i>
-                  </button>
-                {% endif %}
+                  
+                  {% if nomina.estado|lower == "pendiente" %}
+                    <button class="btn btn-sm btn-outline-warning btn-anular me-1"
+                            data-id="{{ nomina.id }}"
+                            data-nombre="{{ nomina.empleado.nombre }}"
+                            data-apellido="{{ nomina.empleado.apellido }}"
+                            data-bs-toggle="tooltip" title="Anular">
+                        <i class="bi bi-dash-circle-fill fs-6"></i>
+                    </button>
+                  {% elif nomina.estado|lower == "anulado" %}
+                    <button class="btn btn-sm btn-outline-success btn-restaurar me-1"
+                            data-id="{{ nomina.id }}"
+                            data-nombre="{{ nomina.empleado.nombre }}"
+                            data-apellido="{{ nomina.empleado.apellido }}"
+                            data-bs-toggle="tooltip" title="Restaurar">
+                        <i class="bi bi-arrow-counterclockwise fs-6"></i>
+                    </button>
+                  {% elif nomina.estado|lower == "pagado" %}
+                    <span class="d-inline-block me-1" style="cursor: not-allowed;" 
+                          data-bs-toggle="tooltip" title="Liquidación Confirmada y Bloqueada">
+                      <button class="btn btn-sm btn-outline-secondary pe-none" type="button">
+                        <i class="bi bi-lock-fill fs-6"></i>
+                      </button>
+                    </span>
+                  {% endif %}
+                </div>
               </td>
             </tr>
             {% empty %}
@@ -451,7 +460,7 @@
           <i class="bi bi-calendar3 text-success" style="font-size: 1.8rem;"></i>
           <div class="text-start">
             <span class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.65rem; letter-spacing: 1px;">Período a Exportar</span>
-            <h4 class="m-0 fw-bolder text-success" id="modalBancoPeriodoTexto" style="letter-spacing: 0.5px; font-size: 1.35rem;">Junio 2026</h4>
+            <h4 class="m-0 fw-bolder text-success" id="modalBancoPeriodoTexto" style="letter-spacing: 0.5px; font-size: 1.35rem;">{{ texto_periodo_actual }}</h4>
           </div>
         </div>
         <div class="p-3 border rounded mt-3" style="background: rgba(128, 128, 128, 0.05); border-color: rgba(128, 128, 128, 0.15) !important; border-radius: 8px;">
@@ -590,38 +599,33 @@
     
 
 
-     const selectMes = document.getElementById('mes');
-        const selectAnio = document.getElementById('anio');
-        const txtBtnBanco = document.getElementById('textoBtnBanco');
+    const selectMes = document.getElementById('mes');
+    const selectAnio = document.getElementById('anio');
+    const txtBtnBanco = document.getElementById('textoBtnBanco');
 
-        const nombresMeses = {
-            "1": "Enero", "2": "Febrero", "3": "Marzo", "4": "Abril", "5": "Mayo", "6": "Junio",
-            "7": "Julio", "8": "Agosto", "9": "Septiembre", "10": "Octubre", "11": "Noviembre", "12": "Diciembre"
-        };
+    const nombresMeses = {
+        "1": "Enero", "2": "Febrero", "3": "Marzo", "4": "Abril", "5": "Mayo", "6": "Junio",
+        "7": "Julio", "8": "Agosto", "9": "Septiembre", "10": "Octubre", "11": "Noviembre", "12": "Diciembre"
+    };
 
-        function actualizarTextoBotonBanco() {
-            if (!txtBtnBanco) return;
-            
-            let mes = selectMes ? selectMes.value : '';
-            let anio = selectAnio ? selectAnio.value : '';
+    function actualizarTextoBotonBanco() {
+        if (!txtBtnBanco) return;
+        
+        let mes = selectMes ? selectMes.value : '';
+        let r_anio = selectAnio ? selectAnio.value : '';
 
-            if (!mes || !anio) {
-                const fechaActual = new Date();
-                const numeroMesActual = String(fechaActual.getMonth() + 1); 
-                const anioActual = fechaActual.getFullYear();
-                
-                const nombreMes = nombresMeses[numeroMesActual] || "";
-                txtBtnBanco.textContent = `Descargar ${nombreMes} ${anioActual}`;
-            } else {
-                const nombreMes = nombresMeses[mes] || ("Mes " + mes);
-                txtBtnBanco.textContent = `Descargar ${nombreMes} ${anio}`;
-            }
+        if (!mes || !r_anio) {
+            return; 
+        } else {
+            const nombreMes = nombresMeses[mes] || ("Mes " + mes);
+            txtBtnBanco.textContent = `Descargar ${nombreMes} ${r_anio}`;
         }
+    }
 
-        if (selectMes) selectMes.addEventListener('change', actualizarTextoBotonBanco);
-        if (selectAnio) selectAnio.addEventListener('change', actualizarTextoBotonBanco);
+    if (selectMes) selectMes.addEventListener('change', actualizarTextoBotonBanco);
+    if (selectAnio) selectAnio.addEventListener('change', actualizarTextoBotonBanco);
 
-        actualizarTextoBotonBanco();
+    actualizarTextoBotonBanco();
 
 
 

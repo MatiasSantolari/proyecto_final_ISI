@@ -69,21 +69,21 @@
             <div class="row g-2 align-items-end">
               
               <div class="col-sm-5">
-                <label for="selectDescuento" class="form-label mb-1 small text-uppercase fw-bold text-danger">Descuentos No Fijos</label>
+                <label for="selectDescuento" class="form-label mb-1 small text-uppercase fw-bold text-danger">Descuentos No Mensuales</label>
                 <select id="selectDescuento" class="form-select form-select-sm" name="descuento_id">
                   <option value="">-- Ninguno --</option>
                   {% for d in descuentos_disponibles %}
-                    <option value="{{ d.id }}">{{ d.descripcion }} {% if d.monto %}(${{ d.monto }}){% elif d.porcentaje %}({{ d.porcentaje }}%) {% endif %}</option>
+                    <option value="{{ d.id }}">{{ d.descripcion }} {% if d.monto %}(${{ d.monto }}){% elif d.porcentaje %}({{ d.porcentaje }}%){% endif %}</option>
                   {% endfor %}
                 </select>
               </div>
 
               <div class="col-sm-5">
-                <label for="selectBeneficio" class="form-label mb-1 small text-uppercase fw-bold text-success">Beneficios No Fijos</label>
+                <label for="selectBeneficio" class="form-label mb-1 small text-uppercase fw-bold text-success">Beneficios No Mensuales</label>
                 <select id="selectBeneficio" class="form-select form-select-sm" name="beneficio_id">
                   <option value="">-- Ninguno --</option>
                   {% for b in beneficios_disponibles %}
-                    <option value="{{ b.id }}">{{ b.descripcion }} {% if b.monto %}(${{ b.monto }}){% elif b.porcentaje %}({{ b.porcentaje }}%) {% endif %}</option>
+                    <option value="{{ b.id }}">{{ b.descripcion }} {% if b.monto %}(${{ b.monto }}){% elif b.porcentaje %}({{ b.porcentaje }}%){% endif %}</option>
                   {% endfor %}
                 </select>
               </div>

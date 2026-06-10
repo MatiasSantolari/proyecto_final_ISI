@@ -58,6 +58,7 @@
             <tr>
               <th>Empleado</th>
               <th>Departamento</th>
+              <th>Solicitado el</th>
               <th style="width:10%;">Inicio</th>
               <th style="width:10%;">Fin</th>
               <th style="width:12%;">Días Solicitados</th>
@@ -71,6 +72,7 @@
             <tr class="align-middle">
               <td class="fw-bold">{{ s.empleado.apellido }} {{ s.empleado.nombre }}</td>
               <td>{{ s.empleado.departamento_actual_nombre|default:"-" }}</td>
+              <td>{{ s.fecha_solicitud|date:"d/m/Y" }}</td>
               <td>{{ s.fecha_inicio|date:"d/m/Y" }}</td>
               <td>{{ s.fecha_fin|date:"d/m/Y" }}</td>
               <td>

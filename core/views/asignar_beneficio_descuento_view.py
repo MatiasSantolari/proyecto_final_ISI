@@ -122,13 +122,14 @@ def asignador_view(request):
     descuentos_disponibles = Descuento.objects.filter(fijo=False, activo=True).order_by('descripcion')
     beneficios_disponibles = Beneficio.objects.filter(
             fijo=False, 
-            activo=True
+            activo=True,
         ).exclude(
             Q(descripcion__icontains='antigüedad') | 
             Q(descripcion__icontains='antiguedad') | 
             Q(descripcion__icontains='asistencia')
         ).order_by('descripcion')
-    departamentos = Departamento.objects.all().order_by('nombre')
+ 
+    departamentos = Departamento.objects.filter(activo=True).order_by('nombre')
 
     context = {
         'empleados': page_obj, 
@@ -304,7 +305,8 @@ def ver_asignaciones_empleado(request, empleado_id):
 
     descuentos_variables = DescuentoEmpleadoNomina.objects.filter(
         empleado=empleado, 
-        nomina__isnull=True
+        nomina__isnull=True,
+        descuento__activo=True 
     ).select_related('descuento').order_by('id')
     
     for dv in descuentos_variables:
@@ -329,7 +331,8 @@ def ver_asignaciones_empleado(request, empleado_id):
 
     beneficios_variables = BeneficioEmpleadoNomina.objects.filter(
         empleado=empleado, 
-        nomina__isnull=True
+        nomina__isnull=True,
+        beneficio__activo=True 
     ).select_related('beneficio').order_by('id')
     
     for bv in beneficios_variables:

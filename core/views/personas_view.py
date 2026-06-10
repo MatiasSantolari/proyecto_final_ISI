@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Q
+from django.db.models import Q, Case, IntegerField, When
 from datetime import datetime
 
 
@@ -28,9 +28,20 @@ def personas(request):
         form = PersonaForm()
         abrir_modal_error = False
 
-    personas_qs = Persona.objects.select_related('empleado', 'usuario').prefetch_related(
-        'empleado__datos_bancarios', 
-    ).order_by('apellido', 'nombre')
+    orden_estados = Case(
+        When(empleado__estado='inactivo', then=3),  
+        When(empleado__estado='jubilado', then=2),  
+        default=1, 
+        output_field=IntegerField(),
+    )
+
+    personas_qs = (
+        Persona.objects
+        .select_related('empleado', 'usuario')
+        .prefetch_related('empleado__datos_bancarios')
+        .annotate(prioridad_estado=orden_estados) 
+        .order_by('prioridad_estado', 'apellido', 'nombre') 
+    )
 
     dep_id = request.GET.get("departamento")
     search_dni = request.GET.get("dni", "").strip()
@@ -108,11 +119,16 @@ def personas(request):
                     cargo = ultimo_cargo.cargo
                     cargo_id = cargo.id
                     nombre_cargo = cargo.nombre
+                    cargo_activo = cargo.activo 
 
                     cargo_departamento = CargoDepartamento.objects.filter(cargo=cargo).first()
                     if cargo_departamento:
                         departamento_id = cargo_departamento.departamento.id
                         departamento_nombre = cargo_departamento.departamento.nombre
+                        departamento_activo = cargo_departamento.departamento.activo
+                else:
+                    cargo_activo = True
+                    departamento_activo = True
             else:
                 estado = "Sin Estado"
                 nombre_cargo = "Sin Cargo"
@@ -138,6 +154,8 @@ def personas(request):
             'nombre_cargo': nombre_cargo,
             'departamento_id': departamento_id,
             'departamento_nombre': departamento_nombre,
+            'cargo_activo': cargo_activo,
+            'departamento_activo': departamento_activo, 
             'telefono_completo': (persona.prefijo_pais or "") + (persona.telefono or ""),
             'banco_nombre': banco_nombre,
             'cbu_cuenta': cbu_cuenta,
@@ -451,12 +469,32 @@ def cargos_por_departamento(request, dept_id):
 
 @login_required
 @require_POST
-def eliminar_persona(request, persona_id):
+def eliminar_persona(request, persona_id): ## No elimina la coloca en "inactiva"
     persona = get_object_or_404(Persona, id=persona_id)
-    persona.delete()
+    
+    if hasattr(persona, 'empleado') and persona.empleado:
+        empleado = persona.empleado
+        empleado.estado = 'inactivo'
+        empleado.save()
+    else:
+        persona.delete()
+        
     return redirect('personas')
 
 
+@login_required
+@require_POST
+def reactivar_persona(request, persona_id):
+    persona = get_object_or_404(Persona, id=persona_id)
+    if hasattr(persona, 'empleado') and persona.empleado:
+        empleado = persona.empleado
+        empleado.estado = 'activo'
+        empleado.save()
+        messages.success(request, f"El empleado {persona.nombre} {persona.apellido} ha sido reactivado correctamente.")
+    else:
+        messages.warning(request, "Esta persona no cuenta con un legajo de empleado para reactivar.")
+        
+    return redirect('personas')
 
 
 # PERFIL PERSONA #

@@ -193,7 +193,12 @@
                                 <tbody class="text-center">
                                     {% for item in habilidades_asignadas %}
                                     <tr>
-                                        <td class="fw-semibold text-start ps-3">{{ item.habilidad.nombre }}</td>
+                                        <td class="fw-semibold text-start ps-3">
+                                            {{ item.habilidad.nombre }}
+                                            {% if not item.habilidad.activo %}
+                                                <span class="badge bg-secondary text-white ms-1" style="font-size: 0.7rem;">Inactivo</span>
+                                            {% endif %}
+                                        </td>
                                         <td class="text-muted text-start ps-3">{{ item.habilidad.descripcion|default:"-" }}</td>
                                         <td>{{ item.fecha_asignacion|date:"d M Y" }}</td>
                                         <td>

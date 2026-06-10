@@ -444,11 +444,19 @@
 
 
 
-  function formatAbbreviated(num) {
-      if (num >= 1000000) return '$' + (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-      if (num >= 1000) return '$' + (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
-      return '$' + num.toFixed(0);
-  }
+    function formatAbbreviated(num) {
+        if (num >= 1000000) {
+            let truncado = Math.floor((num / 1000000) * 100) / 100;
+            return '$' + truncado.toFixed(2) + 'M';
+        }
+        if (num >= 1000) {
+            let truncadoK = Math.floor((num / 1000) * 10) / 10;
+            return '$' + truncadoK.toFixed(1) + 'k';
+        }
+        let truncadoCentavos = Math.floor(num * 100) / 100;
+        return '$' + truncadoCentavos.toFixed(2);
+    }
+
 
     async function loadPayroll() {
       const periodSelector = document.getElementById('payrollPeriodSelector');

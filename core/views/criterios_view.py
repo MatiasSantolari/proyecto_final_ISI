@@ -15,18 +15,44 @@ from django.core.paginator import Paginator
 
 @login_required
 def criterios(request):
-    criterios_list = Criterio.objects.select_related('tipo_criterio').all().order_by('tipo_criterio__descripcion')
+    orden_tipos_activos = Case(
+        When(tipo_criterio__activo=False, then=2),
+        default=1,
+        output_field=IntegerField(),
+    )
+
+    orden_criterios_activos = Case(
+        When(activo=False, then=2),
+        default=1,
+        output_field=IntegerField(),
+    )
+
+    criterios_list = (
+        Criterio.objects.select_related('tipo_criterio')
+        .annotate(
+            prioridad_tipo=orden_tipos_activos,
+            prioridad_criterio=orden_criterios_activos
+        )
+        .order_by(
+            'prioridad_tipo', 
+            'tipo_criterio__descripcion', 
+            'prioridad_criterio', 
+            'descripcion'
+        )
+    )
     
     paginator = Paginator(criterios_list, 15)
     page_number = request.GET.get('page')
-    criterios = paginator.get_page(page_number)
+    criterios_page = paginator.get_page(page_number)
 
     form = CriterioForm()
 
     return render(request, 'criterios.html', {
-        'criterios': criterios,
+        'criterios': criterios_page,
         'form': form
     })
+
+
 
 
 @require_POST
@@ -71,10 +97,21 @@ def crear_criterio(request):
 
 
 
-@require_POST
 @login_required
+@require_POST
 def eliminar_criterio(request, id):
     criterio = get_object_or_404(Criterio, pk=id)
-    criterio.delete()
-    messages.success(request, "El criterio fue eliminado correctamente.")
+    criterio.activo = False
+    criterio.save()
+    messages.success(request, f"El criterio '{criterio.descripcion}' ha sido desactivado correctamente.")
+    return redirect('criterios')
+
+
+@login_required
+@require_POST
+def reactivar_criterio(request, id):
+    criterio = get_object_or_404(Criterio, pk=id)
+    criterio.activo = True
+    criterio.save()
+    messages.success(request, f"El criterio '{criterio.descripcion}' ha sido reactivado correctamente.")
     return redirect('criterios')

@@ -118,12 +118,15 @@
                   <td>
                     {% if persona.nombre_cargo != "Sin Cargo" %}
                         {{ persona.nombre_cargo }}
+                        {% if not persona.cargo_activo %}
+                            <span class="badge bg-secondary text-white ms-1" style="font-size: 0.7rem;">Inactivo</span>
+                        {% endif %}
                     {% else %}
                         <span class="badge bg-secondary">Sin Cargo</span>
                     {% endif %}
                   </td>
                   <td class="text-center">
-                    <button class="btn btn-sm btn-editar btn-outline-secondary me-1"
+                    <button class="btn btn-sm btn-editar btn-outline-secondary p-1 me-1"
                             data-bs-toggle="modal" data-bs-target="#modalPersona"
                             data-id="{{ persona.id }}"
                             data-nombre="{{ persona.nombre }}"
@@ -156,24 +159,33 @@
                             {% endif %}
                               onclick="editarPersona(this)" 
                               data-bs-toggle="tooltip" title="Editar">
-                      <i class="bi bi-pencil-square"></i>
+                      <i class="bi bi-pencil-fill fs-6"></i>
                     </button>
 
-                    <button class="btn btn-sm btn-outline-info me-1" 
+                    <button class="btn btn-sm btn-outline-info p-1 me-1" 
                             data-bs-toggle="modal" 
                             data-bs-target="#modalVerPersona{{ persona.id }}" 
                             data-id="{{ persona.id }}"
                             data-bs-toggle="tooltip" title="Ver">
-                      <i class="bi bi-eye"></i>
+                      <i class="bi bi-eye-fill fs-6"></i>
                     </button>
-
-                    <button class="btn btn-sm btn-outline-danger" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#modalEliminarPersona" 
-                            data-id="{{ persona.id }}"
-                            data-bs-toggle="tooltip" title="Eliminar">
-                      <i class="bi bi-trash3"></i>
-                    </button>
+                    {% if persona.estado == 'inactivo' %}
+                        <button type="button" class="btn btn-sm btn-outline-success p-1 me-1" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modalReactivarPersona" 
+                                data-id="{{ persona.id }}"
+                                data-bs-toggle="tooltip" title="Reactivar Empleado">
+                          <i class="bi bi-arrow-counterclockwise fs-6"></i>
+                        </button>
+                    {% else %}
+                        <button type="button" class="btn btn-sm btn-outline-warning p-1 me-1" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modalEliminarPersona" 
+                                data-id="{{ persona.id }}"
+                                data-bs-toggle="tooltip" title="Dar de Baja">
+                          <i class="bi bi-person-x-fill fs-6"></i>
+                        </button>
+                    {% endif %}
                   </td>
                 </tr>
                 {% empty %}
@@ -405,8 +417,20 @@
           <p><strong>Tipo de Usuario:</strong> <span>{{ persona.tipo_usuario|capfirst }}</span></p>
           {% if persona.tipo_usuario != 'normal' %}
             <p><strong>Estado del Empleado:</strong> <span>{{ persona.estado|capfirst }}</span></p>
-            <p><strong>Departamento:</strong> <span>{{ persona.departamento_nombre }}</span></p>
-            <p><strong>Cargo:</strong> <span>{{ persona.nombre_cargo }}</span></p>
+            <p>
+              <strong>Departamento:</strong> 
+              <span>{{ persona.departamento_nombre }}</span>
+              {% if not persona.departamento_activo and persona.departamento_nombre %}
+                <span class="badge bg-secondary text-white ms-1" style="font-size: 0.7rem;">Sector Inactivo</span>
+              {% endif %}
+            </p>
+            <p>
+              <strong>Cargo:</strong> 
+              <span>{{ persona.nombre_cargo }}</span>
+              {% if not persona.cargo_activo and persona.nombre_cargo != "Sin Cargo" %}
+                <span class="badge bg-secondary text-white ms-1" style="font-size: 0.7rem;">Inactivo</span>
+              {% endif %}
+            </p>
             <p><strong>Banco Acreditación:</strong> <span>{{ persona.banco_nombre|default:"No asignado" }}</span></p>
             <p class="d-flex align-items-center gap-2">
               <strong>CBU Cuenta:</strong> 
@@ -429,22 +453,45 @@
   </div>
   {% endfor %}
 
-  <!-- Modal para Confirmar Eliminación -->
+  <!-- Modal para Confirmar Baja -->
   <div class="modal fade" id="modalEliminarPersona" tabindex="-1" aria-labelledby="modalEliminarPersonaLabel" aria-hidden="true">
     <div class="modal-dialog" style="margin-top: 10rem;">
       <div class="modal-content">
-        <div class="modal-header" style="background-color: #3c8dbc;">
-          <h5 class="modal-title" id="modalEliminarPersonaLabel">Confirmar Eliminación</h5>
+        <div class="modal-header bg-warning">
+          <h5 class="modal-title fw-bold" id="modalEliminarPersonaLabel">Confirmar Baja</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>¿Estás seguro de que deseas eliminar esta Persona?</p>
+          <p class="mb-1">¿Estás seguro de que deseas procesar este registro?</p>
+          <small class="text-muted">Si la persona posee un legajo de empleado, se le dará de baja manteniendo su historial laboral. Si es un registro sin relaciones activas, se eliminará permanentemente.</small>
         </div>
         <div class="modal-footer">
           <form id="formEliminarPersona" method="post">
             {% csrf_token %}
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-danger">Eliminar</button>
+            <button type="submit" class="btn btn-warning fw-bold">Confirmar Acción</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Confirmar Reactivación -->
+  <div class="modal fade" id="modalReactivarPersona" tabindex="-1" aria-labelledby="modalReactivarPersonaLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 10rem;">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: #28a745; color: white;">
+          <h5 class="modal-title fw-bold" id="modalReactivarPersonaLabel">Confirmar Reactivación</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas reactivar a este Empleado? Su estado volverá a ser Activo.</p>
+        </div>
+        <div class="modal-footer">
+          <form id="formReactivarPersona" method="post">
+            {% csrf_token %}
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-success">Reactivar</button>
           </form>
         </div>
       </div>
@@ -630,13 +677,27 @@
 
     document.getElementById('btnCrearPersona').addEventListener('click', limpiarFormulario);
 
+    
     const modalEliminar = document.getElementById('modalEliminarPersona');
-    modalEliminar.addEventListener('show.bs.modal', function (event) {
-      const button = event.relatedTarget;
-      const personaId = button.getAttribute('data-id');
-      const form = document.getElementById('formEliminarPersona');
-      form.action = `/personas/${personaId}/eliminar/`;
-    });
+    if (modalEliminar) {
+        modalEliminar.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const personaId = button.getAttribute('data-id');
+            const form = document.getElementById('formEliminarPersona');
+            form.action = `/personas/${personaId}/eliminar/`;
+        });
+    }
+
+    const modalReactivar = document.getElementById('modalReactivarPersona');
+    if (modalReactivar) {
+        modalReactivar.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const personaId = button.getAttribute('data-id');
+            const form = document.getElementById('formReactivarPersona');
+            form.action = `/personas/${personaId}/reactivar/`;
+        });
+    }
+
 
     const formFiltros = document.getElementById("formFiltros");
     const contenedorTabla = document.getElementById("contenedor-tabla-dinamica");

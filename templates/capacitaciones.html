@@ -38,9 +38,9 @@
                   <th>Nombre</th>
                   <th>Institución</th>
                   <th>Tipo</th>
-                  <th>Estado</th>
                   <th>Inicio</th>
                   <th>Cupo</th>
+                  <th>Estado</th>
                   <th style="width:15%;">Acciones</th>
               </tr>
           </thead>
@@ -57,17 +57,22 @@
                       {% endif %}
                   </td>
                   <td>
+                    {% if cap.fecha_inicio %}
+                        {{ cap.fecha_inicio|date:"Y-m-d"}}</td>
+                    {% else %}
+                        <em class="text-muted small"> Propio Ritmo</em>
+                    {% endif %}
+                  <td>{{ cap.cupo|default:"Ilimitado" }}</td>
+                  <td>
                       {% if cap.activo %}
                       <span class="badge bg-success">Activo</span>
                       {% else %}
                       <span class="badge bg-danger">Inactivo</span>
                       {% endif %}
                   </td>
-                  <td>{{ cap.fecha_inicio|date:"Y-m-d"|default:"-" }}</td>
-                  <td>{{ cap.cupo|default:"Ilimitado" }}</td>
                   <td>
                     <div class="d-flex justify-content-center gap-2">
-                        <button class="btn btn-sm btn-outline-secondary" 
+                        <button class="btn btn-sm btn-outline-secondary me-1" 
                                 data-bs-toggle="modal" data-bs-target="#modalCapacitacion"
                                 data-id="{{ cap.id }}"
                                 data-institucion="{{ cap.institucion.id|default:'' }}"
@@ -82,35 +87,29 @@
                                 data-origen="{{ cap.contenido_interno|yesno:'true,false' }}"
                                 data-imagen="{% if cap.imagen_publicitaria %}{{ cap.imagen_publicitaria.url }}{% endif %}"
                                 onclick="editarCapacitacion(this)" title="Editar">
-                            <i class="bi bi-pencil-square"></i>
+                            <i class="bi bi-pencil-fill fs-6"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-info me-1"
                                 data-bs-toggle="modal"
                                 data-bs-target="#modalVerCapacitacion{{ cap.id }}"
                                 data-bs-toggle="tooltip" title="Ver Detalle Completo">
-                            <i class="bi bi-eye"></i>
+                            <i class="bi bi-eye-fill fs-6"></i>
                         </button>
                         {% if cap.activo %}
                         <form method="post" action="{% url 'desactivar_capacitacion' cap.id %}">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-sm btn-outline-warning" title="Desactivar">
-                                <i class="bi bi-toggle-on"></i>
+                                <i class="bi bi-x-circle-fill fs-6"></i>
                             </button>
                         </form>
                         {% else %}
                         <form method="post" action="{% url 'activar_capacitacion' cap.id %}">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-outline-success" title="Activar">
-                                <i class="bi bi-toggle-off"></i>
+                            <button type="submit" class="btn btn-sm btn-outline-success" title="Reactivar">
+                                <i class="bi bi-arrow-counterclockwise fs-6"></i>
                             </button>
                         </form>
                         {% endif %}
-
-                        <button class="btn btn-sm btn-outline-danger" 
-                                data-bs-toggle="modal" data-bs-target="#modalEliminarCapacitacion"
-                                data-id="{{ cap.id }}" title="Eliminar">
-                            <i class="bi bi-trash3"></i>
-                        </button>
                     </div>
                   </td>
               </tr>
@@ -152,7 +151,7 @@
 
 
   <div class="modal fade" id="modalCapacitacion" tabindex="-1" aria-labelledby="modalCapacitacionLabel" aria-hidden="true" style="z-index: 2000;">
-      <div class="modal-dialog modal-lg" style="margin-top: 1rem;">
+      <div class="modal-dialog modal-lg" style="margin-top: 0.2rem;">
           <div class="modal-content">
               <form method="post" action="{% url 'guardar_capacitacion' %}" id="formCapacitacion" enctype="multipart/form-data" autocomplete="off">
                   {% csrf_token %}
@@ -181,7 +180,15 @@
                           <div class="mb-3">
                               <label for="id_institucion" class="form-label">Institución</label>
                               <div class="input-group">
-                                  {{ form.institucion|add_class:"form-select" }}
+                                  <select name="institucion" id="id_institucion" class="form-select">
+                                      <option value="">---------</option>
+                                      {% for inst in form.fields.institucion.queryset %}
+                                          <option value="{{ inst.id }}"
+                                                  {% if not inst.activo and form.instance.institucion_id != inst.id %}disabled{% endif %}>
+                                              {{ inst.nombre }}{% if not inst.activo %} (Inactivo){% endif %}
+                                          </option>
+                                      {% endfor %}
+                                  </select>
                                   <button type="button" class="btn btn-outline-primary" id="btnAbrirInstitucion">
                                       <i class="bi bi-plus-lg"></i>
                                   </button>
@@ -210,47 +217,47 @@
                             </div>
                         </div>
 
-                          <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <label class="form-label fw-bold mb-0">Fecha Inicio</label>
-                                    <div class="form-check form-switch mb-0 mr-5">
-                                        <input class="form-check-input" type="checkbox" id="check_sin_inicio">
-                                        <label class="form-check-label small text-muted" for="check_sin_inicio">Sin fecha</label>
-                                    </div>
+                        <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label fw-bold mb-0">Fecha Inicio</label>
+                                <div class="form-check form-switch mb-0 mr-5">
+                                    <input class="form-check-input" type="checkbox" id="check_sin_inicio">
+                                    <label class="form-check-label small text-muted" for="check_sin_inicio">Sin fecha</label>
                                 </div>
-                                {{ form.fecha_inicio|add_class:"form-control"|attr:"id:id_fecha_inicio" }}
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <label class="form-label fw-bold mb-0">Fecha Fin</label>
-                                    <div class="form-check form-switch mb-0 mr-5">
-                                        <input class="form-check-input" type="checkbox" id="check_sin_fin">
-                                        <label class="form-check-label small text-muted" for="check_sin_fin">Sin fecha</label>
-                                    </div>
+                            {{ form.fecha_inicio|add_class:"form-control"|attr:"id:id_fecha_inicio" }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label fw-bold mb-0">Fecha Fin</label>
+                                <div class="form-check form-switch mb-0 mr-5">
+                                    <input class="form-check-input" type="checkbox" id="check_sin_fin">
+                                    <label class="form-check-label small text-muted" for="check_sin_fin">Sin fecha</label>
                                 </div>
-                                {{ form.fecha_fin|add_class:"form-control"|attr:"id:id_fecha_fin" }}
                             </div>
-                          </div>
-                          <div class="col-md-4 mb-3">
-                              <div class="d-flex justify-content-between align-items-center mb-2">
-                                  <label class="form-label fw-bold mb-0">Cupo</label>
-                                  <div class="form-check form-switch mb-0 mr-5">
-                                      <input class="form-check-input" type="checkbox" id="check_ilimitado">
-                                      <label class="form-check-label small text-muted" for="check_ilimitado">Ilimitado</label>
-                                  </div>
-                              </div>
-                              {{ form.cupo|add_class:"form-control"|attr:"id:id_cupo" }}
-                          </div>
-                          <div class="col-md-4 mb-3">
-                              <label class="form-label fw-bold">Presencial</label>
-                              {{ form.presencial|add_class:"form-check-input d-block mx-auto" }}
-                          </div>
-                          <div class="col-md-4 mb-3" id="div_capacitacion_propia">
-                              <label class="form-label fw-bold">Capacitacion Propia</label>
-                              {{ form.contenido_interno|add_class:"form-check-input d-block mx-auto" }}
-                          </div>
-                      </div>
+                            {{ form.fecha_fin|add_class:"form-control"|attr:"id:id_fecha_fin" }}
+                        </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label fw-bold mb-0">Cupo</label>
+                                <div class="form-check form-switch mb-0 mr-5">
+                                    <input class="form-check-input" type="checkbox" id="check_ilimitado">
+                                    <label class="form-check-label small text-muted" for="check_ilimitado">Ilimitado</label>
+                                </div>
+                            </div>
+                            {{ form.cupo|add_class:"form-control"|attr:"id:id_cupo" }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Presencial</label>
+                            {{ form.presencial|add_class:"form-check-input d-block mx-auto" }}
+                        </div>
+                        <div class="col-md-4 mb-3" id="div_capacitacion_propia">
+                            <label class="form-label fw-bold">Capacitacion Propia</label>
+                            {{ form.contenido_interno|add_class:"form-check-input d-block mx-auto" }}
+                        </div>
+                    </div>
                   </div>
                   <div class="modal-footer bg-light">
                       <button type="submit" class="btn btn-success w-100 fw-bold">
@@ -296,13 +303,23 @@
                       {% if cap.activo %} <span class="badge bg-success">Activo</span> {% else %} <span class="badge bg-danger">Inactivo</span> {% endif %}
                   </div>
                   <div class="col-6 mb-2">
-                      <strong>Fecha Inicio:</strong> {{ cap.fecha_inicio|date:"d/m/Y"|default:"No definida" }}
-                  </div>
-                  <div class="col-6 mb-2">
-                      <strong>Fecha Fin:</strong> {{ cap.fecha_fin|date:"d/m/Y"|default:"No definida" }}
+                    <strong>Fecha Inicio:</strong> 
+                    {% if cap.fecha_inicio %}
+                        {{ cap.fecha_inicio|date:"d/m/Y"}}
+                    {% else %}
+                        <em class="text-muted small"> Propio Ritmo</em>
+                    {% endif %}
                   </div>
                   <div class="col-6 mb-2">
                       <strong>Cupo:</strong> {{ cap.cupo|default:"Ilimitado" }}
+                  </div>
+                  <div class="col-6 mb-2">
+                      <strong>Fecha Fin:</strong>
+                    {% if cap.fecha_fin %}
+                        {{ cap.fecha_fin|date:"d/m/Y"}}
+                    {% else %}
+                        <em class="text-muted small"> Propio Ritmo</em>
+                    {% endif %}
                   </div>
                   <div class="col-6 mb-2">
                       <strong>Presencial:</strong> {{ cap.presencial|yesno:"Sí,No" }}
@@ -581,14 +598,25 @@
         aplicarBloqueoIlimitado(false);
         manejarFecha(document.getElementById('id_fecha_inicio'), {checked: false});
         manejarFecha(document.getElementById('id_fecha_fin'), {checked: false});
+
+        const selectInst = document.getElementById('id_institucion');
+        if (selectInst) {
+            selectInst.value = ""; 
+            
+            Array.from(selectInst.options).forEach(option => {
+                if (option.text.includes('(Inactivo)')) {
+                    option.disabled = true; 
+                }
+            });
+        }
     }
 
 
     function editarCapacitacion(button) {
       const d = button.dataset;
+      limpiarFormularioCap();
 
       document.getElementById('id_capacitacion').value = d.id;
-      document.getElementById('id_institucion').value = d.institucion || '';
       document.getElementById('id_nombre').value = d.nombre;
       document.getElementById('id_descripcion').value = d.descripcion;
       document.getElementById('id_url_sitio').value = d.url || '';
@@ -644,9 +672,23 @@
 
       toggleCamposExternos(d.esExterno === 'true');
       
+      const selectInst = document.getElementById('id_institucion');
+      const institucionId = d.institucion || '';
+      
+      if (selectInst && institucionId !== '') {
+          const opcionEspecifica = selectInst.querySelector(`option[value="${institucionId}"]`);
+          if (opcionEspecifica) {
+              opcionEspecifica.disabled = false; 
+          }
+          selectInst.value = institucionId; 
+      } else if (selectInst) {
+          selectInst.value = '';
+      }
+
       document.getElementById('modalCapacitacionLabel').textContent = 'Editar Capacitación';
       document.querySelector('#formCapacitacion button[type="submit"]').innerHTML = '<i class="bi bi-pencil"></i> Actualizar Capacitación';
   }
+
 
 </script>
 

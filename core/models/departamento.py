@@ -4,6 +4,7 @@ from django.db import models
 class Departamento(models.Model):
     nombre = models.CharField(max_length=50)
     descripcion = models.CharField(max_length=255, null=True, blank=True)
+    activo = models.BooleanField(default=True, verbose_name='¿Está Activo?')
 
     class Meta:
         verbose_name = 'Departamento'

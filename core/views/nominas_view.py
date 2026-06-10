@@ -10,7 +10,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
 from django.db.models import Subquery, OuterRef
-from django.db.models import Case, When, IntegerField, Sum, Subquery, OuterRef
+from django.db.models import Case, When, IntegerField, Sum, Subquery, OuterRef, Q
 from django.core.paginator import Paginator
 from decimal import Decimal
 import io
@@ -45,7 +45,7 @@ def generar_nominas(request):
         nominas_pendientes.values_list("empleado_id", flat=True)
     )
 
-    empleados = Empleado.objects.all()
+    empleados = Empleado.objects.filter(estado="activo")
 
     empleados_a_generar = []
     empleados_sin_sueldo = []
@@ -91,11 +91,12 @@ def generar_nominas(request):
                 departamento = cargo_departamento_actual.departamento.nombre
 
         contrato_vigente = HistorialContrato.objects.filter(
+            Q(fecha_fin__gte=hoy) | Q(fecha_fin__isnull=True),
             empleado=empleado,
             estado__in=["activo", "renovado"],
             fecha_inicio__lte=hoy,
-            fecha_fin__gte=hoy
         ).order_by('fecha_inicio').first()
+
 
         if contrato_vigente:
             if historial:
@@ -119,10 +120,10 @@ def generar_nominas(request):
             fecha_fin_periodo = date(anio_actual, mes_actual + 1, 1) - timedelta(days=1)
 
         contrato_vigente = HistorialContrato.objects.filter(
+            Q(fecha_fin__gte=fecha_inicio_periodo) | Q(fecha_fin__isnull=True),
             empleado=empleado,
             estado__in=["activo", "renovado"],
-            fecha_inicio__lte=fecha_fin_periodo,
-            fecha_fin__gte=fecha_inicio_periodo
+            fecha_inicio__lte=fecha_fin_periodo
         ).order_by('fecha_inicio').first()
 
         if contrato_vigente and contrato_vigente.monto_extra_pactado:
@@ -189,6 +190,9 @@ def generar_nominas(request):
         descuentos_asignados.update(nomina=nomina)
         beneficios_asignados.update(nomina=nomina)
 
+        DescuentoEmpleadoNomina.objects.filter(empleado=empleado, nomina__isnull=True, descuento__activo=False).delete()
+        BeneficioEmpleadoNomina.objects.filter(empleado=empleado, nomina__isnull=True, beneficio__activo=False).delete()
+
     if empleados_a_generar:
         if accion == "generar":
             messages.success(request, f"Se generaron correctamente {len(empleados_a_generar)} nómina(s) nuevas.")
@@ -214,6 +218,19 @@ def nominas(request):
     mes = request.GET.get('mes', '')
     anio = request.GET.get('anio', '')
 
+    if not mes or not anio:
+        ultima_nomina = Nomina.objects.order_by('-fecha_generacion').first()
+        if ultima_nomina:
+            if not mes: mes = str(ultima_nomina.fecha_generacion.month)
+            if not anio: anio = str(ultima_nomina.fecha_generacion.year)
+        else:
+            hoy_fecha = now().date()
+            if not mes: mes = str(hoy_fecha.month)
+            if not anio: anio = str(hoy_fecha.year)
+
+    mes = str(mes)
+    anio = str(anio)
+
     nominas_list = (
         Nomina.objects
         .select_related('empleado')
@@ -222,6 +239,12 @@ def nominas(request):
         )
         .all()
     )
+
+    if mes:
+        nominas_list = nominas_list.filter(fecha_generacion__month=int(mes))
+
+    if anio:
+        nominas_list = nominas_list.filter(fecha_generacion__year=int(anio))
 
     pendientes = nominas_list.filter(estado__iexact="pendiente").count()
     pagadas = nominas_list.exclude(estado__in=["pendiente", "anulado"]).count()
@@ -237,12 +260,6 @@ def nominas(request):
         nominas_list = nominas_list.annotate(
             departamento_actual=Subquery(ultimo_cargo)
         ).filter(departamento_actual=departamento_sel)
-
-    if mes:
-        nominas_list = nominas_list.filter(fecha_generacion__month=int(mes))
-
-    if anio:
-        nominas_list = nominas_list.filter(fecha_generacion__year=int(anio))
 
     nominas_validas = nominas_list.exclude(estado__iexact="anulado")
     gasto_total_resultado = nominas_validas.aggregate(total_gastos=Sum('monto_bruto'))
@@ -269,13 +286,9 @@ def nominas(request):
 
     rango_paginas = paginator.get_elided_page_range(page_number, on_each_side=2, on_ends=1)
 
-    hoy = now().date()
-    mes_actual = hoy.month
-    anio_actual = hoy.year
-
     nominas_periodo = Nomina.objects.filter(
-        fecha_generacion__month=mes_actual,
-        fecha_generacion__year=anio_actual
+        fecha_generacion__month=int(mes),
+        fecha_generacion__year=int(anio)
     )
     empleados_con_nomina = nominas_periodo.values_list("empleado_id", flat=True)
     faltantes = Empleado.objects.exclude(id__in=empleados_con_nomina).count()
@@ -284,6 +297,12 @@ def nominas(request):
 
     mostrar_boton_regreso = 'from_detalle' in request.GET
     url_regreso = request.META.get('HTTP_REFERER', '#')
+
+    nombres_meses = {
+        "1": "Enero", "2": "Febrero", "3": "Marzo", "4": "Abril", "5": "Mayo", "6": "Junio",
+        "7": "Julio", "8": "Agosto", "9": "Septiembre", "10": "Octubre", "11": "Noviembre", "12": "Diciembre"
+    }
+    texto_periodo_actual = f"{nombres_meses.get(mes, 'Mes ' + mes)} {anio}"
 
     return render(request, 'nominas.html', {
         'nominas': page_obj,
@@ -294,6 +313,7 @@ def nominas(request):
         'departamento_sel': departamento_sel,
         'mes_seleccionado': mes,
         'anio_seleccionado': anio,
+        'texto_periodo_actual': texto_periodo_actual,
         'pendientes': pendientes,
         'pagadas': pagadas,
         'faltantes': faltantes,
@@ -341,15 +361,19 @@ def editar_nomina(request):
 
     if id_nomina:
         nomina = get_object_or_404(Nomina, pk=id_nomina)
+        if nomina.estado.lower() != "pendiente":
+            messages.error(request, "No se pueden editar liquidaciones confirmadas o anuladas.")
+            return redirect("nominas")
         form = NominaForm(request.POST, instance=nomina)
     else:
         form = NominaForm(request.POST)
 
     if form.is_valid():
         form.save()
+        messages.success(request, "Nómina actualizada correctamente.")
         return redirect('nominas')
 
-    nominasList = Nomina.objects.all()
+    nominasList = Nomina.objects.all().order_by('-fecha_generacion')
     return render(request, 'nominas.html', {'form': form, 'nominas': nominasList})
 
 
@@ -359,12 +383,18 @@ def editar_nomina(request):
 @require_POST
 def anular_nomina(request, id_nomina):
     nomina = get_object_or_404(Nomina, pk=id_nomina)
-    if nomina.estado.lower() in ['pendiente', 'pagado']:
+    
+    if nomina.estado.lower() == 'pagado':
+        messages.error(request, "ERROR CRÍTICO: Una liquidación confirmada y PAGADA no puede ser alterada.")
+        return redirect('nominas')
+
+    if nomina.estado.lower() == 'pendiente':
         nomina.estado = 'Anulado' 
         messages.success(request, "La nómina fue anulada correctamente.")
     else:
         nomina.estado = 'pendiente'
-        messages.success(request, "La nómina fue restaurada correctamente.")
+        messages.success(request, "La nómina fue restaurada al estado pendiente.")
+        
     nomina.save()
     return redirect('nominas')
 
@@ -409,7 +439,7 @@ def ver_nomina(request, id_nomina):
             "monto_final": float(monto_pesos)
         })
 
-    descuentos_fijos = Descuento.objects.filter(fijo=True, activo=True)
+    descuentos_fijos = Descuento.objects.filter(fijo=True)
     for df in descuentos_fijos:
         monto_pesos = Decimal('0.00')
         if df.monto is not None:
@@ -441,7 +471,7 @@ def ver_nomina(request, id_nomina):
             "monto_final": float(monto_pesos)
         })
 
-    beneficios_fijos = Beneficio.objects.filter(fijo=True, activo=True)
+    beneficios_fijos = Beneficio.objects.filter(fijo=True)
     for be in beneficios_fijos:
         monto_pesos = Decimal('0.00')
         if be.monto is not None:
@@ -517,6 +547,7 @@ def mis_nominas(request):
 @login_required
 def exportar_recibo_pdf(request, id_nomina):
     nomina = get_object_or_404(Nomina, id=id_nomina)
+    
     if not request.user.is_staff and nomina.empleado.id != request.user.persona.id:
         return HttpResponse("Acceso denegado de seguridad.", status=403)
 
@@ -559,7 +590,7 @@ def exportar_recibo_pdf(request, id_nomina):
             "descuentos": None
         })
 
-    beneficios_fijos = Beneficio.objects.filter(fijo=True, activo=True)
+    beneficios_fijos = Beneficio.objects.filter(fijo=True)
     for be in beneficios_fijos:
         if not beneficios_variables.filter(beneficio=be).exists():
             monto = be.monto
@@ -589,7 +620,7 @@ def exportar_recibo_pdf(request, id_nomina):
             "descuentos": float(monto)
         })
 
-    descuentos_fijos = Descuento.objects.filter(fijo=True, activo=True)
+    descuentos_fijos = Descuento.objects.filter(fijo=True)
     for df in descuentos_fijos:
         if not descuentos_variables.filter(descuento=df).exists():
             monto = df.monto
@@ -633,7 +664,7 @@ def exportar_pago_bancario_txt(request):
     mes = request.GET.get('mes', '').strip()
     anio = request.GET.get('anio', '').strip()
     
-    if not mes or not anio or mes == "" or anio == "":
+    if not mes or not anio:
         ultima_nomina = Nomina.objects.order_by('-fecha_generacion').first()
         if ultima_nomina:
             mes = str(ultima_nomina.fecha_generacion.month)
@@ -644,10 +675,9 @@ def exportar_pago_bancario_txt(request):
             anio = str(fecha_hoy.year)
 
     nominas_a_pagar = Nomina.objects.filter(
-        estado__iexact="pagado",
         fecha_generacion__month=int(mes), 
         fecha_generacion__year=int(anio)  
-    ).select_related('empleado')
+    ).exclude(estado__iexact="anulado").select_related('empleado')
 
     buffer = io.StringIO()
     cuit_empresa = "30711122233" 
@@ -665,11 +695,9 @@ def exportar_pago_bancario_txt(request):
         monto_centavos = int(nomina.monto_neto * 100)
         monto_formateado = str(monto_centavos).zfill(13)
 
-        linea = f"{cuit_empresa}{cbu_destino}{monto_formateado}{cuil_empleado}\n"
+        linea = f"{cuit_empresa}{cbu_destino}{monto_formateado},{cuil_empleado}\n"
         buffer.write(linea)
 
     response = HttpResponse(buffer.getvalue(), content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename="pago_haberes_{mes}_{anio}.txt"'
     return response
-
-

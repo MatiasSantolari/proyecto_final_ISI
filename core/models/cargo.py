@@ -7,6 +7,7 @@ class Cargo(models.Model):
     descripcion = models.CharField(max_length=255, null=True, blank=True, verbose_name='Descripcion')
     es_jefe = models.BooleanField(default=False, verbose_name='Indentificador es Jefe')
     es_gerente = models.BooleanField(default=False, verbose_name='Indentificador es Gerente')
+    activo = models.BooleanField(default=True, verbose_name='¿Está Activo?')
 
     class Meta:
         verbose_name = 'Cargo'

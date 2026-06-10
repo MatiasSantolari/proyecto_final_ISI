@@ -9,22 +9,33 @@ from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db.models import Case, When, IntegerField 
 
 
 @login_required
 def instituciones(request):
     form = InstitucionForm()
-    institucionesList = Institucion.objects.all().order_by('nombre')
+    
+    orden_activos = Case(
+        When(activo=False, then=2),
+        default=1,
+        output_field=IntegerField(),
+    )
+
+    institucionesList = (
+        Institucion.objects.all()
+        .annotate(prioridad_activo=orden_activos)
+        .order_by('prioridad_activo', 'nombre')
+    )
 
     paginator = Paginator(institucionesList, 15)
     page_number = request.GET.get('page')
-    instituciones = paginator.get_page(page_number)
+    instituciones_page = paginator.get_page(page_number)
 
     return render(request, 'instituciones.html', {
         'form': form,
-        'instituciones': instituciones
+        'instituciones': instituciones_page
     })
-
 
 
 @login_required
@@ -50,30 +61,42 @@ def crear_institucion(request):
                 })
 
             if id_institucion:
-                messages.success(request, "La institucion se actualizó correctamente.")
+                messages.success(request, "La institución se actualizó correctamente.")
             else:
-                messages.success(request, "La institucion se creó correctamente.")
+                messages.success(request, "La institución se creó correctamente.")
             return redirect('instituciones')
         else:
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({'success': False, 'errors': form.errors})
-            messages.error(request, "Hubo un error al guardar la institucion.")
+            messages.error(request, "Hubo un error al guardar la institución.")
 
     else:
         form = InstitucionForm()
 
-    institucionesList = Institucion.objects.all()
+    orden_activos = Case(When(activo=False, then=2), default=1, output_field=IntegerField())
+    institucionesList = Institucion.objects.all().annotate(prioridad_activo=orden_activos).order_by('prioridad_activo', 'nombre')
+    
     return render(request, 'instituciones.html', {'form': form, 'instituciones': institucionesList})
-
 
 
 @login_required
 @require_POST
 def eliminar_institucion(request, id_institucion):
-    try:
-        institucion = get_object_or_404(Institucion, id=id_institucion)
-        institucion.delete()
-        messages.success(request, "institucion eliminada correctamente.")
-    except Institucion.DoesNotExist:
-        messages.error(request, "La institucion no existe.")
+    institucion = get_object_or_404(Institucion, id=id_institucion)
+    
+    institucion.activo = False
+    institucion.save()
+    
+    messages.success(request, f"La institución '{institucion.nombre}' ha sido desactivada correctamente.")
+    return redirect('instituciones')
+
+
+@login_required
+@require_POST
+def reactivar_institucion(request, id_institucion):
+    institucion = get_object_or_404(Institucion, id=id_institucion)
+    institucion.activo = True
+    institucion.save()
+    
+    messages.success(request, f"La institución '{institucion.nombre}' ha sido reactivada correctamente.")
     return redirect('instituciones')

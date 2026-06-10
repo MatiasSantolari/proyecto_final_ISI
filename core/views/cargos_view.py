@@ -1,14 +1,13 @@
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from ..models import *
 from ..forms import *
-from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Case, When, IntegerField
 
 
 @login_required
@@ -18,7 +17,19 @@ def cargos(request):
     departamento_seleccionado = request.GET.get('departamento', 'todos')
     search_nombre_cargo = request.GET.get('nombre_cargo', '').strip()
 
-    relaciones = CargoDepartamento.objects.select_related('cargo', 'departamento').order_by('departamento__nombre', 'cargo__nombre')
+    orden_activos = Case(
+        When(cargo__activo=False, then=2),
+        When(departamento__activo=False, then=2),
+        default=1,
+        output_field=IntegerField(),
+    )
+
+    relaciones = (
+        CargoDepartamento.objects
+        .select_related('cargo', 'departamento')
+        .annotate(prioridad_activo=orden_activos)
+        .order_by('prioridad_activo', 'departamento__nombre', 'cargo__nombre')
+    )
 
     if departamento_seleccionado != 'todos' and departamento_seleccionado != '':
         relaciones = relaciones.filter(departamento_id=departamento_seleccionado)
@@ -42,15 +53,17 @@ def cargos(request):
             'sueldo_base': sueldo,
             'departamento_id': departamento.id,
             'departamento': departamento.nombre,
-            'vacante': relacion.vacante
+            'departamento_activo': departamento.activo,
+            'vacante': relacion.vacante,
+            'activo': cargo.activo 
         })
 
     paginator = Paginator(cargos_con_sueldo, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    departamentos = Departamento.objects.order_by('nombre')
-
+    departamentos = Departamento.objects.filter(activo=True).order_by('nombre')
+    
     form = CargoForm()
     
     return render(request, 'cargos.html', {
@@ -61,7 +74,6 @@ def cargos(request):
         'departamento_seleccionado': departamento_seleccionado,
         'nombre_cargo_buscado': search_nombre_cargo,
     })
-
 
 
 @login_required
@@ -75,10 +87,10 @@ def crear_cargo(request):
             form = CargoForm(request.POST, instance=cargo)
         else:
             form = CargoForm(request.POST)
+            
         if form.is_valid():
             cargo_guardado = form.save()
             sueldo_base = form.cleaned_data['sueldo_base']
-
             departamento = form.cleaned_data['departamento']
             vacante = form.cleaned_data['vacante']
 
@@ -98,15 +110,21 @@ def crear_cargo(request):
 
             return redirect('cargos')
     else:
-        form = CargoForm(instance=cargo)
+        form = CargoForm(instance=cargo) if id_cargo else CargoForm()
 
     cargos_con_sueldo = []
-    cargos = Cargo.objects.all()
+    
+    orden_activos = Case(When(cargo__activo=False, then=2), default=1, output_field=IntegerField())
+    relaciones = (
+        CargoDepartamento.objects
+        .select_related('cargo', 'departamento')
+        .annotate(prioridad_activo=orden_activos)
+        .order_by('prioridad_activo', 'departamento__nombre', 'cargo__nombre')
+    )
 
-    for cargo in cargos:
-        cargo_departamento = CargoDepartamento.objects.filter(cargo=cargo).first()
-        departamento = cargo_departamento.departamento.nombre if cargo_departamento else 'Sin asignar'
-        vacante = cargo_departamento.vacante if cargo_departamento else 0
+    for relacion in relaciones:
+        cargo = relacion.cargo
+        departamento = relacion.departamento
 
         ultimo_sueldo = HistorialSueldoBase.objects.filter(cargo=cargo).order_by('-fecha_sueldo').first()
         sueldo = ultimo_sueldo.sueldo_base if ultimo_sueldo else None
@@ -116,17 +134,34 @@ def crear_cargo(request):
             'nombre': cargo.nombre,
             'descripcion': cargo.descripcion,
             'sueldo_base': sueldo,
-            'departamento': departamento,
-            'vacante': vacante
+            'departamento_id': departamento.id,
+            'departamento': departamento.nombre,
+            'vacante': relacion.vacante,
+            'activo': cargo.activo
         })
 
-    return render(request, 'cargos.html', {'form': form, 'cargos': cargos_con_sueldo})
-
+    return render(request, 'cargos.html', {
+        'form': form, 
+        'cargos': cargos_con_sueldo,
+        'departamentos': Departamento.objects.filter(activo=True).order_by('nombre'),
+        'departamento_seleccionado': 'todos',
+        'nombre_cargo_buscado': '',
+    })
 
 
 @login_required
 @require_POST
 def eliminar_cargo(request, id_cargo):
     cargo = get_object_or_404(Cargo, id=id_cargo)
-    cargo.delete()
+    cargo.activo = False
+    cargo.save()
+    return redirect('cargos')
+
+
+@login_required
+@require_POST
+def reactivar_cargo(request, id_cargo):
+    cargo = get_object_or_404(Cargo, id=id_cargo)
+    cargo.activo = True
+    cargo.save()
     return redirect('cargos')

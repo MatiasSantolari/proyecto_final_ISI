@@ -12,9 +12,9 @@ from django.db.models.functions import TruncDay, TruncMonth, TruncWeek
 import calendar
 from django.db.models.functions import Round
 import locale
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Case, IntegerField, When
 from decimal import Decimal
-
+from django.utils.timezone import now
 
 from core.models import (
     Empleado,
@@ -544,7 +544,7 @@ def api_estructura(request):
         except (AttributeError, Empleado.DoesNotExist):
             depts = Departamento.objects.none()
     else:
-        depts = Departamento.objects.all()
+        depts = Departamento.objects.filter(activo=True).order_by('nombre')
 
     labels = []
     counts = []
@@ -564,13 +564,18 @@ def api_estructura(request):
 
 
 
+
 @require_GET
 @login_required
 def api_objetivos(request):
     rol_actual = request.session.get('rol_actual', request.user.rol)
     department_id = request.GET.get('departamento_id')
+    hoy = now().date()
 
-    objs_queryset = Objetivo.objects.filter(activo=True).select_related(
+    objs_queryset = Objetivo.objects.filter(
+        Q(fecha_fin__gte=hoy) | Q(fecha_fin__isnull=True),
+        activo=True
+    ).select_related(
         'departamento', 'creado_por__persona'
     ).annotate(
         total_asig=Count('objetivoempleado'),
@@ -824,7 +829,8 @@ def api_evaluaciones_empleado(request):
     evaluaciones_pendientes_qs = EvaluacionEmpleado.objects.filter(
         empleado=empleado,
         calificacion_final__isnull=True,
-    ).order_by('-fecha_registro')
+        evaluacion__activo=True
+    ).select_related('evaluacion').order_by('-fecha_registro')
 
     lista_pendientes = [
         {
@@ -852,13 +858,12 @@ def api_beneficios_empleado(request):
     empleado = Empleado.objects.get(id=persona.id)
 
     beneficios_asignados_ids = BeneficioEmpleadoNomina.objects.filter(empleado=empleado).values_list('beneficio_id', flat=True)
-
     beneficios_asignados = Beneficio.objects.filter(id__in=beneficios_asignados_ids)
 
     lista_asignados = [
         {
             'id': b.id,
-            'descripcion': b.descripcion,
+            'descripcion': b.descripcion if b.activo else f"{b.descripcion} (Inactivo)",
             'valor': f"${b.monto}" if b.monto else f"{b.porcentaje}%",
             'fijo': b.fijo
         }
@@ -869,7 +874,8 @@ def api_beneficios_empleado(request):
         activo=True
     ).exclude(
         Q(id__in=beneficios_asignados_ids) | Q(fijo=True)
-    )
+    ).order_by('descripcion')
+
 
     lista_potenciales = [
         {
@@ -900,7 +906,8 @@ def api_logros_empleado(request):
     except Empleado.DoesNotExist:
         return JsonResponse({'error': 'Empleado no encontrado'}, status=404)
 
-    todos_los_logros = Logro.objects.all()
+    orden_activos = Case(When(activo=False, then=2), default=1, output_field=IntegerField())
+    todos_los_logros = Logro.objects.all().annotate(prioridad=orden_activos).order_by('prioridad', 'descripcion')
 
     logros_del_empleado = {le.logro_id: le for le in LogroEmpleado.objects.filter(empleado=empleado)}
 
@@ -911,10 +918,8 @@ def api_logros_empleado(request):
     }
 
     lista_logros = []
-
     for logro in todos_los_logros:
         registro_usuario = logros_del_empleado.get(logro.id)
-
         tipo = logro.tipo
         requisito_texto = ""
 
@@ -925,16 +930,18 @@ def api_logros_empleado(request):
         else:
             requisito_texto = "Consultar los requisitos con el área de RRHH."
 
+        titulo_final = logro.descripcion if logro.activo else f"{logro.descripcion} (Inactivo)"
+
         lista_logros.append({
             'id': logro.id,
-            'titulo': logro.descripcion,
+            'titulo': titulo_final,
             'completado': registro_usuario.completado if registro_usuario else False,
             'fecha_asignacion': registro_usuario.fecha_asignacion.strftime('%d/%m/%Y') if (registro_usuario and registro_usuario.fecha_asignacion) else None,
             'tipo': tipo,
             'requisito': requisito_texto
         })
 
-    lista_logros.sort(key=lambda x: (not x['completado'], x['titulo']))
+    lista_logros.sort(key=lambda x: ('(Inactivo)' in x['titulo'], not x['completado'], x['titulo']))
 
     return JsonResponse({
         "logros": lista_logros,
@@ -952,7 +959,8 @@ def api_capacitaciones_empleado(request):
         return JsonResponse({'error': 'Perfil incompleto'}, status=403)
 
     capacitaciones_activas = CapacitacionEmpleado.objects.filter(
-        empleado=empleado
+        empleado=empleado,
+        capacitacion__activo=True
     ).exclude(
         estado__in=['COMPLETADO', 'CANCELADO']
     ).select_related('capacitacion').order_by('capacitacion__fecha_inicio')

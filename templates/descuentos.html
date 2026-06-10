@@ -32,8 +32,8 @@
                 <th>Descripción</th>
                 <th>Monto</th>
                 <th style="width: 12%">Porcentaje</th>
+                <th style="width: 10%">Mensual</th>
                 <th style="width: 10%">Activo</th>
-                <th style="width: 10%">Fijo</th>
                 <th style="width: 12%">Acciones</th>
               </tr>
             </thead>
@@ -56,14 +56,14 @@
                   {% endif %}
                 </td>
                 <td class="text-center">
-                  {% if descuento.activo %}
+                  {% if descuento.fijo %}
                     <span class="badge bg-success">Sí</span>
                   {% else %}
                     <span class="badge bg-danger">No</span>
                   {% endif %}
                 </td>
                 <td class="text-center">
-                  {% if descuento.fijo %}
+                  {% if descuento.activo %}
                     <span class="badge bg-success">Sí</span>
                   {% else %}
                     <span class="badge bg-danger">No</span>
@@ -80,28 +80,28 @@
                             data-fijo="{{ descuento.fijo }}"
                             onclick="editarDescuento(this)"
                             data-bs-toggle="tooltip" title="Editar">
-                      <i class="bi bi-pencil-square"></i>
+                      <i class="bi bi-pencil-fill fs-6"></i>
                     </button>
                     <button class="btn btn-sm btn-outline-info me-1" 
                             data-bs-toggle="modal" 
                             data-bs-target="#modalVerDescuento{{ descuento.id }}"
                             data-bs-toggle="tooltip" title="Ver">
-                      <i class="bi bi-eye"></i>
+                      <i class="bi bi-eye-fill fs-6"></i>
                     </button>
                     {% if descuento.activo %}
-                      <button class="btn btn-sm btn-outline-danger" 
+                      <button class="btn btn-sm btn-outline-warning" 
                               data-bs-toggle="modal" 
                               data-bs-target="#modalDesactivarDescuento"
                               data-id="{{ descuento.id }}"
                               data-bs-toggle="tooltip" title="Desactivar">
-                        <i class="bi bi-trash3"></i>
+                        <i class="bi bi-dash-circle-fill fs-6"></i>
                       </button>
                     {% else %}
                       <button class="btn btn-sm btn-outline-success" 
                               data-bs-toggle="modal" 
                               data-bs-target="#modalActivarDescuento"
-                              data-id="{{ descuento.id }}">
-                        <i class="bi bi-arrow-counterclockwise"></i>
+                              data-id="{{ descuento.id }}" title="Reactivar">
+                        <i class="bi bi-arrow-counterclockwise fs-6"></i>
                       </button>
                     {% endif %}
                   </div>
@@ -178,7 +178,7 @@
               </div>
               <div class="mb-3 form-check">
                 {{ form.fijo }}
-                <label for="id_fijo" class="form-check-label">¿Es fijo?</label>
+                <label for="id_fijo" class="form-check-label">¿Es Mensual?</label>
               </div>
 
               <div class="modal-footer bg-light">
@@ -224,7 +224,7 @@
                 No
               {% endif %}
             </p>
-            <p><strong>Fijo:</strong> 
+            <p><strong>Mensual:</strong> 
               {% if descuento.fijo %}
                 Sí
               {% else %}
@@ -238,31 +238,30 @@
     {% endfor %}
 
 
-    <!-- Modal para Confirmar Desactivar -->
+    <!-- Modal para Confirmar Desactivar Descuento -->
     <div class="modal fade" id="modalDesactivarDescuento" tabindex="-1" aria-labelledby="modalDesactivarDescuentoLabel" aria-hidden="true">
       <div class="modal-dialog" style="margin-top: 12rem;">
-        <div class="modal-content">
-          <div class="modal-header" style="background-color: #3c8dbc;">
-            <h5 class="modal-title text-white" id="modalDesactivarDescuentoLabel">Confirmar Eliminación</h5>
+        <div class="modal-content shadow-lg border-0">
+          <div class="modal-header bg-warning text-dark py-2.5">
+            <h5 class="modal-title fw-bold" id="modalDesactivarDescuentoLabel">Confirmar Desactivación</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div class="modal-body">
-            <p><span id="textoConfirmacionDesactivarDescuento"></span></p>
+          <div class="modal-body p-4 text-center">
+            <p class="fs-6 mb-0 text-secondary fw-semibold">
+              <span id="textoConfirmacionDesactivarDescuento"></span>
+            </p>
           </div>
-          <div class="modal-footer">
-            <form id="formEliminarDescuento" method="post">
+          <div class="modal-footer bg-light py-2">
+            <form id="formDesactivarDescuento" method="post" action="" class="m-0 w-100 d-flex justify-content-end gap-2">
               {% csrf_token %}
-              <button type="submit" class="btn btn-danger">Eliminar</button>
-            </form>
-            <form id="formDesactivarDescuento" method="post" action="">
-              {% csrf_token %}
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" name="accion" value="desactivar" class="btn btn-warning">Desactivar</button>
+              <button type="button" class="btn btn-secondary fw-bold me-4" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" name="accion" value="desactivar" class="btn btn-warning text-dark fw-bold px-4">Desactivar</button>
             </form>
           </div>
         </div>
       </div>
     </div>
+
 
     <!-- Modal para Confirmar Activación -->
     <div class="modal fade" id="modalActivarDescuento" tabindex="-1" aria-labelledby="modalActivarDescuentoLabel" aria-hidden="true">
@@ -278,7 +277,7 @@
           <div class="modal-footer">
             <form id="formActivarDescuento" method="post">
               {% csrf_token %}
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-secondary me-4" data-bs-dismiss="modal">Cancelar</button>
               <button type="submit" class="btn btn-success">Activar</button>
             </form>
           </div>
@@ -292,20 +291,31 @@
 
     document.addEventListener("DOMContentLoaded", function () {
 
-      const modalDesactivar = document.getElementById('modalDesactivarDescuento');
-      modalDesactivar.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const descuentoId = button.getAttribute('data-id');
-        
-        const formDesactivar = document.getElementById('formDesactivarDescuento');
-        formDesactivar.action = `/descuentos/${descuentoId}/desactivar/`;
+      const modalDesactivarDescuento = document.getElementById('modalDesactivarDescuento');
+      if (modalDesactivarDescuento) {
+        modalDesactivarDescuento.addEventListener('show.bs.modal', function (event) {
+          const button = event.relatedTarget;
+          const descuentoId = button.getAttribute('data-id');
+          
+          const formDesactivar = document.getElementById('formDesactivarDescuento');
+          if (formDesactivar) {
+            formDesactivar.action = `/descuentos/${descuentoId}/desactivar/`;
+          }
 
-        const formEliminar = document.getElementById('formEliminarDescuento');
-        formEliminar.action = `/descuentos/${descuentoId}/eliminar/`;
+          const fila = button.closest('tr');
+          let descripcion = "";
+          if (fila) {
+            const celdaNombre = fila.querySelector('td');
+            if (celdaNombre) descripcion = celdaNombre.textContent.trim();
+          }
 
-        const descripcion = button.closest('tr').querySelector('td').textContent.trim();
-        document.getElementById('textoConfirmacionDesactivarDescuento').textContent = `¿Estás seguro de desactivar o eliminar el Descuento "${descripcion}"?`;
-      });
+          const contenedorTexto = document.getElementById('textoConfirmacionDesactivarDescuento');
+          if (contenedorTexto) {
+            contenedorTexto.innerHTML = `¿Estás seguro de que deseas desactivar el descuento <strong>"${descripcion}"</strong>? Ya no se aplicará en las nuevas liquidaciones de nóminas.`;
+          }
+        });
+      }
+
 
       const modalActivar = document.getElementById('modalActivarDescuento');
       modalActivar.addEventListener('show.bs.modal', function (event) {

@@ -3,7 +3,8 @@ from django.db import models
 
 class TipoCriterio(models.Model):
     descripcion = models.CharField(max_length=255, null=True, blank=True, verbose_name='Descripcion del tipo de criterio')
-
+    activo = models.BooleanField(default=True, verbose_name='¿Está Activo?')
+    
     class Meta:
         verbose_name = 'TipoCriterio'
         verbose_name_plural = 'TiposCriterios'

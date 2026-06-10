@@ -13,7 +13,18 @@ from django.core.paginator import Paginator
 @login_required
 def habilidades(request):
     form = HabilidadForm()
-    habilidadesList = Habilidad.objects.all().order_by('nombre')
+    
+    orden_activos = Case(
+        When(activo=False, then=2),
+        default=1,
+        output_field=IntegerField(),
+    )
+
+    habilidadesList = (
+        Habilidad.objects.all()
+        .annotate(prioridad_activo=orden_activos)
+        .order_by('prioridad_activo', 'nombre')
+    )
 
     paginator = Paginator(habilidadesList, 15)
     page_number = request.GET.get('page')
@@ -23,6 +34,7 @@ def habilidades(request):
         'form': form,
         'habilidades': page_obj
     })
+
 
 
 @login_required
@@ -56,11 +68,20 @@ def crear_habilidad(request):
 @login_required
 @require_POST
 def eliminar_habilidad(request, id_habilidad):
-    try:
-        habilidad = get_object_or_404(Habilidad, id=id_habilidad)
-        HabilidadEmpleado.objects.filter(habilidad=habilidad).delete() # Elimina todas las relaciones de empleados con esta habilidad
-        habilidad.delete()
-        messages.success(request, "habilidad eliminada correctamente.")
-    except Habilidad.DoesNotExist:
-        messages.error(request, "La habilidad no existe.")
+    habilidad = get_object_or_404(Habilidad, id=id_habilidad)
+    habilidad.activo = False
+    habilidad.save()
+    
+    messages.success(request, f"La habilidad '{habilidad.nombre}' ha sido desactivada correctamente.")
+    return redirect('habilidades')
+
+
+@login_required
+@require_POST
+def reactivar_habilidad(request, id_habilidad):
+    habilidad = get_object_or_404(Habilidad, id=id_habilidad)
+    habilidad.activo = True
+    habilidad.save()
+    
+    messages.success(request, f"La habilidad '{habilidad.nombre}' ha sido reactivada correctamente.")
     return redirect('habilidades')

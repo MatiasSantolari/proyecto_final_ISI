@@ -11,12 +11,17 @@ from django.contrib.auth.decorators import login_required
 from collections import defaultdict
 from django.template.loader import render_to_string
 from django.core.paginator import Paginator
+from django.db.models import Prefetch
 
 
 @login_required
 def evaluaciones(request):
     evaluaciones_list = Evaluacion.objects.prefetch_related('evaluacioncriterio_set__criterio__tipo_criterio').order_by('-fecha_evaluacion')   
-    tipos_criterio = TipoCriterio.objects.prefetch_related('criterio_set').all()
+    
+    tipos_criterio = TipoCriterio.objects.filter(activo=True).prefetch_related(
+        Prefetch('criterio_set', queryset=Criterio.objects.filter(activo=True).order_by('descripcion'))
+    ).order_by('descripcion')
+    
     form = EvaluacionForm()
 
     paginator = Paginator(evaluaciones_list, 10) 
@@ -26,7 +31,7 @@ def evaluaciones(request):
     return render(request, 'evaluaciones.html', {
         'evaluaciones': page_obj, 
         'page_obj': page_obj, 
-        'tipos_criterio': tipos_criterio,
+        'tipos_criterio': tipos_criterio, 
         'form': form
     })
 
@@ -52,7 +57,12 @@ def crear_evaluacion(request):
 
         tipo_dict = {}
         for idx, c_id in enumerate(criterios_ids):
-            c = get_object_or_404(Criterio, pk=c_id)
+            c = get_object_or_404(Criterio, pk=c_id, activo=True)
+            
+            if not c.tipo_criterio.activo:
+                messages.error(request, f"El criterio '{c.descripcion}' pertenece a un Tipo de Criterio inactivo.")
+                return redirect('evaluaciones')
+
             p = float(ponderaciones[idx])
             if p < 0 or p > 1:
                 messages.error(request, f"La ponderación del criterio {c.descripcion} debe estar entre 0 y 1")

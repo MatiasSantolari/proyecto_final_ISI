@@ -20,7 +20,7 @@
 
 <div class="container-fluid p-5 my-2">
   <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
-    <h4 class="page-title-custom fw-bold mb-3">Gestión de Cargos</h4>
+    <h4 class="page-title-custom fw-bold mb-2">Gestión de Cargos</h4>
     <a href="{% url 'departamentos' %}" class="btn btn-warning btn-sm p-1 mr-2">
       <i class="bi bi-arrow-left"></i> Ir a <strong>Departamentos</strong>
     </a>
@@ -81,22 +81,32 @@
           <tbody class="text-center">
             {% for cargo in cargos %}
             <tr>
-              <td>{{ cargo.nombre }}</td>
+               <td>
+                {{ cargo.nombre }}
+                {% if not cargo.activo %}
+                  <span class="badge bg-secondary text-white ms-1" style="font-size: 0.7rem;">Inactivo</span>
+                {% endif %}
+              </td>
               <td>
                 {% if cargo.descripcion %}
                   {{ cargo.descripcion }}
                 {% else %}
-                  -
+                  <em class="text-muted small">Sin descripción cargada</em>
                 {% endif %}
               </td>
               <td>
                 {% if cargo.sueldo_base %}
                   ${{ cargo.sueldo_base|floatformat:2|intcomma }}
                 {% else %}
-                  Sin sueldo registrado
+                  <em class="text-muted small">Sin sueldo registrado</em>
                 {% endif %}
               </td>
-              <td>{{ cargo.departamento }}</td>
+              <td>
+                {{ cargo.departamento }}
+                {% if not cargo.departamento_activo %}
+                  <span class="badge bg-dark text-white ms-1" style="font-size: 0.7rem;">Sector Inactivo</span>
+                {% endif %}
+              </td>
               <td>{{ cargo.vacante }}</td>
               <td>
                 <div class="d-flex justify-content-center gap-2">
@@ -110,23 +120,33 @@
                           data-vacante="{{ cargo.vacante }}"
                           onclick="editarCargo(this)"
                           data-bs-toggle="tooltip" title="Editar">
-                    <i class="bi bi-pencil-square"></i>
+                    <i class="bi bi-pencil-fill fs-6"></i>
                   </button>
 
                   <button class="btn btn-sm btn-outline-info"
                           data-bs-toggle="modal"
                           data-bs-target="#modalVerCargo{{ cargo.id }}"
                           data-bs-toggle="tooltip" title="Ver">
-                    <i class="bi bi-eye"></i>
+                    <i class="bi bi-eye-fill fs-6"></i>
                   </button>
 
-                  <button class="btn btn-sm btn-outline-danger"
-                          data-bs-toggle="modal"
-                          data-bs-target="#modalEliminarCargo"
-                          data-id="{{ cargo.id }}"
-                          data-bs-toggle="tooltip" title="Eliminar">
-                    <i class="bi bi-trash3"></i>
-                  </button>
+                  {% if cargo.activo %}
+                    <button class="btn btn-sm btn-outline-warning"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalEliminarCargo"
+                            data-id="{{ cargo.id }}"
+                            data-bs-toggle="tooltip" title="Desactivar">
+                      <i class="bi bi-dash-circle-fill fs-6"></i>   
+                    </button>
+                {% else %}
+                    <button class="btn btn-sm btn-outline-success"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalReactivarCargo"
+                            data-id="{{ cargo.id }}"
+                            data-bs-toggle="tooltip" title="Reactivar Cargo">
+                    <i class="bi bi-arrow-counterclockwise fs-6"></i>      
+                    </button>
+                {% endif %}
                 </div>
               </td>
             </tr>
@@ -188,7 +208,15 @@
             <div class="mb-3">
               <label for="id_departamento" class="form-label">Departamento</label>
               <div class="input-group">
-                {{ form.departamento|add_class:"form-select" }}
+                <select name="departamento" id="id_departamento" class="form-select">
+                  <option value="">---------</option>
+                  {% for depto in form.fields.departamento.queryset %}
+                    <option value="{{ depto.id }}"
+                            {% if not depto.activo and form.initial.departamento != depto.id %}disabled{% endif %}>
+                      {{ depto.nombre }}{% if not depto.activo %} (Inactivo){% endif %}
+                    </option>
+                  {% endfor %}
+                </select>
                 <button type="button" class="btn btn-outline-primary" id="btnAbrirDepartamento">
                     <i class="bi bi-plus-lg"></i>
                 </button>
@@ -223,15 +251,27 @@
 
   {% for cargo in cargos %}
   <div class="modal fade" id="modalVerCargo{{ cargo.id }}" tabindex="-1" aria-labelledby="modalVerCargo{{ cargo.id }}Label" aria-hidden="true">
-    <div class="modal-dialog" style="margin-top: 6rem;">
+    <div class="modal-dialog" style="margin-top: 12rem;">
       <div class="modal-content">
         <div class="modal-header" style="background-color: #3c8dbc;">
           <h5 class="modal-title text-white" id="modalVerCargo{{ cargo.id }}Label">Detalles del Cargo</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p><strong>Nombre:</strong> {{ cargo.nombre }}</p>
-          <p><strong>Descripción:</strong> {{ cargo.descripcion }}</p>
+          <p>
+            <strong>Nombre:</strong> {{ cargo.nombre }}
+            {% if not cargo.activo %}
+              <span class="badge bg-secondary text-white ms-1" style="font-size: 0.7rem;">Inactivo</span>
+            {% endif %}
+          </p>
+          <p>
+            <strong>Descripción:</strong> 
+            {% if cargo.descripcion and cargo.descripcion != "None" and cargo.descripcion.strip %}
+              {{ cargo.descripcion }}
+            {% else %}
+              <em class="text-muted small">Sin descripción cargada</em>
+            {% endif %}
+          </p>
           <p><strong>Sueldo Base:</strong> 
               {% if cargo.sueldo_base %}
                 ${{ cargo.sueldo_base|floatformat:2|intcomma }}
@@ -239,7 +279,12 @@
                 Sin sueldo registrado
               {% endif %}
           </p>
-          <p><strong>Departamento:</strong> {{ cargo.departamento }}</p>
+          <p>
+            <strong>Departamento:</strong> {{ cargo.departamento }}
+            {% if not cargo.departamento_activo %}
+              <span class="badge bg-dark text-white ms-1" style="font-size: 0.7rem;">Sector Inactivo</span>
+            {% endif %}
+          </p>
           <p><strong>Vacantes:</strong> {{ cargo.vacante }}</p>
         </div>
       </div>
@@ -247,28 +292,50 @@
   </div>
   {% endfor %}
 
-  <!-- Modal para Confirmar Eliminación -->
+  <!-- Modal para Confirmar Desactivación -->
   <div class="modal fade" id="modalEliminarCargo" tabindex="-1" aria-labelledby="modalEliminarCargoLabel" aria-hidden="true">
     <div class="modal-dialog" style="margin-top: 12rem;">
       <div class="modal-content">
-        <div class="modal-header" style="background-color: #3c8dbc;">
-          <h5 class="modal-title text-white" id="modalEliminarCargoLabel">Confirmar Eliminación</h5>
+        <div class="modal-header bg-warning">
+          <h5 class="modal-title fw-bold" id="modalEliminarCargoLabel">Confirmar Desactivación</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>¿Estás seguro de que deseas eliminar este Cargo?</p>
+          <p>¿Estás seguro de que deseas desactivar este Cargo? Dejará de estar disponible para nuevas asignaciones pero se conservará en la tabla.</p>
         </div>
         <div class="modal-footer">
           <form id="formEliminarCargo" method="post">
             {% csrf_token %}
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-danger">Eliminar</button>
+            <button type="submit" class="btn btn-warning text-dark fw-bold">Desactivar</button>
           </form>
         </div>
       </div>
     </div>
   </div>
 
+
+  <!-- Modal para Confirmar Reactivación -->
+  <div class="modal fade" id="modalReactivarCargo" tabindex="-1" aria-labelledby="modalReactivarCargoLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 12rem;">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: #28a745;">
+          <h5 class="modal-title fw-bold" id="modalReactivarCargoLabel">Confirmar Reactivación</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas reactivar este Cargo? Volverá a estar disponible para asignaciones.</p>
+        </div>
+        <div class="modal-footer">
+          <form id="formReactivarCargo" method="post">
+            {% csrf_token %}
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-success">Reactivar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="modal fade" id="modalDepartamento" tabindex="-1" aria-labelledby="modalDepartamentoLabel" aria-hidden="true">
       <div class="modal-dialog" style="margin-top: 6rem;">
@@ -356,6 +423,17 @@
         form.action = `/cargos/${cargoId}/eliminar/`;
       });
     }
+
+    const modalReactivar = document.getElementById('modalReactivarCargo');
+    if (modalReactivar) {
+      modalReactivar.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const cargoId = button.getAttribute('data-id');
+        const form = document.getElementById('formReactivarCargo');
+        form.action = `/cargos/${cargoId}/reactivar/`; 
+      });
+    }
+
 
     const modalCrearEditar = document.getElementById('modalCargo');
     if (modalCrearEditar) {
@@ -474,6 +552,7 @@
     window.editarCargo = editarCargo;
   });
 
+
   function limpiarFormulario() {
     const form = document.getElementById('formCargo');
     if (form) form.reset();
@@ -481,9 +560,22 @@
     document.getElementById('modalCargoLabel').textContent = 'Crear Nuevo Cargo';
     const submitBtn = document.querySelector('#formCargo button[type="submit"]');
     if (submitBtn) submitBtn.textContent = 'Guardar';
+
+    const selectDepto = document.getElementById('id_departamento');
+    if (selectDepto) {
+      selectDepto.value = ""; 
+      
+      Array.from(selectDepto.options).forEach(option => {
+        if (option.text.includes('(Inactivo)')) {
+          option.disabled = true; 
+        }
+      });
+    }
   }
 
   function editarCargo(button) {
+    limpiarFormulario();
+
     const cargoId = button.getAttribute('data-id');
     const nombre = button.getAttribute('data-nombre');
     const descripcion = button.getAttribute('data-descripcion');
@@ -493,14 +585,30 @@
 
     document.getElementById('id_cargo').value = cargoId || '';
     document.getElementById('id_nombre').value = nombre || '';
-    document.getElementById('id_descripcion').value = descripcion || '';
+    
+    if (!descripcion || descripcion === 'None' || descripcion.trim() === '') {
+      document.getElementById('id_descripcion').value = '';
+    } else {
+      document.getElementById('id_descripcion').value = descripcion;
+    }
+    
     document.getElementById('id_sueldo_base').value = isNaN(sueldo) ? '' : sueldo;
-    document.getElementById('id_departamento').value = departamento || '';
     document.getElementById('id_vacante').value = isNaN(vacante) ? '' : vacante;
+    
+    const selectDepto = document.getElementById('id_departamento');
+    if (selectDepto && departamento) {
+      const opcionEspecifica = selectDepto.querySelector(`option[value="${departamento}"]`);
+      
+      if (opcionEspecifica) {
+        opcionEspecifica.disabled = false; 
+      }
+      selectDepto.value = departamento;
+    }
 
     document.getElementById('modalCargoLabel').textContent = 'Editar Cargo';
     const submitBtn = document.querySelector('#formCargo button[type="submit"]');
     if (submitBtn) submitBtn.textContent = 'Actualizar';
   }
+
 </script>
 {% endblock %}

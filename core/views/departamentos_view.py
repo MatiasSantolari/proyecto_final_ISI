@@ -16,12 +16,24 @@ from django.utils.timezone import now
 from collections import defaultdict
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
+from django.db.models import Case, When, IntegerField
 
 
 @login_required
 def departamentos(request):
     form = DepartamentoForm()
-    departamentosList = Departamento.objects.all().order_by('nombre')
+    
+    orden_activos = Case(
+        When(activo=False, then=2),
+        default=1,
+        output_field=IntegerField(),
+    )
+
+    departamentosList = (
+        Departamento.objects.all()
+        .annotate(prioridad_activo=orden_activos)
+        .order_by('prioridad_activo', 'nombre')
+    )
 
     paginator = Paginator(departamentosList, 10)
     page_number = request.GET.get('page')
@@ -99,7 +111,10 @@ def crear_departamento(request):
         form = DepartamentoForm()
 
     messages.error(request, "Hubo un error al guardar el departamento. Verifica los datos.")
-    departamentosList = Departamento.objects.all()
+    
+    orden_activos = Case(When(activo=False, then=2), default=1, output_field=IntegerField())
+    departamentosList = Departamento.objects.all().annotate(prioridad_activo=orden_activos).order_by('prioridad_activo', 'nombre')
+    
     return render(request, 'departamentos.html', {'form': form, 'departamentos': departamentosList})
 
 
@@ -108,14 +123,21 @@ def crear_departamento(request):
 @require_POST
 def eliminar_departamento(request, id_departamento):
     departamento = get_object_or_404(Departamento, id=id_departamento)
-    relaciones = CargoDepartamento.objects.filter(departamento=departamento)
-    for relacion in relaciones:
-        cargo = relacion.cargo
-        relacion.delete()
-        otros = CargoDepartamento.objects.filter(cargo=cargo).exists()
-        if not otros:
-            cargo.delete()
+    
+    departamento.activo = False
+    departamento.save()
+    
+    messages.success(request, f"El departamento '{departamento.nombre}' ha sido desactivado correctamente.")
+    return redirect('departamentos')
 
-    departamento.delete()
-    messages.success(request, "El departamento se eliminó correctamente.")
+
+
+@login_required
+@require_POST
+def reactivar_departamento(request, id_departamento):
+    departamento = get_object_or_404(Departamento, id=id_departamento)
+    departamento.activo = True
+    departamento.save()
+    
+    messages.success(request, f"El departamento '{departamento.nombre}' ha sido reactivado correctamente.")
     return redirect('departamentos')

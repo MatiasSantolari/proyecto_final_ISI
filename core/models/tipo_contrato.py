@@ -3,7 +3,8 @@ from django.db import models
 class TipoContrato(models.Model):
     descripcion = models.CharField(max_length=255, verbose_name='Descripcion del tipo de contrato')
     duracion_meses = models.PositiveIntegerField(null=True, blank=True, verbose_name="Duración estándar (meses)")
-
+    activo = models.BooleanField(default=True, verbose_name='¿Está Activo?')
+    
     class Meta:
         verbose_name = 'TipoContrato'
         verbose_name_plural = 'TiposContratos'

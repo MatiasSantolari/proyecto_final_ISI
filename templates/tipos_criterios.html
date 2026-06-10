@@ -7,7 +7,12 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/badge_tables.css' %}">
 <div class="container-fluid p-5 my-2">
-  <h4 class="page-title-custom fw-bold mb-3">Gestión de Tipos de Criterios de Evaluacion</h4>
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+    <h4 class="page-title-custom fw-bold mb-3">Gestión de Tipos de Criterios de Evaluacion</h4>
+    <a href="{% url 'criterios' %}" class="btn btn-warning btn-sm p-1 mr-2">
+      <i class="bi bi-arrow-left"></i> Ir a <strong>Criterios</strong>
+    </a>
+  </div>
 
   <div class="card mb-2">
     <div class="card-header d-flex justify-content-between align-items-center mb-0">
@@ -30,50 +35,88 @@
           <tbody class="text-center">
             {% for tipoC in tiposCriterios %}
             <tr>
-              <td>{{ tipoC.descripcion }}</td>
+              <td>
+                {{ tipoC.descripcion }}
+                {% if not tipoC.activo %}
+                  <span class="badge bg-secondary text-white ms-1" style="font-size: 0.7rem;">Inactivo</span>
+                {% endif %}
+              </td>
               <td>
                 <div class="d-flex justify-content-center gap-2">
-                  <button class="btn btn-sm btn-outline-secondary me-1"
+                  <button class="btn btn-sm btn-outline-secondary"
                           data-bs-toggle="modal" data-bs-target="#modalTipoCriterio"
                           data-id="{{ tipoC.id }}"
                           data-descripcion="{{ tipoC.descripcion }}"
                           onclick="editarTipoCriterio(this)"
                           data-bs-toggle="tooltip" title="Editar">
-                    <i class="bi bi-pencil-square"></i>
+                    <i class="bi bi-pencil-fill fs-6"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-info me-1"
+                  
+                  <button class="btn btn-sm btn-outline-info"
                           data-bs-toggle="modal"
                           data-bs-target="#modalVerTipoCriterio{{ tipoC.id }}"
                           data-bs-toggle="tooltip" title="Ver">
-                    <i class="bi bi-eye"></i>
+                    <i class="bi bi-eye-fill fs-6"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-danger"
-                          data-bs-toggle="modal"
-                          data-bs-target="#modalEliminarTipoCriterio"
-                          data-id="{{ tipoC.id }}"
-                          data-bs-toggle="tooltip" title="Eliminar">
-                    <i class="bi bi-trash3"></i>
-                  </button>
+                  
+                  {% if tipoC.activo %}
+                    <button class="btn btn-sm btn-outline-warning"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalDesactivarTipoCriterio"
+                            data-id="{{ tipoC.id }}"
+                            data-bs-toggle="tooltip" title="Desactivar">
+                      <i class="bi bi-dash-circle-fill fs-6"></i>
+                    </button>
+                  {% else %}
+                    <button class="btn btn-sm btn-outline-success"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalReactivarTipoCriterio"
+                            data-id="{{ tipoC.id }}"
+                            data-bs-toggle="tooltip" title="Reactivar Tipo de Criterio">
+                      <i class="bi bi-arrow-counterclockwise fs-6"></i>
+                    </button>
+                  {% endif %}
                 </div>
               </td>
             </tr>
+
             
-            <!-- Modal Eliminar -->
-            <div class="modal fade" id="modalEliminarTipoCriterio" tabindex="-1" aria-labelledby="modalEliminarTipoCriterioLabel" aria-hidden="true">
+            <div class="modal fade" id="modalDesactivarTipoCriterio" tabindex="-1" aria-labelledby="modalDesactivarTipoCriterioLabel" aria-hidden="true">
               <div class="modal-dialog" style="margin-top: 12rem;">
-                <div class="modal-content">
-                  <div class="modal-header" style="background-color: #3c8dbc;">
-                    <h5 class="modal-title text-white">Confirmar Eliminación</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-content shadow-lg border-0">
+                  <div class="modal-header bg-warning text-dark py-2.5">
+                    <h5 class="modal-title fw-bold" id="modalDesactivarTipoCriterioLabel">Confirmar Desactivación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
-                  <div class="modal-body">
-                    <p>¿Estás seguro de que deseas eliminar el Tipo de Criterio: <strong>({{ tipoC.descripcion }})</strong>?</p>
+                  <div class="modal-body p-4 text-center">
+                    <p class="fs-6 mb-0 text-secondary fw-semibold">¿Estás seguro de que deseas desactivar este Tipo de Criterio? Dejará de estar disponible para ponderar nuevas evaluaciones pero se preservará su historial.</p>
                   </div>
-                  <div class="modal-footer">
-                    <form id="formEliminarTipoCriterio" method="post">
+                  <div class="modal-footer bg-light py-2">
+                    <form id="formDesactivarTipoCriterio" method="post" class="m-0 w-100 d-flex justify-content-end gap-2">
                       {% csrf_token %}
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                      <button type="submit" class="btn btn-danger">Eliminar</button>
+                      <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                      <button type="submit" class="btn btn-warning text-dark fw-bold px-4">Desactivar</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal fade" id="modalReactivarTipoCriterio" tabindex="-1" aria-labelledby="modalReactivarTipoCriterioLabel" aria-hidden="true">
+              <div class="modal-dialog" style="margin-top: 12rem;">
+                <div class="modal-content shadow-lg border-0">
+                  <div class="modal-header" style="background-color: #28a745;">
+                    <h5 class="modal-title text-white fw-bold" id="modalReactivarTipoCriterioLabel">Confirmar Reactivación</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body p-4 text-center">
+                    <p class="fs-6 mb-0 text-secondary fw-semibold">¿Estás seguro de que deseas reactivar este Tipo de Criterio? Volverá a estar completamente operativo para el diseño de evaluaciones.</p>
+                  </div>
+                  <div class="modal-footer bg-light py-2">
+                    <form id="formReactivarTipoCriterio" method="post" class="m-0 w-100 d-flex justify-content-end gap-2">
+                      {% csrf_token %}
+                      <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                      <button type="submit" class="btn btn-success fw-bold px-4">Reactivar</button>
                     </form>
                   </div>
                 </div>
@@ -171,7 +214,12 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <p><strong>Nombre:</strong> {{ tipoC.descripcion }}</p>
+          <p>
+            <strong>Nombre:</strong> {{ tipoC.descripcion }}
+            {% if not tipoC.activo %}
+              <span class="badge bg-secondary text-white ms-1" style="font-size: 0.7rem;">Inactivo</span>
+            {% endif %}
+          </p>
         </div>
       </div>
     </div>
@@ -183,13 +231,23 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    const modalEliminar = document.getElementById('modalEliminarTipoCriterio');
-    if (modalEliminar) {
-      modalEliminar.addEventListener('show.bs.modal', function (event) {
+    const modalDesactivar = document.getElementById('modalDesactivarTipoCriterio');
+    if (modalDesactivar) {
+      modalDesactivar.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
         const tipoCriterioId = button.getAttribute('data-id');
-        const form = document.getElementById('formEliminarTipoCriterio');
-        form.action = `/tipos_criterios/${tipoCriterioId}/eliminar/`;
+        const form = document.getElementById('formDesactivarTipoCriterio');
+        if (form) form.action = `/tipos_criterios/${tipoCriterioId}/eliminar/`;
+      });
+    }
+
+    const modalReactivar = document.getElementById('modalReactivarTipoCriterio');
+    if (modalReactivar) {
+      modalReactivar.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const tipoCriterioId = button.getAttribute('data-id');
+        const form = document.getElementById('formReactivarTipoCriterio');
+        if (form) form.action = `/tipos_criterios/${tipoCriterioId}/reactivar/`;
       });
     }
 

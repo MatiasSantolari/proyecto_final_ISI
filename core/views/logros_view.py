@@ -16,19 +16,31 @@ from django.db import transaction
 def logros(request):
     form = LogroForm()
     formB = BeneficioForm()
-    logrosList = Logro.objects.all().order_by('descripcion').annotate(
-        beneficio_asociado=models.Subquery(
-            LogroBeneficio.objects.filter(logro_id=models.OuterRef('pk')).values('beneficio__descripcion')[:1]
-        ),
-        beneficio_id_asociado=models.Subquery(
-            LogroBeneficio.objects.filter(logro_id=models.OuterRef('pk')).values('beneficio_id')[:1]
-        ),
-        beneficio_monto=models.Subquery(
-            LogroBeneficio.objects.filter(logro_id=models.OuterRef('pk')).values('beneficio__monto')[:1]
-        ),
-        beneficio_porcentaje=models.Subquery(
-            LogroBeneficio.objects.filter(logro_id=models.OuterRef('pk')).values('beneficio__porcentaje')[:1]
+    
+    orden_activos = Case(
+        When(activo=False, then=2),
+        default=1,
+        output_field=IntegerField(),
+    )
+
+    logrosList = (
+        Logro.objects.all()
+        .annotate(
+            prioridad_activo=orden_activos, 
+            beneficio_asociado=models.Subquery(
+                LogroBeneficio.objects.filter(logro_id=models.OuterRef('pk')).values('beneficio__descripcion')[:1]
+            ),
+            beneficio_id_asociado=models.Subquery(
+                LogroBeneficio.objects.filter(logro_id=models.OuterRef('pk')).values('beneficio_id')[:1]
+            ),
+            beneficio_monto=models.Subquery(
+                LogroBeneficio.objects.filter(logro_id=models.OuterRef('pk')).values('beneficio__monto')[:1]
+            ),
+            beneficio_porcentaje=models.Subquery(
+                LogroBeneficio.objects.filter(logro_id=models.OuterRef('pk')).values('beneficio__porcentaje')[:1]
+            )
         )
+        .order_by('prioridad_activo', 'descripcion')
     )
 
     paginator = Paginator(logrosList, 10)
@@ -40,6 +52,7 @@ def logros(request):
         'formB': formB,
         'logros': page_obj
     })
+
 
 
 @login_required
@@ -82,12 +95,20 @@ def crear_logro(request):
 @login_required
 @require_POST
 def eliminar_logro(request, id_logro):
-    try:
-        logro = get_object_or_404(Logro, id=id_logro)
-        LogroEmpleado.objects.filter(logro=logro).delete() 
-        LogroBeneficio.objects.filter(logro=logro).delete()
-        logro.delete()
-        messages.success(request, "logro eliminado correctamente.")
-    except Logro.DoesNotExist:
-        messages.error(request, "El logro no existe.")
+    logro = get_object_or_404(Logro, id=id_logro)
+    logro.activo = False
+    logro.save()
+    
+    messages.success(request, f"El logro '{logro.descripcion}' ha sido desactivado correctamente.")
+    return redirect('logros')
+
+
+@login_required
+@require_POST
+def reactivar_logro(request, id_logro):
+    logro = get_object_or_404(Logro, id=id_logro)
+    logro.activo = True
+    logro.save()
+    
+    messages.success(request, f"El logro '{logro.descripcion}' ha sido reactivado correctamente.")
     return redirect('logros')

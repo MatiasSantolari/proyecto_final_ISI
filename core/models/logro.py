@@ -19,7 +19,7 @@ class Logro(models.Model):
     descripcion = models.CharField(max_length=255, verbose_name='Descripcion del logro')
     fecha_creacion = models.DateField(default=datetime.now, verbose_name='Fecha de creacion')
     tipo = models.CharField(max_length=50, choices=TIPO_LOGRO_CHOICES, null=True, blank=True)
-
+    activo = models.BooleanField(default=True, verbose_name='¿Está Activo?')
 
     class Meta:
         verbose_name = 'Logro'

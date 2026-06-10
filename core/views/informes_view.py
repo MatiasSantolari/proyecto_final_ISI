@@ -341,20 +341,22 @@ def empleado_perfil_detalle_view(request, empleado_id):
     """
     Vista principal que renderiza el perfil del empleado con sus pestañas HTML.
     """
-    empleado = get_object_or_404(Empleado.objects.all(), id=empleado_id)
+    empleado = get_object_or_404(Empleado, id=empleado_id)
+    
     cargo_activo = empleado.empleadocargo_set.filter(fecha_fin__isnull=True).first()
     departamento_activo = None
     if cargo_activo and cargo_activo.cargo.cargodepartamento_set.first():
         departamento_activo = cargo_activo.cargo.cargodepartamento_set.first().departamento
         
-    todas_las_habilidades = Habilidad.objects.all().order_by('nombre')
+    todas_las_habilidades = Habilidad.objects.filter(activo=True).order_by('nombre')
+    
     habilidades_asignadas = empleado.habilidadempleado_set.all().select_related('habilidad')
 
     return render(request, 'informes/empleado_perfil_detalle.html', {
         'empleado': empleado,
         'cargo_activo': cargo_activo,
         'departamento_activo': departamento_activo,
-        'todas_las_habilidades': todas_las_habilidades,
+        'todas_las_habilidades': todas_las_habilidades, 
         'habilidades_asignadas': habilidades_asignadas,
     })
 
@@ -429,7 +431,7 @@ def api_empleado_evaluaciones(request, empleado_id):
         if not es_de_su_equipo:
             return JsonResponse({'error': 'No tiene permiso para ver este empleado'}, status=403)
   
-    evaluaciones = EvaluacionEmpleado.objects.filter(empleado_id=empleado_id).order_by('-fecha_registro')
+    evaluaciones = EvaluacionEmpleado.objects.filter(empleado_id=empleado_id).select_related('evaluacion').order_by('-fecha_registro')
     page = request.GET.get('page', 1)
     per_page = request.GET.get('per_page', 10)
     paginator = Paginator(evaluaciones, per_page)
@@ -438,12 +440,17 @@ def api_empleado_evaluaciones(request, empleado_id):
     except (PageNotAnInteger, EmptyPage):
         items_page = paginator.page(1)
 
-    data = [{
-        'fecha': e.fecha_registro.strftime('%d-%m-%Y'),
-        'calificacion': float(e.calificacion_final) if e.calificacion_final is not None else 'N/A',
-        'descripcion': e.evaluacion.descripcion or f"Evaluación {e.evaluacion.id}",
-        'url_calificacion': f"/evaluaciones/{e.evaluacion.id}/empleados/", 
-    } for e in items_page]
+    data = []
+    for e in items_page:
+        desc_base = e.evaluacion.descripcion or f"Evaluación {e.evaluacion.id}"
+        desc_final = desc_base if e.evaluacion.activo else f"{desc_base} (Inactivo)"
+
+        data.append({
+            'fecha': e.fecha_registro.strftime('%d-%m-%Y'),
+            'calificacion': float(e.calificacion_final) if e.calificacion_final is not None else 'N/A',
+            'descripcion': desc_final, 
+            'url_calificacion': f"/evaluaciones/{e.evaluacion.id}/empleados/", 
+        })
 
     rango_paginas = list(paginator.get_elided_page_range(items_page.number, on_each_side=1, on_ends=1))
 
@@ -596,15 +603,21 @@ def api_empleado_objetivos(request, empleado_id):
     for item in items_page:
         tipo_label = 'Cargo' if item.cargo_id else 'Empleado'
         
+        titulo_final = item.objetivo.titulo if item.objetivo.activo else f"{item.objetivo.titulo} (Inactivo)"
+        
+        cargo_label = None
+        if item.cargo:
+            cargo_label = item.cargo.nombre if item.cargo.activo else f"{item.cargo.nombre} (Inactivo)"
+
         data.append({
-            'titulo': item.objetivo.titulo,
+            'titulo': titulo_final,
             'descripcion': item.objetivo.descripcion,
             'fecha_asignacion': item.fecha_asignacion.strftime('%d-%m-%Y'),
             'fecha_limite': item.fecha_limite.strftime('%d-%m-%Y') if item.fecha_limite else 'N/A',
             'completado': item.completado,
             'departamento': item.objetivo.departamento.nombre if item.objetivo.departamento else 'Global',
             'tipo': tipo_label,
-            'nombre_cargo': item.cargo.nombre if item.cargo else None 
+            'nombre_cargo': cargo_label 
         })
 
     rango_paginas = list(paginator.get_elided_page_range(items_page.number, on_each_side=1, on_ends=1))
@@ -664,7 +677,7 @@ def asignar_habilidad_view(request, empleado_id):
         habilidad_id = request.POST.get('habilidad')
         
         if habilidad_id:
-            habilidad = get_object_or_404(Habilidad, id=habilidad_id)            
+            habilidad = get_object_or_404(Habilidad, id=habilidad_id, activo=True)            
             relacion_existe = empleado.habilidadempleado_set.filter(habilidad=habilidad).exists()
             
             if not relacion_existe:

@@ -14,7 +14,17 @@ from django.contrib import messages
 
 @login_required
 def capacitaciones(request):
-    capacitaciones_list = Capacitacion.objects.all().order_by('-id')
+    orden_activos = Case(
+        When(activo=False, then=2),
+        default=1,
+        output_field=IntegerField(),
+    )
+
+    capacitaciones_list = (
+        Capacitacion.objects.all()
+        .annotate(prioridad_activo=orden_activos)
+        .order_by('prioridad_activo', '-id')
+    )
     
     paginator = Paginator(capacitaciones_list, 10)
     page_number = request.GET.get('page')
@@ -28,6 +38,7 @@ def capacitaciones(request):
         'form_institucion': form_inst,
         'capacitaciones': page_obj
     })
+
 
 
 @login_required
@@ -101,7 +112,8 @@ def cartelera_capacitaciones(request):
     query = Capacitacion.objects.filter(activo=True).order_by('-fecha_creacion')
     
     mis_inscripciones = CapacitacionEmpleado.objects.filter(
-        empleado__usuario=request.user
+        empleado__usuario=request.user,
+        capacitacion__activo=True 
     ).values_list('capacitacion_id', flat=True)
 
     paginator = Paginator(query, 6)

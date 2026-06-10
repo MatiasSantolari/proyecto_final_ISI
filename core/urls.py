@@ -21,6 +21,7 @@ urlpatterns = [
         path('personas/', personas_view.personas, name='personas'),
         path('personas/crear/', personas_view.crear_persona, name='crear_persona'),
         path('personas/<int:persona_id>/eliminar/', personas_view.eliminar_persona, name='eliminar_persona'),
+        path('personas/<int:persona_id>/reactivar/', personas_view.reactivar_persona, name='reactivar_persona'),
         ##path('personas/<int:persona_id>/datos/', personas_view.obtener_datos_persona, name='obtener_datos_persona'),
         path('personas/cargos_por_departamento/<int:dept_id>/', personas_view.cargos_por_departamento, name='cargos_por_departamento'),
         path('perfil/datos-academicos/list/', personas_view.datos_academicos_list, name='datos_academicos_list'),
@@ -39,6 +40,7 @@ urlpatterns = [
         path('cargos/', cargos_view.cargos, name='cargos'),
         path('cargos/crear/', cargos_view.crear_cargo, name='crear_cargo'),
         path('cargos/<int:id_cargo>/eliminar/', cargos_view.eliminar_cargo, name='eliminar_cargo'),
+        path('cargos/<int:id_cargo>/reactivar/', cargos_view.reactivar_cargo, name='reactivar_cargo'),
         path('solicitar-cargos/', solicitud_cargo_view.solicitar_cargos, name='solicitar_cargos'),
         path('solicitar-cargos/crear/', solicitud_cargo_view.crear_solicitud, name='crear_solicitud'),
         path('gestion-solicitudes/', solicitud_cargo_view.gestion_solicitudes, name='gestion_solicitudes'),
@@ -50,19 +52,19 @@ urlpatterns = [
         path('departamentos/', departamentos_view.departamentos, name='departamentos'),
         path('departamentos/crear/', departamentos_view.crear_departamento, name='crear_departamento'),
         path('departamentos/<int:id_departamento>/eliminar/', departamentos_view.eliminar_departamento, name='eliminar_departamento'),
-
+        path('departamentos/<int:id_departamento>/reactivar/', departamentos_view.reactivar_departamento, name='reactivar_departamento'),
 
         ## HABILIDAD ##
         path('habilidades/', habilidades_view.habilidades, name='habilidades'),
         path('habilidades/crear/', habilidades_view.crear_habilidad, name='crear_habilidad'),
         path('habilidades/<int:id_habilidad>/eliminar/', habilidades_view.eliminar_habilidad, name='eliminar_habilidad'),
-
+        path('habilidades/<int:id_habilidad>/reactivar/', habilidades_view.reactivar_habilidad, name='reactivar_habilidad'),
 
         ## INSTITUCION ##
         path('instituciones/', instituciones_view.instituciones, name='instituciones'),
         path('instituciones/crear/', instituciones_view.crear_institucion, name='crear_institucion'),
         path('instituciones/<int:id_institucion>/eliminar/', instituciones_view.eliminar_institucion, name='eliminar_institucion'),
-
+        path('instituciones/<int:id_institucion>/reactivar/', instituciones_view.reactivar_institucion, name='reactivar_institucion'),
 
         ## CAPACITACION ##
         path('capacitaciones/', capacitaciones_view.capacitaciones, name='capacitaciones'),
@@ -78,6 +80,7 @@ urlpatterns = [
         path('logros/', logros_view.logros, name='logros'),
         path('logros/crear/', logros_view.crear_logro, name='crear_logro'),
         path('logros/<int:id_logro>/eliminar/', logros_view.eliminar_logro, name='eliminar_logro'),
+        path('logros/<int:id_logro>/reactivar/', logros_view.reactivar_logro, name='reactivar_logro'),
 
         ## POSTULACIONES ##
         path('ofertas/', postulaciones_view.listar_ofertas, name='ofertas_empleo'),
@@ -165,18 +168,19 @@ urlpatterns = [
         path("tipos_contrato/", contratos_view.tipos_contrato, name="tipos_contrato"),
         path("tipos_contrato/crear/", contratos_view.crear_tipo_contrato, name="crear_tipo_contrato"),
         path("tipos_contrato/<int:id_tipo>/eliminar/", contratos_view.eliminar_tipo_contrato, name="eliminar_tipo_contrato"),
-
+        path('tipos_contrato/<int:id_tipo>/reactivar/', contratos_view.reactivar_tipo_contrato, name='reactivar_tipo_contrato'),
 
         ## TIPOS DE CRITERIOS ##
         path('tipos_criterios/', tipo_criterio_view.tiposCriterios, name='tiposCriterios'),
         path('tipos_criterios/crear/', tipo_criterio_view.crear_tipoCriterio, name='crear_tipoCriterio'),
         path('tipos_criterios/<int:id_tipoCriterio>/eliminar/', tipo_criterio_view.eliminar_tipoCriterio, name='eliminar_tipoCriterio'),
-
+        path('tipos_criterios/<int:id_tipoCriterio>/reactivar/', tipo_criterio_view.reactivar_tipoCriterio, name='reactivar_tipoCriterio'),
 
         ## CRITERIO ##
         path('criterios/', criterios_view.criterios, name='criterios'),
         path('criterios/crear/', criterios_view.crear_criterio, name='crear_criterio'),
         path('criterios/<int:id>/eliminar/', criterios_view.eliminar_criterio, name='eliminar_criterio'),
+        path('criterios/<int:id>/reactivar/', criterios_view.reactivar_criterio, name='reactivar_criterio'),
 
 
         ## EVALUACION ##
@@ -184,7 +188,7 @@ urlpatterns = [
         path('evaluaciones/crear/', evaluaciones_view.crear_evaluacion, name='crear_evaluacion'),
         path('evaluaciones/<int:id_evaluacion>/activar/', evaluaciones_view.activar_evaluacion, name='activar_evaluacion'),
         path('evaluaciones/<int:id_evaluacion>/desactivar/', evaluaciones_view.desactivar_evaluacion, name='desactivar_evaluacion'),
-        path('evaluaciones/<int:id_evaluacion>/eliminar/', evaluaciones_view.eliminar_evaluacion, name='eliminar_evaluacion'),
+   ##     path('evaluaciones/<int:id_evaluacion>/eliminar/', evaluaciones_view.eliminar_evaluacion, name='eliminar_evaluacion'),
         path('evaluaciones/ver/<int:id_evaluacion>/', evaluaciones_view.ver_evaluacion, name='ver_evaluacion'),
         path('evaluaciones/<int:evaluacion_id>/duplicar/', evaluaciones_view.duplicar_evaluacion, name='duplicar_evaluacion'),
 

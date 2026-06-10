@@ -33,8 +33,8 @@ def objetivos(request):
 
     paginator = Paginator(objetivos_list, 12)
     page_obj = paginator.get_page(request.GET.get('page'))
-    todos_departamentos = Departamento.objects.all()
-
+    todos_departamentos = Departamento.objects.filter(activo=True).order_by('nombre')
+    
     if user.rol == "admin":
         cargos_modal = Cargo.objects.all().distinct().order_by('nombre')
     else:
@@ -75,7 +75,8 @@ def obtener_datos_por_depto(request):
     if tipo == 'empleado':
         empleados = Empleado.objects.filter(
             empleadocargo__cargo__cargodepartamento__departamento_id=depto_id,
-            empleadocargo__fecha_fin__isnull=True
+            empleadocargo__fecha_fin__isnull=True,
+            estado="activo" 
         ).distinct().order_by('apellido', 'nombre')
 
         asignados_ids = []
@@ -95,7 +96,8 @@ def obtener_datos_por_depto(request):
 
     elif tipo == 'cargo':
         cargos = Cargo.objects.filter(
-            cargodepartamento__departamento_id=depto_id
+            cargodepartamento__departamento_id=depto_id,
+            activo=True 
         ).distinct().order_by('nombre')
 
         cargos_asignados_ids = []
@@ -164,9 +166,11 @@ def asignar_objetivo(request):
     if tipo == "empleado":
         empleado_ids = request.POST.getlist("empleado_id")
         for emp_id in empleado_ids:
+            empleado_seguro = get_object_or_404(Empleado, id=emp_id, estado="activo")
+            
             ObjetivoEmpleado.objects.get_or_create(
                 objetivo=objetivo,
-                empleado_id=emp_id,
+                empleado=empleado_seguro, 
                 fecha_asignacion=date.today(),
                 defaults={
                     'completado': False,
@@ -178,11 +182,12 @@ def asignar_objetivo(request):
     
     elif tipo == "cargo":
         cargo_id = request.POST.get("cargo_id")
-        cargo_obj = get_object_or_404(Cargo, id=cargo_id)
+        cargo_obj = get_object_or_404(Cargo, id=cargo_id, activo=True)
         
         asignaciones_puestos = EmpleadoCargo.objects.filter(
             cargo=cargo_obj,
-            fecha_fin__isnull=True 
+            fecha_fin__isnull=True,
+            empleado__estado='activo' 
         ).select_related('empleado')
         
         contador_altas = 0

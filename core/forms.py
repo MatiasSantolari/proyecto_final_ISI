@@ -7,6 +7,7 @@ from datetime import timedelta, date
 from dateutil.relativedelta import relativedelta
 from .constants import *
 from django.core.exceptions import ValidationError
+from django.db.models import Q, Case, When, IntegerField
 
 
 class LoginForm(forms.Form):
@@ -361,10 +362,8 @@ class PersonaForm(forms.ModelForm):
 
         self.fields['departamento'].queryset = departamentos_qs
 
-        # Filtro inicial de puestos
         if tipo_usuario == 'admin':
             self.fields['cargo'].queryset = Cargo.objects.none()
-            return
         else:
             cargos_qs = Cargo.objects.all()
         
@@ -390,6 +389,12 @@ class PersonaForm(forms.ModelForm):
                 )
 
             self.fields['cargo'].queryset = cargos_qs
+        self.fields['departamento'].label_from_instance = (
+            lambda obj: f"{obj.nombre}" if obj.activo else f"{obj.nombre} (Inactivo)"
+        )
+        self.fields['cargo'].label_from_instance = (
+            lambda obj: f"{obj.nombre}" if obj.activo else f"{obj.nombre} (Inactivo)"
+        )
 
     def clean_cbu_cuenta(self):
         cbu = self.cleaned_data.get('cbu_cuenta', '').strip()
@@ -402,7 +407,7 @@ class PersonaForm(forms.ModelForm):
                 raise ValidationError('El CBU solo puede contener números del 0 al 9.')
         return cbu
 
-    
+
 ############################
 class PersonaPerfilForm(forms.ModelForm):
     avatar = forms.ImageField(
@@ -544,6 +549,23 @@ class CargoForm(forms.ModelForm):
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Ingrese una Descripción','rows': 3}),
         }
 
+
+    def __init__(self, *args, **kwargs):
+        super(CargoForm, self).__init__(*args, **kwargs)
+        orden_activos = Case(
+            When(activo=False, then=2),
+            default=1,
+            output_field=IntegerField(),
+        )
+
+        departamentos_qs = (
+            Departamento.objects.all()
+            .annotate(prioridad_estado=orden_activos)
+            .order_by('prioridad_estado', 'nombre')
+        )
+        
+        self.fields['departamento'].queryset = departamentos_qs
+
 ##    def __init__(self, *args, **kwargs):
 ##        super().__init__(*args, **kwargs)
 ##        self.fields['categoria'].required = False
@@ -678,6 +700,19 @@ class HabilidadForm(forms.ModelForm):
     class Meta:
         model = Habilidad
         fields = ['nombre', 'descripcion']
+        widgets = {
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Ingrese el Nombre de la Habilidad',
+                'id': 'id_nombre'
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Ingrese una breve descripción sobre las competencias que abarca esta habilidad',
+                'rows': 3,
+                'id': 'id_descripcion'
+            }),
+        }
 
 
 ########################
@@ -807,15 +842,41 @@ class ContratoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['empleado'].queryset = Empleado.objects.all().order_by('apellido')
+        
+        orden_empleados = Case(
+            When(estado__in=['inactivo', 'inactivos', 'jubilado', 'jubilados'], then=2),
+            default=1,
+            output_field=IntegerField(),
+        )
+        self.fields['empleado'].queryset = (
+            Empleado.objects.all()
+            .annotate(prioridad_estado=orden_empleados)
+            .order_by('prioridad_estado', 'apellido', 'nombre')
+        )
         self.fields['empleado'].label_from_instance = (
             lambda obj: f"{obj.apellido} {obj.nombre} - "
                         f"{obj.empleadocargo_set.last().cargo if obj.empleadocargo_set.exists() else 'Sin cargo'}"
-        )
+                        f"{'' if obj.estado == 'activo' else ' (' + obj.estado.title() + ')'}"
+        )        
+        
         self.fields['contrato'].required = False
         self.fields['fecha_fin'].required = False
         self.fields['estado'].initial = "activo"
-        self.fields['monto_extra_pactado'].initial = 0
+        self.fields['monto_extra_pactado'].initial = 0                
+        
+        orden_contratos = Case(
+            When(activo=False, then=2),
+            default=1,
+            output_field=IntegerField(),
+        )
+        self.fields['contrato'].queryset = (
+            TipoContrato.objects.all()
+            .annotate(prioridad_activo=orden_contratos)
+            .order_by('prioridad_activo', 'descripcion')
+        )        
+
+        if self.instance and self.instance.pk and (not self.instance.condiciones or self.instance.condiciones == "None"):
+            self.initial['condiciones'] = ''
 
     def clean(self):
         cleaned_data = super().clean()
@@ -824,7 +885,10 @@ class ContratoForm(forms.ModelForm):
         fecha_fin = cleaned_data.get("fecha_fin")
 
         if tipo and fecha_inicio and not fecha_fin:
-            cleaned_data["fecha_fin"] = fecha_inicio + timedelta(days=tipo.duracion_meses * 30)
+            if tipo.duracion_meses and tipo.duracion_meses > 0:
+                cleaned_data["fecha_fin"] = fecha_inicio + timedelta(days=tipo.duracion_meses * 30)
+            else:
+                cleaned_data["fecha_fin"] = None
 
         return cleaned_data
 
@@ -873,6 +937,17 @@ class CapacitacionForm(forms.ModelForm):
         if not self.instance.pk:
             self.initial['presencial'] = False
 
+        orden_activas = Case(
+            When(activo=False, then=2),
+            default=1,
+            output_field=IntegerField(),
+        )
+        self.fields['institucion'].queryset = (
+            Institucion.objects.all()
+            .annotate(prioridad_estado=orden_activas)
+            .order_by('prioridad_estado', 'nombre')
+        )
+
     class Meta:
         model = Capacitacion
         fields = [
@@ -883,8 +958,8 @@ class CapacitacionForm(forms.ModelForm):
         widgets = {
             'fecha_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'fecha_fin': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'descripcion': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Descripcion de la Capacitacion'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre de la Capacitacion'}),
             'url_sitio': forms.URLInput(attrs={'class': 'form-control border-primary', 
                                                'placeholder': 'https://...', 'id': 'id_url_sitio'}),
             'institucion': forms.Select(attrs={'class': 'form-select', 'id': 'id_institucion'}),
@@ -928,9 +1003,23 @@ class CriterioForm(forms.ModelForm):
         model = Criterio
         fields = ['tipo_criterio', 'descripcion']
         widgets = {
-            'tipo_criterio': forms.Select(attrs={'class': 'form-select'}),
-            'descripcion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ingrese el criterio'}),
+            'tipo_criterio': forms.Select(attrs={'class': 'form-select', 'id': 'id_tipo_criterio'}),
+            'descripcion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ingrese el criterio', 'id': 'id_descripcion'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        orden_activos = Case(
+            When(activo=False, then=2),
+            default=1,
+            output_field=IntegerField(),
+        )
+        self.fields['tipo_criterio'].queryset = (
+            TipoCriterio.objects.all()
+            .annotate(prioridad_estado=orden_activos)
+            .order_by('prioridad_estado', 'descripcion')
+        )
 
 
 ###################
@@ -939,7 +1028,7 @@ class EvaluacionForm(forms.ModelForm):
         model = Evaluacion
         fields = ['descripcion', 'fecha_evaluacion']
         widgets = {
-            'descripcion': forms.TextInput(attrs={'id': 'id_descripcion', 'class': 'form-control'}),
+            'descripcion': forms.TextInput(attrs={'id': 'id_descripcion', 'class': 'form-control', 'placeholder': 'Ingrese la descripción de la Evaluación'}),
             'fecha_evaluacion': forms.DateInput(attrs={'id': 'id_fecha_evaluacion', 'class': 'form-control', 'type':'date'}),
         }
 

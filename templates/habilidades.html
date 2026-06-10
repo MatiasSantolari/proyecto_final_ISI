@@ -32,32 +32,47 @@
           <tbody class="text-center">
             {% for habilidad in habilidades %}
             <tr>
-              <td>{{ habilidad.nombre }}</td>
-              <td>{{ habilidad.descripcion|default:"-" }}</td>
+              <td>
+                {{ habilidad.nombre }}
+                {% if not habilidad.activo %}
+                  <span class="badge bg-secondary text-white ms-1" style="font-size: 0.7rem;">Inactivo</span>
+                {% endif %}
+              </td>
+               <td>{{ habilidad.descripcion|default:"-" }}</td>
               <td>
                 <div class="d-flex justify-content-center gap-2">
-                  <button class="btn btn-sm btn-outline-secondary me-1"
+                  <button class="btn btn-sm btn-outline-secondary"
                           data-bs-toggle="modal" data-bs-target="#modalHabilidad"
                           data-id="{{ habilidad.id }}"
                           data-nombre="{{ habilidad.nombre }}"
                           data-descripcion="{{ habilidad.descripcion }}"
                           onclick="editarHabilidad(this)"
                           data-bs-toggle="tooltip" title="Editar">
-                    <i class="bi bi-pencil-square"></i>
-                  </button>
-                  <button class="btn btn-sm btn-outline-info me-1"
+                    <i class="bi bi-pencil-fill fs-6"></i>
+                  </button>                  
+                  <button class="btn btn-sm btn-outline-info"
                           data-bs-toggle="modal"
                           data-bs-target="#modalVerHabilidad{{ habilidad.id }}"
                           data-bs-toggle="tooltip" title="Ver">
-                    <i class="bi bi-eye"></i>
+                    <i class="bi bi-eye-fill fs-6"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-danger"
-                          data-bs-toggle="modal"
-                          data-bs-target="#modalEliminarHabilidad"
-                          data-id="{{ habilidad.id }}"
-                          data-bs-toggle="tooltip" title="Eliminar">
-                    <i class="bi bi-trash3"></i>
-                  </button>
+                  {% if habilidad.activo %}
+                    <button class="btn btn-sm btn-outline-warning"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalDesactivarHabilidad"
+                            data-id="{{ habilidad.id }}"
+                            data-bs-toggle="tooltip" title="Desactivar">
+                      <i class="bi bi-dash-circle-fill fs-6"></i>
+                    </button>
+                  {% else %}
+                    <button class="btn btn-sm btn-outline-success"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalReactivarHabilidad"
+                            data-id="{{ habilidad.id }}"
+                            data-bs-toggle="tooltip" title="Reactivar Habilidad">
+                      <i class="bi bi-arrow-counterclockwise fs-6"></i>
+                    </button>
+                  {% endif %}
                 </div>
               </td>
             </tr>
@@ -106,7 +121,7 @@
 
   <!-- Modal Crear/Editar -->
   <div class="modal fade" id="modalHabilidad" tabindex="-1" aria-labelledby="modalHabilidadLabel" aria-hidden="true">
-    <div class="modal-dialog" style="margin-top: 6rem;">
+    <div class="modal-dialog" style="margin-top: 10rem;">
       <div class="modal-content">
         <form method="post" action="{% url 'crear_habilidad' %}" id="formHabilidad" autocomplete="off">
           {% csrf_token %}
@@ -138,14 +153,19 @@
   <!-- Modales Ver -->
   {% for habilidad in habilidades %}
   <div class="modal fade" id="modalVerHabilidad{{ habilidad.id }}" tabindex="-1" aria-labelledby="modalVerHabilidad{{ habilidad.id }}Label" aria-hidden="true">
-    <div class="modal-dialog" style="margin-top: 6rem;">
+    <div class="modal-dialog" style="margin-top: 12rem;">
       <div class="modal-content">
         <div class="modal-header" style="background-color: #3c8dbc;">
           <h5 class="modal-title text-white">Detalles de la Habilidad</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <p><strong>Nombre:</strong> {{ habilidad.nombre }}</p>
+          <p>
+            <strong>Nombre:</strong> {{ habilidad.nombre }}
+            {% if not habilidad.activo %}
+              <span class="badge bg-secondary text-white ms-1" style="font-size: 0.7rem;">Inactivo</span>
+            {% endif %}
+          </p>
           <p><strong>Descripción:</strong> {{ habilidad.descripcion|default:"Sin descripción" }}</p>
         </div>
       </div>
@@ -153,22 +173,44 @@
   </div>
   {% endfor %}
 
-  <!-- Modal Eliminar -->
-  <div class="modal fade" id="modalEliminarHabilidad" tabindex="-1" aria-labelledby="modalEliminarHabilidadLabel" aria-hidden="true">
+  <!-- Modal para Confirmar Desactivación -->
+  <div class="modal fade" id="modalDesactivarHabilidad" tabindex="-1" aria-labelledby="modalDesactivarHabilidadLabel" aria-hidden="true">
     <div class="modal-dialog" style="margin-top: 12rem;">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: #3c8dbc;">
-          <h5 class="modal-title text-white">Confirmar Eliminación</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      <div class="modal-content shadow-lg border-0">
+        <div class="modal-header bg-warning text-dark py-2.5">
+          <h5 class="modal-title fw-bold" id="modalDesactivarHabilidadLabel">Confirmar Desactivación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-          <p>¿Estás seguro de que deseas eliminar esta habilidad?</p>
+        <div class="modal-body p-4 text-center">
+          <p class="fs-6 mb-0 text-secondary fw-semibold">¿Estás seguro de que deseas desactivar esta Habilidad? Ya no aparecerá disponible para cargar en las fichas de los nuevos postulantes o empleados, pero se preservará su historial técnico.</p>
         </div>
-        <div class="modal-footer">
-          <form id="formEliminarHabilidad" method="post">
+        <div class="modal-footer bg-light py-2">
+          <form id="formDesactivarHabilidad" method="post" class="m-0 w-100 d-flex justify-content-end gap-2">
             {% csrf_token %}
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-danger">Eliminar</button>
+            <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-warning text-dark fw-bold px-4">Desactivar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Confirmar Reactivación -->
+  <div class="modal fade" id="modalReactivarHabilidad" tabindex="-1" aria-labelledby="modalReactivarHabilidadLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 12rem;">
+      <div class="modal-content shadow-lg border-0">
+        <div class="modal-header" style="background-color: #28a745;">
+          <h5 class="modal-title text-white fw-bold" id="modalReactivarHabilidadLabel">Confirmar Reactivación</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4 text-center">
+          <p class="fs-6 mb-0 text-secondary fw-semibold">¿Estás seguro de que deseas reactivar esta Habilidad? Volverá a estar completamente operativa para el mapeo de competencias del personal.</p>
+        </div>
+        <div class="modal-footer bg-light py-2">
+          <form id="formReactivarHabilidad" method="post" class="m-0 w-100 d-flex justify-content-end gap-2">
+            {% csrf_token %}
+            <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-success fw-bold px-4">Reactivar</button>
           </form>
         </div>
       </div>
@@ -179,18 +221,27 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    // Modal de eliminación
-    const modalEliminar = document.getElementById('modalEliminarHabilidad');
-    if (modalEliminar) {
-      modalEliminar.addEventListener('show.bs.modal', function (event) {
+    const modalDesactivar = document.getElementById('modalDesactivarHabilidad');
+    if (modalDesactivar) {
+      modalDesactivar.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
         const habilidadId = button.getAttribute('data-id');
-        const form = document.getElementById('formEliminarHabilidad');
-        form.action = `/habilidades/${habilidadId}/eliminar/`;
+        const form = document.getElementById('formDesactivarHabilidad');
+        if (form) form.action = `/habilidades/${habilidadId}/eliminar/`;
       });
     }
 
-    // Modal de creación/edición
+    const modalReactivar = document.getElementById('modalReactivarHabilidad');
+    if (modalReactivar) {
+      modalReactivar.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const habilidadId = button.getAttribute('data-id');
+        const form = document.getElementById('formReactivarHabilidad');
+        if (form) form.action = `/habilidades/${habilidadId}/reactivar/`;
+      });
+    }
+
+
     const modalCrearEditar = document.getElementById('modalHabilidad');
     if (modalCrearEditar) {
       modalCrearEditar.addEventListener('show.bs.modal', function (event) {
@@ -206,38 +257,31 @@
 
   function limpiarFormulario() {
     const form = document.getElementById('formHabilidad');
-    if (!form) return;
+    if (form) form.reset();  
 
-    form.reset();  // Limpia valores antiguos
+    document.getElementById('id_habilidad').value = '';
+    document.getElementById('id_nombre').value = '';
+    document.getElementById('id_descripcion').value = '';
 
-    const modal = document.getElementById('modalHabilidad');
-
-    modal.addEventListener('shown.bs.modal', function () {
-      const inputNombre = document.getElementById('id_nombre');
-      const inputDescripcion = document.getElementById('id_descripcion');
-      const inputId = document.getElementById('id_habilidad');
-
-      if (inputNombre) inputNombre.value = '';
-      if (inputDescripcion) inputDescripcion.value = '';
-      if (inputId) inputId.value = '';
-
-      document.getElementById('modalHabilidadLabel').textContent = 'Crear Nueva Habilidad';
-      document.querySelector('#formHabilidad button[type="submit"]').textContent = 'Guardar';
-    }, { once: true });
+    document.getElementById('modalHabilidadLabel').textContent = 'Crear Nueva Habilidad';
+    document.querySelector('#formHabilidad button[type="submit"]').textContent = 'Guardar';
   }
 
   function editarHabilidad(button) {
+    limpiarFormulario();
+
     const id = button.getAttribute('data-id');
     const nombre = button.getAttribute('data-nombre');
     const descripcion = button.getAttribute('data-descripcion');
 
-    const inputId = document.getElementById('id_habilidad');
-    const inputNombre = document.getElementById('id_nombre');
-    const inputDescripcion = document.getElementById('id_descripcion');
+    document.getElementById('id_habilidad').value = id || '';
+    document.getElementById('id_nombre').value = nombre || '';
 
-    if (inputId) inputId.value = id || '';
-    if (inputNombre) inputNombre.value = nombre || '';
-    if (inputDescripcion) inputDescripcion.value = descripcion || '';
+    if (!descripcion || descripcion === 'None' || descripcion.trim() === '') {
+        document.getElementById('id_descripcion').value = '';
+    } else {
+        document.getElementById('id_descripcion').value = descripcion;
+    }
 
     document.getElementById('modalHabilidadLabel').textContent = 'Editar Habilidad';
     document.querySelector('#formHabilidad button[type="submit"]').textContent = 'Actualizar';

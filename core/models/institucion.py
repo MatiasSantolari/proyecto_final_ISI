@@ -5,6 +5,7 @@ class Institucion(models.Model):
     direccion = models.CharField(max_length=255, null=True, blank=True, verbose_name='Direccion de la institucion')
     telefono = models.CharField(max_length=20, null=True, blank=True, verbose_name='Telefono de la institucion')
     email = models.EmailField(max_length=100, null=True, blank=True, unique=True, verbose_name='Correo de la institucion')
+    activo = models.BooleanField(default=True, verbose_name='¿Está Activo?')
 
     class Meta:
         verbose_name = 'Institucion'
