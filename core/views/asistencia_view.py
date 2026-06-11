@@ -69,6 +69,7 @@ def registrar_asistencia(request):
     if request.method == "POST":
         accion = request.POST.get("accion")
         asistencia = HistorialAsistencia.objects.filter(empleado=empleado, fecha_asistencia=hoy).first()        
+        
         if accion == "entrada":
             if asistencia and asistencia.hora_entrada:
                 messages.warning(request, "Ya registraste tu entrada hoy.")
@@ -78,6 +79,7 @@ def registrar_asistencia(request):
                 asistencia.hora_entrada = hora_actual
                 asistencia.save()
                 messages.success(request, "Entrada registrada correctamente.")
+                
         elif accion == "salida":
             if not asistencia or not asistencia.hora_entrada:
                 messages.error(request, "No puedes registrar salida sin entrada previa.")
@@ -85,14 +87,14 @@ def registrar_asistencia(request):
                 messages.warning(request, "Ya registraste tu salida hoy.")
             else:
                 asistencia.hora_salida = hora_actual
+                asistencia.confirmado = True
                 asistencia.save()
-                messages.success(request, "Salida registrada correctamente.")
+                messages.success(request, "Salida registrada y jornada confirmada correctamente.")
         
         return redirect(next_url) 
     
     else: 
         asistencia = HistorialAsistencia.objects.filter(empleado=empleado, fecha_asistencia=hoy).first()
-
         historial_asistencias = HistorialAsistencia.objects.filter(empleado=empleado).order_by('-fecha_asistencia')
         paginator = Paginator(historial_asistencias, 10)
         page_number = request.GET.get('page') 
@@ -175,7 +177,6 @@ def confirmar_asistencias(request):
     return render(request, "confirmar_asistencias.html", context)
 
 
-
 @login_required
 def confirmar_asistencias_accion(request):
     if request.method != "POST":
@@ -203,32 +204,23 @@ def confirmar_asistencias_accion(request):
             else:
                 empleados = Empleado.objects.filter(id=user_empleado.id)
 
+        ausentes_creados = 0
         for e in empleados:
-            if not HistorialAsistencia.objects.filter(empleado=e, fecha_asistencia=hoy).exists():
-                
+            asistencia_existente = HistorialAsistencia.objects.filter(empleado=e, fecha_asistencia=hoy).first()
+            if not asistencia_existente:
                 if e.estado == 'en licencia':
                     HistorialAsistencia.objects.create(
-                        empleado=e,
-                        fecha_asistencia=hoy,
-                        hora_entrada=None,
-                        hora_salida=None,
-                        tardanza=False,
-                        confirmado=True,  
-                        licencia=True     
+                        empleado=e, fecha_asistencia=hoy, hora_entrada=None, hora_salida=None,
+                        tardanza=False, confirmado=True, licencia=True     
                     )
                 else:
                     HistorialAsistencia.objects.create(
-                        empleado=e,
-                        fecha_asistencia=hoy,
-                        hora_entrada=None,
-                        hora_salida=None,
-                        tardanza=False,
-                        confirmado=False, 
-                        licencia=False    
+                        empleado=e, fecha_asistencia=hoy, hora_entrada=None, hora_salida=None,
+                        tardanza=False, confirmado=False, licencia=False    
                     )
-                actualizados += 1
-
-        messages.success(request, f"Se procesaron {actualizados} empleados que no registraron marcas hoy.")
+                ausentes_creados += 1
+            
+        messages.success(request, f"Se cerró el día correctamente. Se registraron {ausentes_creados} nuevos ausentes.")
         return redirect("confirmar_asistencias")
 
     for aid in ids:
@@ -248,10 +240,18 @@ def confirmar_asistencias_accion(request):
                 asistencia.confirmado = True
                 asistencia.save()
                 actualizados += 1
+                
+        elif accion == "quitar_confirmacion":
+            if asistencia.confirmado:
+                asistencia.confirmado = False
+                asistencia.save()
+                actualizados += 1
 
     if accion == "confirmar":
-        messages.success(request, f"Se confirmaron {actualizados} asistencias.")
+        messages.success(request, f"Se confirmaron {actualizados} asistencias manualmente.")
     elif accion == "tardanza":
         messages.warning(request, f"Se marcaron {actualizados} asistencias con tardanza.")
+    elif accion == "quitar_confirmacion":
+        messages.info(request, f"Se removió la confirmación de {actualizados} asistencias.")
 
     return redirect("confirmar_asistencias")

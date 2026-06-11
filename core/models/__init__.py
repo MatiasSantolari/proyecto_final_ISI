@@ -34,3 +34,4 @@ from .usuario import Usuario
 from .vacaciones_solicitud import VacacionesSolicitud
 from .solicitud_cargo import SolicitudCargo
 from .reporteDashboardIA import ReporteDashboardIA
+from .manual_usuario import ManualSistema

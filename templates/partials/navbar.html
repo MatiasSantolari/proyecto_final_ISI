@@ -212,13 +212,26 @@
           <a class="nav-link dropdown-toggle nav-item-text-custom" href="#" data-bs-toggle="dropdown">
             <i class="fas fa-user-circle me-1"></i> {{ request.user.nombre_usuario }}
           </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+          <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
             <li>
               <a class="dropdown-item py-2 d-flex align-items-center" href="{% url 'password_change' %}">
                 <i class="bi bi-shield-lock me-2 text-warning fs-6"></i> Cambiar contraseña
               </a>
-            </li>
-            
+            </li>            
+            {% if request.session.rol_actual == 'admin' or not request.session.rol_actual and request.user.rol == 'admin' %}
+              <li>
+                <a class="dropdown-item py-2 d-flex align-items-center" href="{% url 'gestor_manuales_admin' %}">
+                  <i class="bi bi-question-circle me-2 text-primary fs-6"></i> Ayuda / Manual
+                </a>
+              </li>
+            {% else %}
+              <li>
+                <a class="dropdown-item py-2 d-flex align-items-center link-manual-verificar" href="{% url 'acceso_manual' %}" id="linkAyudaManual">
+                  <i class="bi bi-question-circle me-2 text-primary fs-6"></i> Ayuda / Manual
+                </a>
+              </li>
+            {% endif %}
+                  
             <li><hr class="dropdown-divider opacity-12 my-1"></li>
             
             <li>
@@ -323,35 +336,53 @@
 
 
       document.addEventListener("DOMContentLoaded", function () {
-        const toggleBtn = document.getElementById("theme-toggle");
-        const themeIcon = document.getElementById("theme-icon");
-        const savedTheme = localStorage.getItem("theme");
+          const toggleBtn = document.getElementById("theme-toggle");
+          const themeIcon = document.getElementById("theme-icon");
+          const savedTheme = localStorage.getItem("theme");
 
-        function applyTheme(theme) {
-            if (theme === "dark") {
-                document.body.classList.add("dark-mode");
-                themeIcon.textContent = "☀️"; 
-            } else {
-                document.body.classList.remove("dark-mode");
-                themeIcon.textContent = "🌙"; 
-            }
-        }
-        
-        if (savedTheme) {
-        applyTheme(savedTheme);
-        } else {
-            applyTheme("light"); 
-        }
+          function applyTheme(theme) {
+              if (theme === "dark") {
+                  document.body.classList.add("dark-mode");
+                  themeIcon.textContent = "☀️"; 
+              } else {
+                  document.body.classList.remove("dark-mode");
+                  themeIcon.textContent = "🌙"; 
+              }
+          }
+          
+          if (savedTheme) { applyTheme(savedTheme); } else { applyTheme("light"); }
 
-        toggleBtn.addEventListener("click", function () {
-            const isDarkMode = document.body.classList.contains("dark-mode");
-            
-            const newTheme = isDarkMode ? "light" : "dark";
+          if (toggleBtn) {
+              toggleBtn.addEventListener("click", function () {
+                  const isDarkMode = document.body.classList.contains("dark-mode");
+                  const newTheme = isDarkMode ? "light" : "dark";
+                  applyTheme(newTheme);
+                  localStorage.setItem("theme", newTheme);
+              });
+          }
 
-            applyTheme(newTheme);
-            localStorage.setItem("theme", newTheme);
-        });
-    });
+          const linkManual = document.getElementById('linkAyudaManual');
+          
+          if (linkManual) {
+              linkManual.addEventListener('mouseenter', function() {
+                  fetch(this.href, { 
+                      method: 'GET',
+                      headers: { 'Accept': 'application/json' }
+                  })
+                  .then(response => {
+                      if (response.headers.get('content-type') === 'application/pdf') {
+                          linkManual.target = '_blank';
+                      } else {
+                          linkManual.target = '_self';
+                      }
+                  })
+                  .catch(error => {
+                      console.error("Error al pre-verificar el manual:", error);
+                      linkManual.target = '_self';
+                  });
+              });
+          }
+      });
 
 
     document.addEventListener('DOMContentLoaded', (event) => {

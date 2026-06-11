@@ -11,7 +11,7 @@
 
   <div class="row g-2 mb-3">
     
-    <div class="col-xl-6 col-lg-12">
+    <div class="col-xl-5 col-lg-12">
       <div class="card shadow-sm border-0 mb-2">
         <div class="card-header py-2 bg-light fw-bold text-muted small text-uppercase">
           <i class="bi bi-funnel-fill"></i> Panel de Búsqueda de Personal de Hoy
@@ -20,7 +20,7 @@
           <form method="get" action="" id="formFiltrosAsistencias" class="row g-2 align-items-end">
             
             <div class="col-sm-5">
-              <label class="form-label mb-1 small text-uppercase fw-bold">Buscar por Nombre o Apellido</label>
+              <label class="form-label mb-1 small text-uppercase fw-bold">Buscar por Nombre</label>
               <input type="text" class="form-control form-control-sm input-filtro-dinamico" name="nombre_apellido" id="buscadorAsistencias" placeholder="Escribe nombre y/o apellido..." value="{{ texto_buscado }}">
             </div>
 
@@ -49,7 +49,7 @@
       </div>
     </div>
 
-    <div class="col-xl-6 col-lg-12">
+    <div class="col-xl-7 col-lg-12">
       <div class="card shadow-sm border-0 mb-2">
         <div class="card-header py-2 bg-light fw-bold text-muted small text-uppercase">
           <i class="bi bi-check2-circle"></i> Procesamiento Masivo Diario
@@ -57,13 +57,16 @@
         <div class="card-body p-4 mt-0 mb-1 d-flex flex-column justify-content-center align-items-center">
           <div class="d-flex justify-content-center gap-2 w-100">
             <button type="button" class="btn btn-sm btn-success fw-bold flex-fill" data-bs-toggle="modal" data-bs-target="#modalConfirmar" style="padding-top: 0.4rem; padding-bottom: 0.4rem;">
-              Confirmar Seleccionados
+              <i class="bi bi-check-all me-1"></i> Confirmar
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary fw-bold flex-fill" data-bs-toggle="modal" data-bs-target="#modalQuitarConfirmacion" style="padding-top: 0.4rem; padding-bottom: 0.4rem;">
+              <i class="bi bi-x-square me-1"></i> Quitar Confirmación
             </button>
             <button type="button" class="btn btn-sm btn-warning fw-bold flex-fill" data-bs-toggle="modal" data-bs-target="#modalTardanza" style="padding-top: 0.4rem; padding-bottom: 0.4rem;">
-              Marcar Tardanza
+              <i class="bi bi-clock-history me-1"></i> Marcar Tardanza
             </button>
             <button type="button" class="btn btn-sm btn-danger fw-bold flex-fill" data-bs-toggle="modal" data-bs-target="#modalAusentes" style="padding-top: 0.4rem; padding-bottom: 0.4rem;">
-              Registrar Ausentes
+              <i class="bi bi-person-x-fill me-1"></i> Registrar Ausentes
             </button>
           </div>
         </div>
@@ -98,7 +101,7 @@
               {% for a in asistencias %}
               <tr>
                 <td>
-                  {% if not a.confirmado and not a.licencia %}
+                  {% if not a.licencia %}
                     <input type="checkbox" name="asistencia_ids" value="{{ a.id }}" class="checkItem">
                   {% endif %}
                 </td>
@@ -133,6 +136,7 @@
             </tbody>
           </table>
         </div>
+
 
         <nav aria-label="Page navigation" class="mt-3 mb-2">
           <ul class="pagination justify-content-center mb-0">
@@ -170,7 +174,7 @@
       </div>
     </div>
 
-    <!-- Modal de confirmación -->
+
     <div class="modal fade" id="modalConfirmar" tabindex="-1" aria-labelledby="modalConfirmarLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-success">
@@ -188,8 +192,25 @@
         </div>
       </div>
     </div>
+
+
+    <div class="modal fade" id="modalQuitarConfirmacion" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-secondary">
+          <div class="modal-header bg-secondary text-white">
+            <h5 class="modal-title text-white">Quitar confirmación</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body text-dark text-start">¿Seguro que deseas revocar la confirmación de los empleados seleccionados?</div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" name="accion" value="quitar_confirmacion" class="btn btn-secondary">Sí, remover</button>
+          </div>
+        </div>
+      </div>
+    </div>
   
-    <!-- Modal tardanza -->
+
     <div class="modal fade" id="modalTardanza" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-warning">
@@ -197,7 +218,7 @@
             <h5 class="modal-title">Marcar tardanza</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
-          <div class="modal-body text-dark text-start">¿Marcar como tardanza los seleccionados?</div>
+          <div class="modal-body text-dark text-start">¿Marcar como tardanza los seleccionados? (Esto forzará el estado incluso en registros ya confirmados).</div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
             <button type="submit" name="accion" value="tardanza" class="btn btn-warning">Sí, marcar</button>
@@ -206,7 +227,7 @@
       </div>
     </div>
 
-    <!-- Modal ausentes -->
+
     <div class="modal fade" id="modalAusentes" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-danger">
@@ -225,7 +246,6 @@
 
   </form>
 </div>
-
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -300,17 +320,6 @@
     });
 
     vincularPaginacionAsistencias();
-
-    const checkAll = document.getElementById('checkAll');
-    const checkItems = document.querySelectorAll('.checkItem');
-
-    if (checkAll) {
-      checkAll.addEventListener('change', function() {
-        checkItems.forEach(chk => {
-          chk.checked = checkAll.checked;
-        });
-      });
-    }
   });
 </script>
 {% endblock %}

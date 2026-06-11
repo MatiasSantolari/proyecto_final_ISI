@@ -1,31 +1,15 @@
 from datetime import date
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
 import json
 from langchain_core.messages import HumanMessage
 from .hr_agent import hr_agent, AnyMessage
 from ...models import HistorialAsistencia 
-
-from .hr_tools import (
-    get_vacation_days_tool, 
-    get_benefits_tool, 
-    get_discounts_tool, 
-    get_current_role_and_department_tool,
-    get_employee_objectives_tool,
-    get_last_payroll_tool,
-    get_last_performance_review_tool,
-    get_current_contract_info_tool,
-    get_internal_job_applications_tool,
-    get_attendance_summary_tool,
-    get_recommended_courses_tool,
-    get_boss_and_manager_info_tool,
-    get_team_members_tool,
-    get_employee_skills_tool,
-)
+from django_ratelimit.decorators import ratelimit 
 
 
-@csrf_exempt
+
+@ratelimit(key='ip', rate='15/m', block=True, group='chatbot')
 @login_required 
 def get_response_chatbot(request):
     if request.method != "POST":
@@ -40,7 +24,10 @@ def get_response_chatbot(request):
     user_id = request.user.pk
     
     if not user_message_text:
-        return JsonResponse({"error": "No message provided"}, status=400)
+        return JsonResponse({
+            "response": "¡Hola! Soy tu asistente de RRHH. ¿En qué te puedo ayudar hoy? 😊",
+            "attendance_status": _get_attendance_status(user_id)
+        }, status=200)
 
     text_lower = user_message_text.lower()
 
@@ -56,19 +43,21 @@ def get_response_chatbot(request):
             "attendance_status": _get_attendance_status(user_id)
         })
 
-
     if "sí, registrar entrada" in text_lower:
         user_message_text = "EJECUTAR_MARCA_REGISTRO_ENTRADA_CONFIRMADO"
-        
     elif "sí, registrar salida" in text_lower:
         user_message_text = "EJECUTAR_MARCA_REGISTRO_SALIDA_CONFIRMADO"
 
-
     try:
+        rol_sesion = request.session.get('rol_actual')
+        if not rol_sesion:
+            rol_sesion = getattr(request.user, 'rol', 'normal')
+
         config = {
             "configurable": {
                 "thread_id": f"hr_chat_{user_id}",
-                "user_id": int(user_id)
+                "user_id": int(user_id),
+                "rol_actual": str(rol_sesion) 
             }
         }
         
@@ -80,7 +69,10 @@ def get_response_chatbot(request):
         response_text = final_state['messages'][-1].content
         
     except Exception as e:
-        print(f"Error crítico en agente de IA: {e}")
+        import traceback
+        print("--- ERROR CRÍTICO EN AGENTE IA ---")
+        traceback.print_exc() 
+        print("---------------------------------")
         response_text = "Lo siento, experimenté una dificultad interna al procesar tu solicitud."
 
     return JsonResponse({
@@ -89,29 +81,9 @@ def get_response_chatbot(request):
     })
 
 
-def _get_attendance_status(user_id):
-    """Evalúa el estado actual de las marcas del día del empleado en la Base de Datos."""
-    try:
-        hoy = date.today()
-        
-        asistencia = HistorialAsistencia.objects.filter(
-            empleado__usuario=user_id, 
-            fecha_asistencia=hoy
-        ).first()
-        
-        if not asistencia:
-            return "NO_ENTRY"
-            
-        if asistencia.hora_entrada and not asistencia.hora_salida:
-            return "HAS_ENTRY" 
-            
-        return "COMPLETED"
-    except Exception as e:
-        print(f"Error de sincronización de marcas en ORM: {e}")
-        return "NO_ENTRY"
 
 
-@csrf_exempt
+@ratelimit(key='ip', rate='10/m', block=True, group='chatbot')
 @login_required
 def save_chatbot_feedback(request):
     """Recibe y audita las calificaciones (👍/👎) enviadas por los empleados."""
@@ -135,3 +107,26 @@ def save_chatbot_feedback(request):
     except Exception as e:
         print(f"Error procesando feedback de la IA: {e}")
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+
+def _get_attendance_status(user_id):
+    """Evalúa el estado actual de las marcas del día del empleado en la Base de Datos."""
+    try:
+        hoy = date.today()
+        
+        asistencia = HistorialAsistencia.objects.filter(
+            empleado__usuario=user_id, 
+            fecha_asistencia=hoy
+        ).first()
+        
+        if not asistencia:
+            return "NO_ENTRY"
+            
+        if asistencia.hora_entrada and not asistencia.hora_salida:
+            return "HAS_ENTRY" 
+            
+        return "COMPLETED"
+    except Exception as e:
+        print(f"Error de sincronización de marcas en ORM: {e}")
+        return "NO_ENTRY"

@@ -44,14 +44,13 @@
   const inputChat = document.getElementById("inputChat");
   const chatbox = document.getElementById("chatbox");
   const quickRepliesContainer = document.getElementById("quick-replies-container");
-  const btnEnviarMsg = document.getElementById("btnEnviarMsg"); // Captura de la flecha
+  const btnEnviarMsg = document.getElementById("btnEnviarMsg"); 
   
   let minimized = false;
   let scriptMarkedLoaded = false;
   let currentAttendanceStatus = "NO_ENTRY"; 
   let isConfirming = false; 
 
-  // Ocultar botón de enviar por defecto estilo WhatsApp al cargar la interfaz
   if (btnEnviarMsg && inputChat) {
       btnEnviarMsg.style.display = "none";
       inputChat.addEventListener("input", function() {
@@ -218,7 +217,6 @@
   }
 
 
-   // --- SEGUNDA PARTE DEL SCRIPT (COMPLETA Y CONFIGURADA) ---
 
   async function sendFeedback(msgIndex, type, buttonElement) {
     const history = JSON.parse(localStorage.getItem('hrChatHistory') || '[]');
@@ -263,7 +261,6 @@
     if (!message) return;
     inputChat.value = "";
     
-    // Oculta la flecha inmediatamente tras procesar el envío
     if (btnEnviarMsg) btnEnviarMsg.style.display = "none";
     if (quickRepliesContainer) quickRepliesContainer.style.display = "none";
 

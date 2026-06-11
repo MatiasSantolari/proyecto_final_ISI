@@ -199,6 +199,11 @@ urlpatterns = [
         path('evaluaciones/<int:id_evaluacion>/empleados/<int:id_empleado>/calificar/', evaluaciones_view.calificar_empleado, name='calificar_empleado'),
 
 
+        #### MANUALES DE USUARIO ####
+        path('manual/acceso/', manuales_view.acceso_manual_usuario, name='acceso_manual'),
+        path('manual/administrar/', manuales_view.gestor_manuales_admin, name='gestor_manuales_admin'),
+
+
         #### AI ####
         ## CHATBOT ##
         path('chatbot/response/', get_response_chatbot, name='chatbot_response'),

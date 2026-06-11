@@ -22,6 +22,7 @@ from .informes_view import *
 from .informes_empleado_view import *
 from .personas_view import *
 from .solicitud_cargo_view import *
+from .manuales_view import *
 
 def agregar_sueldo_base(request): return render(request, 'agregar_sueldo_base.html')
 def calcular_bonificaciones(request): return render(request, 'calcular_bonificaciones.html')
