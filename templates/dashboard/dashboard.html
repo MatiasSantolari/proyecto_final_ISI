@@ -370,9 +370,10 @@
 
 
 
-  <div class="modal fade" id="aiReportModal" tabindex="-1" aria-labelledby="aiReportModalLabel" aria-hidden="true" style="z-index: 9999;">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal fade" id="aiReportModal" tabindex="-1" aria-labelledby="aiReportModalLabel" aria-hidden="true" style="z-index: 9999;">
+      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+          
           <div class="modal-header border-0 pt-4 pb-2 bg-transparent">
             <h5 class="modal-title d-flex align-items-center gap-2" id="aiReportModalLabel">
               <i class="bi bi-stars text-primary fs-4"></i>
@@ -382,24 +383,90 @@
           </div>
 
           <div class="modal-body px-4 py-3 bg-transparent">
-            <div class="text-center py-5" id="aiReportSpinner">
-              <div class="spinner-border text-primary mb-3" role="status" style="width: 2.5rem; height: 2.5rem; border-width: 0.25em;"></div>
-              <p class="text-muted-ia small fw-medium mb-0 px-3">El Agente está analizando las métricas, buscando anomalías cruzadas y preparando tus recomendaciones...</p>
+            
+
+          <div id="aiReportConfigPanel" class="mb-2">
+            
+            <div class="ps-3 py-2 mb-3 border-start border-3 border-info" style="background-color: rgba(13, 110, 253, 0.04); border-radius: 0 8px 8px 0;">
+              <div class="fw-bold text-info small mb-1">
+                <i class="bi bi-calendar-week-fill me-1"></i> Sincronización Temporal Activa
+              </div>
+              <p class="text-reset mb-0" style="font-size: 0.8rem; line-height: 1.3;">
+                <strong>Nota importante:</strong> El motor de IA extraerá y cruzará las métricas respetando estrictamente los intervalos de tiempo seleccionados actualmente en los gráficos del Dashboard. El alcance del informe cambiará de forma automática si modifica los rangos de los selectores en cada métrica.
+              </p>
             </div>
-            <div id="aiReportText" class="d-none lh-base" style="font-size: 0.95rem;"></div>
+
+            <p class="text-muted small mb-3"><i class="bi bi-sliders me-1"></i> Defina los parámetros numéricos de tolerancia corporativa para cada módulo antes de iniciar la auditoría con IA.</p>
+            
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label class="form-label small fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">1. Umbral de Ausentismo (Cantidad de Faltas)</label>
+                <input type="number" class="form-control form-control-sm" id="cfgParamAusencias" value="4" min="0" max="31" style="border-radius: 8px;" placeholder="Ej: 3">
+                <div class="form-text text-muted" style="font-size: 0.7rem;">Faltas injustificadas máximas permitidas en el período.</div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">2. Nota de Corte de Desempeño (Escala 1 a 10)</label>
+                <input type="number" class="form-control form-control-sm" id="cfgParamRendimiento" value="6.0" min="1.0" max="10.0" step="0.5" style="border-radius: 8px;" placeholder="Ej: 7.5">
+                <div class="form-text text-muted" style="font-size: 0.7rem;">Cualquier calificación menor a esta será evaluada como bajo rendimiento.</div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">3. Avance Mínimo de Objetivos (Porcentaje %)</label>
+                <input type="number" class="form-control form-control-sm" id="cfgParamObjetivos" value="35" min="0" max="100" style="border-radius: 8px;" placeholder="Ej: 50">
+                <div class="form-text text-muted" style="font-size: 0.7rem;">Porcentaje mínimo de progreso esperado para no considerar una meta "Estancada".</div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">4. Alerta de Desvío Presupuestario (Porcentaje %)</label>
+                <input type="number" class="form-control form-control-sm" id="cfgParamPresupuesto" value="10" min="0" max="500" style="border-radius: 8px;" placeholder="Ej: 15">
+                <div class="form-text text-muted" style="font-size: 0.7rem;">Porcentaje de aumento interanual máximo tolerado en el costo laboral.</div>
+              </div>
+
+              <hr class="opacity-10 my-3">
+
+              <div class="col-12">
+                <label class="form-label small fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">5. Enfoque o Foco Principal del Análisis</label>
+                <select class="form-select form-select-sm" id="cfgParamFoco" style="border-radius: 8px;">
+                  <option value="general" selected>Auditoría Transversal Equilibrada (Mapeo Completo)</option>
+                  <option value="costos">Optimización Financiera y Eficiencia de Costos de Personal</option>
+                  <option value="talento">Desarrollo de Competencias y Planes de Capacitación de Planta</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="text-end mb-2">
+              <button type="button" class="btn btn-primary btn-sm px-4 py-2" id="btnLaunchAIAnalysis" style="border-radius: 8px; font-size: 0.95rem; font-weight: 600;">
+                <i class="bi bi-cpu-fill me-1"></i> Generar Diagnóstico
+              </button>
+            </div>
+            <hr class="opacity-10 my-3">
           </div>
+
+
+          <div class="text-center py-5 d-none" id="aiReportSpinner">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 2.5rem; height: 2.5rem; border-width: 0.25em;"></div>
+            <p class="text-muted-ia small fw-medium mb-0 px-3">El Agente está analizando las métricas, buscando anomalías cruzadas y preparando tus recomendaciones...</p>
+          </div>
+          
+          <div id="aiReportText" class="d-none lh-base" style="font-size: 0.95rem;"></div>
+        </div>
 
           <div class="modal-footer border-0 pt-2 pb-4 bg-transparent d-flex justify-content-end gap-3">
             <button type="button" class="btn btn-secondary btn-sm px-4 py-2" style="border-radius: 8px; font-size: 0.85rem;" data-bs-dismiss="modal">Cerrar</button>
-
-            <button type="button" class="btn btn-danger btn-sm px-4 py-2 d-flex align-items-center gap-2" style="border-radius: 8px; font-size: 0.85rem;" id="btnDownloadAIPDF">
-              <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
-            </button>
+            <div style="cursor: not-allowed;" id="wrapperBtnDownload" title="Primero debe generar el informe estratégico con la IA">
+              <button type="button" class="btn btn-danger btn-sm px-4 py-2 d-flex align-items-center gap-2" 
+                      style="border-radius: 8px; font-size: 0.85rem; pointer-events: none;" 
+                      id="btnDownloadAIPDF" disabled>
+                <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+              </button>
+            </div>
           </div>
 
         </div>
       </div>
     </div>
+
 
 
   <script src="{% static 'dashboard/js/dashboard.js' %}"></script>

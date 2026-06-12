@@ -24,14 +24,46 @@ def api_generar_reporte_ia_view(request):
     try:
         datos_dashboard = json.loads(request.body)
         rol_actual = request.session.get('rol_actual', request.user.rol)
-        tipo_informe = request.GET.get('tipo', 'Auditoría Estratégica Transversal: Sistema de Gestión de Recursos Humanos')
+        
+        periodo_asistencias_str = datos_dashboard.get('asistencias', {}).get('periodo', '30d')
+        periodo_evaluaciones_str = datos_dashboard.get('evaluaciones', {}).get('periodo', '12m')
+        
+        config_ia = datos_dashboard.get('configuracion_ia', {})
+        limite_faltas = config_ia.get('limite_ausencias', 5)
+        nota_corte = config_ia.get('corte_rendimiento', 6.0)
+        meta_progreso = config_ia.get('minimo_progreso_metas', 20)
+        desvio_pct = config_ia.get('desvío_presupuesto_maximo', 15)
+        foco_negocio = config_ia.get('foco_estrategico', 'general')
 
         hoy = timezone.localdate()
-        hace_30_dias = hoy - timedelta(days=30)
+
+        dias_asistencia = 30
+        if periodo_asistencias_str and 'd' in periodo_asistencias_str:
+            try:
+                dias_asistencia = int(periodo_asistencias_str.replace('d', ''))
+            except ValueError:
+                pass
+        elif periodo_asistencias_str and 'm' in periodo_asistencias_str:
+            try:
+                dias_asistencia = int(periodo_asistencias_str.replace('m', '')) * 30
+            except ValueError:
+                pass
+
+        fecha_inicio_asistencia = hoy - timedelta(days=dias_asistencia)
+
+        meses_evaluacion = 12
+        if periodo_evaluaciones_str and 'm' in periodo_evaluaciones_str:
+            try:
+                meses_evaluacion = int(periodo_evaluaciones_str.replace('m', ''))
+            except ValueError:
+                pass
+
+        fecha_inicio_evaluacion = hoy - timedelta(days=meses_evaluacion * 30)
 
         ausencias_detalladas = HistorialAsistencia.objects.filter(
-            fecha_asistencia__range=[hace_30_dias, hoy],
-            confirmado=False
+            fecha_asistencia__range=[fecha_inicio_asistencia, hoy],
+            hora_entrada__isnull=True,
+            licencia=False
         ).values(
             'empleado__nombre', 'empleado__apellido', 
             'empleado__empleadocargo__cargo__cargodepartamento__departamento__nombre'
@@ -46,8 +78,8 @@ def api_generar_reporte_ia_view(request):
         ]
 
         evaluaciones_bajas = EvaluacionEmpleado.objects.exclude(calificacion_final__isnull=True).filter(
-            fecha_registro__gte=hoy - timedelta(days=365),
-            calificacion_final__lt=6 
+            fecha_registro__range=[fecha_inicio_evaluacion, hoy],
+            calificacion_final__lt=nota_corte 
         ).select_related('empleado').order_by('calificacion_final')[:10]
 
         lista_evaluaciones_bajas = [
@@ -57,26 +89,39 @@ def api_generar_reporte_ia_view(request):
             } for ev in evaluaciones_bajas
         ]
 
-        
         empleados_nuevas_habilidades = HabilidadEmpleado.objects.filter(
-            fecha_asignacion__range=[hace_30_dias, hoy]
+            fecha_asignacion__range=[fecha_inicio_asistencia, hoy]
         ).values('empleado').distinct().count()
 
-        
         datos_dashboard['detalles_nomina_exclusivos_ia'] = {
             'top_empleados_ausentes_30_dias': lista_ausentes,
             'empleados_con_bajo_desempeño_calificacion_6': lista_evaluaciones_bajas,
             'metricas_desarrollo_talento': {
                 'empleados_aprendieron_habilidades_ultimo_mes': empleados_nuevas_habilidades
+            },
+            'configuracion_analitica_maestra': {
+                'umbral_ausentismo_critico_tipeado': limite_faltas,
+                'nota_corte_bajo_desempenio_tipeada': nota_corte,
+                'progreso_minimo_metas_esperado': meta_progreso,
+                'tolerancia_desvio_presupuestario_pct': desvio_pct,
+                'vector_foco_prioritario': foco_negocio,
+                'periodo_asistencias_analizado_str': periodo_asistencias_str,
+                'periodo_evaluaciones_analizado_str': periodo_evaluaciones_str
             }
         }
+
+        focos_titulos = {
+            'general': 'Auditoría Estratégica Transversal: Sistema de Gestión de Recursos Humanos',
+            'costos': 'Informe de Optimización Financiera y Eficiencia de Costos de Personal',
+            'talento': 'Plan Estratégico de Desarrollo de Competencias y Retención de Talento Humano'
+        }
+        tipo_informe = focos_titulos.get(foco_negocio, focos_titulos['general'])
 
         html_reporte = generar_informe_ia(
             datos=datos_dashboard, 
             rol_actual=rol_actual, 
-            tipo_informe=tipo_informe
+            tipo_informe=f"{tipo_informe} ({periodo_asistencias_str.upper()}/{periodo_evaluaciones_str.upper()})"
         )
-        
         
         if "alert-danger" in html_reporte:
             return JsonResponse({"reporte": html_reporte})

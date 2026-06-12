@@ -686,7 +686,7 @@ MENSAJE_PROHIBIDO = "Lo siento, no posees los permisos necesarios para realizar 
 def manual_modulo_autenticacion_y_navegacion(config: Annotated[RunnableConfig, InjectedToolArg]) -> str:
     """
     Úsala EXCLUSIVAMENTE cuando el usuario pregunte CÓMO HACER tareas básicas de la plataforma, 
-    tales como: cómo obtener sus credenciales, cómo recuperar o cambiar su contraseña, 
+    tales como: cómo obtener sus credenciales, como obtener ayuda o ver el manual de usuario, cómo recuperar o cambiar su contraseña, 
     cómo cerrar sesión, cómo activar el modo oscuro/claro, qué opciones hay en la barra superior, 
     cómo actualizar sus datos personales, cargar el CV, estudios, certificaciones o historial laboral en su perfil.
     """
@@ -717,10 +717,22 @@ def manual_modulo_autenticacion_y_navegacion(config: Annotated[RunnableConfig, I
     - Información Laboral: Completa tu trayectoria profesional previa indicando la organización, el cargo y el periodo de tiempo.
     """
 
+    if rol_actual in ["jefe", "gerente", "empleado", "normal"]:
+        manual += """
+    5. AYUDA / MANUAL DE USUARIO:
+    Dentro del sistema en la barra superior, despleiga el ícono de usuario, selecciona "Ayuda / Manual", y lo redireccionará al arhcivo en PDF del manual de usuario.
+    """
+
+    if rol_actual in ["admin", "administrador"]:
+        manual += """
+    5. AYUDA / MANUAL DE USUARIO:
+    Dentro del sistema en la barra superior, despleiga el ícono de usuario, selecciona "Ayuda / Manual", y lo redireccionará al gestor de manuales de usuario, allí podra cargar el manual de usuario actualizado para cada rol, y podrá ver el registro de cada uno de ellos.
+    """
+
     if rol_actual in ["admin", "administrador", "jefe", "gerente"]:
         manual += """
     
-    5. CAMBIO DE VISTA / ROL (EXCLUSIVO LÍDERES Y ADMINS):
+    6. CAMBIO DE VISTA / ROL (EXCLUSIVO LÍDERES Y ADMINS):
     - Debido a tus permisos de gestión, la barra superior te permite alternar libremente entre tus vistas de "Empleado" (para tus trámites personales), "Jefe/Gerente" y tu vista de "Administrador".
         """
         
@@ -1370,7 +1382,7 @@ def manual_admin_habilidades(config: Annotated[RunnableConfig, InjectedToolArg])
 def manual_operaciones_confirmar_asistencia(config: Annotated[RunnableConfig, InjectedToolArg]) -> str:
     """
     Úsala EXCLUSIVAMENTE cuando el usuario pregunte CÓMO HACER tareas en el submódulo de Confirmar Asistencia,
-    tales como: supervisar o validar la jornada laboral del personal, confirmar asistencias de hoy, 
+    tales como: supervisar o validar la jornada laboral del personal, confirmar asistencias de hoy, Quitar Confirmaciones,
     marcar tardanzas a los empleados, registrar ausentes de forma masiva o interactuar con la tabla de registros diarios.
     """
     configurable = config.get("configurable", {}) if config else {}
@@ -1384,6 +1396,7 @@ def manual_operaciones_confirmar_asistencia(config: Annotated[RunnableConfig, In
     
     1. BOTONES DE ACCIÓN RÁPIDA (Parte superior):
     - Confirmar Asistencia: Valida formalmente el registro de jornada de los empleados que hayan sido seleccionados en la tabla.
+    - Quitar Confirmación: Para cambiar el estado de "Confirmado" a "No Confirmado".
     - Marcar Tardanza: Registra un ingreso fuera de horario para los colaboradores seleccionados.
     - Registrar Ausentes de Hoy (Acción Masiva): No requiere selección previa. Al presionarlo, el sistema identifica de forma automática a todo el personal que no haya realizado ninguna marca de ingreso en el día y los registra como "Ausente".
 
@@ -1392,7 +1405,7 @@ def manual_operaciones_confirmar_asistencia(config: Annotated[RunnableConfig, In
 
     3. PROCEDIMIENTO PASO A PASO PARA VALIDAR PRESENTISMO:
     - Paso 1 (Selección): Busca al empleado en la tabla y marca el cuadro de verificación (check) ubicado al final de su fila. Puedes marcar varios empleados simultáneamente para trabajar en lote.
-    - Paso 2 (Ejecución): Presiona el botón superior "Confirmar Asistencia" para validar sus horas o "Marcar Tardanza" si ingresaron tarde.
+    - Paso 2 (Ejecución): Presiona el botón superior "Confirmar Asistencia" para validar sus horas o "Marcar Tardanza" si ingresaron tarde, o "Quitar Confirmación" para retirar el registro de confirmación.
     - Paso 3 (Cierre de jornada): Una vez finalizada la ventana de ingreso permitida de la empresa, pulsa el botón "Registrar Ausentes de hoy" para completar el reporte diario de todo el equipo automáticamente.
     """
 

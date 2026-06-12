@@ -11,15 +11,12 @@
     capacitaciones: '/dashboard/api/capacitaciones/',
   };
 
-  // theme handling
   const root = document.documentElement;
 
   let isFirstLoadVac = true;
-  // Chart instances
   let vacChart=null, attendanceChart, evalChart=null, payrollChart, deptChart, laborCostChart = null, capChart = null;
 
   async function safeFetch(url){
-  // helper to fetch json and safe fallback
     try{
       const res = await fetch(url, { credentials: 'same-origin' });
       if(!res.ok) throw new Error('Network response not ok');
@@ -921,195 +918,248 @@
 
 
 
+    let controladorAbortarIA = null;
 
-  async function ejecutarAnalisisDashboardIA() {
-    const spinner = document.getElementById('aiReportSpinner');
-    const txtContenedor = document.getElementById('aiReportText');
+    async function ejecutarAnalisisDashboardIA() {
+        const configPanel = document.getElementById('aiReportConfigPanel');
+        const spinner = document.getElementById('aiReportSpinner');
+        const txtContenedor = document.getElementById('aiReportText');
+        const btnPdf = document.getElementById('btnDownloadAIPDF');
 
-    if (!spinner || !txtContenedor) return;
+        if (!spinner || !txtContenedor || !configPanel) return;
 
-    spinner.classList.remove('d-none');
-    txtContenedor.classList.add('d-none');
-    txtContenedor.innerHTML = '';
+        configPanel.classList.add('d-none'); 
+        spinner.classList.remove('d-none');
+        txtContenedor.classList.add('d-none');
+        if (btnPdf) btnPdf.disabled = true; 
+        txtContenedor.innerHTML = '';
 
-    const pVacaciones = document.getElementById('vacationPeriodSelector')?.value || '1m';
-    const pAsistencias = document.getElementById('attendancePeriodSelector')?.value || '30d';
-    const pNominas = document.getElementById('payrollPeriodSelector')?.value || '1m';
-    const pEvaluaciones = document.getElementById('evalPeriodSelector')?.value || '12m';
-    const pCapacitaciones = document.getElementById('capPeriodSelector')?.value || '6m';
-    const pObjetivosDept = document.getElementById('departmentSelector')?.value || 'todos';
-    const anio1 = document.getElementById('yearSelector1')?.value || (new Date().getFullYear() - 1);
-    const anio2 = document.getElementById('yearSelector2')?.value || new Date().getFullYear();
+        controladorAbortarIA = new AbortController();
+        const signal = controladorAbortarIA.signal;
 
-    const [kpis, vac, ast, evl, pay, str, obj, cap, costComp] = await Promise.all([
-      safeFetch(API.kpis),
-      safeFetch(`${API.vacations}?periodo=${pVacaciones}`),
-      safeFetch(`${API.attendance}?periodo=${pAsistencias}`),
-      safeFetch(`${API.evaluations}?periodo=${pEvaluaciones}`),
-      safeFetch(`${API.payroll}?periodo=${pNominas}`),
-      safeFetch(API.structure),
-      pObjetivosDept !== 'todos' ? safeFetch(`${API.objectives}?departamento_id=${pObjetivosDept}`) : safeFetch(API.objectives),
-      safeFetch(`${API.capacitaciones}?periodo=${pCapacitaciones}`),
-      safeFetch(`${API.laboral_cost}?year1=${anio1}&year2=${anio2}`)
-    ]);
+        const pVacaciones = document.getElementById('vacationPeriodSelector')?.value || '1m';
+        const pAsistencias = document.getElementById('attendancePeriodSelector')?.value || '30d';
+        const pNominas = document.getElementById('payrollPeriodSelector')?.value || '1m';
+        const pEvaluaciones = document.getElementById('evalPeriodSelector')?.value || '12m';
+        const pCapacitaciones = document.getElementById('capPeriodSelector')?.value || '6m';
+        const pObjetivosDept = document.getElementById('departmentSelector')?.value || 'todos';
+        const anio1 = document.getElementById('yearSelector1')?.value || (new Date().getFullYear() - 1);
+        const anio2 = document.getElementById('yearSelector2')?.value || new Date().getFullYear();
 
-    const payloadCompleto = {
-      kpis: kpis,
-      vacaciones: { periodo: pVacaciones, datos: vac },
-      asistencias: { periodo: pAsistencias, datos: ast },
-      evaluaciones: { periodo: pEvaluaciones, datos: evl },
-      nominas: { periodo: pNominas, datos: pay },
-      estructura_plantilla: str,
-      objetivos: { departamento_filtrado: pObjetivosDept, datos: obj },
-      capacitaciones: { periodo: pCapacitaciones, datos: cap },
-      comparativa_costo_laboral: { anio1: anio1, anio2: anio2, datos: costComp }
-    };
+        const limiteAusencias = document.getElementById('cfgParamAusencias')?.value || '4';
+        const corteRendimiento = document.getElementById('cfgParamRendimiento')?.value || '6.0';
+        const minimoObjetivos = document.getElementById('cfgParamObjetivos')?.value || '35';
+        const desvioPresupuesto = document.getElementById('cfgParamPresupuesto')?.value || '10';
+        const focoInforme = document.getElementById('cfgParamFoco')?.value || 'general';
 
-    try {
-      const response = await fetch('/dashboard/api/generar-reporte-ia/?tipo=Auditoría Estratégica Transversal: Sistema de Gestión de Recursos Humanos', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCsrfTokenDashboard()
-        },
-        body: JSON.stringify(payloadCompleto)
-      });
+        const [kpis, vac, ast, evl, pay, str, obj, cap, costComp] = await Promise.all([
+            safeFetch(API.kpis),
+            safeFetch(`${API.vacations}?periodo=${pVacaciones}`),
+            safeFetch(`${API.attendance}?periodo=${pAsistencias}`),
+            safeFetch(`${API.evaluations}?periodo=${pEvaluaciones}`),
+            safeFetch(`${API.payroll}?periodo=${pNominas}`),
+            safeFetch(API.structure),
+            pObjetivosDept !== 'todos' ? safeFetch(`${API.objectives}?departamento_id=${pObjetivosDept}`) : safeFetch(API.objectives),
+            safeFetch(`${API.capacitaciones}?periodo=${pCapacitaciones}`),
+            safeFetch(`${API.laboral_cost}?year1=${anio1}&year2=${anio2}`)
+        ]);
 
-      if (!response.ok) throw new Error("Error en el servidor de IA");
-      const data = await response.json();
-
-      spinner.classList.add('d-none');
-      txtContenedor.classList.remove('d-none');
-      txtContenedor.innerHTML = data.reporte;
-
-    } catch (error) {
-      console.error('Error con Consultor DeepSeek:', error);
-      spinner.classList.add('d-none');
-      txtContenedor.classList.remove('d-none');
-      txtContenedor.innerHTML = `
-        <div class="alert alert-danger d-flex align-items-center gap-3 border-0 shadow-sm rounded-3">
-          <i class="bi bi-exclamation-triangle-fill fs-3 text-danger"></i>
-          <div>
-            <strong>Error del Consultor de IA</strong><br>
-            <span class="small">No pudimos procesar el cruce de datos en este momento. Por favor reintente.</span>
-          </div>
-        </div>`;
-    }
-  }
-
-  function getCsrfTokenDashboard() {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, 10) === 'csrftoken=') {
-          cookieValue = decodeURIComponent(cookie.substring(10));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
-
-
-
-  document.addEventListener('DOMContentLoaded', (event) => {
-    loadAll();
-    loadObjectives();
-    loadVacations();
-    loadPayroll();
-    loadAttendance();
-    loadEvaluations();
-    populateYearSelectors();
-    loadLaborCostComparison();
-    loadCapacitaciones();
-
-    const selectorYear1 = document.getElementById('yearSelector1');
-    const selectorYear2 = document.getElementById('yearSelector2');
-    if (selectorYear1){
-      selectorYear1.addEventListener('change', loadLaborCostComparison);
-    }
-    if (selectorYear2){
-      selectorYear2.addEventListener('change', loadLaborCostComparison);
-    }
-    const selectorEvals = document.getElementById('evalPeriodSelector');
-    if (selectorEvals) {
-        selectorEvals.addEventListener('change', loadEvaluations);
-    }
-    const selectorAttendance = document.getElementById('attendancePeriodSelector');
-    if (selectorAttendance) {
-        selectorAttendance.addEventListener('change', loadAttendance);
-    }
-    const selectorPayRoll = document.getElementById('payrollPeriodSelector');
-    if (selectorPayRoll) {
-        selectorPayRoll.addEventListener('change', loadPayroll);
-    }
-    const selectorVacations = document.getElementById('vacationPeriodSelector');
-    if (selectorVacations) {
-        selectorVacations.addEventListener('change', loadVacations);
-    }
-    const selectorObjetives = document.getElementById('departmentSelector');
-    if (selectorObjetives) {
-        selectorObjetives.addEventListener('change', loadObjectives);
-    }
-    const selectorCap = document.getElementById('capPeriodSelector');
-    if (selectorCap) selectorCap.addEventListener('change', loadCapacitaciones);
-
-
-    const btnIA = document.getElementById('btnGenerateAIReport');
-    if (btnIA) {
-        btnIA.addEventListener('click', ejecutarAnalisisDashboardIA);
-    }
-
-
-
-
-    const btnCopy = document.getElementById('btnCopyAIText');
-    if (btnCopy) {
-        btnCopy.addEventListener('click', () => {
-            const contenido = document.getElementById('aiReportText');
-            if (!contenido || contenido.classList.contains('d-none')) return;
-
-            navigator.clipboard.writeText(contenido.innerText)
-                .then(() => {
-                    const originalText = btnCopy.innerHTML;
-                    btnCopy.innerHTML = `<i class="bi bi-check-lg"></i> ¡Copiado!`;
-                    btnCopy.classList.replace('btn-outline-primary', 'btn-success');
-                    setTimeout(() => {
-                        btnCopy.innerHTML = originalText;
-                        btnCopy.classList.replace('btn-success', 'btn-outline-primary');
-                    }, 2000);
-                })
-                .catch(err => console.error('Error al copiar: ', err));
-        });
-    }
-
-    const btnDownloadPDF_IA = document.getElementById('btnDownloadAIPDF');
-    if (btnDownloadPDF_IA) {
-        btnDownloadPDF_IA.addEventListener('click', async () => {
-            const contenido = document.getElementById('aiReportText');
-            if (!contenido || contenido.classList.contains('d-none')) return;
-
-            try {
-                const res = await fetch('/dashboard/api/ultimo-pdf-ia/');
-                const data = await res.json();
-
-                if (data.url_pdf) {
-                    window.open(data.url_pdf, '_blank');
-                } else {
-                    alert("No se encontró el archivo del informe en el servidor.");
-                }
-            } catch (err) {
-                console.error("Error al recuperar el archivo PDF:", err);
+        const payloadCompleto = {
+            kpis: kpis,
+            vacaciones: { periodo: pVacaciones, datos: vac },
+            asistencias: { periodo: pAsistencias, datos: ast },
+            evaluaciones: { periodo: pEvaluaciones, datos: evl },
+            nominas: { periodo: pNominas, datos: pay },
+            estructura_plantilla: str,
+            objetivos: { departamento_filtrado: pObjetivosDept, datos: obj },
+            capacitaciones: { periodo: pCapacitaciones, datos: cap },
+            comparativa_costo_laboral: { anio1: anio1, anio2: anio2, datos: costComp },
+            configuracion_ia: {
+                limite_ausencias: parseInt(limiteAusencias),
+                corte_rendimiento: parseFloat(corteRendimiento),
+                minimo_progreso_metas: parseInt(minimoObjetivos),
+                desvío_presupuesto_maximo: parseInt(desvioPresupuesto),
+                foco_estrategico: focoInforme
             }
-        });
+        };
+
+        try {
+            const response = await fetch('/dashboard/api/generar-reporte-ia/?tipo=Auditoría Estratégica Transversal: Sistema de Gestión de Recursos Humanos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfTokenDashboard()
+                },
+                signal: signal, 
+                body: JSON.stringify(payloadCompleto)
+            });
+
+            if (!response.ok) throw new Error("Error en el servidor de IA");
+            const data = await response.json();
+
+            spinner.classList.add('d-none');
+            txtContenedor.classList.remove('d-none');
+            txtContenedor.innerHTML = data.reporte;
+            
+            if (btnPdf) {
+                btnPdf.disabled = false;
+                btnPdf.style.pointerEvents = 'auto'; 
+            }
+            const wrapper = document.getElementById('wrapperBtnDownload');
+            if (wrapper) {
+                wrapper.style.cursor = 'default'; 
+                wrapper.removeAttribute('title'); 
+            }
+
+            controladorAbortarIA = null; 
+
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                console.log('Petición de Consultor DeepSeek abortada correctamente.');
+                return;
+            }
+
+            console.error('Error con Consultor DeepSeek:', error);
+            if (spinner) spinner.classList.add('d-none');
+            if (txtContenedor) {
+                txtContenedor.classList.remove('d-none');
+                txtContenedor.innerHTML = `
+                    <div class="alert alert-danger d-flex align-items-center gap-3 border-0 shadow-sm rounded-3">
+                    <i class="bi bi-exclamation-triangle-fill fs-3 text-danger"></i>
+                    <div>
+                        <strong>Error del Consultor de IA</strong><br>
+                        <span class="small">No pudimos procesar el cruce de datos en este momento. Por favor reintente.</span>
+                    </div>
+                    </div>`;
+            }
+            if (configPanel) configPanel.classList.remove('d-none');
+            controladorAbortarIA = null;
+        }
     }
-  });
+
+
+    document.getElementById('btnLaunchAIAnalysis')?.addEventListener('click', ejecutarAnalisisDashboardIA);
+
+    document.getElementById('aiReportModal')?.addEventListener('show.bs.modal', function () {
+        document.getElementById('aiReportConfigPanel')?.classList.remove('d-none');
+        document.getElementById('aiReportText')?.classList.add('d-none');
+        document.getElementById('aiReportSpinner')?.classList.add('d-none');
+        
+        const btnPdf = document.getElementById('btnDownloadAIPDF');
+        if (btnPdf) {
+            btnPdf.disabled = true;
+            btnPdf.style.pointerEvents = 'none';
+        }
+        const wrapper = document.getElementById('wrapperBtnDownload');
+        if (wrapper) {
+            wrapper.style.cursor = 'not-allowed';
+            wrapper.setAttribute('title', 'Primero debe generar el informe estratégico con la IA');
+        }
+    });
+
+    document.getElementById('aiReportModal')?.addEventListener('hidden.bs.modal', function () {
+        if (controladorAbortarIA) {
+            controladorAbortarIA.abort(); 
+            controladorAbortarIA = null;
+        }
+    });
+
+    function getCsrfTokenDashboard() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, 10) === 'csrftoken=') {
+                    cookieValue = decodeURIComponent(cookie.substring(10));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        loadAll();
+        loadObjectives();
+        loadVacations();
+        loadPayroll();
+        loadAttendance();
+        loadEvaluations();
+        populateYearSelectors();
+        loadLaborCostComparison();
+        loadCapacitaciones();
+
+        const selectorYear1 = document.getElementById('yearSelector1');
+        const selectorYear2 = document.getElementById('yearSelector2');
+        if (selectorYear1){ selectorYear1.addEventListener('change', loadLaborCostComparison); }
+        if (selectorYear2){ selectorYear2.addEventListener('change', loadLaborCostComparison); }
+        
+        const selectorEvals = document.getElementById('evalPeriodSelector');
+        if (selectorEvals) { selectorEvals.addEventListener('change', loadEvaluations); }
+        
+        const selectorAttendance = document.getElementById('attendancePeriodSelector');
+        if (selectorAttendance) { selectorAttendance.addEventListener('change', loadAttendance); }
+        
+        const selectorPayRoll = document.getElementById('payrollPeriodSelector');
+        if (selectorPayRoll) { selectorPayRoll.addEventListener('change', loadPayroll); }
+        
+        const selectorVacations = document.getElementById('vacationPeriodSelector');
+        if (selectorVacations) { selectorVacations.addEventListener('change', loadVacations); }
+        
+        const selectorObjetives = document.getElementById('departmentSelector');
+        if (selectorObjetives) { selectorObjetives.addEventListener('change', loadObjectives); }
+        
+        const selectorCap = document.getElementById('capPeriodSelector');
+        if (selectorCap) selectorCap.addEventListener('change', loadCapacitaciones);
+
+
+        const btnCopy = document.getElementById('btnCopyAIText');
+        if (btnCopy) {
+            btnCopy.addEventListener('click', () => {
+                const contenido = document.getElementById('aiReportText');
+                if (!contenido || contenido.classList.contains('d-none')) return;
+
+                navigator.clipboard.writeText(contenido.innerText)
+                    .then(() => {
+                        const originalText = btnCopy.innerHTML;
+                        btnCopy.innerHTML = `<i class="bi bi-check-lg"></i> ¡Copiado!`;
+                        btnCopy.classList.replace('btn-outline-primary', 'btn-success');
+                        setTimeout(() => {
+                            btnCopy.innerHTML = originalText;
+                            btnCopy.classList.replace('btn-success', 'btn-outline-primary');
+                        }, 2000);
+                    })
+                    .catch(err => console.error('Error al copiar: ', err));
+            });
+        }
+
+
+        const btnDownloadPDF_IA = document.getElementById('btnDownloadAIPDF');
+        if (btnDownloadPDF_IA) {
+            btnDownloadPDF_IA.addEventListener('click', async () => {
+                const contenido = document.getElementById('aiReportText');
+                if (!contenido || contenido.classList.contains('d-none')) return;
+
+                try {
+                    const res = await fetch('/dashboard/api/ultimo-pdf-ia/');
+                    const data = await res.json();
+
+                    if (data.url_pdf) {
+                        window.open(data.url_pdf, '_blank');
+                    } else {
+                        alert("No se encontró el archivo del informe en el servidor.");
+                    }
+                } catch (err) {
+                    console.error("Error al recuperar el archivo PDF:", err);
+                }
+            });
+        }
 
 
 
-    function ejecutarInforme() {
+        function ejecutarInforme() {
             const charts = [vacChart, attendanceChart, evalChart, payrollChart, deptChart, laborCostChart, capChart];
 
             charts.forEach(chart => {
@@ -1129,20 +1179,19 @@
                     }
                 });
             }, 500);
-    }
+        }
 
+        const btnDownloadPDF = document.getElementById('btnDownloadPDF');
+        if (btnDownloadPDF) {
+            btnDownloadPDF.addEventListener('click', ejecutarInforme);
+        }
 
-
-    const btnDownloadPDF = document.getElementById('btnDownloadPDF');
-    if (btnDownloadPDF) {
-        btnDownloadPDF.addEventListener('click', ejecutarInforme);
-    }
-
-    const btnPrintScreen = document.querySelector('button[onclick="window.print()"]');
-    if (btnPrintScreen) {
-        btnPrintScreen.removeAttribute('onclick');
-        btnPrintScreen.addEventListener('click', ejecutarInforme);
-    }
+        const btnPrintScreen = document.querySelector('button[onclick="window.print()"]');
+        if (btnPrintScreen) {
+            btnPrintScreen.removeAttribute('onclick');
+            btnPrintScreen.addEventListener('click', ejecutarInforme);
+        }
+    });
 
 
 })();
